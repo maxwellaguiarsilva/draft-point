@@ -26,6 +26,7 @@
 #define hpp278153203
 
 #include <string>
+#include <termios.h> // Required for termios struct
 
 namespace tui
 {
@@ -36,7 +37,7 @@ using	::std::string;
 class terminal
 {
 public:
-	enum color
+	enum class color
 	{
 		 black			=	30
 		,red			=	31
@@ -49,9 +50,7 @@ public:
 		,default_color	=	39
 	};
 
-	
-
-	enum text_style
+	enum class text_style
 	{
 		 reset			=	0
 		,bold			=	1
@@ -74,11 +73,19 @@ public:
 	terminal& operator=( terminal&& ) = delete;
 
 	void refresh( );
-	void clear_screen( );
+	void clear_screen( bool full_reset = false );
 	void move_cursor( int row, int column );
 	void set_color( color color_code, bool flg_background = false );
 	void set_text_style( text_style style );
+	void set_raw_mode( bool enable );
 	void print( const string &text );
+	void print( int row, int column, const string &text );
+	int get_char( );
+	int get_terminal_width( );
+	int get_terminal_height( );
+
+private:
+	struct termios m_original_termios;
 
 };
 
