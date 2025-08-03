@@ -30,15 +30,19 @@
 #include <iostream>
 
 
+
+using	::tui::terminal;
+using	::std::string;
+using	::std::chrono::milliseconds;
+using	::std::chrono::high_resolution_clock;
+using	::std::this_thread::sleep_for;
+using	color		=	::tui::terminal::color;
+using	text_style	=	::tui::terminal::text_style;
+
+
+
 int main( )
 {
-	using	::tui::terminal;
-	using	::std::string;
-	using	::std::chrono::milliseconds;
-	using	::std::chrono::high_resolution_clock;
-	using	::std::this_thread::sleep_for;
-	using	color		=	::tui::terminal::color;
-	using	text_style	=	::tui::terminal::text_style;
 
 	terminal terminal;
 	terminal.set_color( color::cyan );
@@ -56,26 +60,21 @@ int main( )
 			int code = terminal.get_char( );
 			if( code != 0 )
 			{
-				switch( code )
+				switch( code >= 65 and code <= 90 ? code + 32 : code )
 				{
 					case 'a':
-					case 'A':
 						--char_x;
 						break;
 					case 'd':
-					case 'D':
 						++char_x;
 						break;
 					case 'w':
-					case 'W':
 						--char_y;
 						break;
 					case 's':
-					case 'S':
 						++char_y;
 						break;
 					case 'q':
-					case 'Q':
 						exit_loop = true;
 						break;
 				}
@@ -102,5 +101,6 @@ int main( )
 		std::cerr << "error: " << e.what( ) << "\n";
 		return 1;
 	}
-}
+
+}}
 
