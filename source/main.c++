@@ -42,7 +42,7 @@ using	text_style	=	::tui::terminal::text_style;
 
 
 int main( )
-{
+{{
 
 	terminal terminal;
 	terminal.set_color( color::cyan );
