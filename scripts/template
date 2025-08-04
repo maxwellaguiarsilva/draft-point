@@ -1,0 +1,59 @@
+#!/usr/bin/python
+
+
+import sys
+import subprocess
+import datetime
+
+
+
+def get_git_config_value( configuration_name ):
+    try:
+        command = [ "git", "config", "--global", configuration_name ]
+        process = subprocess.run( command, capture_output=True, text=True, check=True )
+        return process.stdout.strip( )
+    except subprocess.CalledProcessError:
+        return "value not found"
+
+
+class template:
+    def __init__( self, name, path = "docs/templates" ):
+        assert( self != "" )
+        self.path = path
+        self.content = self.load( name )
+        self._data = { }
+
+    def load( self, name ):
+        with open( f"{self.path}/{name}.txt", "r" ) as file:
+            return file.read( )
+
+    def run( self ):
+
+
+    @property
+    def text( self ):
+        text = self.content
+        for key, value in self.data.items( ):
+            text = processed_content.replace( f"{{key}}", str( value ) )
+        return  processed_content
+
+    @property
+    def data( self ):
+        return self._data
+
+    @data.setter
+    def data( self, new_data ):
+        self._data.update( new_data )
+
+model = template( sys.argv[1] or "class" )
+model.data = {
+     "num_year": datetime.datetime.now( ).strftime( "%Y" )
+    ,"des_full_name": get_git_config_value( "user.name" )
+    ,"des_email": get_git_config_value( "user.email" )
+    ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
+}
+
+print( model.text )
+
+
+
