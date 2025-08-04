@@ -3,18 +3,7 @@
 
 import sys
 import subprocess
-import datetime
-
-
-
-def get_git_config_value( configuration_name ):
-    try:
-        command = [ "git", "config", "--global", configuration_name ]
-        process = subprocess.run( command, capture_output=True, text=True, check=True )
-        return process.stdout.strip( )
-    except subprocess.CalledProcessError:
-        return "value not found"
-
+import re
 
 class template:
     def __init__( self, name, path = "docs/templates" ):
@@ -25,17 +14,16 @@ class template:
 
     def load( self, name ):
         with open( f"{self.path}/{name}.txt", "r" ) as file:
-            return file.read( )
-
-    def run( self ):
-
+            content = file.read( )
+        content = re.sub( r"\{\{import\s+([a-zA-Z0-9_-]+)\}\}", lambda match: self.load( match.group( 1 ) ), content )
+        return content
 
     @property
     def text( self ):
         text = self.content
         for key, value in self.data.items( ):
-            text = processed_content.replace( f"{{key}}", str( value ) )
-        return  processed_content
+            text = text.replace( f"{{{{{key}}}}}", str( value ) )
+        return  text
 
     @property
     def data( self ):
@@ -45,15 +33,32 @@ class template:
     def data( self, new_data ):
         self._data.update( new_data )
 
-model = template( sys.argv[1] or "class" )
+
+
+#   just a test to see if it works
+import datetime
+import time
+def get_git_config_value( configuration_name ):
+    try:
+        command = [ "git", "config", "--global", configuration_name ]
+        process = subprocess.run( command, capture_output=True, text=True, check=True )
+        return process.stdout.strip( )
+    except subprocess.CalledProcessError:
+        return "value not found"
+
+model = template( "class" )
 model.data = {
      "num_year": datetime.datetime.now( ).strftime( "%Y" )
     ,"des_full_name": get_git_config_value( "user.name" )
     ,"des_email": get_git_config_value( "user.email" )
     ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
+    ,"class_name": "screen"
+    ,"namespace_list": [ "tui" ]
+    ,"using_list": [ "string", "ncurses.h" ]
+    ,"header_guard": f"hpp{ str( time.time_ns( ) )[-9:] }"
 }
-
 print( model.text )
+
 
 
 
