@@ -50,5 +50,6 @@ This document outlines the steps for quickly pushing code changes to GitHub with
     ```bash
     git status
     git diff
+    git branch -a
     ```
 

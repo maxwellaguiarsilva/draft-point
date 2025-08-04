@@ -62,5 +62,6 @@ This document outlines the steps for pushing code changes to GitHub.
     ```bash
     git status
     git diff
+    git branch -a
     ```
 
