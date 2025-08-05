@@ -1,64 +1,81 @@
 #!/usr/bin/python
 
 
-import sys
-import subprocess
 import re
+
+r_import        =   r"\{\{import\s+([a-zA-Z0-9_-]+)\}\}"
+r_list_open     =   r"\{\{list_open\s+([a-zA-Z0-9_-]+)\}\}"
+r_list_close    =   r"\{\{list_close\s+([a-zA-Z0-9_-]+)\}\}"
+r_list_item     =   r"\{\{list_item\s+([a-zA-Z0-9_-]+)\}\}"
 
 class template:
     def __init__( self, name, path = "docs/templates" ):
         assert( self != "" )
         self.path = path
-        self.content = self.load( name )
-        self._data = { }
-
+        self.text = self.load( name )
+    
     def load( self, name ):
         with open( f"{self.path}/{name}.txt", "r" ) as file:
-            content = file.read( )
-        content = re.sub( r"\{\{import\s+([a-zA-Z0-9_-]+)\}\}", lambda match: self.load( match.group( 1 ) ), content )
-        return content
-
-    @property
-    def text( self ):
-        text = self.content
-        for key, value in self.data.items( ):
-            text = text.replace( f"{{{{{key}}}}}", str( value ) )
+            text = file.read( )
+        text = re.sub( r_import, lambda match: self.load( match.group( 1 ) ), text )
         return  text
-
-    @property
-    def data( self ):
-        return self._data
-
-    @data.setter
-    def data( self, new_data ):
-        self._data.update( new_data )
-
+    
+    def run( self, data: dict ) -> str:
+        text = self.text
+        for key, value in data.items( ):
+            if isinstance( value, str ):
+                text = text.replace( f"{{{{{key}}}}}", str( value ) )
+            elif isinstance( value, list ):
+                r_key = (
+                        r"\{\{list_open\s+"
+                    +   re.escape( key )
+                    +   r"\}\}(.*?)\{\{list_close\s+"
+                    +   re.escape( key )
+                    +   r"\}\}"
+                )
+                r_item = (
+                        r"\{\{list_item\s+"
+                    +   re.escape( key )
+                    +   r"\}\}"
+                )
+                text = re.sub(
+                     r_key
+                    ,lambda match: "".join( [ re.sub( r_item, item, match.group( 1 ) ) for item in value ] )
+                    ,text
+                    ,flags = re.DOTALL
+                )
+        return  text
+    
 
 
 #   just a test to see if it works
+import subprocess
 import datetime
 import time
 def get_git_config_value( configuration_name ):
     try:
         command = [ "git", "config", "--global", configuration_name ]
         process = subprocess.run( command, capture_output=True, text=True, check=True )
-        return process.stdout.strip( )
+        return  process.stdout.strip( )
     except subprocess.CalledProcessError:
-        return "value not found"
+        return  "value not found"
 
 model = template( "class" )
-model.data = {
+hierarchy_list="tui/screen".split( "/" )
+data = {
      "num_year": datetime.datetime.now( ).strftime( "%Y" )
     ,"des_full_name": get_git_config_value( "user.name" )
     ,"des_email": get_git_config_value( "user.email" )
     ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
-    ,"class_name": "screen"
-    ,"namespace_list": [ "tui" ]
-    ,"using_list": [ "string", "ncurses.h" ]
+    ,"des_file_path": "/".join( hierarchy_list ) + ".hpp"
+    ,"class_name": hierarchy_list[-1]
+    ,"namespace_list": hierarchy_list[:-1]
+    ,"include_list": [ "string", "ncurses.h" ]
+    ,"using_list": [ "::std::string" ]
     ,"header_guard": f"hpp{ str( time.time_ns( ) )[-9:] }"
 }
-print( model.text )
 
-
+result = model.run( data )
+print( result )
 
 
