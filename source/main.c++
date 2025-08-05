@@ -51,6 +51,8 @@ int main( )
 	{
 		int char_y = 10;
 		int char_x = 10;
+		int width = terminal.get_width( );
+		int height = terminal.get_height( );
 
 		bool exit_loop = false;
 		while( true )
@@ -60,6 +62,8 @@ int main( )
 			char code = terminal.get_char( );
 			if( code != 0 )
 			{
+				terminal.set_color( color::cyan );
+				terminal.print( char_x, char_y, "\u2588" );
 				switch( code >= 65 and code <= 90 ? code + 32 : code )
 				{
 					case 'a':
@@ -78,11 +82,14 @@ int main( )
 						exit_loop = true;
 						break;
 				}
+				char_x += width; char_x %= width;
+				char_y += height; char_y %= height;
 			}
 			
 			if( exit_loop )
 				break;
 
+			terminal.set_color( color::white );
 			terminal.print( char_x, char_y, "\u2588" );
 			terminal.refresh( );
 

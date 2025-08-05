@@ -46,6 +46,7 @@ using	text_style	=	::tui::terminal::text_style;
 terminal::terminal( )
 {
 	assert( tcgetattr( STDIN_FILENO, &m_original_termios ) != 1 );
+	assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) != 1 );
 	clear_screen( true );
 	set_raw_mode( true );
 }
@@ -94,8 +95,8 @@ const char terminal::get_char( )
 	return static_cast<int>( c );
 }
 
-const int terminal::get_width( )  { return assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) != -1 && m_ws.ws_col > 0 ), m_ws.ws_col; }
-const int terminal::get_height( ) { return assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) != -1 && m_ws.ws_col > 0 ), m_ws.ws_row; }
+const int terminal::get_width( )  { return m_ws.ws_col; }
+const int terminal::get_height( ) { return m_ws.ws_row; }
 
 
 };

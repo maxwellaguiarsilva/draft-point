@@ -70,8 +70,7 @@ public:
 	terminal( );
 	virtual ~terminal( );
 
-	set_copy_ctc_off( terminal )
-	set_move_ctc_off( terminal )
+	disable_copy_move_ctc( terminal );
 
 	void refresh( );
 	void clear_screen( bool full_reset = false );

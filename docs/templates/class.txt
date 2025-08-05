@@ -5,7 +5,7 @@
 #ifndef {{header_guard}}
 #define {{header_guard}}
 
-{{list_open include_list}}
+#include <sak.hpp>{{list_open include_list}}
 #include <{{list_item include_list}}>{{list_close include_list}}
 
 {{list_open namespace_list}}
@@ -22,10 +22,7 @@ public:
 	{{class_name}}( );
 	virtual ~{{class_name}}( );
 
-	{{class_name}}( const {{class_name}}& ) = delete;
-	{{class_name}}& operator=( const {{class_name}}& ) = delete;
-	{{class_name}}( {{class_name}}&& ) = delete;
-	{{class_name}}& operator=( {{class_name}}&& ) = delete;
+	disable_copy_move_ctc( {{class_name}} );
 
 };
 
