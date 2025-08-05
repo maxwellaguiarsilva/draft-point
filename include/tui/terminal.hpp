@@ -21,18 +21,21 @@
  * Created on 2025-08-03 14:35
  */
 
+
+
 #pragma once
 #ifndef hpp278153203
 #define hpp278153203
 
-#include <string>
-#include <termios.h> // Required for termios struct
+
+#include <sak.hpp>
+#include <termios.h>
+
 
 namespace tui
 {
 
 
-using	::std::string;
 
 class terminal
 {
@@ -67,10 +70,8 @@ public:
 	terminal( );
 	virtual ~terminal( );
 
-	terminal( const terminal& ) = delete;
-	terminal& operator=( const terminal& ) = delete;
-	terminal( terminal&& ) = delete;
-	terminal& operator=( terminal&& ) = delete;
+	set_copy_ctc_off( terminal )
+	set_move_ctc_off( terminal )
 
 	void refresh( );
 	void clear_screen( bool full_reset = false );

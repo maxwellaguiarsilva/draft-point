@@ -26,13 +26,14 @@
 #include <tui/terminal.hpp>
 #include <format>
 #include <iostream>
-#include <cassert>
-#include <unistd.h> // For STDIN_FILENO, read
-#include <sys/ioctl.h> // For TIOCGWINSZ
-#include <cstdio> // For perror
+#include <unistd.h>		//	For STDIN_FILENO, read
+#include <sys/ioctl.h>	//	For TIOCGWINSZ
+
+
 
 namespace tui
 {
+
 
 using ::std::cout;
 using ::std::flush;
@@ -44,8 +45,7 @@ using	text_style	=	::tui::terminal::text_style;
 
 terminal::terminal( )
 {
-	if( tcgetattr( STDIN_FILENO, &m_original_termios ) == -1 )
-		perror( "tcgetattr" );
+	assert( tcgetattr( STDIN_FILENO, &m_original_termios ) != 1 );
 	clear_screen( true );
 	set_raw_mode( true );
 }
@@ -56,17 +56,15 @@ void terminal::set_raw_mode( bool enable )
 	set_cursor( !enable );
 	if( enable )
 	{
-		struct termios raw = m_original_termios;
+		auto raw = m_original_termios;
 		raw.c_lflag &= ~( ECHO | ICANON ); // Disable echo and canonical mode
 		raw.c_cc[VMIN] = 0; // Minimum number of characters for non-canonical read
 		raw.c_cc[VTIME] = 0; // Timeout in deciseconds for non-canonical read
 
-		if ( tcsetattr( STDIN_FILENO, TCSAFLUSH, &raw ) == -1 )
-			perror( "tcsetattr" );
+		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &raw ) != 1 );
 	}
 	else
-		if ( tcsetattr( STDIN_FILENO, TCSAFLUSH, &m_original_termios ) == -1 )
-			perror( "tcsetattr" );
+		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &m_original_termios ) != 1 );
 }
 
 void terminal::refresh( ) { cout << flush; }
