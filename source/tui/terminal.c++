@@ -26,6 +26,7 @@
 #include <tui/terminal.hpp>
 #include <format>
 #include <iostream>
+#include <cassert>
 #include <unistd.h> // For STDIN_FILENO, read
 #include <sys/ioctl.h> // For TIOCGWINSZ
 #include <cstdio> // For perror
@@ -43,23 +44,18 @@ using	text_style	=	::tui::terminal::text_style;
 
 terminal::terminal( )
 {
+	if( tcgetattr( STDIN_FILENO, &m_original_termios ) == -1 )
+		perror( "tcgetattr" );
+	clear_screen( true );
 	set_raw_mode( true );
-	clear_screen( true );
 }
-terminal::~terminal( )
-{
-	set_raw_mode( false );
-	clear_screen( true );
-}
-
+terminal::~terminal( ) { clear_screen( true ); }
 
 void terminal::set_raw_mode( bool enable )
 {
+	set_cursor( !enable );
 	if( enable )
 	{
-		if( tcgetattr( STDIN_FILENO, &m_original_termios ) == -1 )
-			perror( "tcgetattr" );
-
 		struct termios raw = m_original_termios;
 		raw.c_lflag &= ~( ECHO | ICANON ); // Disable echo and canonical mode
 		raw.c_cc[VMIN] = 0; // Minimum number of characters for non-canonical read
@@ -74,45 +70,34 @@ void terminal::set_raw_mode( bool enable )
 }
 
 void terminal::refresh( ) { cout << flush; }
-void terminal::clear_screen( bool full_reset ) {
-	cout << "\033[2J";
-	if( !full_reset )
-		return;
-	set_text_style( text_style::reset );
-	move_cursor( 0, 0 );
+void terminal::clear_screen( bool full_reset )
+{
+	if( full_reset )
+		set_text_style( text_style::reset );
+		set_raw_mode( false );
+		move_cursor( 0, 0 );
+	print( "\033[2J" );
 }
-void terminal::move_cursor( int row, int column ) { cout << format( "\033[{};{}H", column, row ); }
-void terminal::print( const string &text ) { cout << text; }
-void terminal::print( int row, int column, const string &text )
+void terminal::move_cursor( int row, int column ) { print( format( "\033[{};{}H", column, row ) ); }
+void terminal::set_cursor( bool enable ) { print( enable ? "\033[?25h" : "\033[?25l" ); }
+void terminal::print( const string &text ) { cout << text << flush; }
+void terminal::print( int row, int column, const string& text )
 {
 	move_cursor( row, column );
 	print( text );
 }
-void terminal::set_text_style( text_style style ) { cout << format( "\033[{}m", static_cast<int>( style ) ); }
-void terminal::set_color( color color, bool background ) { cout << format( "\033[{}m", static_cast<int>( color ) + ( background ? 10 : 0 ) ); }
+void terminal::set_text_style( text_style style ) { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
+void terminal::set_color( color color, bool background ) { print( format( "\033[{}m", static_cast<int>( color ) + ( background ? 10 : 0 ) ) ); }
 
-int terminal::get_char( )
+const char terminal::get_char( )
 {
 	char c;
 	read( STDIN_FILENO, &c, 1 );
 	return static_cast<int>( c );
 }
 
-int terminal::get_terminal_width( )
-{
-	struct winsize ws;
-	if ( ioctl( STDOUT_FILENO, TIOCGWINSZ, &ws ) == -1 || ws.ws_col == 0 )
-		return 80; // Default to 80 if unable to get width
-	return ws.ws_col;
-}
-
-int terminal::get_terminal_height( )
-{
-	struct winsize ws;
-	if ( ioctl( STDOUT_FILENO, TIOCGWINSZ, &ws ) == -1 || ws.ws_row == 0 )
-		return 24; // Default to 24 if unable to get height
-	return ws.ws_row;
-}
+const int terminal::get_width( )  { return assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) != -1 && m_ws.ws_col > 0 ), m_ws.ws_col; }
+const int terminal::get_height( ) { return assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) != -1 && m_ws.ws_col > 0 ), m_ws.ws_row; }
 
 
 };

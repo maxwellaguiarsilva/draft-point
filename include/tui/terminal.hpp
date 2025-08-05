@@ -75,17 +75,19 @@ public:
 	void refresh( );
 	void clear_screen( bool full_reset = false );
 	void move_cursor( int row, int column );
+	void set_cursor( bool enable );
 	void set_color( color color_code, bool flg_background = false );
 	void set_text_style( text_style style );
 	void set_raw_mode( bool enable );
-	void print( const string &text );
+	void print( const string& text );
 	void print( int row, int column, const string &text );
-	int get_char( );
-	int get_terminal_width( );
-	int get_terminal_height( );
+	const char get_char( );
+	const int get_width( );
+	const int get_height( );
 
 private:
 	struct termios m_original_termios;
+	struct winsize m_ws;
 
 };
 

@@ -57,7 +57,7 @@ int main( )
 		{
 			auto start_time = high_resolution_clock::now( );
 
-			int code = terminal.get_char( );
+			char code = terminal.get_char( );
 			if( code != 0 )
 			{
 				switch( code >= 65 and code <= 90 ? code + 32 : code )
@@ -95,12 +95,13 @@ int main( )
 		}
 		terminal.clear_screen( );
 
-		return 0;
 	} catch( const ::std::exception& e )
 	{
 		std::cerr << "error: " << e.what( ) << "\n";
-		return 1;
+		return	1;
 	}
+
+	return	0;
 
 }}
 
