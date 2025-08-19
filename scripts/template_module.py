@@ -48,34 +48,3 @@ class template:
     
 
 
-#   just a test to see if it works
-import subprocess
-import datetime
-import time
-def get_git_config_value( configuration_name ):
-    try:
-        command = [ "git", "config", "--global", configuration_name ]
-        process = subprocess.run( command, capture_output=True, text=True, check=True )
-        return  process.stdout.strip( )
-    except subprocess.CalledProcessError:
-        return  "value not found"
-
-model = template( "class" )
-hierarchy_list="tui/screen".split( "/" )
-data = {
-     "num_year": datetime.datetime.now( ).strftime( "%Y" )
-    ,"des_full_name": get_git_config_value( "user.name" )
-    ,"des_email": get_git_config_value( "user.email" )
-    ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
-    ,"des_file_path": "/".join( hierarchy_list ) + ".hpp"
-    ,"class_name": hierarchy_list[-1]
-    ,"namespace_list": hierarchy_list[:-1]
-    ,"include_list": [ "string", "ncurses.h" ]
-    ,"using_list": [ "::std::string" ]
-    ,"header_guard": f"hpp{ str( time.time_ns( ) )[-9:] }"
-}
-
-result = model.run( data )
-print( result )
-
-
