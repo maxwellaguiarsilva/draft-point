@@ -5,7 +5,7 @@ import sys
 import subprocess
 import datetime
 import time
-from template_module import template
+from template import template
 
 
 def get_git_config_value( configuration_name ):
@@ -16,9 +16,13 @@ def get_git_config_value( configuration_name ):
     except subprocess.CalledProcessError:
         return  "value not found"
 
-def	create_class( class_hierarchy : str, output_directory: str ):
+def get_if_null( data: dict, key: str, alternative ):
+    return  key in data and data[ key ] or alternative
+
+def	create_class( class_hierarchy : str, config: dict = { } ):
     model = template( "class" )
     hierarchy_list=class_hierarchy.split( "/" )
+    output_directory = get_if_null( config, "output_directory", "include" )
     file_path = f"{output_directory}/{'/'.join( hierarchy_list )}.hpp"
     result = model.run( {
          "num_year": datetime.datetime.now( ).strftime( "%Y" )
@@ -28,8 +32,8 @@ def	create_class( class_hierarchy : str, output_directory: str ):
         ,"des_file_path": "/".join( hierarchy_list ) + ".hpp"
         ,"class_name": hierarchy_list[-1]
         ,"namespace_list": hierarchy_list[:-1]
-        ,"include_list": [ "string", "sak.hpp" ]
-        ,"using_list": [ "::std::string" ]
+        ,"include_list": [ "string" ] + get_if_null( config, "include_list", [ ] )
+        ,"using_list": [ "::std::string" ] + get_if_null( config, "using_list", [ ] )
         ,"header_guard": f"hpp{ str( time.time_ns( ) )[-9:] }"
     } )
     # Ensure the directory exists before writing the file
