@@ -18,3 +18,40 @@ dist/
 .idea/
 *.swp
 *~
+
+# python
+
+# Byte-code files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Editors
+.vscode/
+.idea/
+
+# Misc
+*.log
+*.sqlite3
+*.db
+
+# Gemini CLI specific ignores
+.gemini/
+

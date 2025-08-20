@@ -16,9 +16,10 @@ def get_git_config_value( configuration_name ):
     except subprocess.CalledProcessError:
         return  "value not found"
 
-def	create_class( class_hierarchy : str ):
+def	create_class( class_hierarchy : str, output_directory: str ):
     model = template( "class" )
     hierarchy_list=class_hierarchy.split( "/" )
+    file_path = f"{output_directory}/{'/'.join( hierarchy_list )}.hpp"
     result = model.run( {
          "num_year": datetime.datetime.now( ).strftime( "%Y" )
         ,"des_full_name": get_git_config_value( "user.name" )
@@ -31,13 +32,19 @@ def	create_class( class_hierarchy : str ):
         ,"using_list": [ "::std::string" ]
         ,"header_guard": f"hpp{ str( time.time_ns( ) )[-9:] }"
     } )
-    return  result
+    # Ensure the directory exists before writing the file
+    subprocess.run( [ "mkdir", "-p", "/".join( file_path.split( "/" )[:-1] ) ] )
+    with open( file_path, "w" ) as f:
+        f.write( result )
+    return  file_path
 
 
 
 
 if __name__ == "__main__":
-       print( create_class( sys.argv[ 1 ] ) )
+       output_dir = "include"
+       created_file = create_class( sys.argv[ 1 ], output_dir )
+       print( f"Created file: {created_file}" )
 
 
 
