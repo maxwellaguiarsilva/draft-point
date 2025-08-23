@@ -23,18 +23,18 @@ def	create_class( class_hierarchy : str, config: dict = { } ):
     model = template( "class" )
     hierarchy_list=class_hierarchy.split( "/" )
     output_directory = get_if_null( config, "output_directory", "include" )
-    file_path = f"{output_directory}/{'/'.join( hierarchy_list )}.hpp"
+    file_path = f"{output_directory}/{'/'.join( hierarchy_list )}.h++"
     result = model.run( {
          "num_year": datetime.datetime.now( ).strftime( "%Y" )
         ,"des_full_name": get_git_config_value( "user.name" )
         ,"des_email": get_git_config_value( "user.email" )
         ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
-        ,"des_file_path": "/".join( hierarchy_list ) + ".hpp"
+        ,"des_file_path": "/".join( hierarchy_list ) + ".h++"
         ,"class_name": hierarchy_list[-1]
         ,"namespace_list": hierarchy_list[:-1]
         ,"include_list": [ "string" ] + get_if_null( config, "include_list", [ ] )
         ,"using_list": [ "::std::string" ] + get_if_null( config, "using_list", [ ] )
-        ,"header_guard": f"hpp{ str( time.time_ns( ) )[-9:] }"
+        ,"header_guard": f"header_guard_{ str( time.time_ns( ) )[-9:] }"
     } )
     # Ensure the directory exists before writing the file
     subprocess.run( [ "mkdir", "-p", "/".join( file_path.split( "/" )[:-1] ) ] )

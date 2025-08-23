@@ -26,7 +26,7 @@
 
 #pragma once
 #ifndef hpp039286706
-#define hpp039286706
+#define header_guard_039286706
 
 
 #include <string>

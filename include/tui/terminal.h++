@@ -24,8 +24,8 @@
 
 
 #pragma once
-#ifndef hpp278153203
-#define hpp278153203
+#ifndef header_guard_278153203
+#define header_guard_278153203
 
 
 #include <sak.hpp>
@@ -63,7 +63,7 @@ public:
 		,slow_blink		=	5
 		,rapid_blink	=	6
 		,reverse		=	7
-		,hide			=	8	//	not widely supported
+		,hide			=	8
 		,crossed_out	=	9
 	};
 

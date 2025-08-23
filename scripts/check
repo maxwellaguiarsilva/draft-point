@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+#	this script checks file naming conventions
+
+#	function to ensure correct file extensions
+#	in source/, tests/, and include/ directories
+file_name_extension( )
+{
+	local -i errors=0
+
+	#	check source/ directory for .c++ extension
+	for file in source/*;
+	do
+		if [[ -f "${file}" ]];
+		then
+			local extension="${file##*.}"
+			if [[ "${extension}" != "c++" ]];
+			then
+				printf %b "error: file '${file}' in source/ has incorrect extension '.${extension}'\nexpected '.c++'\n"
+				errors=$((errors + 1))
+			fi
+		fi
+	done
+
+	#	check tests/ directory for .c++ extension
+	#	(assuming tests/ might exist later)
+	if [[ -d "tests/" ]];
+	then
+		for file in tests/*;
+		do
+			if [[ -f "${file}" ]];
+			then
+				local extension="${file##*.}"
+				if [[ "${extension}" != "c++" ]];
+				then
+					printf %b "error: file '${file}' in tests/ has incorrect extension '.${extension}'\nexpected '.c++'\n"
+					errors=$((errors + 1))
+				fi
+			fi
+		done
+	fi
+
+	#	check include/ directory for .h++ extension
+	for file in include/*;
+	do
+		if [[ -f "${file}" ]];
+		then
+			local extension="${file##*.}"
+			if [[ "${extension}" != "h++" ]];
+			then
+				printf %b "error: file '${file}' in include/ has incorrect extension '.${extension}'\nexpected '.h++'\n"
+				errors=$((errors + 1))
+			fi
+		fi
+	done
+
+	if [[ "${errors}" -eq 0 ]];
+	then
+		printf %b "all file extensions are correct\n"
+	else
+		printf %b "found ${errors} file extension errors\n"
+		return 1
+	fi
+}
+
+#	main script logic to invoke functions based on arguments
+for arg in "${@}";
+do
+	#	replace hyphens with underscores to match function names
+	function_name="${arg//-/_}"
+
+	#	check if the function exists and then call it
+	if declare -f "${function_name}" > /dev/null;
+	then
+		"${function_name}"
+	else
+		printf %b "error: function '${function_name}' not found\n"
+		exit 1
+	fi
+done
+
+
