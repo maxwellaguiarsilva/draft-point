@@ -67,24 +67,14 @@ int main( )
 				terminal.print( char_x, char_y, "\u2588" );
 				switch( code >= 65 and code <= 90 ? code + 32 : code )
 				{
-					case 'a':
-						--char_x;
-						break;
-					case 'd':
-						++char_x;
-						break;
-					case 'w':
-						--char_y;
-						break;
-					case 's':
-						++char_y;
-						break;
-					case 'q':
-						exit_loop = true;
-						break;
+					case 'a': --char_x; break;
+					case 'd': ++char_x; break;
+					case 'w': --char_y; break;
+					case 's': ++char_y; break;
+					case 'q': exit_loop = true; break;
 				}
-				char_x += width; char_x %= width;
-				char_y += height; char_y %= height;
+				char_x += width;	char_x %= width;
+				char_y += height;	char_y %= height;
 			}
 			
 			if( exit_loop )
@@ -92,7 +82,6 @@ int main( )
 
 			terminal.set_color( color::white );
 			terminal.print( char_x, char_y, "\u2588" );
-			terminal.print( 0, 0, "\u2588" );
 			terminal.refresh( );
 
 			auto end_time = high_resolution_clock::now( );

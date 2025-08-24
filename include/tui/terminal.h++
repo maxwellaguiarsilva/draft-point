@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   tui/terminal.hpp
+ * File:   tui/terminal.h++
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-08-03 14:35

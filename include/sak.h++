@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   sak.hpp
+ * File:   sak.h++
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-08-05 17:28
@@ -25,7 +25,7 @@
 
 
 #pragma once
-#ifndef hpp039286706
+#ifndef header_guard_039286706
 #define header_guard_039286706
 
 

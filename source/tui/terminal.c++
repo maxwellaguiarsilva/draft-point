@@ -21,13 +21,13 @@
  * Created on 2025-08-03 14:35
  */
 
-
+//	ignore-no-comments-rule
 
 #include <tui/terminal.h++>
 #include <format>
 #include <iostream>
-#include <unistd.h>		//	For STDIN_FILENO, read
-#include <sys/ioctl.h>	//	For TIOCGWINSZ
+#include <unistd.h>		//	STDIN_FILENO, read
+#include <sys/ioctl.h>	//	TIOCGWINSZ
 
 
 
@@ -58,10 +58,9 @@ void terminal::set_raw_mode( bool enable )
 	if( enable )
 	{
 		auto raw = m_original_termios;
-		raw.c_lflag &= ~( ECHO | ICANON ); // Disable echo and canonical mode
-		raw.c_cc[VMIN] = 0; // Minimum number of characters for non-canonical read
-		raw.c_cc[VTIME] = 0; // Timeout in deciseconds for non-canonical read
-
+		raw.c_lflag		&=	~( ECHO | ICANON );	//	disable echo and canonical mode
+		raw.c_cc[VMIN]	=	0;	//	minimum number of characters for non-canonical read
+		raw.c_cc[VTIME]	=	0;	//	timeout in deciseconds for non-canonical read
 		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &raw ) != 1 );
 	}
 	else
@@ -72,9 +71,11 @@ void terminal::refresh( ) { cout << flush; }
 void terminal::clear_screen( bool full_reset )
 {
 	if( full_reset )
+	{
 		set_text_style( text_style::reset );
 		set_raw_mode( false );
 		move_cursor( 0, 0 );
+	}
 	print( "\033[2J" );
 }
 void terminal::move_cursor( int row, int column ) { print( format( "\033[{};{}H", column, row ) ); }
