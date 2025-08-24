@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   tui/terminal.h++
+ * File:   tui/terminal.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-08-03 14:35
@@ -28,7 +28,7 @@
 #define header_guard_278153203
 
 
-#include <sak.h++>
+#include <sak.hpp>
 #include <termios.h>
 
 

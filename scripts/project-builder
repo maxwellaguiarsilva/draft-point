@@ -6,7 +6,7 @@ declare -A folders
 declare -a lib_list
 
 project[cpp_version]="${project[cpp_version]:-"c++23"}"
-project[file_extension]="${file_extension:-"c++"}"
+project[file_extension]="${file_extension:-"cpp"}"
 project[file_filter]="${project[file_filter]:-"*.${project[file_extension]}"}"
 project[main_regexp]="${project[main_regexp]:-"\\bint\\s+main\\s*\\("}"
 folders[source]="${folders[source]:-"source"}"

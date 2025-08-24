@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   tui/terminal.c++
+ * File:   tui/terminal.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-08-03 14:35
@@ -23,7 +23,7 @@
 
 //	ignore-no-comments-rule
 
-#include <tui/terminal.h++>
+#include <tui/terminal.hpp>
 #include <format>
 #include <iostream>
 #include <unistd.h>		//	STDIN_FILENO, read

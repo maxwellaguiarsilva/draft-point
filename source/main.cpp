@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   main.c++
+ * File:   main.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-08-02 10:00
@@ -26,7 +26,7 @@
 #include <string>
 #include <chrono>
 #include <thread>
-#include <tui/terminal.h++>
+#include <tui/terminal.hpp>
 #include <iostream>
 
 
