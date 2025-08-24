@@ -28,6 +28,7 @@
 #include <thread>
 #include <tui/terminal.hpp>
 #include <iostream>
+#include <game/player.hpp>
 
 
 
@@ -39,6 +40,8 @@ using	::std::chrono::duration_cast;
 using	::std::this_thread::sleep_for;
 using	color		=	::tui::terminal::color;
 using	text_style	=	::tui::terminal::text_style;
+using	::game::player;
+
 
 
 
@@ -50,10 +53,8 @@ int main( )
 
 	try
 	{
-		int char_y = 10;
-		int char_x = 10;
-		int width = terminal.get_width( );
-		int height = terminal.get_height( );
+		player player{ terminal, 10, 10 };
+		player.draw( );
 
 		bool exit_loop = false;
 		while( true )
@@ -63,25 +64,19 @@ int main( )
 			char code = terminal.get_char( );
 			if( code != 0 )
 			{
-				terminal.set_color( color::cyan );
-				terminal.print( char_x, char_y, "\u2588" );
 				switch( code >= 65 and code <= 90 ? code + 32 : code )
 				{
-					case 'a': --char_x; break;
-					case 'd': ++char_x; break;
-					case 'w': --char_y; break;
-					case 's': ++char_y; break;
+					case 'a': player.move( player::movement::left ); break;
+					case 'd': player.move( player::movement::right ); break;
+					case 'w': player.move( player::movement::up ); break;
+					case 's': player.move( player::movement::down ); break;
 					case 'q': exit_loop = true; break;
 				}
-				char_x += width;	char_x %= width;
-				char_y += height;	char_y %= height;
 			}
 			
 			if( exit_loop )
 				break;
 
-			terminal.set_color( color::white );
-			terminal.print( char_x, char_y, "\u2588" );
 			terminal.refresh( );
 
 			auto end_time = high_resolution_clock::now( );
@@ -102,4 +97,5 @@ int main( )
 	return	0;
 
 }}
+
 
