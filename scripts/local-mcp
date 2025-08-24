@@ -1,0 +1,30 @@
+#!/usr/bin/python3
+
+
+from fastmcp import FastMCP
+from create_class import create_class as orignal_create_class
+
+#   create an mcp server instance
+mcp = FastMCP( name="Local project MCP Tools" )
+
+@mcp.tool()
+def	create_class( class_hierarchy : str, config: dict = { } ) -> bool:
+    """creates a class in the current project using templates
+    class_hierarchy: str # required: example: game/player, tui/window, utils/my_class
+    config: dict # optional: example: {
+         include_list: [ "vector", "map" ]
+        ,using_list: [ "::std::vector", "::std::map" ]
+    }
+    """
+    orignal_create_class( class_hierarchy, config )
+    return  True
+
+@mcp.tool()
+def get_random_number( num_start: int, num_end: int ) -> int:
+    """Returns a random integer between num_start and num_end."""
+    return random.randint(num_start, num_end)
+
+if __name__ == "__main__":
+    mcp.run()
+
+
