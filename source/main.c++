@@ -26,7 +26,7 @@
 #include <string>
 #include <chrono>
 #include <thread>
-#include <tui/terminal.hpp>
+#include <tui/terminal.h++>
 #include <iostream>
 
 
@@ -35,6 +35,7 @@ using	::tui::terminal;
 using	::std::string;
 using	::std::chrono::milliseconds;
 using	::std::chrono::high_resolution_clock;
+using	::std::chrono::duration_cast;
 using	::std::this_thread::sleep_for;
 using	color		=	::tui::terminal::color;
 using	text_style	=	::tui::terminal::text_style;
@@ -91,10 +92,11 @@ int main( )
 
 			terminal.set_color( color::white );
 			terminal.print( char_x, char_y, "\u2588" );
+			terminal.print( 0, 0, "\u2588" );
 			terminal.refresh( );
 
 			auto end_time = high_resolution_clock::now( );
-			auto frame_time = ::std::chrono::duration_cast<milliseconds>( end_time - start_time );
+			auto frame_time = duration_cast<milliseconds>( end_time - start_time );
 			milliseconds target_frame_time = milliseconds{ 1000 } / 60;
 
 			if( frame_time < target_frame_time )
