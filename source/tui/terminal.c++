@@ -96,8 +96,8 @@ const char terminal::get_char( )
 	return static_cast<int>( c );
 }
 
-const int terminal::get_width( )  { return m_ws.ws_col; }
-const int terminal::get_height( ) { return m_ws.ws_row; }
+const int terminal::get_width( )  const { return m_ws.ws_col; }
+const int terminal::get_height( ) const { return m_ws.ws_row; }
 
 
 };

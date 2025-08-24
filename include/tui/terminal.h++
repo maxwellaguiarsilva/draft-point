@@ -82,8 +82,8 @@ public:
 	void print( const string& text );
 	void print( int row, int column, const string &text );
 	const char get_char( );
-	const int get_width( );
-	const int get_height( );
+	const int get_width( ) const;
+	const int get_height( ) const;
 
 private:
 	struct termios m_original_termios;
