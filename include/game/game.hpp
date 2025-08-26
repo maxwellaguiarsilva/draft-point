@@ -18,27 +18,31 @@
  * File:   game/game.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-08-26 19:16
+ * Created on 2025-08-26 19:41
  */
 
 
 
 #pragma once
-#ifndef header_guard_501570953
-#define header_guard_501570953
+#ifndef header_guard_578639205
+#define header_guard_578639205
 
 #include <sak.hpp>
 #include <string>
-#include <tui/terminal>
-#include <game/player>
-#include <game/fps>
+#include <tui/terminal.hpp>
+#include <game/player.hpp>
+#include <game/fps.hpp>
 #include <vector>
 
 
 namespace game {
 
 
-
+using	::std::string;
+using	::tui::terminal;
+using	::game::player;
+using	::game::fps;
+using	::std::vector;
 
 
 class game

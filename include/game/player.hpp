@@ -15,15 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   game/game.cpp
+ * File:   game/player.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-08-26 19:41
+ * Created on 2025-08-24 15:14
  */
 
 
 
-#include <game/game.hpp>
+#pragma once
+#ifndef header_guard_185813530
+#define header_guard_185813530
+
+#include <sak.hpp>
+#include <string>
+#include <tui/terminal.hpp>
 
 
 namespace game {
@@ -31,16 +37,43 @@ namespace game {
 
 using	::std::string;
 using	::tui::terminal;
-using	::game::player;
-using	::game::fps;
-using	::std::vector;
 
 
-game::game( ) { };
-game::~game( ) { };
+class player
+{
+public:
+
+	enum class movement
+	{
+		 up
+		,down
+		,left
+		,right
+	};
+
+	player( terminal& terminal, int top, int left, const string& character = "\u2588" );
+	virtual ~player( );
+
+	disable_copy_move_ctc( player );
+
+	void draw( ) const;
+	void move( movement movement );
+
+private:
+
+	int m_top;
+	int m_left;
+	string m_character;
+	terminal& m_terminal;
+
+	void clear_old_position( );
+
+};
 
 
 } 
 
+
+#endif
 
 
