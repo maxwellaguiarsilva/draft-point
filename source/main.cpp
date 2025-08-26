@@ -29,19 +29,15 @@
 #include <tui/terminal.hpp>
 #include <iostream>
 #include <game/player.hpp>
-
+#include <game/fps.hpp>
 
 
 using	::tui::terminal;
 using	::std::string;
-using	::std::chrono::milliseconds;
-using	::std::chrono::high_resolution_clock;
-using	::std::chrono::duration_cast;
-using	::std::this_thread::sleep_for;
-using	color		=	::tui::terminal::color;
-using	text_style	=	::tui::terminal::text_style;
+using	color		= 	::tui::terminal::color;
+using	text_style	= 	::tui::terminal::text_style;
 using	::game::player;
-
+using	::game::fps;
 
 
 
@@ -56,11 +52,12 @@ int main( )
 		player player{ terminal, 10, 10 };
 		player.draw( );
 
+		fps fps{ terminal };
+		fps.show( 0, 0 );
+
 		bool exit_loop = false;
 		while( true )
 		{
-			auto start_time = high_resolution_clock::now( );
-
 			char code = terminal.get_char( );
 			if( code != 0 )
 			{
@@ -77,15 +74,10 @@ int main( )
 			if( exit_loop )
 				break;
 
+			fps.compute( );
 			terminal.refresh( );
-
-			auto end_time = high_resolution_clock::now( );
-			auto frame_time = duration_cast<milliseconds>( end_time - start_time );
-			milliseconds target_frame_time = milliseconds{ 1000 } / 60;
-
-			if( frame_time < target_frame_time )
-				sleep_for( target_frame_time - frame_time );
 		}
+		fps.hide( );
 		terminal.clear_screen( );
 
 	} catch( const ::std::exception& e )
@@ -97,5 +89,6 @@ int main( )
 	return	0;
 
 }}
+
 
 

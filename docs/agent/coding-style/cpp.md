@@ -77,7 +77,7 @@ Adhering to these guidelines ensures consistency and readability across the code
         count++;
         ```
 ##  6. **`using` Clauses:**
-    *   Use `using` clauses to avoid fully qualifying type names.
+    *   Use `using` clauses to avoid fully qualifying type names and functions.
     *   **Example:**
         ```cpp
         using ::std::chrono::high_resolution_clock;
@@ -85,7 +85,10 @@ Adhering to these guidelines ensures consistency and readability across the code
         auto start_time = high_resolution_clock::now( );
         ```
 
-##  7. **Main Function Scope:**
+##  7. **Static Variables:**
+    *   Avoid using static variables whenever possible, especially in functions or methods, due to potential thread-safety issues and hidden dependencies. Prefer class member variables or passing state explicitly.
+
+##  8. **Main Function Scope:**
     *   The `main` function must always contain an additional, explicit scope block `{}` immediately after its opening curly brace. This ensures that all stack-allocated objects within `main` have their destructors called before `main` exits, promoting predictable resource management.
     *   **Example (Good):**
         ```cpp
@@ -104,11 +107,11 @@ Adhering to these guidelines ensures consistency and readability across the code
         }
         ```
 
-##  8. Validation.
+##  9. Validation.
 *   After producing any code in C++, perform a final validation to ensure each of the previous items has been strictly followed.
     *   If any of them are not in compliance with this document, use the available tools to make the necessary adjustments.
 *   Do not consider the code to have been properly delivered until this validation is 100% okay.
 
-##  9. Validation with cppcheck.
+##  10. Validation with cppcheck.
 *   After completing the previous validation, perform a new validation using the "cppcheck" tool with `--enable=all --suppress=missingIncludeSystem`.
     *   If any part of the code is not in compliance with this document, use the available tools to make the necessary adjustments.
