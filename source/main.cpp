@@ -34,6 +34,8 @@
 
 using	::tui::terminal;
 using	::std::string;
+using	::std::exception;
+using	::std::cerr;
 using	color		= 	::tui::terminal::color;
 using	text_style	= 	::tui::terminal::text_style;
 using	::game::player;
@@ -80,9 +82,9 @@ int main( )
 		fps.hide( );
 		terminal.clear_screen( );
 
-	} catch( const ::std::exception& e )
+	} catch( const exception& e )
 	{
-		std::cerr << "error: " << e.what( ) << "\n";
+		cerr << "error: " << e.what( ) << "\n";
 		return	1;
 	}
 

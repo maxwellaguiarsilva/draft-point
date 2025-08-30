@@ -39,8 +39,8 @@ using	::std::to_string;
 
 
 fps::fps( terminal& terminal )
-	: 	m_terminal{ terminal }
-	, 	m_start_time{ high_resolution_clock::now( ) }
+	:m_terminal{ terminal }
+	,m_start_time{ high_resolution_clock::now( ) }
 { }
 
 
@@ -57,9 +57,9 @@ void fps::show( int left, int top )
 
 void fps::compute( )
 {
-	auto		end_time	=	high_resolution_clock::now( );
-	auto		frame_time	=	duration_cast<milliseconds>( end_time - m_start_time );
-	m_start_time			=	end_time;
+	auto	end_time	=	high_resolution_clock::now( );
+	auto	frame_time	=	duration_cast<milliseconds>( end_time - m_start_time );
+	m_start_time		=	end_time;
 
 	milliseconds target_frame_time = milliseconds{ 1000 } / m_limit;
 
@@ -73,8 +73,8 @@ void fps::compute( )
 
 void fps::hide( )
 {
-	m_terminal.print( m_top, m_left, "           " );
 	m_enable	=	false;
+	m_terminal.print( m_top, m_left, "           " );
 }
 
 
