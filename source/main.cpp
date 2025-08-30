@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU General License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
@@ -23,64 +23,22 @@
 
 
 
-#include <string>
-#include <chrono>
-#include <thread>
-#include <tui/terminal.hpp>
 #include <iostream>
-#include <game/player.hpp>
-#include <game/fps.hpp>
+#include <exception>
+#include <game/game.hpp>
 
 
-using	::tui::terminal;
-using	::std::string;
 using	::std::exception;
 using	::std::cerr;
-using	color		= 	::tui::terminal::color;
-using	text_style	= 	::tui::terminal::text_style;
-using	::game::player;
-using	::game::fps;
-
+using	::game::game;
 
 
 int main( )
 {{
-
-	terminal terminal;
-	terminal.set_color( color::cyan );
-
 	try
 	{
-		player player{ terminal, 10, 10 };
-		player.draw( );
-
-		fps fps{ terminal };
-		fps.show( 0, 0 );
-
-		bool exit_loop = false;
-		while( true )
-		{
-			char code = terminal.get_char( );
-			if( code != 0 )
-			{
-				switch( code >= 65 and code <= 90 ? code + 32 : code )
-				{
-					case 'a': player.move( player::movement::left ); break;
-					case 'd': player.move( player::movement::right ); break;
-					case 'w': player.move( player::movement::up ); break;
-					case 's': player.move( player::movement::down ); break;
-					case 'q': exit_loop = true; break;
-				}
-			}
-			
-			if( exit_loop )
-				break;
-
-			fps.compute( );
-			terminal.refresh( );
-		}
-		fps.hide( );
-		terminal.clear_screen( );
+		game game;
+		game.run( );
 
 	} catch( const exception& e )
 	{
@@ -89,8 +47,4 @@ int main( )
 	}
 
 	return	0;
-
 }}
-
-
-

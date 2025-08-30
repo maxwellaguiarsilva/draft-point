@@ -34,10 +34,48 @@ using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
 using	::std::vector;
+using	color		= 	::tui::terminal::color;
 
 
-game::game( ) { };
-game::~game( ) { };
+game::game( )
+	:m_terminal{}
+	,m_player{ m_terminal, 10, 10 }
+	,m_fps{ m_terminal }
+{ }
+game::~game( ) { }
+
+void game::run( )
+{
+	m_terminal.set_color( color::cyan );
+
+	m_player.draw( );
+	m_fps.show( 0, 0 );
+
+	bool exit_loop = false;
+	while( true )
+	{
+		char code = m_terminal.get_char( );
+		if( code != 0 )
+		{
+			switch( code >= 65 and code <= 90 ? code + 32 : code )
+			{
+				case 'a': m_player.move( player::movement::left ); break;
+				case 'd': m_player.move( player::movement::right ); break;
+				case 'w': m_player.move( player::movement::up ); break;
+				case 's': m_player.move( player::movement::down ); break;
+				case 'q': exit_loop = true; break;
+			}
+		}
+		
+		if( exit_loop )
+			break;
+
+		m_fps.compute( );
+		m_terminal.refresh( );
+	}
+	m_fps.hide( );
+	m_terminal.clear_screen( );
+}
 
 
 } 

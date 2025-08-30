@@ -54,6 +54,14 @@ public:
 
 	disable_copy_move_ctc( game );
 
+	void run( );
+
+private:
+
+	terminal	m_terminal;
+	player		m_player;
+	fps			m_fps;
+
 };
 
 
