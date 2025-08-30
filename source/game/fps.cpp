@@ -51,6 +51,7 @@ void fps::show( int left, int top )
 {
 	m_left	=	left;
 	m_top	=	top;
+	m_enable	=	true;
 }
 
 
@@ -65,13 +66,15 @@ void fps::compute( )
 	if( frame_time < target_frame_time )
 		sleep_for( target_frame_time - frame_time );
 
-	m_terminal.print( m_top, m_left, "fps: " + to_string( 1000 / frame_time.count( ) ) );
+	if( m_enable )
+		m_terminal.print( m_top, m_left, "fps: " + to_string( 1000 / frame_time.count( ) ) );
 }
 
 
 void fps::hide( )
 {
 	m_terminal.print( m_top, m_left, "           " );
+	m_enable	=	false;
 }
 
 

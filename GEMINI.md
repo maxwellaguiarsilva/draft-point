@@ -6,3 +6,5 @@
 - Before performing any procedure, or execute tools that generates or modifies programming code, I will consult the project's coding style rules,
   to ensure that the parameters passed to these tools for code generation will obey the guidelines.
 - Before responding that the request has been fulfilled, I will verify item by item that all requests have been met and that no instruction or request has been forgotten, especially for workflows.
+
+

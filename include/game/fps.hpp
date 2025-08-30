@@ -49,7 +49,7 @@ class fps
 {
 public:
 
-	fps( terminal& terminal );
+	explicit fps( terminal& terminal );
 	virtual ~fps( );
 
 	disable_copy_move_ctc( fps );
@@ -64,6 +64,7 @@ private:
 	int			m_left		=	0;
 	int			m_limit		=	60;
 	high_resolution_clock::time_point	m_start_time;
+	bool						m_enable	=	true;
 
 };
 

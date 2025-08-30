@@ -114,4 +114,7 @@ Adhering to these guidelines ensures consistency and readability across the code
 
 ##  10. Validation with cppcheck.
 *   After completing the previous validation, perform a new validation using the "cppcheck" tool with `--enable=all --suppress=missingIncludeSystem`.
-    *   If any part of the code is not in compliance with this document, use the available tools to make the necessary adjustments.
+    *   If the "cppcheck" tool returns any message, even if not critical, explain the reason and the probable proposed solution.
+
+
+

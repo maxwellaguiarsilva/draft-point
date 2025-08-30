@@ -24,7 +24,7 @@ def get_git_config_value( configuration_name ):
 
 @mcp.tool( )
 def	create_class( class_hierarchy : str, include_list: list[ str ] = [ ], using_list: list[ str ] = [ ] ) -> str:
-    """Creates a new C++ class with corresponding .hpp and .cpp files, following project conventions.
+    """Creates a new C++ class with corresponding .hpp and .cpp files.
     The class_hierarchy parameter defines the namespace and class name (e.g., "game/player" creates class 'player' in namespace 'game').
     Optional include_list and using_list parameters allow specifying additional headers to include and 'using' declarations to add.
     """
