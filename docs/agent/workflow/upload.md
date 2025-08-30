@@ -18,9 +18,11 @@ This document outlines the steps for quickly pushing code changes to GitHub with
 3.  **Commit Changes:**
     Commit your changes, preferably individually for better clarity.
     You must choose the commit message according to the information obtained in git diff.
+    The agent should not ask for approval for the commit message and should proceed with the commit automatically.
+    **Warning:** If your commit message contains backticks (``` ` ```), you must escape them with a backslash (```\```) to avoid command substitution errors.
     ```bash
     git add .
-    git commit -m "commit message"
+    git commit -m "commit message with \`backticks\` on text"
     ```
 
 4.  **Push:**
