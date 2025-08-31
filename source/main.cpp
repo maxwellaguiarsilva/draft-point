@@ -30,14 +30,13 @@
 
 using	::std::exception;
 using	::std::cerr;
-using	::game::game;
 
 
 int main( )
 {{
 	try
 	{
-		game game;
+		::game::game game;
 		game.run( );
 
 	} catch( const exception& e )

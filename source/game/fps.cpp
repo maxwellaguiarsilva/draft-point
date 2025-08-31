@@ -30,7 +30,6 @@ namespace game {
 
 
 using	::std::string;
-using	::tui::terminal;
 using	::std::chrono::milliseconds;
 using	::std::chrono::high_resolution_clock;
 using	::std::chrono::duration_cast;
@@ -38,24 +37,15 @@ using	::std::this_thread::sleep_for;
 using	::std::to_string;
 
 
-fps::fps( terminal& terminal )
-	:m_terminal{ terminal }
-	,m_start_time{ high_resolution_clock::now( ) }
+fps::fps( )
+	:m_start_time{ high_resolution_clock::now( ) }
 { }
 
 
 fps::~fps( ) { }
 
 
-void fps::show( int left, int top )
-{
-	m_left	=	left;
-	m_top	=	top;
-	m_enable	=	true;
-}
-
-
-void fps::compute( )
+int fps::compute( )
 {
 	auto	end_time	=	high_resolution_clock::now( );
 	auto	frame_time	=	duration_cast<milliseconds>( end_time - m_start_time );
@@ -66,15 +56,7 @@ void fps::compute( )
 	if( frame_time < target_frame_time )
 		sleep_for( target_frame_time - frame_time );
 
-	if( m_enable )
-		m_terminal.print( m_top, m_left, "fps: " + to_string( 1000 / frame_time.count( ) ) );
-}
-
-
-void fps::hide( )
-{
-	m_enable	=	false;
-	m_terminal.print( m_top, m_left, "           " );
+	return 1000 / frame_time.count( );
 }
 
 

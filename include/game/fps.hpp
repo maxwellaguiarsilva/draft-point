@@ -29,7 +29,6 @@
 
 #include <sak.hpp>
 #include <string>
-#include <tui/terminal.hpp>
 #include <chrono>
 #include <thread>
 
@@ -38,7 +37,6 @@ namespace game {
 
 
 using	::std::string;
-using	::tui::terminal;
 using	::std::chrono::milliseconds;
 using	::std::chrono::high_resolution_clock;
 using	::std::chrono::duration_cast;
@@ -49,22 +47,16 @@ class fps
 {
 public:
 
-	explicit fps( terminal& terminal );
+	fps( );
 	virtual ~fps( );
 
 	disable_copy_move_ctc( fps );
 
-	void show( int left = 0, int top = 0 );
-	void compute( );
-	void hide( );
+	int compute( );
 
 private:
-	terminal&	m_terminal;
-	int			m_top		=	0;
-	int			m_left		=	0;
 	int			m_limit		=	60;
 	high_resolution_clock::time_point	m_start_time;
-	bool						m_enable	=	true;
 
 };
 

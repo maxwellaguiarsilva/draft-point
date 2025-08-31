@@ -34,22 +34,22 @@ using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
 using	::std::vector;
+using	::std::to_string;
 using	color		= 	::tui::terminal::color;
 
 
 game::game( )
 	:m_terminal{}
 	,m_player{ m_terminal, 10, 10 }
-	,m_fps{ m_terminal }
+	,m_fps{}
 { }
 game::~game( ) { }
+
 
 void game::run( )
 {
 	m_terminal.set_color( color::cyan );
-
 	m_player.draw( );
-	m_fps.show( 0, 0 );
 
 	bool exit_loop = false;
 	while( true )
@@ -59,10 +59,10 @@ void game::run( )
 		{
 			switch( code >= 65 and code <= 90 ? code + 32 : code )
 			{
-				case 'a': m_player.move( player::movement::left ); break;
-				case 'd': m_player.move( player::movement::right ); break;
-				case 'w': m_player.move( player::movement::up ); break;
-				case 's': m_player.move( player::movement::down ); break;
+				case 'a': m_player.move( player::movement::left );	break;
+				case 'd': m_player.move( player::movement::right );	break;
+				case 'w': m_player.move( player::movement::up );	break;
+				case 's': m_player.move( player::movement::down );	break;
 				case 'q': exit_loop = true; break;
 			}
 		}
@@ -70,10 +70,12 @@ void game::run( )
 		if( exit_loop )
 			break;
 
-		m_fps.compute( );
+		if( m_show_fps )
+			m_terminal.print( 0, 0, "fps: " + to_string( m_fps.compute( ) ) );
 		m_terminal.refresh( );
 	}
-	m_fps.hide( );
+
+	m_terminal.print( 0, 0, "           " );
 	m_terminal.clear_screen( );
 }
 
