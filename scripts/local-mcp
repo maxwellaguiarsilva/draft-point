@@ -1,7 +1,7 @@
 #!/bin/bash
 
 venv_dir="./scripts/venv-fast-mcp"
-python_script="local-mcp.py"
+python_script="./scripts/local-project-mcp"
 
 #	check if the virtual environment exists
 if [[ ! -d "${venv_dir}" ]];
@@ -19,20 +19,29 @@ fi
 source "${venv_dir}/bin/activate"
 
 #	install dependencies if not already installed
-#	we assume fastmcp is the only external dependency
-if ! "${venv_dir}/bin/pip" show fastmcp &>/dev/null;
-then
-	echo "installing fastmcp..."
-	if ! "${venv_dir}/bin/pip" install fastmcp;
+install_inside_venv() {
+	local package_name="${1}"
+	if ! "${venv_dir}/bin/pip" show "${package_name}" &>/dev/null;
 	then
-		echo "failed to install fastmcp"
-		deactivate #	deactivate venv before exiting
-		exit 1
+		echo "installing ${package_name}..."
+		if ! "${venv_dir}/bin/pip" install "${package_name}";
+		then
+			echo "failed to install ${package_name}"
+			deactivate #	deactivate venv before exiting
+			exit 1
+		fi
 	fi
-fi
+}
+
+for package in "fastmcp" "pydantic";
+do
+	install_inside_venv "${package}"
+done
 
 #	execute the original python script with all arguments
-"${python_script}" "${@}"
+"${venv_dir}/bin/python" "${python_script}" "${@}"
 
 #	deactivate the virtual environment
 deactivate
+
+
