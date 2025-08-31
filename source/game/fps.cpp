@@ -51,7 +51,6 @@ void fps::set_limit( int limit )
 }
 
 void fps::enable_limit( bool flg_enable ) noexcept { m_enable_limit = flg_enable; }
-
 bool fps::is_enable( ) const noexcept { return m_enable_limit; }
 
 int fps::compute( )
@@ -60,9 +59,9 @@ int fps::compute( )
 	auto	frame_time	=	duration_cast<milliseconds>( end_time - m_start_time );
 	m_start_time		=	end_time;
 
-	milliseconds target_frame_time = milliseconds{ 1000 } / m_limit;
+	milliseconds target_frame_time = milliseconds{ 1000 } / ( m_enable_limit ? m_limit : 1000 );
 
-	if( frame_time < target_frame_time and m_enable_limit )
+	if( frame_time < target_frame_time )
 		sleep_for( target_frame_time - frame_time );
 
 	return 1000 / frame_time.count( );

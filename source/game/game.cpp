@@ -71,10 +71,10 @@ void game::run( )
 		if( exit_loop )
 			break;
 
-		m_terminal.clear_screen( );
+		//	m_terminal.clear_screen( );
 		m_player.draw( );
 		if( m_show_fps )
-			m_terminal.print( 0, 0, "fps: " + to_string( m_fps.compute( ) ) );
+			m_terminal.print( 0, 0, "fps: " + to_string( m_fps.compute( ) ) + "   " );
 		m_terminal.refresh( );
 	}
 
