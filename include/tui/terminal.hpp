@@ -74,13 +74,13 @@ public:
 
 	void refresh( );
 	void clear_screen( bool full_reset = false );
-	void move_cursor( int row, int column );
+	void move_cursor( int left, int top );
 	void set_cursor( bool enable );
 	void set_color( color color_code, bool flg_background = false );
 	void set_text_style( text_style style );
 	void set_raw_mode( bool enable );
 	void print( const string& text );
-	void print( int row, int column, const string &text );
+	void print( int left, int top, const string &text );
 	const char get_char( );
 	const int get_width( ) const;
 	const int get_height( ) const;

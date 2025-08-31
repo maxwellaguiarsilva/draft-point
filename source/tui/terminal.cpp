@@ -78,12 +78,12 @@ void terminal::clear_screen( bool full_reset )
 	}
 	print( "\033[2J" );
 }
-void terminal::move_cursor( int row, int column ) { print( format( "\033[{};{}H", column, row ) ); }
+void terminal::move_cursor( int left, int top ) { print( format( "\033[{};{}H", top, left ) ); }
 void terminal::set_cursor( bool enable ) { print( enable ? "\033[?25h" : "\033[?25l" ); }
 void terminal::print( const string &text ) { cout << text; }
-void terminal::print( int row, int column, const string& text )
+void terminal::print( int left, int top, const string &text )
 {
-	move_cursor( row, column );
+	move_cursor( left, top );
 	print( text );
 }
 void terminal::set_text_style( text_style style ) { print( format( "\033[{}m", static_cast<int>( style ) ) ); }

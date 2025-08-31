@@ -1,0 +1,67 @@
+#!/usr/bin/python3
+
+
+import sys
+import subprocess
+import datetime
+import time
+from template import template
+from fastmcp import FastMCP
+
+
+#   create an mcp server instance
+mcp = FastMCP( name="Local project MCP Tools" )
+
+
+def get_git_config_value( configuration_name ):
+    try:
+        command = [ "git", "config", "--global", configuration_name ]
+        process = subprocess.run( command, capture_output=True, text=True, check=True )
+        return  process.stdout.strip( )
+    except subprocess.CalledProcessError:
+        return  "value not found"
+
+
+@mcp.tool( )
+def	create_class( class_hierarchy : str, include_list: list[ str ] = [ ], using_list: list[ str ] = [ ] ) -> str:
+    """Creates a new C++ class with corresponding .hpp and .cpp files.
+    The class_hierarchy parameter defines the namespace and class name (e.g., "game/player" creates class 'player' in namespace 'game').
+    Optional include_list and using_list parameters allow specifying additional headers to include and 'using' declarations to add.
+    """
+    message=""
+    hierarchy_list=class_hierarchy.split( "/" )
+    file_path = f"include/{'/'.join( hierarchy_list )}.hpp"
+    subprocess.run( [ "mkdir", "-p", "/".join( file_path.split( "/" )[:-1] ) ] )
+    data = {
+         "num_year": datetime.datetime.now( ).strftime( "%Y" )
+        ,"des_full_name": get_git_config_value( "user.name" )
+        ,"des_email": get_git_config_value( "user.email" )
+        ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
+        ,"des_file_path": "/".join( hierarchy_list ) + ".hpp"
+        ,"class_name": hierarchy_list[-1]
+        ,"namespace_list": hierarchy_list[:-1]
+        ,"include_list": [ "string" ] + include_list
+        ,"using_list": [ "::std::string" ] + using_list
+        ,"header_guard": f"header_guard_{ str( time.time_ns( ) )[-9:] }"
+    }
+    with open( file_path, "w" ) as f:
+        f.write(  template( "class-hpp" ).run( data ) )
+        message += f"created file: {file_path}\n"
+
+    data.update( {
+         "include_list": [ data[ "des_file_path" ] ]
+        ,"des_file_path": "/".join( hierarchy_list ) + ".cpp"
+    } )
+    file_path = f"source/{'/'.join( hierarchy_list )}.cpp"
+    subprocess.run( [ "mkdir", "-p", "/".join( file_path.split( "/" )[:-1] ) ] )
+    with open( file_path, "w" ) as f:
+        f.write(  template( "class-cpp" ).run( data ) )
+        message += f"created file: {file_path}\n"
+    return  message
+
+
+if __name__ == "__main__":
+    mcp.run()
+
+
+

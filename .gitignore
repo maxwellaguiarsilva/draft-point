@@ -37,6 +37,8 @@ dist/
 # Environments
 .env
 .venv
+.venv-*/
+venv-*/
 env/
 venv/
 ENV/
@@ -55,3 +57,5 @@ venv.bak/
 # Gemini CLI specific ignores
 .gemini/
 
+# Virtual environment for scripts
+scripts/venv/
