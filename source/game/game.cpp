@@ -35,14 +35,14 @@ using	::game::player;
 using	::game::fps;
 using	::std::vector;
 using	::std::to_string;
-using	color		= 	::tui::terminal::color;
+using	color	= 	::tui::terminal::color;
 
 
 game::game( )
 	:m_terminal{}
 	,m_player{ m_terminal, 10, 10 }
 	,m_fps{}
-{ }
+{ m_fps.set_limit( 30 );}
 game::~game( ) { }
 
 
