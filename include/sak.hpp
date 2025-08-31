@@ -30,11 +30,17 @@
 
 
 #include <string>
-#include <cassert>
+#include <exception>
 
 
 using	::std::string;
+using	::std::exception;
+using	::std::runtime_error;
 
+#define assert( flg_expression, message ) \
+	if( not ( flg_expression ) ) throw runtime_error( message );
+
+#define between( value, left, right ) ( value >= left and value <= right )
 
 #define enable_copy_ctc( class_name ) \
 	class_name( const class_name& ); \

@@ -44,6 +44,15 @@ fps::fps( )
 
 fps::~fps( ) { }
 
+void fps::set_limit( int limit )
+{
+	assert( ( between( limit, 1, 300 ) ), "the fps limit must be between 1 and 300!" );
+	m_limit = limit;
+}
+
+void fps::enable_limit( bool flg_enable ) noexcept { m_enable_limit = flg_enable; }
+
+bool fps::is_enable( ) const noexcept { return m_enable_limit; }
 
 int fps::compute( )
 {
@@ -53,7 +62,7 @@ int fps::compute( )
 
 	milliseconds target_frame_time = milliseconds{ 1000 } / m_limit;
 
-	if( frame_time < target_frame_time )
+	if( frame_time < target_frame_time and m_enable_limit )
 		sleep_for( target_frame_time - frame_time );
 
 	return 1000 / frame_time.count( );
@@ -61,6 +70,5 @@ int fps::compute( )
 
 
 } 
-
 
 

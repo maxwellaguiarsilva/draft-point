@@ -24,7 +24,6 @@
 
 
 #include <iostream>
-#include <exception>
 #include <game/game.hpp>
 
 

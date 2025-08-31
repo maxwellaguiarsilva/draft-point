@@ -60,7 +60,7 @@ private:
 
 	terminal	m_terminal;
 	player		m_player;
-	fps		m_fps;
+	fps			m_fps;
 	bool		m_show_fps	=	true;
 
 };

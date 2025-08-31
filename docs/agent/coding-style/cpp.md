@@ -76,7 +76,45 @@ Adhering to these guidelines ensures consistency and readability across the code
         ```cpp
         count++;
         ```
-##  6. **`using` Clauses:**
+##  6. **Logical Operators:** Always use the keyword forms `not`, `and`, and `or` instead of the symbolic operators `!`, `&&`, and `||`.
+    *   **Example (Good):**
+        ```cpp
+        if( condition_a and not condition_b )
+            do_something( );
+        while( condition_c or condition_d )
+            another_thing( );
+        ```
+    *   **Example (Bad):**
+        ```cpp
+        if( condition_a && ! condition_b )
+            do_something( );
+        while( condition_c || condition_d )
+            another_thing( );
+        ```
+##  7. **`const` and `noexcept` for Non-Modifying Methods:**
+    *   Methods that do not alter the object's state and do not throw exceptions must be marked with `const` and `noexcept`.
+    *   **Example (Good):**
+        ```cpp
+        int get_value( ) const noexcept;
+        ```
+    *   **Example (Bad):**
+        ```cpp
+        int get_value( );
+        ```
+##  8. **Single-Line Function/Method Implementation:**
+    *   If a function or method's implementation consists of a single line, its definition should be placed on the same line as its declaration.
+    *   **Example (Good):**
+        ```cpp
+        bool is_enabled( ) const noexcept { return m_is_enabled; }
+        ```
+    *   **Example (Bad):**
+        ```cpp
+        bool is_enabled( ) const noexcept
+        {
+            return m_is_enabled;
+        }
+        ```
+##  9. **`using` Clauses:**
     *   Use `using` clauses to avoid fully qualifying type names and functions.
     *   **Example:**
         ```cpp
@@ -85,13 +123,12 @@ Adhering to these guidelines ensures consistency and readability across the code
         auto start_time = high_resolution_clock::now( );
         ```
 
-##  7. **Static Variables:**
+##  10. **Static Variables:**
     *   Avoid using static variables whenever possible, especially in functions or methods, due to potential thread-safety issues and hidden dependencies. Prefer class member variables or passing state explicitly.
 
-##  8. **Main Function Scope:**
+##  11. **Main Function Scope:**
     *   The `main` function must always contain an additional, explicit scope block `{}` immediately after its opening curly brace. This ensures that all stack-allocated objects within `main` have their destructors called before `main` exits, promoting predictable resource management.
     *   **Example (Good):**
-        ```cpp
         ```cpp
         int main( )
         {{
@@ -107,12 +144,12 @@ Adhering to these guidelines ensures consistency and readability across the code
         }
         ```
 
-##  9. Validation.
+##  12. Validation.
 *   After producing any code in C++, perform a final validation to ensure each of the previous items has been strictly followed.
     *   If any of them are not in compliance with this document, use the available tools to make the necessary adjustments.
 *   Do not consider the code to have been properly delivered until this validation is 100% okay.
 
-##  10. Validation with cppcheck.
+##  13. Validation with cppcheck.
 *   After completing the previous validation, perform a new validation using the "cppcheck" tool with `--enable=all --suppress=missingIncludeSystem`.
     *   If the "cppcheck" tool returns any message, even if not critical, explain the reason and the probable proposed solution.
 

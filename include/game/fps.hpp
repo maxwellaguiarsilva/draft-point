@@ -41,6 +41,7 @@ using	::std::chrono::milliseconds;
 using	::std::chrono::high_resolution_clock;
 using	::std::chrono::duration_cast;
 using	::std::this_thread::sleep_for;
+using	::std::to_string;
 
 
 class fps
@@ -52,10 +53,14 @@ public:
 
 	disable_copy_move_ctc( fps );
 
+	void set_limit( int limit );
+	void enable_limit( bool flg_enable ) noexcept;
+	bool is_enable( ) const noexcept;
 	int compute( );
 
 private:
-	int			m_limit		=	60;
+	int			m_limit			=	60;
+	bool		m_enable_limit	=	true;
 	high_resolution_clock::time_point	m_start_time;
 
 };

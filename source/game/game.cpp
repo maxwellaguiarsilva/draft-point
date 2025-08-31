@@ -63,6 +63,7 @@ void game::run( )
 				case 'd': m_player.move( player::movement::right );	break;
 				case 'w': m_player.move( player::movement::up );	break;
 				case 's': m_player.move( player::movement::down );	break;
+				case 'v': m_fps.enable_limit( not m_fps.is_enable( ) ); break;
 				case 'q': exit_loop = true; break;
 			}
 		}
@@ -70,6 +71,8 @@ void game::run( )
 		if( exit_loop )
 			break;
 
+		m_terminal.clear_screen( );
+		m_player.draw( );
 		if( m_show_fps )
 			m_terminal.print( 0, 0, "fps: " + to_string( m_fps.compute( ) ) );
 		m_terminal.refresh( );
