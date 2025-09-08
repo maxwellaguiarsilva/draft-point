@@ -48,9 +48,6 @@ game::~game( ) { }
 
 void game::run( )
 {
-	m_terminal.set_color( color::cyan );
-	m_player.draw( );
-
 	bool exit_loop = false;
 	while( true )
 	{

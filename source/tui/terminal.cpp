@@ -35,9 +35,9 @@ namespace tui
 {
 
 
-using ::std::cout;
-using ::std::flush;
-using ::std::format;
+using	::std::cout;
+using	::std::flush;
+using	::std::format;
 using	color		=	::tui::terminal::color;
 using	text_style	=	::tui::terminal::text_style;
 

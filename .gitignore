@@ -59,3 +59,5 @@ venv.bak/
 
 # Virtual environment for scripts
 scripts/venv/
+
+gha-creds-*.json
