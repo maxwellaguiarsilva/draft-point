@@ -52,7 +52,7 @@ terminal::terminal( )
 }
 terminal::~terminal( ) { clear_screen( true ); }
 
-void terminal::set_raw_mode( bool enable )
+auto terminal::set_raw_mode( bool enable ) -> void
 {
 	set_cursor( !enable );
 	if( enable )
@@ -67,8 +67,8 @@ void terminal::set_raw_mode( bool enable )
 		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &m_original_termios ) != 1, "terminal: tcsetattr error" );
 }
 
-void terminal::refresh( ) { cout << flush; }
-void terminal::clear_screen( bool full_reset )
+auto terminal::refresh( ) -> void { cout << flush; }
+auto terminal::clear_screen( bool full_reset ) -> void
 {
 	if( full_reset )
 	{
@@ -78,26 +78,26 @@ void terminal::clear_screen( bool full_reset )
 	}
 	print( "\033[2J" );
 }
-void terminal::move_cursor( int left, int top ) { print( format( "\033[{};{}H", top, left ) ); }
-void terminal::set_cursor( bool enable ) { print( enable ? "\033[?25h" : "\033[?25l" ); }
-void terminal::print( const string &text ) { cout << text; }
-void terminal::print( int left, int top, const string &text )
+auto terminal::move_cursor( int left, int top ) -> void { print( format( "\033[{};{}H", top, left ) ); }
+auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }
+auto terminal::print( const string &text ) -> void { cout << text; }
+auto terminal::print( int left, int top, const string &text ) -> void
 {
 	move_cursor( left, top );
 	print( text );
 }
-void terminal::set_text_style( text_style style ) { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
-void terminal::set_color( color color, bool background ) { print( format( "\033[{}m", static_cast<int>( color ) + ( background ? 10 : 0 ) ) ); }
+auto terminal::set_text_style( text_style style ) -> void { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
+auto terminal::set_color( color color, bool background ) -> void { print( format( "\033[{}m", static_cast<int>( color ) + ( background ? 10 : 0 ) ) ); }
 
-const char terminal::get_char( )
+auto terminal::get_char( ) -> const char
 {
 	char c;
 	read( STDIN_FILENO, &c, 1 );
 	return static_cast<int>( c );
 }
 
-const int terminal::get_width( )  const { return m_ws.ws_col; }
-const int terminal::get_height( ) const { return m_ws.ws_row; }
+auto terminal::get_width( ) const -> const int { return m_ws.ws_col; }
+auto terminal::get_height( ) const -> const int { return m_ws.ws_row; }
 
 
 };

@@ -56,8 +56,8 @@ public:
 
 	disable_copy_move_ctc( player );
 
-	void draw( ) const;
-	void move( movement movement );
+	auto draw( ) const -> void;
+	auto move( movement movement ) -> void;
 
 private:
 
@@ -66,7 +66,7 @@ private:
 	string m_character;
 	terminal& m_terminal;
 
-	void clear_old_position( );
+	auto clear_old_position( ) -> void;
 
 };
 

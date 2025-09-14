@@ -54,7 +54,7 @@ public:
 
 	disable_copy_move_ctc( game );
 
-	void run( );
+	auto run( ) -> void;
 
 private:
 

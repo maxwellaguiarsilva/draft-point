@@ -44,16 +44,16 @@ fps::fps( )
 
 fps::~fps( ) { }
 
-void fps::set_limit( int limit )
+auto fps::set_limit( int limit ) -> void
 {
 	assert( ( between( limit, 1, 300 ) ), "the fps limit must be between 1 and 300!" );
 	m_limit = limit;
 }
 
-void fps::enable_limit( bool flg_enable ) noexcept { m_enable_limit = flg_enable; }
-bool fps::is_enable( ) const noexcept { return m_enable_limit; }
+auto fps::enable_limit( bool flg_enable ) noexcept -> void { m_enable_limit = flg_enable; }
+auto fps::is_enable( ) const noexcept -> bool { return m_enable_limit; }
 
-int fps::compute( )
+auto fps::compute( ) -> int
 {
 	auto	end_time	=	high_resolution_clock::now( );
 	auto	frame_time	=	duration_cast<milliseconds>( end_time - m_start_time );

@@ -72,18 +72,18 @@ public:
 
 	disable_copy_move_ctc( terminal );
 
-	void refresh( );
-	void clear_screen( bool full_reset = false );
-	void move_cursor( int left, int top );
-	void set_cursor( bool enable );
-	void set_color( color color_code, bool flg_background = false );
-	void set_text_style( text_style style );
-	void set_raw_mode( bool enable );
-	void print( const string& text );
-	void print( int left, int top, const string &text );
-	const char get_char( );
-	const int get_width( ) const;
-	const int get_height( ) const;
+	auto refresh( ) -> void;
+	auto clear_screen( bool full_reset = false ) -> void;
+	auto move_cursor( int left, int top ) -> void;
+	auto set_cursor( bool enable ) -> void;
+	auto set_color( color color_code, bool flg_background = false ) -> void;
+	auto set_text_style( text_style style ) -> void;
+	auto set_raw_mode( bool enable ) -> void;
+	auto print( const string& text ) -> void;
+	auto print( int left, int top, const string &text ) -> void;
+	auto get_char( ) -> const char;
+	auto get_width( ) const -> const int;
+	auto get_height( ) const -> const int;
 
 private:
 	struct termios m_original_termios;

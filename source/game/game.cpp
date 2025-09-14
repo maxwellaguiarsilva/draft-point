@@ -46,7 +46,7 @@ game::game( )
 game::~game( ) { }
 
 
-void game::run( )
+auto game::run( ) -> void
 {
 	bool exit_loop = false;
 	while( true )

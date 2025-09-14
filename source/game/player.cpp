@@ -45,21 +45,21 @@ player::player( terminal& terminal, int top, int left, const string& character )
 player::~player( ) { }
 
 
-void player::clear_old_position( )
+auto player::clear_old_position( ) -> void
 {
 	m_terminal.set_color( color::cyan );
 	m_terminal.print( m_left, m_top, m_character );
 }
 
 
-void player::draw( ) const
+auto player::draw( ) const -> void
 {
 	m_terminal.set_color( color::white );
 	m_terminal.print( m_left, m_top, m_character );
 }
 
 
-void player::move( movement movement )
+auto player::move( movement movement ) -> void
 {
 	using	movement::up;
 	using	movement::down;
