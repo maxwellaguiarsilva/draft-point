@@ -54,13 +54,13 @@ auto game::run( ) -> void
 		char code = m_terminal.get_char( );
 		if( code != 0 )
 		{
-			switch( code >= 65 and code <= 90 ? code + 32 : code )
+			switch( between( code, 'A', 'Z' ) ? code - ( 'a' - 'A' ) : code )
 			{
 				case 'a': m_player.move( player::movement::left );	break;
 				case 'd': m_player.move( player::movement::right );	break;
 				case 'w': m_player.move( player::movement::up );	break;
 				case 's': m_player.move( player::movement::down );	break;
-				case 'v': m_fps.enable_limit( not m_fps.is_enable( ) ); break;
+				case 'v': m_fps.enable_limit( not m_fps.is_enable( ) );	break;
 				case 'q': exit_loop = true; break;
 			}
 		}

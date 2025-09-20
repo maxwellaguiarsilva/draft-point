@@ -46,7 +46,7 @@ fps::~fps( ) { }
 
 auto fps::set_limit( int limit ) -> void
 {
-	assert( ( between( limit, 1, 300 ) ), "the fps limit must be between 1 and 300!" );
+	assert( between( limit, 1, 300 ), "the fps limit must be between 1 and 300!" );
 	m_limit = limit;
 }
 

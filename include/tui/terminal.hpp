@@ -42,15 +42,14 @@ class terminal
 public:
 	enum class color
 	{
-		 black			=	30
-		,red			=	31
-		,green			=	32
-		,yellow			=	33
-		,blue			=	34
-		,magenta		=	35
-		,cyan			=	36
-		,white			=	37
-		,default_color	=	39
+		 black			=	0
+		,red			=	1
+		,green			=	2
+		,yellow			=	3
+		,blue			=	4
+		,magenta		=	5
+		,cyan			=	6
+		,white			=	7
 	};
 
 	enum class text_style

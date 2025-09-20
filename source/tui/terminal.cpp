@@ -87,7 +87,7 @@ auto terminal::print( int left, int top, const string &text ) -> void
 	print( text );
 }
 auto terminal::set_text_style( text_style style ) -> void { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
-auto terminal::set_color( color color, bool background ) -> void { print( format( "\033[{}m", static_cast<int>( color ) + ( background ? 10 : 0 ) ) ); }
+auto terminal::set_color( color color, bool background ) -> void { print( format( "\033[{}m", static_cast<int>( color ) + ( background ? 40 : 30 ) ) ); }
 
 auto terminal::get_char( ) -> const char
 {
