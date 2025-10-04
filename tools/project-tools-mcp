@@ -10,7 +10,7 @@ from fastmcp import FastMCP
 
 
 #   create an mcp server instance
-mcp = FastMCP( name="local-project-mcp" )
+mcp = FastMCP( name="project-tools-mcp" )
 
 
 def get_git_config_value( configuration_name ):
