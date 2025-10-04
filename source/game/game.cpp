@@ -42,19 +42,21 @@ game::game( )
 	:m_terminal{}
 	,m_player{ m_terminal, 10, 10 }
 	,m_fps{}
-{ m_fps.set_limit( 30 );}
+{ m_fps.set_limit( 30 ); }
 game::~game( ) { }
 
 
 auto game::run( ) -> void
 {
 	bool exit_loop = false;
+	const int delta_lower_case	=	( 'a' - 'A' );
+
 	while( true )
 	{
 		char code = m_terminal.get_char( );
 		if( code != 0 )
 		{
-			switch( between( code, 'A', 'Z' ) ? code - ( 'a' - 'A' ) : code )
+			switch( between( code, 'A', 'Z' ) ? code - delta_lower_case : code )
 			{
 				case 'a': m_player.move( player::movement::left );	break;
 				case 'd': m_player.move( player::movement::right );	break;
@@ -71,7 +73,10 @@ auto game::run( ) -> void
 		m_terminal.clear_screen( );
 		m_player.draw( );
 		if( m_show_fps )
+		{
 			m_terminal.print( 1, 1, "fps: " + to_string( m_fps.compute( ) ) );
+			m_terminal.print( 10, 1, "w: " + to_string( m_terminal.get_width( ) ) + " h: " + to_string( m_terminal.get_height( ) ) );
+		}
 		m_terminal.refresh( );
 	}
 
