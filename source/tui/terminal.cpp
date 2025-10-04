@@ -52,6 +52,41 @@ terminal::terminal( )
 }
 terminal::~terminal( ) { clear_screen( true ); }
 
+auto terminal::clear_screen( bool full_reset ) -> void
+{
+	if( full_reset )
+	{
+		set_text_style( text_style::reset );
+		set_raw_mode( false );
+		move_cursor( 0, 0 );
+	}
+	print( "\033[2J" );
+}
+
+auto terminal::get_char( ) -> const char
+{
+	char c;
+	read( STDIN_FILENO, &c, 1 );
+	return static_cast<int>( c );
+}
+
+auto terminal::get_width( ) const -> const int { return m_ws.ws_col; }
+auto terminal::get_height( ) const -> const int { return m_ws.ws_row; }
+
+auto terminal::move_cursor( int left, int top ) -> void { print( format( "\033[{};{}H", top, left ) ); }
+
+auto terminal::print( const string& text ) -> void { cout << text; }
+auto terminal::print( int left, int top, const string& text ) -> void
+{
+	move_cursor( left, top );
+	print( text );
+}
+
+auto terminal::refresh( ) -> void { cout << flush; }
+
+auto terminal::set_color( color color, bool background ) -> void { print( format( "\033[{}m", static_cast<int>( color ) + ( background ? 40 : 30 ) ) ); }
+auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }
+
 auto terminal::set_raw_mode( bool enable ) -> void
 {
 	set_cursor( !enable );
@@ -67,37 +102,8 @@ auto terminal::set_raw_mode( bool enable ) -> void
 		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &m_original_termios ) != 1, "terminal: tcsetattr error" );
 }
 
-auto terminal::refresh( ) -> void { cout << flush; }
-auto terminal::clear_screen( bool full_reset ) -> void
-{
-	if( full_reset )
-	{
-		set_text_style( text_style::reset );
-		set_raw_mode( false );
-		move_cursor( 0, 0 );
-	}
-	print( "\033[2J" );
-}
-auto terminal::move_cursor( int left, int top ) -> void { print( format( "\033[{};{}H", top, left ) ); }
-auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }
-auto terminal::print( const string &text ) -> void { cout << text; }
-auto terminal::print( int left, int top, const string &text ) -> void
-{
-	move_cursor( left, top );
-	print( text );
-}
 auto terminal::set_text_style( text_style style ) -> void { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
-auto terminal::set_color( color color, bool background ) -> void { print( format( "\033[{}m", static_cast<int>( color ) + ( background ? 40 : 30 ) ) ); }
 
-auto terminal::get_char( ) -> const char
-{
-	char c;
-	read( STDIN_FILENO, &c, 1 );
-	return static_cast<int>( c );
-}
-
-auto terminal::get_width( ) const -> const int { return m_ws.ws_col; }
-auto terminal::get_height( ) const -> const int { return m_ws.ws_row; }
 
 
 };
