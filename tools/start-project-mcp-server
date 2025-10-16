@@ -25,7 +25,7 @@ install_inside_venv() {
 	if ! "${venv_dir}/bin/pip" show "${package_name}" &>/dev/null;
 	then
 		echo "installing ${package_name}..."
-		if ! "${venv_dir}/bin/pip" install "${package_name}";
+		if ! env -u LD_PRELOAD "${venv_dir}/bin/pip" install "${package_name}";
 		then
 			echo "failed to install ${package_name}"
 			deactivate #	deactivate venv before exiting
@@ -40,7 +40,7 @@ do
 done
 
 #	execute the original python script with all arguments
-"${venv_dir}/bin/python" "${python_script}" "${@}"
+env -u LD_PRELOAD "${venv_dir}/bin/python" "${python_script}" "${@}"
 
 #	deactivate the virtual environment
 deactivate

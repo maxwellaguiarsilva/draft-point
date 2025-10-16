@@ -72,11 +72,12 @@ auto game::run( ) -> void
 
 		m_terminal.clear_screen( );
 		m_player.draw( );
-		if( m_show_fps )
-		{
-			m_terminal.print( 1, 1, "fps: " + to_string( m_fps.compute( ) ) );
-			m_terminal.print( 10, 1, "w: " + to_string( m_terminal.get_width( ) ) + " h: " + to_string( m_terminal.get_height( ) ) );
-		}
+		m_terminal.print( 1, m_terminal.get_height( ),
+				" | fps: " + to_string( m_fps.compute( ) )
+			+	" | width: " + to_string( m_terminal.get_width( ) )
+			+	" | height: " + to_string( m_terminal.get_height( ) )
+			+	" | "
+		);
 		m_terminal.refresh( );
 	}
 
