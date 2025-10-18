@@ -70,8 +70,8 @@ auto terminal::get_char( ) -> const char
 	return static_cast<int>( c );
 }
 
-auto terminal::get_width( ) const -> const int { return m_ws.ws_col; }
-auto terminal::get_height( ) const -> const int { return m_ws.ws_row; }
+auto terminal::get_width( ) const noexcept -> const int { return m_ws.ws_col; }
+auto terminal::get_height( ) const noexcept -> const int { return m_ws.ws_row; }
 
 auto terminal::move_cursor( int left, int top ) -> void { print( format( "\033[{};{}H", top, left ) ); }
 

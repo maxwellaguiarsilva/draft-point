@@ -15,56 +15,43 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   game/player.hpp
+ * File:   game/point.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-08-24 15:14
+ * Created on 2025-10-16 14:02
  */
 
 
 
 #pragma once
-#ifndef header_guard_185813530
-#define header_guard_185813530
+#ifndef header_guard_581074281
+#define header_guard_581074281
+
 
 #include <sak.hpp>
-#include <string>
-#include <tui/terminal.hpp>
+#include <vector>
+#include <initializer_list>
+#include <algorithm>
 
 
 namespace game {
 
 
-using	::std::string;
-using	::tui::terminal;
+using ::std::vector;
+using ::std::initializer_list;
+using ::std::min;
 
 
-class player
+class point : public vector<int>
 {
 public:
-	enum class movement
-	{
-		 up
-		,down
-		,left
-		,right
-	};
+	explicit point( initializer_list<int> a_list );
+	virtual ~point( );
 
-	player( terminal& terminal, int top, int left, const string& character = "\u2588" );
-	virtual ~player( );
-
-	disable_copy_move_ctc( player );
-
-	auto draw( ) const -> void;
-	auto move( movement movement ) -> void;
-
-private:
-	int m_top;
-	int m_left;
-	string m_character;
-	terminal& m_terminal;
-
-	auto clear_old_position( ) -> void;
+	point operator+( const point& other ) const;
+	point operator-( const point& other ) const;
+	point operator*( const point& other ) const;
+	point operator/( const point& other ) const;
 
 };
 

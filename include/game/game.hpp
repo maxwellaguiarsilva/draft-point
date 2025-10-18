@@ -48,7 +48,6 @@ using	::std::vector;
 class game
 {
 public:
-
 	game( );
 	virtual ~game( );
 

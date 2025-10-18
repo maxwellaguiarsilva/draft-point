@@ -32,9 +32,7 @@
 #include <termios.h>
 
 
-namespace tui
-{
-
+namespace tui {
 
 
 class terminal
@@ -73,8 +71,8 @@ public:
 
 	auto clear_screen( bool full_reset = false ) -> void;
 	auto get_char( ) -> const char;
-	auto get_height( ) const -> const int;
-	auto get_width( ) const -> const int;
+	auto get_height( ) const noexcept -> const int;
+	auto get_width( ) const noexcept -> const int;
 	auto move_cursor( int left, int top ) -> void;
 	auto print( const string& text ) -> void;
 	auto print( int left, int top, const string& text ) -> void;
@@ -90,7 +88,9 @@ private:
 
 };
 
+
 }
+
 
 #endif
 

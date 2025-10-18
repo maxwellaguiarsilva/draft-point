@@ -1,9 +1,9 @@
-# Coding Style Guidelines for C++ Project
+#   Coding Style Guidelines for C++ Project
 
 This document outlines the coding style conventions to be followed for this project.
 Adhering to these guidelines ensures consistency and readability across the codebase.
 
-## General Rules
+##  General Rules
 
 ##  1. **No Comments in Code Implementation:**
     *   This rule should be ignored in files containing `//	ignore-no-comments-rule`.
@@ -26,16 +26,7 @@ Adhering to these guidelines ensures consistency and readability across the code
             int m_member_variable;
         };
         ```
-    *   **Example (Bad):**
-        ```cpp
-        int myVariable;
-        void processData();
-        class MyClass;
-        class MyOtherClass
-        {
-            int memberVariable;
-        };
-        ```
+
 ##  3. **Parentheses and Brackets Spacing:** Always include a single space immediately after an opening parenthesis `(` or square bracket `[` and immediately before a closing parenthesis `)` or square bracket `]`.
     *   **Example (Good):**
         ```cpp
@@ -43,12 +34,7 @@ Adhering to these guidelines ensures consistency and readability across the code
             do_something( );
         auto my_value = my_array[ index ];
         ```
-    *   **Example (Bad):**
-        ```cpp
-        if(condition)
-            doSomething();
-        auto myValue = myArray[index];
-        ```
+
 ##  4. **Single-Line Control Structures:**
     *   For `if`, `for`, and `while` statements that contain only a single line of code, omit the curly braces `{}`.
     *   Additionally, there should be no space between the keyword and the opening parenthesis.
@@ -61,21 +47,13 @@ Adhering to these guidelines ensures consistency and readability across the code
         while( condition )
             another_thing( );
         ```
-    *   **Example (Bad):
-        ```cpp
-        if (condition) {
-            doSomething();
-        }
-        ```
+
 ##  5. **Increment/Decrement Operators:** Always prefer pre-increment (`++count`) over post-increment (`count++`) and pre-decrement (`--count`) over post-decrement (`--count`).
     *   **Example (Good):**
         ```cpp
         ++count;
         ```
-    *   **Example (Bad):**
-        ```cpp
-        count++;
-        ```
+
 ##  6. **Logical Operators:** Always use the keyword forms `not`, `and`, and `or` instead of the symbolic operators `!`, `&&`, and `||`.
     *   **Example (Good):**
         ```cpp
@@ -84,36 +62,21 @@ Adhering to these guidelines ensures consistency and readability across the code
         while( condition_c or condition_d )
             another_thing( );
         ```
-    *   **Example (Bad):**
-        ```cpp
-        if( condition_a && ! condition_b )
-            do_something( );
-        while( condition_c || condition_d )
-            another_thing( );
-        ```
+
 ##  7. **`const` and `noexcept` for Non-Modifying Methods:**
     *   Methods that do not alter the object's state and do not throw exceptions must be marked with `const` and `noexcept`.
     *   **Example (Good):**
         ```cpp
         int get_value( ) const noexcept;
         ```
-    *   **Example (Bad):**
+
+##  8. **Single-Line Method Definitions in .cpp Files:**
+    *   In the `.cpp` file, if a method's implementation consists of only a single statement, its definition must be placed on the same line as the method signature.
+    *   **Example (Good, in a .cpp file):**
         ```cpp
-        int get_value( );
+        bool my_class::is_enabled( ) const noexcept { return m_is_enabled; }
         ```
-##  8. **Single-Line Function/Method Implementation:**
-    *   If a function or method's implementation consists of a single line, its definition should be placed on the same line as its declaration.
-    *   **Example (Good):**
-        ```cpp
-        bool is_enabled( ) const noexcept { return m_is_enabled; }
-        ```
-    *   **Example (Bad):**
-        ```cpp
-        bool is_enabled( ) const noexcept
-        {
-            return m_is_enabled;
-        }
-        ```
+
 ##  9. **`using` Clauses:**
     *   Use `using` clauses to avoid fully qualifying type names and functions.
     *   **Example:**
@@ -126,6 +89,7 @@ Adhering to these guidelines ensures consistency and readability across the code
 ##  10. **Static Variables:**
     *   Avoid using static variables whenever possible, especially in functions or methods, due to potential thread-safety issues and hidden dependencies. Prefer class member variables or passing state explicitly.
 
+
 ##  11. **Main Function Scope:**
     *   The `main` function must always contain an additional, explicit scope block `{}` immediately after its opening curly brace. This ensures that all stack-allocated objects within `main` have their destructors called before `main` exits, promoting predictable resource management.
     *   **Example (Good):**
@@ -135,23 +99,50 @@ Adhering to these guidelines ensures consistency and readability across the code
             //  all main function logic here
         }}
         ```
-        ```
-    *   **Example (Bad):**
+
+##  12. **Header File Structure and Formatting:**
+    *   A specific structure and formatting must be followed for header files to ensure consistency.
+    *   **Separation of Blocks:** Different code blocks (macros, `namespace`, `using` declarations, and `class` definitions) must be separated by exactly two blank lines.
+    *   **Namespace Declaration:**
+        *   The opening curly brace `{` for a `namespace` must be on the same line as the `namespace` keyword.
+            *   For other cases the opening curly brace `{` must be on a new line.
+        *   Code within a `namespace` block must not be indented.
+    *   **Example (Good):**
         ```cpp
-        int main( )
+        #pragma once
+        #ifndef header_guard_...
+        #define header_guard_...
+
+
+        #include <some_header>
+
+
+        namespace my_namespace {
+
+
+        using ::std::string;
+
+
+        class my_class
         {
-            // Main function logic directly here
+            // ...
+        };
+
+
         }
+
+
+        #endif
         ```
 
-##  12. Validation.
-*   After producing any code in C++, perform a final validation to ensure each of the previous items has been strictly followed.
-    *   If any of them are not in compliance with this document, use the available tools to make the necessary adjustments.
-*   Do not consider the code to have been properly delivered until this validation is 100% okay.
+##  13. Validation.
+    *   After producing any code in C++, perform a final validation to ensure each of the previous items has been strictly followed.
+        *   If any of them are not in compliance with this document, use the available tools to make the necessary adjustments.
+    *   Do not consider the code to have been properly delivered until this validation is 100% okay.
 
-##  13. Validation with cppcheck.
-*   After completing the previous validation, perform a new validation using the "cppcheck" tool with `--enable=all --suppress=missingIncludeSystem`.
-    *   If the "cppcheck" tool returns any message, even if not critical, explain the reason and the probable proposed solution.
+##  14. Validation with cppcheck.
+    *   After completing the previous validation, perform a new validation using the "cppcheck" tool with `--enable=all --suppress=missingIncludeSystem`.
+        *   If the "cppcheck" tool returns any message, even if not critical, explain the reason and the probable proposed solution.
 
 
 
