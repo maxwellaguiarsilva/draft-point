@@ -48,6 +48,11 @@ public:
 	explicit point( initializer_list<int> a_list );
 	virtual ~point( );
 
+	point& operator+=( const point& other );
+	point& operator-=( const point& other );
+	point& operator*=( const point& other );
+	point& operator/=( const point& other );
+
 	point operator+( const point& other ) const;
 	point operator-( const point& other ) const;
 	point operator*( const point& other ) const;

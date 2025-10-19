@@ -31,41 +31,64 @@ namespace game {
 point::point( initializer_list<int> a_list ) : vector<int>( a_list ) { }
 point::~point( ) { }
 
+point& point::operator+=( const point& other )
+{
+	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index )
+		( *this )[ index ] += other[ index ];
+	return *this;
+}
+
+point& point::operator-=( const point& other )
+{
+	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index )
+		( *this )[ index ] -= other[ index ];
+	return *this;
+}
+
+point& point::operator*=( const point& other )
+{
+	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index )
+		( *this )[ index ] *= other[ index ];
+	return *this;
+}
+
+point& point::operator/=( const point& other )
+{
+	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index )
+		if( other[ index ] != 0 )
+			( *this )[ index ] /= other[ index ];
+	return *this;
+}
+
 point point::operator+( const point& other ) const
 {
 	point result( *this );
-	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index )
-		result[ index ] += other[ index ];
+	result += other;
 	return result;
 }
 
 point point::operator-( const point& other ) const
 {
 	point result( *this );
-	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index )
-		result[ index ] -= other[ index ];
+	result -= other;
 	return result;
 }
 
 point point::operator*( const point& other ) const
 {
 	point result( *this );
-	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index )
-		result[ index ] *= other[ index ];
+	result *= other;
 	return result;
 }
 
 point point::operator/( const point& other ) const
 {
 	point result( *this );
-	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index )
-		if( other[ index ] != 0 )
-			result[ index ] /= other[ index ];
+	result /= other;
 	return result;
 }
 
 
 } 
-
 
 
