@@ -61,10 +61,10 @@ auto game::run( ) -> void
 		{
 			switch( between( code, 'A', 'Z' ) ? code - delta_lower_case : code )
 			{
-				case 'a': m_player.move( point::left );	break;
-				case 'd': m_player.move( point::right );	break;
-				case 'w': m_player.move( point::up );	break;
-				case 's': m_player.move( point::down );	break;
+				case 'a': m_player.move( player::left );	break;
+				case 'd': m_player.move( player::right );	break;
+				case 'w': m_player.move( player::up );		break;
+				case 's': m_player.move( player::down );	break;
 				case 'v': m_fps.enable_limit( not m_fps.is_enable( ) );	break;
 				case 'q': exit_loop = true; break;
 			}

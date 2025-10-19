@@ -72,6 +72,11 @@ auto player::character( ) const -> const string&
 }
 
 
+const point player::up{ 0, -1 };
+const point player::down{ 0, 1 };
+const point player::left{ -1, 0 };
+const point player::right{ 1, 0 };
+
 } 
 
 

@@ -75,10 +75,7 @@ public:
 	bool operator==( const point& other ) const;
 	bool operator!=( const point& other ) const;
 
-	static const point up;
-	static const point down;
-	static const point left;
-	static const point right;
+
 };
 
 

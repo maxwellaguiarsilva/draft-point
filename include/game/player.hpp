@@ -56,10 +56,16 @@ public:
 	auto position( ) const -> const point&;
 	auto character( ) const -> const string&;
 
+	static const point up;
+	static const point down;
+	static const point left;
+	static const point right;
+	
 private:
 	point m_position;
 	string m_character;
 	const point m_box_size;
+	
 };
 
 
