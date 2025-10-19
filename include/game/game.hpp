@@ -49,7 +49,7 @@ class game
 {
 public:
 	game( );
-	virtual ~game( );
+	virtual ~game( ) noexcept;
 
 	disable_copy_move_ctc( game );
 

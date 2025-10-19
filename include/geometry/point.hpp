@@ -46,7 +46,7 @@ class point : public vector<int>
 {
 public:
 	explicit point( initializer_list<int> a_list );
-	virtual ~point( );
+	virtual ~point( ) noexcept;
 
 	point& operator+=( const point& other );
 	point& operator-=( const point& other );
@@ -60,20 +60,20 @@ public:
 	point& operator/=( int scalar );
 	point& operator%=( int scalar );
 
-	point operator+( const point& other ) const;
-	point operator-( const point& other ) const;
-	point operator*( const point& other ) const;
-	point operator/( const point& other ) const;
-	point operator%( const point& other ) const;
+	point operator+( const point& other ) const noexcept;
+	point operator-( const point& other ) const noexcept;
+	point operator*( const point& other ) const noexcept;
+	point operator/( const point& other ) const noexcept;
+	point operator%( const point& other ) const noexcept;
 
-	point operator+( int scalar ) const;
-	point operator-( int scalar ) const;
-	point operator*( int scalar ) const;
-	point operator/( int scalar ) const;
-	point operator%( int scalar ) const;
+	point operator+( int scalar ) const noexcept;
+	point operator-( int scalar ) const noexcept;
+	point operator*( int scalar ) const noexcept;
+	point operator/( int scalar ) const noexcept;
+	point operator%( int scalar ) const noexcept;
 
-	bool operator==( const point& other ) const;
-	bool operator!=( const point& other ) const;
+	bool operator==( const point& other ) const noexcept;
+	bool operator!=( const point& other ) const noexcept;
 
 
 };

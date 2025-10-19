@@ -45,7 +45,7 @@ game::game( )
 	,m_fps{ }
 { m_fps.set_limit( 30 ); }
 
-game::~game( ) { }
+game::~game( ) noexcept { }
 
 
 auto game::run( ) -> void
@@ -56,7 +56,7 @@ auto game::run( ) -> void
 	while( true )
 	{
 		char code = m_terminal.get_char( );
-		if( code != 0 )
+		if( code not_eq 0 )
 		{
 			switch( between( code, 'A', 'Z' ) ? code - delta_lower_case : code )
 			{
@@ -83,7 +83,6 @@ auto game::run( ) -> void
 		m_terminal.refresh( );
 	}
 
-	m_terminal.print( 0, 0, "           " );
 	m_terminal.clear_screen( );
 }
 

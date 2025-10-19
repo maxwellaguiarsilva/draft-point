@@ -24,6 +24,7 @@
 
 
 #include <geometry/point.hpp>
+#include <algorithm>
 
 
 #define __193526415_assignment( p_operator ) \
@@ -39,7 +40,7 @@ point& point::operator p_operator##=( const point& other ) \
 point& point::operator p_operator##=( const point& other ) \
 { \
 	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index ) \
-		if( other[ index ] != 0 ) \
+		if( other[ index ] not_eq 0 ) \
 			( *this )[ index ] p_operator##= other[ index ]; \
 	return *this; \
 }
@@ -48,8 +49,7 @@ point& point::operator p_operator##=( const point& other ) \
 #define __193526415_assignment_scalar( p_operator ) \
 point& point::operator p_operator##=( int scalar ) \
 { \
-	for( auto& value : *this ) \
-		value p_operator##= scalar; \
+	::std::for_each( begin( ), end( ), [ scalar ]( int& value ) { value p_operator##= scalar; } ); \
 	return *this; \
 }
 
@@ -57,9 +57,8 @@ point& point::operator p_operator##=( int scalar ) \
 #define __193526415_assignment_scalar_if_zero( p_operator ) \
 point& point::operator p_operator##=( int scalar ) \
 { \
-	if( scalar != 0 ) \
-		for( auto& value : *this ) \
-			value p_operator##= scalar; \
+	if( scalar not_eq 0 ) \
+		::std::for_each( begin( ), end( ), [ scalar ]( int& value ) { value p_operator##= scalar; } ); \
 	return *this; \
 }
 
@@ -69,7 +68,7 @@ namespace geometry {
 
 
 point::point( initializer_list<int> a_list ) : vector<int>( a_list ) { }
-point::~point( ) { }
+point::~point( ) noexcept { }
 
 
 __193526415_assignment( + )
@@ -84,24 +83,24 @@ __193526415_assignment_scalar( * )
 __193526415_assignment_scalar_if_zero( / )
 __193526415_assignment_scalar_if_zero( % )
 
-point point::operator+( const point& other ) const { return ( point( *this ) += other ); }
-point point::operator-( const point& other ) const { return ( point( *this ) -= other ); }
-point point::operator*( const point& other ) const { return ( point( *this ) *= other ); }
-point point::operator/( const point& other ) const { return ( point( *this ) /= other ); }
-point point::operator%( const point& other ) const { return ( point( *this ) %= other ); }
+point point::operator+( const point& other ) const noexcept { return ( point( *this ) += other ); }
+point point::operator-( const point& other ) const noexcept { return ( point( *this ) -= other ); }
+point point::operator*( const point& other ) const noexcept { return ( point( *this ) *= other ); }
+point point::operator/( const point& other ) const noexcept { return ( point( *this ) /= other ); }
+point point::operator%( const point& other ) const noexcept { return ( point( *this ) %= other ); }
 
-point point::operator+( int scalar ) const { return ( point( *this ) += scalar ); }
-point point::operator-( int scalar ) const { return ( point( *this ) -= scalar ); }
-point point::operator*( int scalar ) const { return ( point( *this ) *= scalar ); }
-point point::operator/( int scalar ) const { return ( point( *this ) /= scalar ); }
-point point::operator%( int scalar ) const { return ( point( *this ) %= scalar ); }
+point point::operator+( int scalar ) const noexcept { return ( point( *this ) += scalar ); }
+point point::operator-( int scalar ) const noexcept { return ( point( *this ) -= scalar ); }
+point point::operator*( int scalar ) const noexcept { return ( point( *this ) *= scalar ); }
+point point::operator/( int scalar ) const noexcept { return ( point( *this ) /= scalar ); }
+point point::operator%( int scalar ) const noexcept { return ( point( *this ) %= scalar ); }
 
 
-bool point::operator==( const point& other ) const
+bool point::operator==( const point& other ) const noexcept
 {
 	return static_cast<const vector<int>&>( *this ) == static_cast<const vector<int>&>( other );
 }
-bool point::operator!=( const point& other ) const { return not( *this == other ); }
+bool point::operator!=( const point& other ) const noexcept { return not( *this == other ); }
 
 
 }

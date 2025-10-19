@@ -48,7 +48,7 @@ class fps
 {
 public:
 	fps( );
-	virtual ~fps( );
+	virtual ~fps( ) noexcept;
 
 	disable_copy_move_ctc( fps );
 

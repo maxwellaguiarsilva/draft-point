@@ -41,7 +41,7 @@ player::player( const point& box_size, const point& position, const string& char
 { }
 
 
-player::~player( ) { }
+player::~player( ) noexcept { }
 
 
 auto player::draw( terminal& terminal ) const noexcept -> void

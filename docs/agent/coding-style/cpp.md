@@ -95,7 +95,7 @@ The rules can be bypassed if a specific keyword is included in a single comment 
         ```
 
 ##  10. **Static Variables:**
-    *   Avoid using static variables whenever possible, especially in functions or methods, due to potential thread-safety issues and hidden dependencies. Prefer class member variables or passing state explicitly.
+    *   Avoid using non-const static variables, especially in functions or methods, due to potential thread-safety issues and hidden dependencies. Prefer class member variables or passing state explicitly. Static `const` variables are permitted for defining compile-time constants or fixed values that are part of a class's interface, as they do not introduce thread-safety issues or hidden dependencies.
 
 
 ##  11. **Main Function Scope:**

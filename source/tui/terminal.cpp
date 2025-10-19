@@ -37,6 +37,7 @@ namespace tui {
 using	::std::cout;
 using	::std::flush;
 using	::std::format;
+using	::geometry::point;
 using	color		=	::tui::terminal::color;
 using	text_style	=	::tui::terminal::text_style;
 
@@ -49,7 +50,7 @@ terminal::terminal( )
 	clear_screen( true );
 	set_raw_mode( true );
 }
-terminal::~terminal( ) { clear_screen( true ); }
+terminal::~terminal( ) noexcept { clear_screen( true ); }
 
 auto terminal::clear_screen( bool full_reset ) -> void
 {
@@ -69,7 +70,7 @@ auto terminal::get_char( ) -> const char
 	return static_cast<int>( c );
 }
 
-auto terminal::get_size( ) const noexcept -> geometry::point { return geometry::point( {m_ws.ws_col, m_ws.ws_row} ); }
+auto terminal::get_size( ) const noexcept -> point { return point( {m_ws.ws_col, m_ws.ws_row} ); }
 
 auto terminal::move_cursor( int left, int top ) -> void { print( format( "\033[{};{}H", top, left ) ); }
 

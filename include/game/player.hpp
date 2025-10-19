@@ -47,7 +47,7 @@ class player
 {
 public:
 	player( const point& box_size, const point& position, const string& character = "█" );
-	virtual ~player( );
+	virtual ~player( ) noexcept;
 
 	disable_copy_move_ctc( player );
 

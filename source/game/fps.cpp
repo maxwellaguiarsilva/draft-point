@@ -42,7 +42,7 @@ fps::fps( )
 { }
 
 
-fps::~fps( ) { }
+fps::~fps( ) noexcept { }
 
 auto fps::set_limit( int limit ) -> void
 {
