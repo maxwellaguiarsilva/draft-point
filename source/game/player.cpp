@@ -24,6 +24,7 @@
 
 
 #include <game/player.hpp>
+#include <tui/terminal.hpp>
 
 
 namespace game {
@@ -31,59 +32,43 @@ namespace game {
 
 using	::std::string;
 using	color		=	::tui::terminal::color;
-using	movement	=	::game::player::movement;
 
 
-player::player( terminal& terminal, int top, int left, const string& character )
-	:m_top{ top }
-	,m_left{ left }
+player::player( const point& box_size, const point& position, const string& character )
+	:m_position{ position }
 	,m_character{ character }
-	,m_terminal{ terminal }
+	,m_box_size{ box_size }
 { }
 
 
 player::~player( ) { }
 
 
-auto player::clear_old_position( ) -> void
+auto player::draw( terminal& terminal ) const -> void
 {
-	m_terminal.set_color( color::cyan );
-	m_terminal.print( m_left, m_top, m_character );
+	terminal.set_color( color::white );
+	terminal.print( m_position[ 0 ], m_position[ 1 ], m_character );
 }
 
 
-auto player::draw( ) const -> void
+auto player::move( const point& direction ) -> void
 {
-	m_terminal.set_color( color::white );
-	m_terminal.print( m_left, m_top, m_character );
+	m_position += direction;
+
+	m_position += m_box_size;
+	m_position %= m_box_size;
 }
 
 
-auto player::move( movement movement ) -> void
+auto player::position( ) const -> const point&
 {
-	using	movement::up;
-	using	movement::down;
-	using	movement::left;
-	using	movement::right;
-	clear_old_position( );
+	return m_position;
+}
 
-	int width = m_terminal.get_width( );
-	int height = m_terminal.get_height( );
 
-	switch( movement )
-	{
-		case up:	--m_top;	break;
-		case down:	++m_top;	break;
-		case left:	--m_left;	break;
-		case right:	++m_left;	break;
-	}
-
-	m_left += width;
-	m_left %= width;
-	m_top += height;
-	m_top %= height;
-
-	draw( );
+auto player::character( ) const -> const string&
+{
+	return m_character;
 }
 
 

@@ -52,12 +52,33 @@ public:
 	point& operator-=( const point& other );
 	point& operator*=( const point& other );
 	point& operator/=( const point& other );
+	point& operator%=( const point& other );
+
+	point& operator+=( int scalar );
+	point& operator-=( int scalar );
+	point& operator*=( int scalar );
+	point& operator/=( int scalar );
+	point& operator%=( int scalar );
 
 	point operator+( const point& other ) const;
 	point operator-( const point& other ) const;
 	point operator*( const point& other ) const;
 	point operator/( const point& other ) const;
+	point operator%( const point& other ) const;
 
+	point operator+( int scalar ) const;
+	point operator-( int scalar ) const;
+	point operator*( int scalar ) const;
+	point operator/( int scalar ) const;
+	point operator%( int scalar ) const;
+
+	bool operator==( const point& other ) const;
+	bool operator!=( const point& other ) const;
+
+	static const point up;
+	static const point down;
+	static const point left;
+	static const point right;
 };
 
 

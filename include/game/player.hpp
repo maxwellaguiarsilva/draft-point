@@ -29,43 +29,37 @@
 
 #include <sak.hpp>
 #include <string>
-#include <tui/terminal.hpp>
+#include <game/point.hpp>
 
+namespace tui {
+class terminal;
+}
 
 namespace game {
 
 
 using	::std::string;
+using	::game::point;
 using	::tui::terminal;
 
 
 class player
 {
 public:
-	enum class movement
-	{
-		 up
-		,down
-		,left
-		,right
-	};
-
-	player( terminal& terminal, int top, int left, const string& character = "\u2588" );
+	player( const point& box_size, const point& position, const string& character = "█" );
 	virtual ~player( );
 
 	disable_copy_move_ctc( player );
 
-	auto draw( ) const -> void;
-	auto move( movement movement ) -> void;
+	auto draw( terminal& terminal ) const -> void;
+	auto move( const point& direction ) -> void;
+	auto position( ) const -> const point&;
+	auto character( ) const -> const string&;
 
 private:
-	int m_top;
-	int m_left;
+	point m_position;
 	string m_character;
-	terminal& m_terminal;
-
-	auto clear_old_position( ) -> void;
-
+	const point m_box_size;
 };
 
 

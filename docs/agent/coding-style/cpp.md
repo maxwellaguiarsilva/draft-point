@@ -103,10 +103,8 @@ Adhering to these guidelines ensures consistency and readability across the code
 
 ##  12. **Header File Structure and Formatting:**
     *   A specific structure and formatting must be followed for header files to ensure consistency.
-    *   **Separation of Blocks:** Different code blocks (macros, `namespace`, `using` declarations, and `class` definitions) must be separated by exactly two blank lines.
     *   **Namespace Declaration:**
-        *   The opening curly brace `{` for a `namespace` must be on the same line as the `namespace` keyword.
-            *   For other cases the opening curly brace `{` must be on a new line.
+        *   The opening curly brace `{` for a `namespace` must be on the same line as the `namespace` keyword. For other cases must be on a new line.
         *   Code within a `namespace` block must not be indented.
     *   **Example (Good):**
         ```cpp
@@ -144,6 +142,5 @@ Adhering to these guidelines ensures consistency and readability across the code
 ##  14. Validation with cppcheck.
     *   After completing the previous validation, perform a new validation using the "cppcheck" tool with `--enable=all --suppress=missingIncludeSystem`.
         *   If the "cppcheck" tool returns any message, even if not critical, explain the reason and the probable proposed solution.
-
 
 

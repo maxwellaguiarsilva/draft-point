@@ -24,6 +24,7 @@
 
 
 #include <game/game.hpp>
+#include <game/point.hpp>
 
 
 namespace game {
@@ -33,16 +34,18 @@ using	::std::string;
 using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
+using	::game::point;
 using	::std::vector;
 using	::std::to_string;
 using	color	= 	::tui::terminal::color;
 
 
 game::game( )
-	:m_terminal{}
-	,m_player{ m_terminal, 10, 10 }
-	,m_fps{}
+	:m_terminal{ }
+	,m_player{ point{ m_terminal.get_width( ), m_terminal.get_height( ) }, point{ 10, 10 } }
+	,m_fps{ }
 { m_fps.set_limit( 30 ); }
+
 game::~game( ) { }
 
 
@@ -58,10 +61,10 @@ auto game::run( ) -> void
 		{
 			switch( between( code, 'A', 'Z' ) ? code - delta_lower_case : code )
 			{
-				case 'a': m_player.move( player::movement::left );	break;
-				case 'd': m_player.move( player::movement::right );	break;
-				case 'w': m_player.move( player::movement::up );	break;
-				case 's': m_player.move( player::movement::down );	break;
+				case 'a': m_player.move( point::left );	break;
+				case 'd': m_player.move( point::right );	break;
+				case 'w': m_player.move( point::up );	break;
+				case 's': m_player.move( point::down );	break;
 				case 'v': m_fps.enable_limit( not m_fps.is_enable( ) );	break;
 				case 'q': exit_loop = true; break;
 			}
@@ -71,12 +74,12 @@ auto game::run( ) -> void
 			break;
 
 		m_terminal.clear_screen( );
-		m_player.draw( );
+		m_player.draw( m_terminal );
 		m_terminal.print( 1, m_terminal.get_height( ),
 				" | fps: " + to_string( m_fps.compute( ) )
-			+	" | width: " + to_string( m_terminal.get_width( ) )
-			+	" | height: " + to_string( m_terminal.get_height( ) )
-			+	" | "
+			+ 	" | width: " + to_string( m_terminal.get_width( ) )
+			+ 	" | height: " + to_string( m_terminal.get_height( ) )
+			+ 	" | "
 		);
 		m_terminal.refresh( );
 	}
@@ -87,6 +90,5 @@ auto game::run( ) -> void
 
 
 } 
-
 
 
