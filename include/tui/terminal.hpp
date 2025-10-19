@@ -30,6 +30,7 @@
 
 #include <sak.hpp>
 #include <termios.h>
+#include <geometry/point.hpp>
 
 
 namespace tui {
@@ -71,8 +72,7 @@ public:
 
 	auto clear_screen( bool full_reset = false ) -> void;
 	auto get_char( ) -> const char;
-	auto get_height( ) const noexcept -> const int;
-	auto get_width( ) const noexcept -> const int;
+	auto get_size( ) const noexcept -> geometry::point;
 	auto move_cursor( int left, int top ) -> void;
 	auto print( const string& text ) -> void;
 	auto print( int left, int top, const string& text ) -> void;

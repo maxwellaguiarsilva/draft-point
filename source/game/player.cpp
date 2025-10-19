@@ -44,7 +44,7 @@ player::player( const point& box_size, const point& position, const string& char
 player::~player( ) { }
 
 
-auto player::draw( terminal& terminal ) const -> void
+auto player::draw( terminal& terminal ) const noexcept -> void
 {
 	terminal.set_color( color::white );
 	terminal.print( m_position[ 0 ], m_position[ 1 ], m_character );
@@ -54,22 +54,13 @@ auto player::draw( terminal& terminal ) const -> void
 auto player::move( const point& direction ) -> void
 {
 	m_position += direction;
-
 	m_position += m_box_size;
 	m_position %= m_box_size;
 }
 
 
-auto player::position( ) const -> const point&
-{
-	return m_position;
-}
-
-
-auto player::character( ) const -> const string&
-{
-	return m_character;
-}
+auto player::get_position( ) const noexcept -> const point& { return m_position; }
+auto player::get_character( ) const noexcept -> const string& { return m_character; }
 
 
 const point player::up{ 0, -1 };

@@ -2,17 +2,19 @@
 
 This document outlines the coding style conventions to be followed for this project.
 Adhering to these guidelines ensures consistency and readability across the codebase.
+The rules can be bypassed if a specific keyword is included in a single comment (e.g., `ignore-some-specific-rule`).
+
 
 ##  General Rules
 
-##  1. **No Comments in Code Implementation:**
-    *   This rule should be ignored in files containing `//	ignore-no-comments-rule`.
+##  1. **No Comments in Code Implementation:** Exemption keyword: `// ignore-no-comments-rule`.
     *   Code should be self-documenting.
     *   Avoid adding comments within the code's implementation logic.
     *   License headers and file description comments at the top of a file are permitted.
 
 ##  2. **Naming Convention:**
     *   All identifiers (variables, functions, classes, namespaces, macros, etc.) must use `snake_case`.
+    *   Macros that include a numerical prefix (e.g., `__123456789_my_macro`) are permitted and are considered compliant with this rule.
     *   Use descriptive and unabbreviated names for identifiers (e.g., `index` instead of `i`, `width` instead of `w`, `height` instead of `h`).
     *   Class member variables must be prefixed with `m_`.
     *   `CamelCase`, `PascalCase`, `kebab-case`, or any other casing style is forbidden.
@@ -38,7 +40,6 @@ Adhering to these guidelines ensures consistency and readability across the code
 
 ##  4. **Single-Line Control Structures:**
     *   For `if`, `for`, and `while` statements that contain only a single line of code, omit the curly braces `{}`.
-    *   Additionally, there should be no space between the keyword and the opening parenthesis.
     *   **Example (Good):**
         ```cpp
         if( condition )
@@ -53,15 +54,19 @@ Adhering to these guidelines ensures consistency and readability across the code
     *   **Example (Good):**
         ```cpp
         ++count;
+        --count;
         ```
 
-##  6. **Logical Operators:** Always use the keyword forms `not`, `and`, and `or` instead of the symbolic operators `!`, `&&`, and `||`.
+##  6. **Logical Operators:** Exemption keyword: `//  ignore-logical-operators-rule`
+    *   Always use the keyword forms for all logical and relational operators (e.g., `not`, `and`, `or`, `not_eq`, `bitand`, `bitor`, `xor`, `compl`, `and_eq`, `or_eq`, `xor_eq`) instead of their symbolic counterparts (`!`, `&&`, `||`, `!=`, `&`, `|`, `^`, `~`, `&=`, `|=`, `^=`).
     *   **Example (Good):**
         ```cpp
         if( condition_a and not condition_b )
             do_something( );
         while( condition_c or condition_d )
             another_thing( );
+        if( value not_eq 0 )
+            handle_value( );
         ```
 
 ##  7. **`const` and `noexcept` for Non-Modifying Methods:**
@@ -72,6 +77,7 @@ Adhering to these guidelines ensures consistency and readability across the code
         ```
 
 ##  8. **Single-Line Method Definitions in .cpp Files:**
+    *   This rule does not apply to constructors that utilize a member initializer list.
     *   In the `.cpp` file, if a method's implementation consists of only a single statement, its definition must be placed on the same line as the method signature.
     *   **Example (Good, in a .cpp file):**
         ```cpp
@@ -80,9 +86,10 @@ Adhering to these guidelines ensures consistency and readability across the code
 
 ##  9. **`using` Clauses:**
     *   Use `using` clauses to avoid fully qualifying type names and functions.
+    *   `using` clauses must be indented with a single tab.
     *   **Example:**
         ```cpp
-        using ::std::chrono::high_resolution_clock;
+        using	::std::chrono::high_resolution_clock;
         // ...
         auto start_time = high_resolution_clock::now( );
         ```
@@ -104,8 +111,8 @@ Adhering to these guidelines ensures consistency and readability across the code
 ##  12. **Header File Structure and Formatting:**
     *   A specific structure and formatting must be followed for header files to ensure consistency.
     *   **Namespace Declaration:**
-        *   The opening curly brace `{` for a `namespace` must be on the same line as the `namespace` keyword. For other cases must be on a new line.
-        *   Code within a `namespace` block must not be indented.
+        *   The opening curly brace `{` for a `namespace` must be on the same line as the `namespace` keyword. For other cases, it must be on a new line.
+        *   Code within a `namespace` block must **not introduce an additional level of indentation** solely due to the namespace declaration. It should maintain the same indentation level as the surrounding code.
     *   **Example (Good):**
         ```cpp
         #pragma once
@@ -116,31 +123,47 @@ Adhering to these guidelines ensures consistency and readability across the code
         #include <some_header>
 
 
-        namespace my_namespace {
+        namespace first_namespace {
+        namespace second_namespace {
 
-
-        using ::std::string;
-
-
+        //  no additional indentation here for content within the namespace
+        using   ::std::string;
+        
+        
         class my_class
         {
-            // ...
+        public:
+            explicit my_class( );
+            virtual ~my_class( );
+            //  ...
+
+        private:
+            string  m_name;
+
         };
 
 
         }
-
-
+        }   //  closing brace aligns with namespace keyword
+        
+        
         #endif
+        ```
+    *   **Example (Bad - for clarification):**
+        ```cpp
+        namespace my_namespace {
+            //  this is incorrect: an extra indentation level is added here
+            using ::std::string;    //  this is incorrect: space instead of tab after using word
+        }
         ```
 
 ##  13. Validation.
-    *   After producing any code in C++, perform a final validation to ensure each of the previous items has been strictly followed.
-        *   If any of them are not in compliance with this document, use the available tools to make the necessary adjustments.
-    *   Do not consider the code to have been properly delivered until this validation is 100% okay.
+    *   After producing any C++ code, perform a final validation to ensure all of the preceding items have been strictly followed.
+        *   If any item is not in compliance with this document, use the available tools to make the necessary adjustments.
+    *   Do not consider the code to have been properly delivered until this validation is fully compliant.
 
 ##  14. Validation with cppcheck.
     *   After completing the previous validation, perform a new validation using the "cppcheck" tool with `--enable=all --suppress=missingIncludeSystem`.
-        *   If the "cppcheck" tool returns any message, even if not critical, explain the reason and the probable proposed solution.
+        *   If the "cppcheck" tool returns any message, even if not critical, explain the reason and the proposed solution.
 
 

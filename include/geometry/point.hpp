@@ -37,9 +37,9 @@
 namespace geometry {
 
 
-using ::std::vector;
-using ::std::initializer_list;
-using ::std::min;
+using	::std::vector;
+using	::std::initializer_list;
+using	::std::min;
 
 
 class point : public vector<int>

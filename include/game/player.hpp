@@ -51,10 +51,10 @@ public:
 
 	disable_copy_move_ctc( player );
 
-	auto draw( terminal& terminal ) const -> void;
+	auto draw( terminal& terminal ) const noexcept -> void;
 	auto move( const point& direction ) -> void;
-	auto position( ) const -> const point&;
-	auto character( ) const -> const string&;
+	auto get_position( ) const noexcept -> const point&;
+	auto get_character( ) const noexcept -> const string&;
 
 	static const point up;
 	static const point down;

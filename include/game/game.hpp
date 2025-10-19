@@ -56,7 +56,6 @@ public:
 	auto run( ) -> void;
 
 private:
-
 	terminal	m_terminal;
 	player		m_player;
 	fps			m_fps;

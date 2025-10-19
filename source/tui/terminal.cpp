@@ -31,8 +31,7 @@
 
 
 
-namespace tui
-{
+namespace tui {
 
 
 using	::std::cout;
@@ -45,8 +44,8 @@ using	text_style	=	::tui::terminal::text_style;
 
 terminal::terminal( )
 {
-	assert( tcgetattr( STDIN_FILENO, &m_original_termios ) != 1, "terminal: tcgetattr error" );
-	assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) != 1, "terminal: ioctl error" );
+	assert( tcgetattr( STDIN_FILENO, &m_original_termios ) not_eq 1, "terminal: tcgetattr error" );
+	assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) not_eq 1, "terminal: ioctl error" );
 	clear_screen( true );
 	set_raw_mode( true );
 }
@@ -70,8 +69,7 @@ auto terminal::get_char( ) -> const char
 	return static_cast<int>( c );
 }
 
-auto terminal::get_width( ) const noexcept -> const int { return m_ws.ws_col; }
-auto terminal::get_height( ) const noexcept -> const int { return m_ws.ws_row; }
+auto terminal::get_size( ) const noexcept -> geometry::point { return geometry::point( {m_ws.ws_col, m_ws.ws_row} ); }
 
 auto terminal::move_cursor( int left, int top ) -> void { print( format( "\033[{};{}H", top, left ) ); }
 
@@ -89,17 +87,18 @@ auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" :
 
 auto terminal::set_raw_mode( bool enable ) -> void
 {
-	set_cursor( !enable );
+	set_cursor( not enable );
 	if( enable )
 	{
 		auto raw = m_original_termios;
+		//  ignore-logical-operators-rule
 		raw.c_lflag		&=	~( ECHO | ICANON );	//	disable echo and canonical mode
 		raw.c_cc[VMIN]	=	0;	//	minimum number of characters for non-canonical read
 		raw.c_cc[VTIME]	=	0;	//	timeout in deciseconds for non-canonical read
-		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &raw ) != 1, "terminal: tcsetattr error" );
+		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &raw ) not_eq 1, "terminal: tcsetattr error" );
 	}
 	else
-		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &m_original_termios ) != 1, "terminal: tcsetattr error" );
+		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &m_original_termios ) not_eq 1, "terminal: tcsetattr error" );
 }
 
 auto terminal::set_text_style( text_style style ) -> void { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
