@@ -24,7 +24,7 @@
 
 
 #include <game/game.hpp>
-#include <game/point.hpp>
+#include <geometry/point.hpp>
 
 
 namespace game {
@@ -34,8 +34,7 @@ using	::std::string;
 using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
-using	::game::point;
-using	::std::vector;
+using	::geometry::point;
 using	::std::to_string;
 using	color	= 	::tui::terminal::color;
 

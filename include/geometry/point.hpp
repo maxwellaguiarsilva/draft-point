@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   game/point.hpp
+ * File:   geometry/point.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-10-16 14:02
@@ -34,7 +34,7 @@
 #include <algorithm>
 
 
-namespace game {
+namespace geometry {
 
 
 using ::std::vector;

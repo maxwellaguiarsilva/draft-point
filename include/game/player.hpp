@@ -29,7 +29,7 @@
 
 #include <sak.hpp>
 #include <string>
-#include <game/point.hpp>
+#include <geometry/point.hpp>
 
 namespace tui {
 class terminal;
@@ -39,7 +39,7 @@ namespace game {
 
 
 using	::std::string;
-using	::game::point;
+using	::geometry::point;
 using	::tui::terminal;
 
 

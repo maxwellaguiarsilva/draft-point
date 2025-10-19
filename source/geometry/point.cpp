@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   game/point.cpp
+ * File:   geometry/point.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-10-16 14:02
@@ -23,7 +23,7 @@
 
 
 
-#include <game/point.hpp>
+#include <geometry/point.hpp>
 
 
 #define __193526415_assignment( p_operator ) \
@@ -65,7 +65,7 @@ point& point::operator p_operator##=( int scalar ) \
 
 
 
-namespace game {
+namespace geometry {
 
 
 point::point( initializer_list<int> a_list ) : vector<int>( a_list ) { }
