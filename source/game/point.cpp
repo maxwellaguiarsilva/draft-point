@@ -34,33 +34,33 @@ point::~point( ) { }
 point point::operator+( const point& other ) const
 {
 	point result( *this );
-	for( size_t i = 0; i < min( size( ), other.size( ) ); ++i )
-		result[ i ] += other[ i ];
+	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index )
+		result[ index ] += other[ index ];
 	return result;
 }
 
 point point::operator-( const point& other ) const
 {
 	point result( *this );
-	for( size_t i = 0; i < min( size( ), other.size( ) ); ++i )
-		result[ i ] -= other[ i ];
+	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index )
+		result[ index ] -= other[ index ];
 	return result;
 }
 
 point point::operator*( const point& other ) const
 {
 	point result( *this );
-	for( size_t i = 0; i < min( size( ), other.size( ) ); ++i )
-		result[ i ] *= other[ i ];
+	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index )
+		result[ index ] *= other[ index ];
 	return result;
 }
 
 point point::operator/( const point& other ) const
 {
 	point result( *this );
-	for( size_t i = 0; i < min( size( ), other.size( ) ); ++i )
-		if( other[ i ] != 0 )
-			result[ i ] /= other[ i ];
+	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index )
+		if( other[ index ] != 0 )
+			result[ index ] /= other[ index ];
 	return result;
 }
 
