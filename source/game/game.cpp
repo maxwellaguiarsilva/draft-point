@@ -41,7 +41,7 @@ using	color	= 	::tui::terminal::color;
 
 game::game( )
 	:m_terminal{ }
-	,m_player{ point{ m_terminal.get_size()[0], m_terminal.get_size()[1] }, point{ 10, 10 } }
+	,m_player{ m_terminal.get_size( ), point{ 10, 10 } }
 	,m_fps{ }
 { m_fps.set_limit( 30 ); }
 
@@ -64,7 +64,6 @@ auto game::run( ) -> void
 				case 'd': m_player.move( player::right );	break;
 				case 'w': m_player.move( player::up );		break;
 				case 's': m_player.move( player::down );	break;
-				case 'v': m_fps.enable_limit( not m_fps.is_enable( ) );	break;
 				case 'q': exit_loop = true; break;
 			}
 		}
@@ -74,10 +73,10 @@ auto game::run( ) -> void
 
 		m_terminal.clear_screen( );
 		m_player.draw( m_terminal );
-		m_terminal.print( 1, m_terminal.get_size()[1],
+		m_terminal.print( 1, m_terminal.get_size( )[1],
 				" | fps: " + to_string( m_fps.compute( ) )
-			+ 	" | width: " + to_string( m_terminal.get_size()[0] )
-			+ 	" | height: " + to_string( m_terminal.get_size()[1] )
+			+ 	" | width: " + to_string( m_terminal.get_size( )[0] )
+			+ 	" | height: " + to_string( m_terminal.get_size( )[1] )
 			+ 	" | "
 		);
 		m_terminal.refresh( );
