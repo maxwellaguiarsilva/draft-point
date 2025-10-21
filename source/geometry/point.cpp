@@ -26,35 +26,22 @@
 #include <geometry/point.hpp>
 
 
-#define __193526415_assignment( p_operator ) \
+#define __193526415_assignment( p_operator ) __193526415_assignment_impl( p_operator, )
+#define __193526415_assignment_zero_safe( p_operator ) __193526415_assignment_impl( p_operator, if( other[ index ] not_eq 0 ) )
+#define __193526415_assignment_impl( p_operator, p_if_not_zero ) \
 point& point::operator p_operator##=( const point& other ) \
 { \
 	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index ) \
-		( *this )[ index ] p_operator##= other[ index ]; \
+		p_if_not_zero ( *this )[ index ] p_operator##= other[ index ]; \
 	return	*this; \
 }
 
-#define __193526415_assignment_if_zero( p_operator ) \
-point& point::operator p_operator##=( const point& other ) \
+#define __193526415_assignment_scalar( p_operator ) __193526415_assignment_scalar_impl( p_operator, )
+#define __193526415_assignment_scalar_zero_safe( p_operator ) __193526415_assignment_scalar_impl( p_operator, if( other not_eq 0 ) )
+#define __193526415_assignment_scalar_impl( p_operator, p_if_not_zero ) \
+point& point::operator p_operator##=( int other ) \
 { \
-	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index ) \
-		if( other[ index ] not_eq 0 ) \
-			( *this )[ index ] p_operator##= other[ index ]; \
-	return	*this; \
-}
-
-#define __193526415_assignment_scalar( p_operator ) \
-point& point::operator p_operator##=( int scalar ) \
-{ \
-	::std::for_each( begin( ), end( ), [ scalar ]( int& value ) { value p_operator##= scalar; } ); \
-	return	*this; \
-}
-
-#define __193526415_assignment_scalar_if_zero( p_operator ) \
-point& point::operator p_operator##=( int scalar ) \
-{ \
-	if( scalar not_eq 0 ) \
-		::std::for_each( begin( ), end( ), [ scalar ]( int& value ) { value p_operator##= scalar; } ); \
+	p_if_not_zero ::std::for_each( begin( ), end( ), [ other ]( int& value ) { value p_operator##= other; } ); \
 	return	*this; \
 }
 
@@ -72,8 +59,8 @@ point::~point( ) noexcept { }
 __193526415_assignment( + )
 __193526415_assignment( - )
 __193526415_assignment( * )
-__193526415_assignment_if_zero( / )
-__193526415_assignment_if_zero( % )
+__193526415_assignment_zero_safe( / )
+__193526415_assignment_zero_safe( % )
 __193526415_binary( const point&, + )
 __193526415_binary( const point&, - )
 __193526415_binary( const point&, * )
@@ -83,8 +70,8 @@ __193526415_binary( const point&, % )
 __193526415_assignment_scalar( + )
 __193526415_assignment_scalar( - )
 __193526415_assignment_scalar( * )
-__193526415_assignment_scalar_if_zero( / )
-__193526415_assignment_scalar_if_zero( % )
+__193526415_assignment_scalar_zero_safe( / )
+__193526415_assignment_scalar_zero_safe( % )
 __193526415_binary( int, + )
 __193526415_binary( int, - )
 __193526415_binary( int, * )
