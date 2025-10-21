@@ -24,7 +24,6 @@
 
 
 #include <geometry/point.hpp>
-#include <algorithm>
 
 
 #define __193526415_assignment( p_operator ) \
@@ -32,9 +31,8 @@ point& point::operator p_operator##=( const point& other ) \
 { \
 	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index ) \
 		( *this )[ index ] p_operator##= other[ index ]; \
-	return *this; \
+	return	*this; \
 }
-
 
 #define __193526415_assignment_if_zero( p_operator ) \
 point& point::operator p_operator##=( const point& other ) \
@@ -42,26 +40,26 @@ point& point::operator p_operator##=( const point& other ) \
 	for( size_t index = 0; index < min( size( ), other.size( ) ); ++index ) \
 		if( other[ index ] not_eq 0 ) \
 			( *this )[ index ] p_operator##= other[ index ]; \
-	return *this; \
+	return	*this; \
 }
-
 
 #define __193526415_assignment_scalar( p_operator ) \
 point& point::operator p_operator##=( int scalar ) \
 { \
 	::std::for_each( begin( ), end( ), [ scalar ]( int& value ) { value p_operator##= scalar; } ); \
-	return *this; \
+	return	*this; \
 }
-
 
 #define __193526415_assignment_scalar_if_zero( p_operator ) \
 point& point::operator p_operator##=( int scalar ) \
 { \
 	if( scalar not_eq 0 ) \
 		::std::for_each( begin( ), end( ), [ scalar ]( int& value ) { value p_operator##= scalar; } ); \
-	return *this; \
+	return	*this; \
 }
 
+#define __193526415_binary( p_type, p_operator ) \
+point point::operator p_operator ( p_type other ) const noexcept { return ( point( *this ) p_operator##= other ); }
 
 
 namespace geometry {
@@ -76,25 +74,22 @@ __193526415_assignment( - )
 __193526415_assignment( * )
 __193526415_assignment_if_zero( / )
 __193526415_assignment_if_zero( % )
+__193526415_binary( const point&, + )
+__193526415_binary( const point&, - )
+__193526415_binary( const point&, * )
+__193526415_binary( const point&, / )
+__193526415_binary( const point&, % )
 
 __193526415_assignment_scalar( + )
 __193526415_assignment_scalar( - )
 __193526415_assignment_scalar( * )
 __193526415_assignment_scalar_if_zero( / )
 __193526415_assignment_scalar_if_zero( % )
-
-point point::operator+( const point& other ) const noexcept { return ( point( *this ) += other ); }
-point point::operator-( const point& other ) const noexcept { return ( point( *this ) -= other ); }
-point point::operator*( const point& other ) const noexcept { return ( point( *this ) *= other ); }
-point point::operator/( const point& other ) const noexcept { return ( point( *this ) /= other ); }
-point point::operator%( const point& other ) const noexcept { return ( point( *this ) %= other ); }
-
-point point::operator+( int scalar ) const noexcept { return ( point( *this ) += scalar ); }
-point point::operator-( int scalar ) const noexcept { return ( point( *this ) -= scalar ); }
-point point::operator*( int scalar ) const noexcept { return ( point( *this ) *= scalar ); }
-point point::operator/( int scalar ) const noexcept { return ( point( *this ) /= scalar ); }
-point point::operator%( int scalar ) const noexcept { return ( point( *this ) %= scalar ); }
-
+__193526415_binary( int, + )
+__193526415_binary( int, - )
+__193526415_binary( int, * )
+__193526415_binary( int, / )
+__193526415_binary( int, % )
 
 bool point::operator==( const point& other ) const noexcept
 {
