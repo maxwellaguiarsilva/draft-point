@@ -14,7 +14,6 @@ dist/
 
 # editor/ide specific files
 .vscode/
-.gemini/
 .idea/
 *.swp
 *~
@@ -58,6 +57,6 @@ venv.bak/
 .gemini/
 
 # Virtual environment for scripts
-scripts/venv/
+tools/venv/
 
 gha-creds-*.json
