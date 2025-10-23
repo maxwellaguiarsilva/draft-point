@@ -36,7 +36,7 @@
 namespace tui {
 
 
-using	::geometry::point;
+using	point = ::geometry::point<>;
 
 
 class terminal

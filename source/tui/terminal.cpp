@@ -37,7 +37,7 @@ namespace tui {
 using	::std::cout;
 using	::std::flush;
 using	::std::format;
-using	::geometry::point;
+using	point = ::geometry::point<>;
 using	color		=	::tui::terminal::color;
 using	text_style	=	::tui::terminal::text_style;
 

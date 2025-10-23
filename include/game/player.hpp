@@ -39,7 +39,7 @@ namespace game {
 
 
 using	::std::string;
-using	::geometry::point;
+using	point = ::geometry::point<>;
 using	::tui::terminal;
 
 

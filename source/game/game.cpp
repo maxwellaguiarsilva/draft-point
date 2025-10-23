@@ -34,7 +34,7 @@ using	::std::string;
 using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
-using	::geometry::point;
+using	point = ::geometry::point<>;
 using	::std::to_string;
 using	color	= 	::tui::terminal::color;
 
