@@ -29,18 +29,14 @@
 
 #include <sak.hpp>
 #include <string>
-#include <geometry/point.hpp>
 
-namespace tui {
-class terminal;
-}
 
 namespace game {
 
 
 using	::std::string;
-using	point = ::geometry::point<>;
 using	::tui::terminal;
+using	point = ::geometry::point< >;
 
 
 class player
