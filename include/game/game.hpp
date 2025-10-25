@@ -27,12 +27,13 @@
 #ifndef header_guard_578639205
 #define header_guard_578639205
 
+
 #include <sak.hpp>
 #include <string>
 #include <tui/terminal.hpp>
 #include <game/player.hpp>
 #include <game/fps.hpp>
-#include <vector>
+#include <geometry/point.hpp>
 
 
 namespace game {
@@ -42,7 +43,7 @@ using	::std::string;
 using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
-using	::std::vector;
+using	point = ::geometry::point< int, 2 >;
 
 
 class game
@@ -59,7 +60,6 @@ private:
 	terminal	m_terminal;
 	player		m_player;
 	fps			m_fps;
-	bool		m_show_fps	=	true;
 
 };
 
