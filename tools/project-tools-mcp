@@ -5,6 +5,7 @@ import sys
 import subprocess
 import datetime
 import time
+import re
 from template import template
 from fastmcp import FastMCP
 
@@ -27,9 +28,11 @@ def	create_class( class_hierarchy : str, include_list: list[ str ] = [ ], using_
     """Creates a new C++ class with corresponding .hpp and .cpp files.
     The class_hierarchy parameter defines the namespace and class name (e.g., "game/player" creates class 'player' in namespace 'game').
     Optional include_list and using_list parameters allow specifying additional headers to include and 'using' declarations to add.
+    Good Example: include_list=["string", "vector"], using_list=["std::string", "std::vector"]
+    Bad Example: include_list="<string>", using_list="<array>"
     """
     message=""
-    hierarchy_list=class_hierarchy.split( "/" )
+    hierarchy_list=re.split( r"[/:\\.]+", class_hierarchy )
     file_path = f"include/{'/'.join( hierarchy_list )}.hpp"
     subprocess.run( [ "mkdir", "-p", "/".join( file_path.split( "/" )[:-1] ) ] )
     data = {
