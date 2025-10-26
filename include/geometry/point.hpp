@@ -44,6 +44,7 @@ using	::std::size_t;
 using	::std::for_each;
 
 
+
 template< typename des_type = int, size_t num_dimensions = 2 >
 class point : public array< des_type, num_dimensions >
 {
@@ -52,45 +53,47 @@ public:
 
 	explicit point( initializer_list< des_type > a_list )
 	{
-		size_t index = 0;
-		for( const auto& value : a_list )
-			if( index < num_dimensions )
-				( *this )[ index++ ] = value;
-			else
-				break;
+		assert( a_list.size( ) == num_dimensions, "Initializer list size must match number of dimensions." );
+		std::copy( a_list.begin( ), a_list.end( ), this->begin( ) );
 	}
 	virtual ~point( ) noexcept { }
 
 	point& operator+=( const point& other )
 	{
-		for( size_t index = 0; index < num_dimensions; ++index )
-			( *this )[ index ] += other[ index ];
+		size_t index = 0;
+		for_each( this->begin( ), this->end( ), [ & ]( des_type& a ){ a += other[index++]; } );
 		return	*this;
 	}
 	point& operator-=( const point& other )
 	{
-		for( size_t index = 0; index < num_dimensions; ++index )
-			( *this )[ index ] -= other[ index ];
+		size_t index = 0;
+		for_each( this->begin( ), this->end( ), [ & ]( des_type& a ){ a -= other[index++]; } );
 		return	*this;
 	}
 	point& operator*=( const point& other )
 	{
-		for( size_t index = 0; index < num_dimensions; ++index )
-			( *this )[ index ] *= other[ index ];
+		size_t index = 0;
+		for_each( this->begin( ), this->end( ), [ & ]( des_type& a ){ a *= other[index++]; } );
 		return	*this;
 	}
 	point& operator/=( const point& other )
 	{
-		for( size_t index = 0; index < num_dimensions; ++index )
-			if( other[ index ] not_eq 0 )
-				( *this )[ index ] /= other[ index ];
+		size_t index = 0;
+		for_each( this->begin( ), this->end( ), [ & ]( des_type& a ) {
+			if( other[index] not_eq 0 )
+				a /= other[index];
+			index++;
+		} );
 		return	*this;
 	}
 	point& operator%=( const point& other )
 	{
-		for( size_t index = 0; index < num_dimensions; ++index )
-			if( other[ index ] not_eq 0 )
-				( *this )[ index ] %= other[ index ];
+		size_t index = 0;
+		for_each( this->begin( ), this->end( ), [ & ]( des_type& a ) {
+			if( other[index] not_eq 0 )
+				a %= other[index];
+			index++;
+		} );
 		return	*this;
 	}
 
