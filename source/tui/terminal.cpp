@@ -63,7 +63,7 @@ auto terminal::clear_screen( bool full_reset ) -> void
 	print( "\033[2J" );
 }
 
-auto terminal::get_char( ) -> const char
+auto terminal::get_char( ) -> char
 {
 	char c;
 	read( STDIN_FILENO, &c, 1 );
