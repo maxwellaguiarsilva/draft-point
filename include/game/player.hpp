@@ -29,6 +29,7 @@
 
 #include <sak.hpp>
 #include <string>
+#include <tui/terminal.hpp>
 
 
 namespace game {
