@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+ * Copyright ( C ) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * ( at your option ) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -44,41 +44,35 @@ using	::std::for_each;
 using	::std::size_t;
 
 
-#define __581074281_binary( a_operator, p_type ) \
-point operator a_operator##( p_type other ) const noexcept { return ( point( *this )  a_operator##= other ); }
-
-
-#define __581074281_assignment( a_operator, a_not_zero_point, a_not_zero_scalar ) \
-point& operator a_operator##=( const point& other ) \
+//	decl = declare, inc = increment
+#define __581074281_loop( a_operator, a_type, a_decl_size, a_if_zero, a_right_value ) \
+point& operator a_operator##=( a_type other ) \
 { \
-	size_t index = 0; \
-	for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ \
-		a_not_zero_point \
-			value a_operator##= other[index]; \
-		++index; \
-	} ); \
+	a_decl_size \
+	a_if_zero \
+	for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value a_operator##= a_right_value; } ); \
 	return	*this; \
 } \
-point& operator a_operator##=( des_type other ) \
-{ \
-	a_not_zero_scalar \
-		for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ \
-			value a_operator##= other; \
-		} ); \
-	return	*this; \
-} \
-__581074281_binary( a_operator, const point& ) \
-__581074281_binary( a_operator, des_type )
+point operator a_operator ( a_type other ) const noexcept { return ( point( *this )  a_operator##= other ); }
+
+
+#define __581074281_overload( a_operator, a_if_zero_point, a_if_zero_scalar ) \
+__581074281_loop( a_operator, const point&, size_t index = 0;, a_if_zero_point, other[ index++ ] ) \
+__581074281_loop( a_operator, des_type, , a_if_zero_scalar, other ) \
 
 
 #define __581074281_operator( a_operator ) \
-__581074281_assignment( a_operator, , )
+__581074281_overload( a_operator, , )
 
 #define __581074281_operator_not_eq_zero( a_operator ) \
-__581074281_assignment( a_operator, if( other[index] not_eq 0 ), if( other not_eq 0 ) )
+__581074281_overload( \
+	 a_operator \
+	,if( not std::any_of( other.begin( ), other.end( ), [ ]( des_type value ) { return value == 0; } ) ) \
+	,if( other not_eq 0 ) \
+)
 
 
-template< typename desa_type = int, size_t num_dimensions = 2 >
+template< typename des_type = int, size_t num_dimensions = 2 >
 class point : public array< des_type, num_dimensions >
 {
 public:
@@ -110,3 +104,5 @@ public:
 
 
 #endif
+
+
