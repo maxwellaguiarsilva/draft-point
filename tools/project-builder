@@ -4,6 +4,7 @@
 declare -A project
 declare -A folders
 declare -a lib_list
+declare -a compile_warnings
 
 project[cpp_version]="${project[cpp_version]:-"c++23"}"
 project[file_extension]="${file_extension:-"cpp"}"
@@ -16,6 +17,10 @@ folders[build]="${folders[build]:-"build"}"
 folders[dist]="${folders[dist]:-"dist"}"
 
 lib_list+=( "-lncurses" )
+compile_warnings+=( "-Wfatal-errors" )
+compile_warnings+=( "-Werror" )
+compile_warnings+=( "-Wall" )
+compile_warnings+=( "-Wextra" )
 
 
 build_cpp_file( )
@@ -29,7 +34,7 @@ build_cpp_file( )
 	then
 		echo "build: ${files[cpp]}"
 		mkdir -p "$( dirname "${files[obj]}" )"
-		g++ -m64 -c -Wfatal-errors -Werror -MMD -MP -std="${project[cpp_version]}"	\
+		g++ -m64 -c "${compile_warnings[@]}" -MMD -MP -std="${project[cpp_version]}"	\
 			-I"${folders[include]}"	\
 			-MF "${files[dep]}"		\
 			-o "${files[obj]}"		\
