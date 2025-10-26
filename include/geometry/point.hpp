@@ -44,43 +44,38 @@ using	::std::for_each;
 using	::std::size_t;
 
 
-#define __581074281_operator( a_operator ) \
+#define __581074281_binary( a_operator, p_type ) \
+point operator a_operator##( p_type other ) const noexcept { return ( point( *this )  a_operator##= other ); }
+
+
+#define __581074281_assignment( a_operator, a_not_zero_point, a_not_zero_scalar ) \
 point& operator a_operator##=( const point& other ) \
 { \
 	size_t index = 0; \
-	for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value a_operator##= other[index++]; } ); \
-	return	*this; \
-} \
-point& operator a_operator##=( des_type scalar ) \
-{ \
-	for_each( this->begin( ), this->end( ), [ scalar ]( des_type& value ){ value a_operator##= scalar; } ); \
-	return	*this; \
-} \
-point operator a_operator##( const point& other ) const noexcept { return ( point( *this )  a_operator##= other ); } \
-point operator a_operator##( des_type scalar ) const noexcept { return ( point( *this )  a_operator##= scalar ); }
-
-
-#define __581074281_operator_not_eq_zero( a_operator ) \
-point& operator a_operator##=( const point& other ) \
-{ \
-	size_t index = 0; \
-	for_each( this->begin( ), this->end( ), [ & ]( des_type& a ) { \
-		if( other[index] not_eq 0 ) \
-			a a_operator##= other[index]; \
-		index++; \
+	for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ \
+		a_not_zero_point \
+			value a_operator##= other[index]; \
+		++index; \
 	} ); \
 	return	*this; \
 } \
-point& operator a_operator##=( des_type scalar ) \
+point& operator a_operator##=( des_type other ) \
 { \
-	if( scalar not_eq 0 ) \
-		for_each( this->begin( ), this->end( ), [ scalar ]( des_type& value ){ value a_operator##= scalar; } ); \
+	a_not_zero_scalar \
+		for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ \
+			value a_operator##= other; \
+		} ); \
 	return	*this; \
 } \
-point operator a_operator##( const point& other ) const noexcept { return ( point( *this )  a_operator##= other ); } \
-point operator a_operator##( des_type scalar ) const noexcept { return ( point( *this )  a_operator##= scalar ); }
+__581074281_binary( a_operator, const point& ) \
+__581074281_binary( a_operator, des_type )
 
 
+#define __581074281_operator( a_operator ) \
+__581074281_assignment( a_operator, , )
+
+#define __581074281_operator_not_eq_zero( a_operator ) \
+__581074281_assignment( a_operator, if( other[index] not_eq 0 ), if( other not_eq 0 ) )
 
 
 template< typename desa_type = int, size_t num_dimensions = 2 >
@@ -99,10 +94,7 @@ public:
 	__581074281_operator( + )
 	__581074281_operator( - )
 	__581074281_operator( * )
-
 	__581074281_operator_not_eq_zero( / )
-	
-
 	__581074281_operator_not_eq_zero( % )
 
 
