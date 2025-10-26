@@ -40,12 +40,29 @@ namespace geometry {
 
 using	::std::array;
 using	::std::initializer_list;
-using	::std::size_t;
 using	::std::for_each;
+using	::std::size_t;
+
+
+#define __581074281_operator( a_operator ) \
+point& operator a_operator##=( const point& other ) \
+{ \
+	size_t index = 0; \
+	for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value a_operator##= other[index++]; } ); \
+	return	*this; \
+} \
+point& operator a_operator##=( des_type scalar ) \
+{ \
+	for_each( this->begin( ), this->end( ), [ scalar ]( des_type& value ){ value a_operator##= scalar; } ); \
+	return	*this; \
+} \
+point operator a_operator##( const point& other ) const noexcept { return ( point( *this )  a_operator##= other ); } \
+point operator a_operator##( des_type scalar ) const noexcept { return ( point( *this )  a_operator##= scalar ); }
 
 
 
-template< typename des_type = int, size_t num_dimensions = 2 >
+
+template< typename desa_type = int, size_t num_dimensions = 2 >
 class point : public array< des_type, num_dimensions >
 {
 public:
@@ -58,24 +75,10 @@ public:
 	}
 	virtual ~point( ) noexcept { }
 
-	point& operator+=( const point& other )
-	{
-		size_t index = 0;
-		for_each( this->begin( ), this->end( ), [ & ]( des_type& a ){ a += other[index++]; } );
-		return	*this;
-	}
-	point& operator-=( const point& other )
-	{
-		size_t index = 0;
-		for_each( this->begin( ), this->end( ), [ & ]( des_type& a ){ a -= other[index++]; } );
-		return	*this;
-	}
-	point& operator*=( const point& other )
-	{
-		size_t index = 0;
-		for_each( this->begin( ), this->end( ), [ & ]( des_type& a ){ a *= other[index++]; } );
-		return	*this;
-	}
+	__581074281_operator( + )
+	__581074281_operator( - )
+	__581074281_operator( * )
+
 	point& operator/=( const point& other )
 	{
 		size_t index = 0;
@@ -86,6 +89,16 @@ public:
 		} );
 		return	*this;
 	}
+	point& operator/=( des_type scalar )
+	{
+		if( scalar not_eq 0 )
+			for_each( this->begin( ), this->end( ), [ scalar ]( des_type& value ){ value /= scalar; } );
+		return	*this;
+	}
+	point operator/( const point& other ) const noexcept { return ( point( *this ) /= other ); }
+	point operator/( des_type scalar ) const noexcept { return ( point( *this ) /= scalar ); }
+	
+
 	point& operator%=( const point& other )
 	{
 		size_t index = 0;
@@ -96,46 +109,15 @@ public:
 		} );
 		return	*this;
 	}
-
-	point& operator+=( des_type scalar )
-	{
-		for_each( this->begin( ), this->end( ), [ scalar ]( des_type& value ){ value += scalar; } );
-		return	*this;
-	}
-	point& operator-=( des_type scalar )
-	{
-		for_each( this->begin( ), this->end( ), [ scalar ]( des_type& value ){ value -= scalar; } );
-		return	*this;
-	}
-	point& operator*=( des_type scalar )
-	{
-		for_each( this->begin( ), this->end( ), [ scalar ]( des_type& value ){ value *= scalar; } );
-		return	*this;
-	}
-	point& operator/=( des_type scalar )
-	{
-		if( scalar not_eq 0 )
-			for_each( this->begin( ), this->end( ), [ scalar ]( des_type& value ){ value /= scalar; } );
-		return	*this;
-	}
 	point& operator%=( des_type scalar )
 	{
 		if( scalar not_eq 0 )
 			for_each( this->begin( ), this->end( ), [ scalar ]( des_type& value ){ value %= scalar; } );
 		return	*this;
 	}
-
-	point operator+( const point& other ) const noexcept { return ( point( *this ) += other ); }
-	point operator-( const point& other ) const noexcept { return ( point( *this ) -= other ); }
-	point operator*( const point& other ) const noexcept { return ( point( *this ) *= other ); }
-	point operator/( const point& other ) const noexcept { return ( point( *this ) /= other ); }
 	point operator%( const point& other ) const noexcept { return ( point( *this ) %= other ); }
-
-	point operator+( des_type scalar ) const noexcept { return ( point( *this ) += scalar ); }
-	point operator-( des_type scalar ) const noexcept { return ( point( *this ) -= scalar ); }
-	point operator*( des_type scalar ) const noexcept { return ( point( *this ) *= scalar ); }
-	point operator/( des_type scalar ) const noexcept { return ( point( *this ) /= scalar ); }
 	point operator%( des_type scalar ) const noexcept { return ( point( *this ) %= scalar ); }
+
 
 	bool operator==( const point& other ) const noexcept
 	{
