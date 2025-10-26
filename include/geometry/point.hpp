@@ -60,6 +60,27 @@ point operator a_operator##( const point& other ) const noexcept { return ( poin
 point operator a_operator##( des_type scalar ) const noexcept { return ( point( *this )  a_operator##= scalar ); }
 
 
+#define __581074281_operator_not_eq_zero( a_operator ) \
+point& operator a_operator##=( const point& other ) \
+{ \
+	size_t index = 0; \
+	for_each( this->begin( ), this->end( ), [ & ]( des_type& a ) { \
+		if( other[index] not_eq 0 ) \
+			a a_operator##= other[index]; \
+		index++; \
+	} ); \
+	return	*this; \
+} \
+point& operator a_operator##=( des_type scalar ) \
+{ \
+	if( scalar not_eq 0 ) \
+		for_each( this->begin( ), this->end( ), [ scalar ]( des_type& value ){ value a_operator##= scalar; } ); \
+	return	*this; \
+} \
+point operator a_operator##( const point& other ) const noexcept { return ( point( *this )  a_operator##= other ); } \
+point operator a_operator##( des_type scalar ) const noexcept { return ( point( *this )  a_operator##= scalar ); }
+
+
 
 
 template< typename desa_type = int, size_t num_dimensions = 2 >
@@ -79,44 +100,10 @@ public:
 	__581074281_operator( - )
 	__581074281_operator( * )
 
-	point& operator/=( const point& other )
-	{
-		size_t index = 0;
-		for_each( this->begin( ), this->end( ), [ & ]( des_type& a ) {
-			if( other[index] not_eq 0 )
-				a /= other[index];
-			index++;
-		} );
-		return	*this;
-	}
-	point& operator/=( des_type scalar )
-	{
-		if( scalar not_eq 0 )
-			for_each( this->begin( ), this->end( ), [ scalar ]( des_type& value ){ value /= scalar; } );
-		return	*this;
-	}
-	point operator/( const point& other ) const noexcept { return ( point( *this ) /= other ); }
-	point operator/( des_type scalar ) const noexcept { return ( point( *this ) /= scalar ); }
+	__581074281_operator_not_eq_zero( / )
 	
 
-	point& operator%=( const point& other )
-	{
-		size_t index = 0;
-		for_each( this->begin( ), this->end( ), [ & ]( des_type& a ) {
-			if( other[index] not_eq 0 )
-				a %= other[index];
-			index++;
-		} );
-		return	*this;
-	}
-	point& operator%=( des_type scalar )
-	{
-		if( scalar not_eq 0 )
-			for_each( this->begin( ), this->end( ), [ scalar ]( des_type& value ){ value %= scalar; } );
-		return	*this;
-	}
-	point operator%( const point& other ) const noexcept { return ( point( *this ) %= other ); }
-	point operator%( des_type scalar ) const noexcept { return ( point( *this ) %= scalar ); }
+	__581074281_operator_not_eq_zero( % )
 
 
 	bool operator==( const point& other ) const noexcept
