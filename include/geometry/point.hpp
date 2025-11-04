@@ -42,6 +42,8 @@ using	::std::array;
 using	::std::initializer_list;
 using	::std::for_each;
 using	::std::size_t;
+using	::std::copy;
+using	::std::any_of;
 
 
 //	decl = declare, inc = increment
@@ -53,7 +55,7 @@ point& operator a_operator##=( a_type other ) \
 	for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value a_operator##= a_right_value; } ); \
 	return	*this; \
 } \
-point operator a_operator ( a_type other ) const noexcept { return ( point( *this )  a_operator##= other ); }
+point operator a_operator ( a_type other ) const noexcept { return ( point( *this ) a_operator##= other ); }
 
 
 #define __581074281_overload( a_operator, a_if_zero_point, a_if_zero_scalar ) \
@@ -67,7 +69,7 @@ __581074281_overload( a_operator, , )
 #define __581074281_operator_not_eq_zero( a_operator ) \
 __581074281_overload( \
 	 a_operator \
-	,if( not std::any_of( other.begin( ), other.end( ), [ ]( des_type value ) { return value == 0; } ) ) \
+	,if( not any_of( other.begin( ), other.end( ), [ ]( des_type value ) { return value == 0; } ) ) \
 	,if( other not_eq 0 ) \
 )
 
@@ -81,7 +83,7 @@ public:
 	explicit point( initializer_list< des_type > a_list )
 	{
 		assert( a_list.size( ) == num_dimensions, "Initializer list size must match number of dimensions." );
-		std::copy( a_list.begin( ), a_list.end( ), this->begin( ) );
+		copy( a_list.begin( ), a_list.end( ), this->begin( ) );
 	}
 	virtual ~point( ) noexcept { }
 
