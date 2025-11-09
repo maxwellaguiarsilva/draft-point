@@ -34,9 +34,14 @@ using	::std::string;
 using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
-using	point = ::geometry::point<>;
 using	::std::to_string;
 using	color	= 	::tui::terminal::color;
+
+
+const point direction::up{ 0, -1 };
+const point direction::down{ 0, 1 };
+const point direction::left{ -1, 0 };
+const point direction::right{ 1, 0 };
 
 
 game::game( )
@@ -60,10 +65,10 @@ auto game::run( ) -> void
 		{
 			switch( between( code, 'A', 'Z' ) ? code - delta_lower_case : code )
 			{
-				case 'a': m_player.move( player::left );	break;
-				case 'd': m_player.move( player::right );	break;
-				case 'w': m_player.move( player::up );		break;
-				case 's': m_player.move( player::down );	break;
+				case 'a': m_player.move( direction::left );	break;
+				case 'd': m_player.move( direction::right );	break;
+				case 'w': m_player.move( direction::up );		break;
+				case 's': m_player.move( direction::down );	break;
 				case 'q': exit_loop = true; break;
 			}
 		}

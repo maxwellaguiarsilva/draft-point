@@ -15,50 +15,57 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   game/player.cpp
+ * File:   game/renderer/renderer.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-08-24 15:14
+ * Created on 2025-11-09 10:03
  */
 
 
 
-#include <game/player.hpp>
-#include <tui/terminal.hpp>
+#pragma once
+#ifndef header_guard_219958687
+#define header_guard_219958687
+
+#include <sak.hpp>
+#include <string>
+#include <game/game.hpp>
 
 
 namespace game {
+namespace renderer {
 
 
 using	::std::string;
-using	color		=	::tui::terminal::color;
+using	::game::point;
 
 
-player::player( const point& box_size, const point& position, const string& character )
-	:m_position{ position }
-	,m_character{ character }
-	,m_box_size{ box_size }
-{ }
-
-player::~player( ) noexcept { }
-
-auto player::draw( terminal& terminal ) const noexcept -> void
+class renderer
 {
-	terminal.set_color( color::white );
-	terminal.print( m_position[ 0 ], m_position[ 1 ], m_character );
-}
+public:
+	enum class color
+	{
+		 black			=	0
+		,red			=	1
+		,green			=	2
+		,yellow			=	3
+		,blue			=	4
+		,magenta		=	5
+		,cyan			=	6
+		,white			=	7
+	};
+	
+	explicit renderer( );
+	virtual ~renderer( );
 
-auto player::move( const point& direction ) -> void
-{
-	m_position += direction;
-	m_position += m_box_size;
-	m_position %= m_box_size;
-}
+	disable_copy_move_ctc( renderer );
 
-auto player::get_position( ) const noexcept -> const point& { return m_position; }
-auto player::get_character( ) const noexcept -> const string& { return m_character; }
+};
 
-} 
 
+} } 
+
+
+#endif
 
 

@@ -86,6 +86,7 @@ The rules can be bypassed if a specific keyword is included in a single comment 
 
 ##  9. **`using` Clauses:**
     *   Use `using` clauses to avoid fully qualifying type names and functions.
+    *   `using` clauses must always start from the global scope using `::`.
     *   `using` clauses must be indented with a single tab.
     *   **Example:**
         ```cpp

@@ -46,6 +46,14 @@ using	::game::fps;
 using	point = ::geometry::point< int, 2 >;
 
 
+namespace direction {
+	static const point up;
+	static const point down;
+	static const point left;
+	static const point right;
+}
+
+
 class game
 {
 public:

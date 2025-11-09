@@ -30,14 +30,16 @@
 #include <sak.hpp>
 #include <string>
 #include <tui/terminal.hpp>
+#include <game/game.hpp>
 
 
 namespace game {
 
 
 using	::std::string;
-using	::tui::terminal;
-using	point = ::geometry::point< >;
+
+using	::game::direction;
+
 
 
 class player
@@ -52,11 +54,6 @@ public:
 	auto move( const point& direction ) -> void;
 	auto get_position( ) const noexcept -> const point&;
 	auto get_character( ) const noexcept -> const string&;
-
-	static const point up;
-	static const point down;
-	static const point left;
-	static const point right;
 	
 private:
 	point m_position;
