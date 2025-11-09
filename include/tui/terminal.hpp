@@ -76,9 +76,9 @@ public:
 	auto clear_screen( bool full_reset = false ) -> void;
 	auto get_char( ) -> char;
 	auto get_size( ) const noexcept -> point;
-	auto move_cursor( int left, int top ) -> void;
+	auto move_cursor( const point& position ) -> void;
 	auto print( const string& text ) -> void;
-	auto print( int left, int top, const string& text ) -> void;
+	auto print( const point& position, const string& text ) -> void;
 	auto refresh( ) -> void;
 	auto set_color( color color_code, bool flg_background = false ) -> void;
 	auto set_cursor( bool enable ) -> void;

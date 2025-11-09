@@ -31,13 +31,12 @@ namespace game {
 
 
 using	::std::string;
-using	color		=	::tui::terminal::color;
+using	color	=	::tui::terminal::color;
 
 
 player::player( const point& box_size )
 	: player( box_size, box_size / 2 )
 { }
-
 player::player( const point& box_size, const point& position )
 	:m_position{ position }
 	,m_box_size{ box_size }
@@ -56,11 +55,10 @@ auto player::move( const point& direction ) -> void
 auto player::draw( terminal& terminal ) const noexcept -> void
 {
 	terminal.set_color( color::white );
-	terminal.print( m_position[ 0 ], m_position[ 1 ], "█" );
+	terminal.print( m_position, "█" );
 }
 
 
 } 
-
 
 

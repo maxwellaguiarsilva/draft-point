@@ -58,7 +58,7 @@ auto terminal::clear_screen( bool full_reset ) -> void
 	{
 		set_text_style( text_style::reset );
 		set_raw_mode( false );
-		move_cursor( 0, 0 );
+		move_cursor( point( {0, 0} ) );
 	}
 	print( "\033[2J" );
 }
@@ -72,12 +72,12 @@ auto terminal::get_char( ) -> char
 
 auto terminal::get_size( ) const noexcept -> point { return point( {m_ws.ws_col, m_ws.ws_row} ); }
 
-auto terminal::move_cursor( int left, int top ) -> void { print( format( "\033[{};{}H", top, left ) ); }
+auto terminal::move_cursor( const point& position ) -> void { print( format( "\033[{};{}H", position[1], position[0] ) ); }
 
 auto terminal::print( const string& text ) -> void { cout << text; }
-auto terminal::print( int left, int top, const string& text ) -> void
+auto terminal::print( const point& position, const string& text ) -> void
 {
-	move_cursor( left, top );
+	move_cursor( position );
 	print( text );
 }
 

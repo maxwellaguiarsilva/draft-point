@@ -71,7 +71,7 @@ auto game::run( ) -> void
 
 		m_terminal.clear_screen( );
 		m_player.draw( m_terminal );
-		m_terminal.print( 1, m_terminal.get_size( )[1],
+		m_terminal.print( point( {1, m_terminal.get_size( )[1]} ),
 				" | fps: " + to_string( m_fps.compute( ) )
 			+ 	" | width: " + to_string( m_terminal.get_size( )[0] )
 			+ 	" | height: " + to_string( m_terminal.get_size( )[1] )

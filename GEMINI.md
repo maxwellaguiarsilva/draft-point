@@ -1,5 +1,6 @@
 ## Gemini Added Memories
 - This is a C++23 project.
+- Do not modify anything in the project until explicitly requested. Do not test or compile the project until explicitly requested.
 - After producing any C++ code, validate it using the guidelines in the document `docs/agent/coding-style/cpp.md`
 - Always use the "project-builder" command to compile the project, and never directly invoke g++.
 - The `docs/agent/` directory contains markdown files with specific instructions for this programming assistant.
@@ -7,6 +8,4 @@
 - Before performing any procedure, or execute tools that generates or modifies programming code, I will consult the project's coding style rules,
   to ensure that the parameters passed to these tools for code generation will obey the guidelines.
 - Before responding that the request has been fulfilled, I will verify item by item that all requests have been met and that no instruction or request has been forgotten, especially for workflows.
-- Do not compile the project until explicitly requested.
-- Do not modify anything in the project until explicitly requested.
 - Commit messages must be in en-us.
