@@ -24,7 +24,6 @@
 
 
 #include <game/game.hpp>
-#include <geometry/point.hpp>
 
 
 namespace game {
