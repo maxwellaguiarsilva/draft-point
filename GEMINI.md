@@ -9,3 +9,4 @@
 - Before responding that the request has been fulfilled, I will verify item by item that all requests have been met and that no instruction or request has been forgotten, especially for workflows.
 - Do not compile the project until explicitly requested.
 - Do not modify anything in the project until explicitly requested.
+- Commit messages must be in en-us.
