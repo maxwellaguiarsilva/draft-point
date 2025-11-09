@@ -34,19 +34,13 @@ using	::std::string;
 using	color		=	::tui::terminal::color;
 
 
-player::player( const point& box_size, const point& position, const string& character )
+player::player( const point& box_size, const point& position )
 	:m_position{ position }
-	,m_character{ character }
 	,m_box_size{ box_size }
 { }
-
 player::~player( ) noexcept { }
 
-auto player::draw( terminal& terminal ) const noexcept -> void
-{
-	terminal.set_color( color::white );
-	terminal.print( m_position[ 0 ], m_position[ 1 ], m_character );
-}
+auto player::get_position( ) const noexcept -> const point& { return m_position; }
 
 auto player::move( const point& direction ) -> void
 {
@@ -55,8 +49,12 @@ auto player::move( const point& direction ) -> void
 	m_position %= m_box_size;
 }
 
-auto player::get_position( ) const noexcept -> const point& { return m_position; }
-auto player::get_character( ) const noexcept -> const string& { return m_character; }
+auto player::draw( terminal& terminal ) const noexcept -> void
+{
+	terminal.set_color( color::white );
+	terminal.print( m_position[ 0 ], m_position[ 1 ], "█" );
+}
+
 
 } 
 
