@@ -8,6 +8,4 @@
   to ensure that the parameters passed to these tools for code generation will obey the guidelines.
 - Before responding that the request has been fulfilled, I will verify item by item that all requests have been met and that no instruction or request has been forgotten, especially for workflows.
 - Do not compile the project until explicitly requested.
-
-
-
+- Do not modify anything in the project until explicitly requested.
