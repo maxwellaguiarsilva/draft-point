@@ -15,30 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   game/renderer/renderer.cpp
+ * File:   game/direction.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-11-09 10:03
+ * Created on 2025-11-09 15:30
  */
-
-
-
-#include <game/renderer/renderer.hpp>
-
-
-namespace game {
-namespace renderer {
-
-
-using	::std::string;
-using	::game::point;
-
-
-renderer::renderer( ) { };
-renderer::~renderer( ) { };
-
-
-} } 
-
-
-

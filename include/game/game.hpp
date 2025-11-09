@@ -31,9 +31,10 @@
 #include <sak.hpp>
 #include <string>
 #include <tui/terminal.hpp>
+#include <game/point.hpp>
 #include <game/player.hpp>
 #include <game/fps.hpp>
-#include <geometry/point.hpp>
+#include <game/direction.hpp>
 
 
 namespace game {
@@ -43,15 +44,8 @@ using	::std::string;
 using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
-using	point = ::geometry::point< int, 2 >;
-
-
-namespace direction {
-	static const point up;
-	static const point down;
-	static const point left;
-	static const point right;
-}
+using	::game::direction;
+using	::game::point;
 
 
 class game
@@ -63,6 +57,8 @@ public:
 	disable_copy_move_ctc( game );
 
 	auto run( ) -> void;
+
+	const direction direction;
 
 private:
 	terminal	m_terminal;

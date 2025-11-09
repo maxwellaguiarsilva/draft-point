@@ -37,12 +37,6 @@ using	::std::to_string;
 using	color	= 	::tui::terminal::color;
 
 
-const point direction::up{ 0, -1 };
-const point direction::down{ 0, 1 };
-const point direction::left{ -1, 0 };
-const point direction::right{ 1, 0 };
-
-
 game::game( )
 	:m_terminal{ }
 	,m_player{ m_terminal.get_size( ), point{ 10, 10 } }
@@ -64,10 +58,10 @@ auto game::run( ) -> void
 		{
 			switch( between( code, 'A', 'Z' ) ? code - delta_lower_case : code )
 			{
-				case 'a': m_player.move( direction::left );	break;
-				case 'd': m_player.move( direction::right );	break;
-				case 'w': m_player.move( direction::up );		break;
-				case 's': m_player.move( direction::down );	break;
+				case 'w': m_player.move( direction.up );	break;
+				case 'a': m_player.move( direction.left );	break;
+				case 's': m_player.move( direction.down );	break;
+				case 'd': m_player.move( direction.right );	break;
 				case 'q': exit_loop = true; break;
 			}
 		}

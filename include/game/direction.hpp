@@ -15,30 +15,43 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   game/renderer/renderer.cpp
+ * File:   game/direction.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-11-09 10:03
+ * Created on 2025-11-09 15:30
  */
 
 
 
-#include <game/renderer/renderer.hpp>
+#pragma once
+#ifndef header_guard_499869391
+#define header_guard_499869391
+
+#include <sak.hpp>
+#include <string>
+#include <geometry/point.hpp>
 
 
 namespace game {
-namespace renderer {
 
 
 using	::std::string;
-using	::game::point;
+using point = ::geometry::point< int, 2 >;
 
 
-renderer::renderer( ) { };
-renderer::~renderer( ) { };
+class direction
+{
+public:
+    const point up    { 0, -1 };
+    const point down  { 0, 1 };
+    const point left  { -1, 0 };
+    const point right { 1, 0 };
+};
 
 
-} } 
+} 
 
+
+#endif
 
 

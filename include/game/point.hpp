@@ -15,30 +15,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   game/renderer/renderer.cpp
+ * File:   game/point.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-11-09 10:03
+ * Created on 2025-11-09 16:10
  */
 
 
 
-#include <game/renderer/renderer.hpp>
+#pragma once
+#ifndef header_guard_940662895
+#define header_guard_940662895
+
+
+#include <geometry/point.hpp>
 
 
 namespace game {
-namespace renderer {
 
 
-using	::std::string;
-using	::game::point;
+using	point = ::geometry::point< int, 2 >;
 
 
-renderer::renderer( ) { };
-renderer::~renderer( ) { };
+} 
 
 
-} } 
+#endif
 
 
 

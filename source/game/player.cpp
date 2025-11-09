@@ -34,8 +34,13 @@ using	::std::string;
 using	color		=	::tui::terminal::color;
 
 
-player::player( const point& box_size, const point& position )
+player::player( const point& box_size, const string& character )
+	: player( box_size, box_size / 2, character )
+{ }
+
+player::player( const point& box_size, const point& position, const string& character )
 	:m_position{ position }
+	,m_character{ character }
 	,m_box_size{ box_size }
 { }
 player::~player( ) noexcept { }

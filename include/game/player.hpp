@@ -30,22 +30,22 @@
 #include <sak.hpp>
 #include <string>
 #include <tui/terminal.hpp>
-#include <game/game.hpp>
+#include <game/point.hpp>
 
 
 namespace game {
 
 
 using	::std::string;
-
-using	::game::direction;
-
+using	::tui::terminal;
+using	::game::point;
 
 
 class player
 {
 public:
-	player( const point& box_size, const point& position = { 10, 10 }, const string& character = "█" );
+	player( const point& box_size, const string& character = "█" );
+	player( const point& box_size, const point& position, const string& character = "█" );
 	virtual ~player( ) noexcept;
 
 	disable_copy_move_ctc( player );
