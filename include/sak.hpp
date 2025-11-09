@@ -69,6 +69,11 @@ using	::std::runtime_error;
 
 
 
+constexpr char delta_lower_case	=	( 'a' - 'A' );
+inline char to_lower_case( char code ) noexcept { return ( between( code, 'A', 'Z' ) ? code + delta_lower_case : code ); };
+inline char to_upper_case( char code ) noexcept { return ( between( code, 'a', 'z' ) ? code - delta_lower_case : code ); };
+
+
 #endif
 
 

@@ -39,7 +39,7 @@ using	color	= 	::tui::terminal::color;
 
 game::game( )
 	:m_terminal{ }
-	,m_player{ m_terminal.get_size( ), point{ 10, 10 } }
+	,m_player{ m_terminal.get_size( ), m_terminal.get_size( ) / 2 }
 	,m_fps{ }
 { m_fps.set_limit( 30 ); }
 
@@ -49,14 +49,13 @@ game::~game( ) noexcept { }
 auto game::run( ) -> void
 {
 	bool exit_loop = false;
-	const int delta_lower_case	=	( 'a' - 'A' );
 
 	while( true )
 	{
 		char code = m_terminal.get_char( );
 		if( code not_eq 0 )
 		{
-			switch( between( code, 'A', 'Z' ) ? code - delta_lower_case : code )
+			switch( to_lower_case( code ) )
 			{
 				case 'w': m_player.move( direction.up );	break;
 				case 'a': m_player.move( direction.left );	break;
