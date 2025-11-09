@@ -44,8 +44,8 @@ using	::game::point;
 class player
 {
 public:
-	player( const point& box_size, const string& character = "█" );
-	player( const point& box_size, const point& position, const string& character = "█" );
+	player( const point& box_size );
+	player( const point& box_size, const point& position );
 	virtual ~player( ) noexcept;
 
 	disable_copy_move_ctc( player );
@@ -53,11 +53,9 @@ public:
 	auto draw( terminal& terminal ) const noexcept -> void;
 	auto move( const point& direction ) -> void;
 	auto get_position( ) const noexcept -> const point&;
-	auto get_character( ) const noexcept -> const string&;
 	
 private:
 	point m_position;
-	string m_character;
 	const point m_box_size;
 	
 };
