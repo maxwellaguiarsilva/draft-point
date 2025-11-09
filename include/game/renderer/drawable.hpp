@@ -49,10 +49,15 @@ public:
 protected:
 	explicit drawable( const point& p_position ) noexcept;
 
+	drawable( const drawable& other ) noexcept;
+	drawable( drawable&& other ) noexcept;
+	auto operator=( const drawable& other ) noexcept -> drawable&;
+	auto operator=( drawable&& other ) noexcept -> drawable&;
+
 private:
 	point m_position;
 
-	disable_copy_move_ctc( drawable );
+
 };
 
 
