@@ -39,7 +39,7 @@ using	color	= 	::tui::terminal::color;
 
 game::game( )
 	:m_terminal{ }
-	,m_player{ m_terminal.get_size( ), m_terminal.get_size( ) / 2 }
+	,m_player{ m_terminal.get_size( ) / 2 }
 	,m_fps{ }
 { m_fps.set_limit( 30 ); }
 

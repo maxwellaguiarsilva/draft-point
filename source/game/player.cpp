@@ -34,23 +34,15 @@ using	::std::string;
 using	color	=	::tui::terminal::color;
 
 
-player::player( const point& box_size )
-	: player( box_size, box_size / 2 )
-{ }
-player::player( const point& box_size, const point& position )
+player::player( const point& position ) noexcept
 	:m_position{ position }
-	,m_box_size{ box_size }
 { }
 player::~player( ) noexcept { }
 
 auto player::get_position( ) const noexcept -> const point& { return m_position; }
+auto player::set_position( const point& p_position ) noexcept -> void { m_position = p_position; }
 
-auto player::move( const point& direction ) -> void
-{
-	m_position += direction;
-	m_position += m_box_size;
-	m_position %= m_box_size;
-}
+auto player::step_move( ) noexcept -> void { m_position += direction; }
 
 auto player::draw( terminal& terminal ) const noexcept -> void
 {
