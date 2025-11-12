@@ -94,11 +94,9 @@ public:
 	__581074281_operator_not_eq_zero( % )
 
 
-	bool operator==( const point& other ) const noexcept
-	{
-		return static_cast< const super_type& >( *this ) == static_cast< const super_type& >( other );
-	}
-	bool operator!=( const point& other ) const noexcept { return not( *this == other ); }
+	bool operator==( const point& other ) const noexcept = default;
+	auto operator<=>( const point& other ) const noexcept = default;
+
 };
 
 
