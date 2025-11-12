@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "local-mcp": {
+      "command": "tools/start-project-mcp-server"
+    }
+  }
+}
