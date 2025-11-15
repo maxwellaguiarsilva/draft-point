@@ -33,6 +33,8 @@
 #include <initializer_list>
 #include <algorithm>
 #include <cstddef>
+#include <compare>
+#include <cmath> // For std::sqrt
 
 
 namespace geometry {
@@ -44,18 +46,19 @@ using	::std::for_each;
 using	::std::size_t;
 using	::std::copy;
 using	::std::any_of;
+using	::std::lexicographical_compare_three_way;
+using	::std::sqrt; // Adicionado para std::sqrt
 
 
-//	decl = declare, inc = increment
 #define __581074281_loop( a_operator, a_type, a_decl_size, a_if_zero, a_right_value ) \
 point& operator a_operator##=( a_type other ) \
 { \
 	a_decl_size \
 	a_if_zero \
-	for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value a_operator##= a_right_value; } ); \
-	return	*this; \
+	for_each( m_this.begin( ), m_this.end( ), [ & ]( des_type& value ){ value a_operator##= a_right_value; } ); \
+	return	m_this; \
 } \
-point operator a_operator ( a_type other ) const noexcept { return ( point( *this ) a_operator##= other ); }
+point operator a_operator ( a_type other ) const noexcept { return ( point( m_this ) a_operator##= other ); }
 
 
 #define __581074281_overload( a_operator, a_if_zero_point, a_if_zero_scalar ) \
@@ -82,8 +85,8 @@ public:
 
 	explicit point( initializer_list< des_type > a_list )
 	{
-		assert( a_list.size( ) == num_dimensions, "Initializer list size must match number of dimensions." );
-		copy( a_list.begin( ), a_list.end( ), this->begin( ) );
+		assert( a_list.size( ) == num_dimensions, "initializer list size must match number of dimensions" );
+		copy( a_list.begin( ), a_list.end( ), m_this.begin( ) );
 	}
 	virtual ~point( ) noexcept { }
 
@@ -95,8 +98,22 @@ public:
 
 
 	bool operator==( const point& other ) const noexcept = default;
-	auto operator<=>( const point& other ) const noexcept = default;
 
+	auto operator<=>( const point& other ) const noexcept
+	{
+		return	lexicographical_compare_three_way( m_this.begin( ), m_this.end( ), other.begin( ), other.end( ) );
+	}
+
+	auto get_length( ) const noexcept -> des_type
+	{
+		des_type sum_of_squares{};
+		for ( const auto& value : m_this )
+			sum_of_squares += value * value;
+		return	static_cast<des_type>( sqrt( sum_of_squares ) );
+	}
+
+private:
+	point& m_this = *this;
 };
 
 

@@ -28,29 +28,39 @@
 #define header_guard_670255237
 
 #include <sak.hpp>
-#include <string>
 #include <geometry/point.hpp>
 #include <array>
+#include <algorithm>
+#include <ranges>
 
 
 namespace geometry {
 
 
-using	::std::string;
-using	::geometry::point;
+using	::std::ranges::all_of;
+using	::std::views::iota;
+using	::std::array;
 
 
-class rectangle : public ::std::array< point, 2 >
+template< typename des_type = int, size_t num_dimensions = 2 >
+class rectangle : public array< point< des_type, num_dimensions >, 2 >
 {
 public:
+	using point_type = point< des_type, num_dimensions >;
 
-	point& start = ( *this )[ 0 ];
-	point& end = ( *this )[ 1 ];
+	point_type& start = ( *this )[ 0 ];
+	point_type& end = ( *this )[ 1 ];
 
-	rectangle( );
-	virtual ~rectangle( );
+	rectangle( ) = default;
+	virtual ~rectangle( ) = default;
 
-	auto contains( const point& point ) const noexcept -> bool;
+	auto contains( const point_type& a_point ) const noexcept -> bool
+	{
+		return	all_of(
+			iota( ( size_t )0, num_dimensions )
+			,[ & ]( size_t index ) { return a_point[ index ] >= start[ index ] and a_point[ index ] <= end[ index ]; }
+		);
+	}
 
 	disable_copy_move_ctc( rectangle );
 
@@ -61,5 +71,3 @@ public:
 
 
 #endif
-
-
