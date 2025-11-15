@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   game/point.hpp
+ * File:   game/point.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-11-15 19:09
@@ -23,13 +23,7 @@
 
 
 
-#pragma once
-#ifndef header_guard_778012356
-#define header_guard_778012356
-
-#include <sak.hpp>
-#include <geometry/geometry.hpp>
-#include <game/game.hpp>
+#include <game/point.hpp>
 
 
 namespace game {
@@ -39,28 +33,14 @@ using	::geometry::point;
 using	::game::game;
 
 
-class point : public ::geometry::point
-{
-public:
+point::point( const game& a_game )
+	: m_game( a_game )
+{ }
 
-	explicit point( const game& a_game );
-	virtual ~point( );
-
-private:
-	const game& m_game;
-
-public:
-	point( const point& ) = default;
-	point& operator=( const point& ) = default;
-	point( point&& ) = default;
-	point& operator=( point&& ) = default;
-
-};
+point::~point( ) { }
 
 
 } 
 
-
-#endif
 
 

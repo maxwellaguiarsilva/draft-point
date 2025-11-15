@@ -15,52 +15,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   game/point.hpp
+ * File:   geometry/rectangle.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-11-15 19:09
+ * Created on 2025-11-15 18:23
  */
 
 
 
-#pragma once
-#ifndef header_guard_778012356
-#define header_guard_778012356
-
-#include <sak.hpp>
-#include <geometry/geometry.hpp>
-#include <game/game.hpp>
+#include <geometry/rectangle.hpp>
 
 
-namespace game {
+namespace geometry {
 
 
+using	::std::ranges::all_of;
+using	::std::views::iota;
+using	::std::array;
 using	::geometry::point;
-using	::game::game;
 
 
-class point : public ::geometry::point
+auto rectangle::contains( const point& a_point ) const noexcept -> bool
 {
-public:
-
-	explicit point( const game& a_game );
-	virtual ~point( );
-
-private:
-	const game& m_game;
-
-public:
-	point( const point& ) = default;
-	point& operator=( const point& ) = default;
-	point( point&& ) = default;
-	point& operator=( point&& ) = default;
-
-};
+	return	all_of(
+		iota( ( size_t )0, start.size( ) )
+		,[ & ]( size_t index ) { return a_point[ index ] >= start[ index ] and a_point[ index ] <= end[ index ]; }
+	);
+}
 
 
 } 
 
-
-#endif
 
 

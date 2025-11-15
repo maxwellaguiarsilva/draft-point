@@ -30,7 +30,6 @@
 
 #include <sak.hpp>
 #include <tui/terminal.hpp>
-#include <game/point.hpp>
 #include <game/player.hpp>
 #include <game/fps.hpp>
 #include <game/direction.hpp>
@@ -44,7 +43,6 @@ using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
 using	::game::direction;
-using	::game::point;
 
 
 class game

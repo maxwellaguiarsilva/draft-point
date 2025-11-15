@@ -30,13 +30,13 @@
 
 #include <sak.hpp>
 #include <termios.h>
-#include <geometry/point.hpp>
+#include <geometry/coordinate.hpp>
 
 
 namespace tui {
 
 
-using	point = ::geometry::point< int, 2 >;
+using	point = ::geometry::coordinate< int, 2 >;
 
 
 class terminal

@@ -15,50 +15,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   game/point.hpp
+ * File:   geometry/point.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-11-15 19:09
+ * Created on 2025-11-15 18:18
  */
 
 
 
 #pragma once
-#ifndef header_guard_778012356
-#define header_guard_778012356
+#ifndef header_guard_323731945
+#define header_guard_323731945
 
 #include <sak.hpp>
-#include <geometry/geometry.hpp>
-#include <game/game.hpp>
+#include <geometry/coordinate.hpp>
 
 
-namespace game {
+namespace geometry {
 
 
-using	::geometry::point;
-using	::game::game;
+using	::geometry::coordinate;
+using	point = coordinate< int, 2 >;
 
 
-class point : public ::geometry::point
-{
-public:
-
-	explicit point( const game& a_game );
-	virtual ~point( );
-
-private:
-	const game& m_game;
-
-public:
-	point( const point& ) = default;
-	point& operator=( const point& ) = default;
-	point( point&& ) = default;
-	point& operator=( point&& ) = default;
-
-};
-
-
-} 
+}
 
 
 #endif
