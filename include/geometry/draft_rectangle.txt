@@ -1,0 +1,38 @@
+
+
+#include <sak.hpp>
+#include <geometry/geometry.hpp>
+#include <array>
+#include <algorithm>
+#include <ranges>
+
+
+namespace geometry {
+
+
+using	::std::ranges::all_of;
+using	::std::views::iota;
+using	::std::array;
+using	::geometry::point;
+
+
+class rectangle : public array< point, 2 >
+{
+public:
+	point& start = ( *this )[ 0 ];
+	point& end = ( *this )[ 1 ];
+
+	auto contains( const point& a_point ) const noexcept -> bool
+	{
+		return	all_of(
+			iota( ( size_t )0, start.size( ) )
+			,[ & ]( size_t index ) { return a_point[ index ] >= start[ index ] and a_point[ index ] <= end[ index ]; }
+		);
+	}
+
+};
+
+
+} 
+
+

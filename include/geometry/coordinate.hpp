@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   geometry/point.hpp
+ * File:   geometry/coordinate.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-10-16 14:02
@@ -51,18 +51,18 @@ using	::std::sqrt; // Adicionado para std::sqrt
 
 
 #define __581074281_loop( a_operator, a_type, a_decl_size, a_if_zero, a_right_value ) \
-point& operator a_operator##=( a_type other ) \
+coordinate& operator a_operator##=( a_type other ) \
 { \
 	a_decl_size \
 	a_if_zero \
 	for_each( m_this.begin( ), m_this.end( ), [ & ]( des_type& value ){ value a_operator##= a_right_value; } ); \
 	return	m_this; \
 } \
-point operator a_operator ( a_type other ) const noexcept { return ( point( m_this ) a_operator##= other ); }
+coordinate operator a_operator ( a_type other ) const noexcept { return ( coordinate( m_this ) a_operator##= other ); }
 
 
-#define __581074281_overload( a_operator, a_if_zero_point, a_if_zero_scalar ) \
-__581074281_loop( a_operator, const point&, size_t index = 0;, a_if_zero_point, other[ index++ ] ) \
+#define __581074281_overload( a_operator, a_if_zero_coordinate, a_if_zero_scalar ) \
+__581074281_loop( a_operator, const coordinate&, size_t index = 0;, a_if_zero_coordinate, other[ index++ ] ) \
 __581074281_loop( a_operator, des_type, , a_if_zero_scalar, other ) \
 
 
@@ -78,17 +78,17 @@ __581074281_overload( \
 
 
 template< typename des_type = int, size_t num_dimensions = 2 >
-class point : public array< des_type, num_dimensions >
+class coordinate : public array< des_type, num_dimensions >
 {
 public:
 	using super_type = array< des_type, num_dimensions >;
 
-	explicit point( initializer_list< des_type > a_list )
+	explicit coordinate( initializer_list< des_type > a_list )
 	{
 		assert( a_list.size( ) == num_dimensions, "initializer list size must match number of dimensions" );
 		copy( a_list.begin( ), a_list.end( ), m_this.begin( ) );
 	}
-	virtual ~point( ) noexcept { }
+	virtual ~coordinate( ) noexcept { }
 
 	__581074281_operator( + )
 	__581074281_operator( - )
@@ -97,23 +97,23 @@ public:
 	__581074281_operator_not_eq_zero( % )
 
 
-	bool operator==( const point& other ) const noexcept = default;
+	bool operator==( const coordinate& other ) const noexcept = default;
 
-	auto operator<=>( const point& other ) const noexcept
+	auto operator<=>( const coordinate& other ) const noexcept
 	{
 		return	lexicographical_compare_three_way( m_this.begin( ), m_this.end( ), other.begin( ), other.end( ) );
 	}
 
 	auto get_length( ) const noexcept -> des_type
 	{
-		des_type sum_of_squares{};
-		for ( const auto& value : m_this )
+		des_type sum_of_squares;
+		for( const auto& value : m_this )
 			sum_of_squares += value * value;
 		return	static_cast<des_type>( sqrt( sum_of_squares ) );
 	}
 
 private:
-	point& m_this = *this;
+	coordinate& m_this = *this;
 };
 
 
