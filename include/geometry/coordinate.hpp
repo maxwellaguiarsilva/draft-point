@@ -83,7 +83,7 @@ class coordinate : public array< des_type, num_dimensions >
 public:
 	using super_type = array< des_type, num_dimensions >;
 
-	explicit coordinate( initializer_list< des_type > a_list )
+	coordinate( initializer_list< des_type > a_list )
 	{
 		assert( a_list.size( ) == num_dimensions, "initializer list size must match number of dimensions" );
 		copy( a_list.begin( ), a_list.end( ), m_this.begin( ) );

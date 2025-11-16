@@ -29,14 +29,16 @@
 
 #include <sak/sak.hpp>
 #include <tui/terminal.hpp>
-#include <game/point.hpp>
+#include <geometry/point.hpp>
+#include <game/direction.hpp>
 
 
 namespace game {
 
 
 using	::tui::terminal;
-using	::game::point;
+using	::geometry::point;
+using	::game::direction;
 
 
 class player
@@ -46,6 +48,8 @@ public:
 
 	auto get_position( ) const noexcept -> const point&;
 	auto set_position( const point& p_position ) noexcept -> void;
+	auto get_direction( ) const noexcept -> const direction&;
+	auto set_direction( const direction& p_direction ) noexcept -> void;
 
 	auto step_move( ) noexcept -> void;
 
@@ -53,8 +57,7 @@ public:
 	
 private:
 	point m_position;
-	const point m_box_size;
-	
+	direction m_direction;
 };
 
 

@@ -46,6 +46,8 @@ using	::game::direction;
 
 class game
 {
+private:
+	game&		m_this	=	( *this );
 public:
 	game( );
 	virtual ~game( ) noexcept = default;

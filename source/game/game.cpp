@@ -33,6 +33,7 @@ using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
 using	::std::to_string;
+using	::sak::to_lower_case;
 using	color	= 	::tui::terminal::color;
 
 
@@ -54,16 +55,19 @@ auto game::run( ) -> void
 		{
 			switch( to_lower_case( code ) )
 			{
-				case 'w': m_player.move( direction.up );	break;
-				case 'a': m_player.move( direction.left );	break;
-				case 's': m_player.move( direction.down );	break;
-				case 'd': m_player.move( direction.right );	break;
+				case 'w': m_player.set_direction( direction.up );	break;
+				case 'a': m_player.set_direction( direction.left );	break;
+				case 's': m_player.set_direction( direction.down );	break;
+				case 'd': m_player.set_direction( direction.right );break;
 				case 'q': exit_loop = true; break;
 			}
 		}
 		
 		if( exit_loop )
 			break;
+
+
+		m_player.step_move( );
 
 		m_terminal.clear_screen( );
 		m_player.draw( m_terminal );
