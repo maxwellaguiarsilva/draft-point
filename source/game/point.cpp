@@ -29,15 +29,12 @@
 namespace game {
 
 
-using	::geometry::point;
 using	::game::game;
 
 
 point::point( const game& a_game )
 	: m_game( a_game )
 { }
-
-point::~point( ) { }
 
 
 } 

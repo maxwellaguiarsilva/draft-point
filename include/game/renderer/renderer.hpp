@@ -27,8 +27,7 @@
 #ifndef header_guard_219958687
 #define header_guard_219958687
 
-#include <sak.hpp>
-#include <string>
+#include <sak/sak.hpp>
 #include <game/game.hpp>
 
 
@@ -36,7 +35,6 @@ namespace game {
 namespace renderer {
 
 
-using	::std::string;
 using	::game::point;
 
 
@@ -55,10 +53,8 @@ public:
 		,white			=	7
 	};
 	
-	explicit renderer( );
-	virtual ~renderer( );
+	explicit renderer( ) = default;
 
-	disable_copy_move_ctc( renderer );
 
 };
 

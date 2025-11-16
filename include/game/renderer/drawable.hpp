@@ -27,7 +27,7 @@
 #ifndef header_guard_039640631
 #define header_guard_039640631
 
-#include <sak.hpp>
+#include <sak/sak.hpp>
 #include <string>
 #include <game/game.hpp>
 
@@ -36,23 +36,13 @@ namespace game {
 namespace renderer {
 
 
-using	::std::string;
-
-
 class drawable
 {
 public:
-	virtual ~drawable( ) = default;
-
 	virtual auto contains( const point& position ) const noexcept -> bool = 0;
 
 protected:
 	explicit drawable( const point& p_position ) noexcept;
-
-	drawable( const drawable& other ) noexcept;
-	drawable( drawable&& other ) noexcept;
-	auto operator=( const drawable& other ) noexcept -> drawable&;
-	auto operator=( drawable&& other ) noexcept -> drawable&;
 
 private:
 	point m_position;

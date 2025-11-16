@@ -27,8 +27,7 @@
 #ifndef header_guard_602704350
 #define header_guard_602704350
 
-#include <sak.hpp>
-#include <string>
+#include <sak/sak.hpp>
 #include <chrono>
 #include <thread>
 
@@ -36,7 +35,6 @@
 namespace game {
 
 
-using	::std::string;
 using	::std::chrono::milliseconds;
 using	::std::chrono::duration_cast;
 using	::std::this_thread::sleep_for;
@@ -48,9 +46,9 @@ class fps
 {
 public:
 	fps( );
-	virtual ~fps( ) noexcept;
+	virtual ~fps( ) noexcept = default;
 
-	disable_copy_move_ctc( fps );
+	delete_copy_move_ctc( fps );
 
 	auto set_limit( int limit ) -> void;
 	auto enable_limit( bool flg_enable ) noexcept -> void;

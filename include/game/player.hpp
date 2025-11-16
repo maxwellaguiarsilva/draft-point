@@ -27,8 +27,7 @@
 #ifndef header_guard_185813530
 #define header_guard_185813530
 
-#include <sak.hpp>
-#include <string>
+#include <sak/sak.hpp>
 #include <tui/terminal.hpp>
 #include <game/point.hpp>
 
@@ -36,7 +35,6 @@
 namespace game {
 
 
-using	::std::string;
 using	::tui::terminal;
 using	::game::point;
 
@@ -45,9 +43,6 @@ class player
 {
 public:
 	player( const point& position ) noexcept;
-	virtual ~player( ) noexcept;
-
-	disable_copy_move_ctc( player );
 
 	auto get_position( ) const noexcept -> const point&;
 	auto set_position( const point& p_position ) noexcept -> void;

@@ -28,7 +28,7 @@
 #define header_guard_578639205
 
 
-#include <sak.hpp>
+#include <sak/sak.hpp>
 #include <tui/terminal.hpp>
 #include <game/player.hpp>
 #include <game/fps.hpp>
@@ -38,7 +38,6 @@
 namespace game {
 
 
-using	::std::string;
 using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
@@ -49,9 +48,9 @@ class game
 {
 public:
 	game( );
-	virtual ~game( ) noexcept;
+	virtual ~game( ) noexcept = default;
 
-	disable_copy_move_ctc( game );
+	delete_copy_move_ctc( game );
 
 	auto run( ) -> void;
 

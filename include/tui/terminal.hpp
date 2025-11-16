@@ -28,15 +28,15 @@
 #define header_guard_278153203
 
 
-#include <sak.hpp>
+#include <sak/sak.hpp>
 #include <termios.h>
-#include <geometry/coordinate.hpp>
+#include <geometry/geometry.hpp>
 
 
 namespace tui {
 
 
-using	point = ::geometry::coordinate< int, 2 >;
+using	::geometry::point;
 
 
 class terminal
@@ -71,7 +71,7 @@ public:
 	terminal( );
 	virtual ~terminal( ) noexcept;
 
-	disable_copy_move_ctc( terminal );
+	delete_copy_move_ctc( terminal );
 
 	auto clear_screen( bool full_reset = false ) -> void;
 	auto get_char( ) -> char;

@@ -28,7 +28,7 @@
 #define header_guard_581074281
 
 
-#include <sak.hpp>
+#include <sak/sak.hpp>
 #include <array>
 #include <initializer_list>
 #include <algorithm>
@@ -88,7 +88,7 @@ public:
 		assert( a_list.size( ) == num_dimensions, "initializer list size must match number of dimensions" );
 		copy( a_list.begin( ), a_list.end( ), m_this.begin( ) );
 	}
-	virtual ~coordinate( ) noexcept { }
+	
 
 	__581074281_operator( + )
 	__581074281_operator( - )

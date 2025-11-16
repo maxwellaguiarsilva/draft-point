@@ -29,7 +29,6 @@
 namespace game {
 
 
-using	::std::string;
 using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
@@ -42,8 +41,6 @@ game::game( )
 	,m_player{ m_terminal.get_size( ) / 2 }
 	,m_fps{ }
 { m_fps.set_limit( 30 ); }
-
-game::~game( ) noexcept { }
 
 
 auto game::run( ) -> void

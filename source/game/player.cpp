@@ -30,14 +30,13 @@
 namespace game {
 
 
-using	::std::string;
 using	color	=	::tui::terminal::color;
 
 
 player::player( const point& position ) noexcept
 	:m_position{ position }
 { }
-player::~player( ) noexcept { }
+
 
 auto player::get_position( ) const noexcept -> const point& { return m_position; }
 auto player::set_position( const point& p_position ) noexcept -> void { m_position = p_position; }

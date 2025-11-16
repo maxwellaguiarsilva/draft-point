@@ -30,12 +30,10 @@ namespace game {
 namespace renderer {
 
 
-using	::std::string;
 using	::game::point;
 
 
-renderer::renderer( ) { };
-renderer::~renderer( ) { };
+
 
 
 } } 

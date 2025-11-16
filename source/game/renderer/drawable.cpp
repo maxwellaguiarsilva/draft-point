@@ -30,39 +30,12 @@ namespace game {
 namespace renderer {
 
 
-using	::std::string;
-
 
 drawable::drawable( const point& p_position ) noexcept
 :
 	m_position{ p_position }
 { }
 
-drawable::drawable( const drawable& other ) noexcept
-:
-	m_position{ other.m_position }
-{ }
-
-drawable::drawable( drawable&& other ) noexcept
-:
-	m_position{ ::std::move( other.m_position ) }
-{ }
-
-auto drawable::operator=( const drawable& other ) noexcept -> drawable&
-{
-	if ( this != &other ) {
-		m_position = other.m_position;
-	}
-	return *this;
-}
-
-auto drawable::operator=( drawable&& other ) noexcept -> drawable&
-{
-	if ( this != &other ) {
-		m_position = ::std::move( other.m_position );
-	}
-	return *this;
-}
 
 
 } } 

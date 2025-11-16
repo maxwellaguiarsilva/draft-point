@@ -27,25 +27,22 @@
 #ifndef header_guard_499869391
 #define header_guard_499869391
 
-#include <sak.hpp>
-#include <string>
+#include <sak/sak.hpp>
 #include <geometry/point.hpp>
 
 
 namespace game {
 
 
-using	::std::string;
-using point = ::geometry::point< int, 2 >;
 
 
 class direction
 {
 public:
-    const point up    { 0, -1 };
-    const point down  { 0, 1 };
-    const point left  { -1, 0 };
-    const point right { 1, 0 };
+	const ::geometry::point up    { 0, -1 };
+	const ::geometry::point down  { 0, 1 };
+	const ::geometry::point left  { -1, 0 };
+	const ::geometry::point right { 1, 0 };
 };
 
 

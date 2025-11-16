@@ -29,7 +29,6 @@
 namespace game {
 
 
-using	::std::string;
 using	::std::chrono::milliseconds;
 using	::std::chrono::high_resolution_clock;
 using	::std::chrono::duration_cast;
@@ -41,8 +40,6 @@ fps::fps( )
 	:m_start_time{ high_resolution_clock::now( ) }
 { }
 
-
-fps::~fps( ) noexcept { }
 
 auto fps::set_limit( int limit ) -> void
 {

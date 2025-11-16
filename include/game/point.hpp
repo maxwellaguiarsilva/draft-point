@@ -27,34 +27,24 @@
 #ifndef header_guard_778012356
 #define header_guard_778012356
 
-#include <sak.hpp>
+#include <sak/sak.hpp>
 #include <geometry/geometry.hpp>
 #include <game/game.hpp>
 
 
 namespace game {
 
-
-using	::geometry::point;
+class	game;
 using	::game::game;
 
 
 class point : public ::geometry::point
 {
 public:
-
 	explicit point( const game& a_game );
-	virtual ~point( );
 
 private:
 	const game& m_game;
-
-public:
-	point( const point& ) = default;
-	point& operator=( const point& ) = default;
-	point( point&& ) = default;
-	point& operator=( point&& ) = default;
-
 };
 
 
