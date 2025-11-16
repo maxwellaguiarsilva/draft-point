@@ -33,16 +33,29 @@
 
 namespace game {
 
-
-
+using	::geometry::point;
 
 class direction
 {
 public:
-	const ::geometry::point up    { 0, -1 };
-	const ::geometry::point down  { 0, 1 };
-	const ::geometry::point left  { -1, 0 };
-	const ::geometry::point right { 1, 0 };
+	enum class direction_value 
+	{
+		up = 0, down, left, right
+	};
+
+	direction( const direction_value& a_direction );
+
+	operator const point& ( ) const noexcept;
+
+private:
+	direction_value m_direction;
+
+	static const point	m_up;
+	static const point	m_down;
+	static const point	m_left;
+	static const point	m_right;
+	static const point	m_none;
+
 };
 
 

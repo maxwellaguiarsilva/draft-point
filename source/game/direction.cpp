@@ -18,8 +18,40 @@
  * File:   game/direction.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-11-09 15:30
+ * Created on 2025-08-26 20:15
  */
 
+
+
+#include <game/direction.hpp>
+
+
+namespace game {
+
+const point direction::m_up		{	0	,-1	};
+const point direction::m_down	{	0	,1	};
+const point direction::m_left	{	-1	,0	};
+const point direction::m_right	{	1	,0	};
+const point direction::m_none	{	0	,0	};
+
+
+direction::direction( const direction_value& a_direction )
+	:m_direction{ a_direction }
+{ };
+
+direction::operator const point& ( ) const noexcept
+{
+	switch( m_direction )
+	{
+		case direction_value::up:		return	m_up;
+		case direction_value::down:		return	m_down;
+		case direction_value::left:		return	m_left;
+		case direction_value::right:	return	m_right;
+	}
+	return	m_none;
+} 
+
+
+}
 
 

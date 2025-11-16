@@ -55,10 +55,10 @@ coordinate& operator a_operator##=( a_type other ) \
 { \
 	a_decl_size \
 	a_if_zero \
-	for_each( m_this.begin( ), m_this.end( ), [ & ]( des_type& value ){ value a_operator##= a_right_value; } ); \
-	return	m_this; \
+	for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value a_operator##= a_right_value; } ); \
+	return	*this; \
 } \
-coordinate operator a_operator ( a_type other ) const noexcept { return ( coordinate( m_this ) a_operator##= other ); }
+coordinate operator a_operator ( a_type other ) const noexcept { return ( coordinate( *this ) a_operator##= other ); }
 
 
 #define __581074281_overload( a_operator, a_if_zero_coordinate, a_if_zero_scalar ) \
@@ -86,7 +86,7 @@ public:
 	coordinate( initializer_list< des_type > a_list )
 	{
 		assert( a_list.size( ) == num_dimensions, "initializer list size must match number of dimensions" );
-		copy( a_list.begin( ), a_list.end( ), m_this.begin( ) );
+		copy( a_list.begin( ), a_list.end( ), this->begin( ) );
 	}
 	
 
@@ -101,19 +101,17 @@ public:
 
 	auto operator<=>( const coordinate& other ) const noexcept
 	{
-		return	lexicographical_compare_three_way( m_this.begin( ), m_this.end( ), other.begin( ), other.end( ) );
+		return	lexicographical_compare_three_way( this->begin( ), this->end( ), other.begin( ), other.end( ) );
 	}
 
 	auto get_length( ) const noexcept -> des_type
 	{
 		des_type sum_of_squares;
-		for( const auto& value : m_this )
+		for( const auto& value : *this )
 			sum_of_squares += value * value;
 		return	static_cast<des_type>( sqrt( sum_of_squares ) );
 	}
 
-private:
-	coordinate& m_this = *this;
 };
 
 

@@ -31,10 +31,11 @@ namespace game {
 
 
 using	color	=	::tui::terminal::color;
-
+using	::game::direction::direction_value::right;
 
 player::player( const point& position ) noexcept
 	:m_position{ position }
+	,m_direction{ right }
 { }
 
 

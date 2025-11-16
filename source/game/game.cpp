@@ -46,6 +46,7 @@ game::game( )
 
 auto game::run( ) -> void
 {
+	using	direction	=	::game::direction::direction_value;
 	bool exit_loop = false;
 
 	while( true )
@@ -55,16 +56,15 @@ auto game::run( ) -> void
 		{
 			switch( to_lower_case( code ) )
 			{
-				case 'w': m_player.set_direction( direction.up );	break;
-				case 'a': m_player.set_direction( direction.left );	break;
-				case 's': m_player.set_direction( direction.down );	break;
-				case 'd': m_player.set_direction( direction.right );break;
+				case 'w': m_player.set_direction( direction::up );	break;
+				case 'a': m_player.set_direction( direction::left );	break;
+				case 's': m_player.set_direction( direction::down );	break;
+				case 'd': m_player.set_direction( direction::right );break;
 				case 'q': exit_loop = true; break;
 			}
+			if( exit_loop )
+				break;
 		}
-		
-		if( exit_loop )
-			break;
 
 
 		m_player.step_move( );

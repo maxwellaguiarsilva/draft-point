@@ -32,7 +32,6 @@
 #include <tui/terminal.hpp>
 #include <game/player.hpp>
 #include <game/fps.hpp>
-#include <game/direction.hpp>
 
 
 namespace game {
@@ -41,13 +40,10 @@ namespace game {
 using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
-using	::game::direction;
 
 
 class game
 {
-private:
-	game&		m_this	=	( *this );
 public:
 	game( );
 	virtual ~game( ) noexcept = default;
@@ -55,8 +51,6 @@ public:
 	delete_copy_move_ctc( game );
 
 	auto run( ) -> void;
-
-	const direction direction;
 
 private:
 	terminal	m_terminal;
