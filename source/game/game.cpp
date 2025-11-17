@@ -32,6 +32,7 @@ namespace game {
 using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
+using	::geometry::point;
 using	::std::to_string;
 using	::sak::to_lower_case;
 using	color	= 	::tui::terminal::color;
@@ -47,6 +48,11 @@ game::game( )
 auto game::run( ) -> void
 {
 	using	direction	=	::game::direction::direction_value;
+	const point& frame_size	=	m_terminal.get_size( );
+	point label_position	=	{ 1, frame_size[1] };
+	point&	position	=	m_player.position;
+	point	zero	=	{ 0, 0 };
+
 	bool exit_loop = false;
 
 	while( true )
@@ -56,10 +62,10 @@ auto game::run( ) -> void
 		{
 			switch( to_lower_case( code ) )
 			{
-				case 'w': m_player.set_direction( direction::up );	break;
+				case 'w': m_player.set_direction( direction::up );		break;
 				case 'a': m_player.set_direction( direction::left );	break;
 				case 's': m_player.set_direction( direction::down );	break;
-				case 'd': m_player.set_direction( direction::right );break;
+				case 'd': m_player.set_direction( direction::right );	break;
 				case 'q': exit_loop = true; break;
 			}
 			if( exit_loop )
@@ -68,13 +74,17 @@ auto game::run( ) -> void
 
 
 		m_player.step_move( );
+		if( not zero.is_inside( position ) )
+			position += frame_size;
+		position %= frame_size;
 
 		m_terminal.clear_screen( );
 		m_player.draw( m_terminal );
-		m_terminal.print( point( {1, m_terminal.get_size( )[1]} ),
+		m_terminal.print( label_position,
 				" | fps: " + to_string( m_fps.compute( ) )
-			+ 	" | width: " + to_string( m_terminal.get_size( )[0] )
-			+ 	" | height: " + to_string( m_terminal.get_size( )[1] )
+			+ 	" | width: " + to_string( frame_size[0] )
+			+ 	" | height: " + to_string( frame_size[1] )
+			+ 	" | length: " + to_string( position.get_length( ) )
 			+ 	" | "
 		);
 		m_terminal.refresh( );

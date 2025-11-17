@@ -44,19 +44,17 @@ using	::game::direction;
 class player
 {
 public:
-	player( const point& position ) noexcept;
+	player( const point& a_position ) noexcept;
 
-	auto get_position( ) const noexcept -> const point&;
-	auto set_position( const point& p_position ) noexcept -> void;
 	auto get_direction( ) const noexcept -> const direction&;
-	auto set_direction( const direction& p_direction ) noexcept -> void;
+	auto set_direction( const direction& a_direction ) noexcept -> void;
 
 	auto step_move( ) noexcept -> void;
 
 	auto draw( terminal& terminal ) const noexcept -> void;
 	
+	point position;
 private:
-	point m_position;
 	direction m_direction;
 };
 

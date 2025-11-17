@@ -32,9 +32,10 @@
 #include <array>
 #include <initializer_list>
 #include <algorithm>
+#include <ranges>
 #include <cstddef>
 #include <compare>
-#include <cmath> // For std::sqrt
+#include <cmath>
 
 
 namespace geometry {
@@ -104,9 +105,20 @@ public:
 		return	lexicographical_compare_three_way( this->begin( ), this->end( ), other.begin( ), other.end( ) );
 	}
 
+	bool is_inside( const coordinate& other ) const noexcept
+	{
+		using	::std::views::zip;
+		using	::std::ranges::any_of;
+
+		return	not any_of( zip( *this, other ), [ ]( const auto& pair ){
+			const auto& [ a_this, a_other ] = pair;
+			return	a_this > a_other;
+		} );
+	}
+
 	auto get_length( ) const noexcept -> des_type
 	{
-		des_type sum_of_squares;
+		des_type sum_of_squares	=	0;
 		for( const auto& value : *this )
 			sum_of_squares += value * value;
 		return	static_cast<des_type>( sqrt( sum_of_squares ) );

@@ -33,24 +33,21 @@ namespace game {
 using	color	=	::tui::terminal::color;
 using	::game::direction::direction_value::right;
 
-player::player( const point& position ) noexcept
-	:m_position{ position }
+player::player( const point& a_position ) noexcept
+	:position{ a_position }
 	,m_direction{ right }
 { }
 
 
-auto player::get_position( ) const noexcept -> const point& { return m_position; }
-auto player::set_position( const point& a_position ) noexcept -> void { m_position = a_position; }
 auto player::get_direction( ) const noexcept -> const direction& { return m_direction; }
 auto player::set_direction( const direction& a_direction ) noexcept -> void { m_direction = a_direction; }
 
-
-auto player::step_move( ) noexcept -> void { m_position += m_direction; }
+auto player::step_move( ) noexcept -> void { position += m_direction; }
 
 auto player::draw( terminal& terminal ) const noexcept -> void
 {
 	terminal.set_color( color::white );
-	terminal.print( m_position, "█" );
+	terminal.print( position, "█" );
 }
 
 
