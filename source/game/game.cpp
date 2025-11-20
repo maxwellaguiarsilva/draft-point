@@ -29,18 +29,14 @@
 namespace game {
 
 
-using	::tui::terminal;
-using	::game::player;
-using	::game::fps;
 using	::geometry::point;
 using	::std::to_string;
 using	::sak::to_lower_case;
-using	color	= 	::tui::terminal::color;
 
 
 game::game( )
 	:m_terminal{ }
-	,m_player{ m_terminal.get_size( ) / 2 }
+	,m_player{ m_terminal.size / 2 }
 	,m_fps{ }
 { m_fps.set_limit( 30 ); }
 
@@ -48,16 +44,16 @@ game::game( )
 auto game::run( ) -> void
 {
 	using	direction	=	::game::direction::direction_value;
-	const point& frame_size	=	m_terminal.get_size( );
-	point label_position	=	{ 1, frame_size[1] };
+	const point& frame_size	=	m_terminal.size;
 	point&	position	=	m_player.position;
-	point	zero	=	{ 0, 0 };
+	point	zero		=	{ 0, 0 };
+	point	label_position	=	{ 1, frame_size[1] };
 
 	bool exit_loop = false;
 
 	while( true )
 	{
-		char code = m_terminal.get_char( );
+		char code = m_terminal.read_char( );
 		if( code not_eq 0 )
 		{
 			switch( to_lower_case( code ) )

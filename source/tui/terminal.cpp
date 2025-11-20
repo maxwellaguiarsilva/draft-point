@@ -49,8 +49,10 @@ using	text_style	=	::tui::terminal::text_style;
 
 terminal::terminal( )
 {
+	struct winsize m_ws;
 	assert( tcgetattr( STDIN_FILENO, &m_original_termios ) not_eq 1, "terminal: tcgetattr error" );
 	assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) not_eq 1, "terminal: ioctl error" );
+	m_size = { m_ws.ws_col, m_ws.ws_row };
 	clear_screen( true );
 	set_raw_mode( true );
 }
@@ -67,14 +69,12 @@ auto terminal::clear_screen( bool full_reset ) -> void
 	print( "\033[2J" );
 }
 
-auto terminal::get_char( ) -> char
+auto terminal::read_char( ) -> char
 {
 	char c;
 	read( STDIN_FILENO, &c, 1 );
 	return static_cast<int>( c );
 }
-
-auto terminal::get_size( ) const noexcept -> point { return point( {m_ws.ws_col, m_ws.ws_row} ); }
 
 auto terminal::move_cursor( const point& position ) -> void { print( format( "\033[{};{}H", position[1], position[0] ) ); }
 

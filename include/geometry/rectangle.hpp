@@ -37,8 +37,6 @@
 namespace geometry {
 
 
-using	::std::ranges::all_of;
-using	::std::views::iota;
 using	::std::array;
 using	::geometry::point;
 

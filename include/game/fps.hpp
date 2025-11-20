@@ -35,10 +35,6 @@
 namespace game {
 
 
-using	::std::chrono::milliseconds;
-using	::std::chrono::duration_cast;
-using	::std::this_thread::sleep_for;
-using	::std::to_string;
 using	time_point = ::std::chrono::high_resolution_clock::time_point;
 
 

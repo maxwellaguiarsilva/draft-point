@@ -1,62 +1,64 @@
-# build artifacts
+
+
+
+#	current project specific itens
 build/
 dist/
+tools/venv/
 
-# old files/directories
+
+#	old files/directories
 .old/
 
-# object files and dependency files
+#	object files and dependency files
 *.o
 *.d
 
 # executables (if any are generated directly in the root or subdirectories)
 # add specific executable names here if known, e.g., my_program
 
-# editor/ide specific files
+
+#	editor/ide
 .vscode/
 .idea/
 *.swp
 *~
 
-# python
+#	python
 
-# Byte-code files
+#	byte-code files
 __pycache__/
 *.pyc
 *.pyd
 *.pyo
 
-# Distribution / packaging
+#	distribution / packaging
 .Python
-build/
-dist/
 *.egg-info/
 *.egg
 
-# Environments
+#	environments
 .env
-.venv
+.env/
+.venv/
 .venv-*/
-venv-*/
 env/
 venv/
-ENV/
+venv-*/
 env.bak/
 venv.bak/
+venv-*.bak/
 
-# Editors
-.vscode/
-.idea/
-
-# Misc
+#	misc
 *.log
 *.sqlite3
 *.db
 
-# Gemini CLI specific ignores
+#	gemini cli specific ignores
 .gemini/
 
-# Virtual environment for scripts
-tools/venv/
-
 gha-creds-*.json
+
+
+
+

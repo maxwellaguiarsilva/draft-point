@@ -36,15 +36,13 @@
 #include <sak/default_ctc_dtc.hpp>
 
 
-#define assert( flg_expression, message ) \
-	if( not ( flg_expression ) ) throw runtime_error( message );
+using	::std::runtime_error;
+
+
+#define assert( expression, message ) \
+	if( not ( expression ) ) throw runtime_error( message );
 
 #define between( value, left, right ) ( value >= left and value <= right )
-
-
-using	::std::string;
-using	::std::exception;
-using	::std::runtime_error;
 
 
 namespace sak {

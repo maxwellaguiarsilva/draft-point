@@ -74,8 +74,7 @@ public:
 	delete_copy_move_ctc( terminal );
 
 	auto clear_screen( bool full_reset = false ) -> void;
-	auto get_char( ) -> char;
-	auto get_size( ) const noexcept -> point;
+	auto read_char( ) -> char;
 	auto move_cursor( const point& position ) -> void;
 	auto print( const string& text ) -> void;
 	auto print( const point& position, const string& text ) -> void;
@@ -87,8 +86,9 @@ public:
 
 private:
 	struct termios m_original_termios;
-	struct winsize m_ws;
-
+	point m_size;
+public:
+	const point& size = m_size;
 };
 
 

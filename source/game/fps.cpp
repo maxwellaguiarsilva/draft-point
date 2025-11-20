@@ -33,7 +33,6 @@ using	::std::chrono::milliseconds;
 using	::std::chrono::high_resolution_clock;
 using	::std::chrono::duration_cast;
 using	::std::this_thread::sleep_for;
-using	::std::to_string;
 
 
 fps::fps( )
