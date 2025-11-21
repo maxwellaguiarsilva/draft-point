@@ -31,9 +31,7 @@
 //	sak	=	swiss_army_knife
 
 
-#include <string>
 #include <exception>
-#include <sak/default_ctc_dtc.hpp>
 
 
 using	::std::runtime_error;
