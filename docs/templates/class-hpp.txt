@@ -18,11 +18,7 @@
 class {{class_name}}
 {
 public:
-
-	{{class_name}}( );
-	virtual ~{{class_name}}( );
-
-	disable_copy_move_ctc( {{class_name}} );
+	//	{{class_name}}( ) = default;
 
 };
 
