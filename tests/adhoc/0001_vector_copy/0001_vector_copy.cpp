@@ -30,19 +30,19 @@
 
 
 using	::std::println;
-using	::std::stirng;
+using	::std::string;
 
 
 class point
 {
 public:
 	int x, y;
-}
+};
 
 
 int main( )
 {{
-
-	
+	point p{1,2};
+	println( "teste adhoc point: {} x {}", p.x, p.y );
 	return	0;
 }}
