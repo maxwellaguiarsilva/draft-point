@@ -46,7 +46,7 @@ build_cpp_file( )
 remove_orphaned_object( )
 {
 	local cpp_path
-	cpp_path="$( echo "${1%.o}" | cut -d'/' -f3- ).${project[file_extension]}"
+	cpp_path="$( echo "${1%.o}" | cut -d'/' -f3- ).${project[file_extension]}"	#	-f3- to ignore the prefix `./build/`
 	if [[ ! -f "${cpp_path}" ]];
 	then
 		rm -rf "$1" "$1.d"
