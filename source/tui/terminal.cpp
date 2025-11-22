@@ -48,6 +48,7 @@ using	text_style	=	::tui::terminal::text_style;
 
 
 terminal::terminal( )
+	:m_size( { 0, 0 } )
 {
 	struct winsize m_ws;
 	assert( tcgetattr( STDIN_FILENO, &m_original_termios ) not_eq 1, "terminal: tcgetattr error" );

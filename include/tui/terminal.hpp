@@ -29,6 +29,7 @@
 
 
 #include <sak/sak.hpp>
+#include <string>
 #include <termios.h>
 #include <geometry/geometry.hpp>
 
@@ -37,9 +38,9 @@ namespace tui {
 
 
 using	::geometry::point;
+using	::std::string;
 
-
-class terminal
+class terminal final
 {
 public:
 	enum class color
@@ -69,7 +70,7 @@ public:
 	};
 
 	terminal( );
-	virtual ~terminal( ) noexcept;
+	~terminal( ) noexcept;
 
 	delete_copy_move_ctc( terminal );
 
