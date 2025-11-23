@@ -74,7 +74,7 @@ auto terminal::read_char( ) -> char
 {
 	char c;
 	read( STDIN_FILENO, &c, 1 );
-	return static_cast<int>( c );
+	return	c;
 }
 
 auto terminal::move_cursor( const point& position ) -> void { print( format( "\033[{};{}H", position[1], position[0] ) ); }
