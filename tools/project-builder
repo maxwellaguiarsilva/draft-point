@@ -6,6 +6,7 @@ declare -A folders
 declare -a lib_list
 declare -a compile_warnings
 
+
 project[cpp_version]="${project[cpp_version]:-"c++23"}"
 project[file_extension]="${file_extension:-"cpp"}"
 project[file_filter]="${project[file_filter]:-"*.${project[file_extension]}"}"
@@ -21,6 +22,7 @@ compile_warnings+=( "-Wfatal-errors" )
 compile_warnings+=( "-Werror" )
 compile_warnings+=( "-Wall" )
 compile_warnings+=( "-Wextra" )
+compile_warnings+=( "-fexperimental-library" )
 
 
 build_cpp_file( )
