@@ -35,9 +35,11 @@ using	::std::chrono::duration_cast;
 using	::std::this_thread::sleep_for;
 
 
-fps::fps( )
+fps::fps( int limit )
 	:m_start_time{ high_resolution_clock::now( ) }
-{ }
+{
+	set_limit( limit );
+}
 
 
 auto fps::set_limit( int limit ) -> void
@@ -46,16 +48,13 @@ auto fps::set_limit( int limit ) -> void
 	m_limit = limit;
 }
 
-auto fps::enable_limit( bool flg_enable ) noexcept -> void { m_enable_limit = flg_enable; }
-auto fps::is_enable( ) const noexcept -> bool { return m_enable_limit; }
-
 auto fps::compute( ) -> int
 {
 	auto	end_time	=	high_resolution_clock::now( );
 	auto	frame_time	=	duration_cast<milliseconds>( end_time - m_start_time );
 	m_start_time		=	end_time;
 
-	milliseconds target_frame_time = milliseconds{ 1000 } / ( m_enable_limit ? m_limit : 1000 );
+	milliseconds target_frame_time = milliseconds{ 1000 } / ( enable ? m_limit : 1000 );
 
 	if( frame_time < target_frame_time )
 		sleep_for( target_frame_time - frame_time );

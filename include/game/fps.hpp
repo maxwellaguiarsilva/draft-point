@@ -38,22 +38,21 @@ namespace game {
 using	time_point = ::std::chrono::high_resolution_clock::time_point;
 
 
-class fps
+class fps final
 {
 public:
-	fps( );
-	virtual ~fps( ) noexcept = default;
+	fps( int limit = 60 );
+	~fps( ) noexcept = default;
 
 	delete_copy_move_ctc( fps );
 
 	auto set_limit( int limit ) -> void;
-	auto enable_limit( bool flg_enable ) noexcept -> void;
-	auto is_enable( ) const noexcept -> bool;
 	auto compute( ) -> int;
 
+	bool enable	=	true;
+
 private:
-	int		m_limit			=	60;
-	bool	m_enable_limit	=	true;
+	int		m_limit;
 	time_point	m_start_time;
 
 };
