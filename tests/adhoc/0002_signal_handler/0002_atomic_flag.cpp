@@ -42,9 +42,7 @@ using	::std::stop_token;
 
 atomic_flag flg_window_changed;
 
-/**
- * @brief Obtém e imprime o tamanho atual do terminal (linhas e colunas).
- */
+
 void print_terminal_size( )
 {
 	struct winsize window_size;
@@ -53,11 +51,8 @@ void print_terminal_size( )
 	println( "Tamanho do terminal: {} por {}", window_size.ws_col, window_size.ws_row );
 }
 
-/**
- * @brief Manipulador de sinal (Signal Handler) para SIGWINCH.
- * @param signal_number O número do sinal recebido (deve ser SIGWINCH).
- */
-void signal_window_change_handler( int signal_number )
+
+void signal_handler( int signal_number )
 {
 	if( signal_number == SIGWINCH )
 		flg_window_changed.test_and_set( );
@@ -68,7 +63,7 @@ int main( )
 {{
 
 	//	registra a ação para o sinal sigwinch.
-	assert( signal( SIGWINCH, signal_window_change_handler ) not_eq SIG_ERR, "erro ao registrar o manipulador de sinal sigwinch" );
+	assert( signal( SIGWINCH, signal_handler ) not_eq SIG_ERR, "erro ao registrar o manipulador de sinal sigwinch" );
 
 	println( "redimensione a janela do terminal: pressione ctrl+c para sair" );
 	print_terminal_size( );

@@ -27,22 +27,65 @@
 #include <string>
 #include <print>
 #include <vector>
+#include <memory>
 
 
+using	::std::print;
 using	::std::println;
 using	::std::string;
+using	::std::vector;
+using	::std::unique_ptr;
+using	::std::make_unique;
 
+const auto m_red	=	"\033[41;5m";
+const auto m_blue	=	"\033[44;5m";
+const auto m_reset	=	"\033[0m";
 
-class point
+class base
 {
 public:
-	int x, y;
+	base( ) { println( "{}{}: ctc base{}", m_blue, static_cast<void*>(this), m_reset ); }
+	virtual ~base( ) { println( "{}{}: dtc base{}", m_red, static_cast<void*>(this), m_reset ); }
+};
+class derived : public base
+{
+public:
+	derived( ) { println( "{}{}: ctc derived{}", m_blue, static_cast<void*>(this), m_reset ); }
+	virtual ~derived( ) { println( "{}{}: dtc derived{}", m_red, static_cast<void*>(this), m_reset ); }
+};
+
+
+class non_virtual_base
+{
+public:
+	non_virtual_base( ) { println( "{}{}: ctc non_virtual_base{}", m_blue, static_cast<void*>(this), m_reset ); }
+	~non_virtual_base( ) { println( "{}{}: dtc non_virtual_base{}", m_red, static_cast<void*>(this), m_reset ); }
+};
+class non_virtual_derived : public non_virtual_base
+{
+public:
+	non_virtual_derived( ) { println( "{}{}: ctc non_virtual_derived{}", m_blue, static_cast<void*>(this), m_reset ); }
+	~non_virtual_derived( ) { println( "{}{}: dtc non_virtual_derived{}", m_red, static_cast<void*>(this), m_reset ); }
 };
 
 
 int main( )
 {{
-	point p{1,2};
-	println( "teste adhoc point: {} x {}", p.x, p.y );
+	const string line( 50, '-' );
+	println( "{}\n", line );
+	{
+		vector< unique_ptr< base > > list;
+		list.emplace_back( make_unique< derived >( ) );
+		list.emplace_back( make_unique< derived >( ) );
+		list.pop_back( );
+	}
+	println( "{}\n", line );
+	{
+		vector< unique_ptr< non_virtual_base > > list;
+		list.emplace_back( make_unique< non_virtual_derived >( ) );
+		list.emplace_back( make_unique< non_virtual_derived >( ) );
+		list.pop_back( );
+	}
+	println( "{}\n", line );
 	return	0;
-}}
+}};
