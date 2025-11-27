@@ -67,7 +67,7 @@ int main( )
 
 	println( "redimensione a janela do terminal: pressione ctrl+c para sair" );
 	print_terminal_size( );
-
+	
 	jthread worker( []( stop_token stoken ) {
 		::game::fps fps(10);
 
@@ -81,10 +81,8 @@ int main( )
 
 			fps.compute( );
 		}
-	});
-	
-	while( true )
-		pause( );
+	} );
+	worker.join( );
 
 	return	EXIT_SUCCESS;
 
