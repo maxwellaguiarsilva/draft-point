@@ -43,34 +43,30 @@ template< typename t_listener >
 class dispatcher
 {
 public:
-    void operator +=( shared_ptr<t_listener> instance )
-	{
-        list.push_back( instance );
-    }
+    void operator +=( shared_ptr<t_listener> instance ) { list.push_back( instance ); }
 
     //	t_method_args para deduzir a assinatura do ponteiro de função
     //	t_call_args para deduzir os argumentos passados no broadcast
     template <typename... t_method_args, typename... t_call_args>
-    void broadcast(
+    void operator () (
 		 void ( t_listener::*member_function_pointer )( t_method_args... )
 		,t_call_args&&... arguments
 	)
 	{
-        auto iterator = list.begin( );
-        while( iterator != list.end( ) )
-		{
-            if( auto strong_ptr = iterator->lock( ) ) {
-                ( strong_ptr.get( )->*member_function_pointer )( ::std::forward<t_call_args>( arguments )... );
-                ++iterator;
-            } else {
-                iterator = list.erase( iterator );
-            }
-        }
+		using	::std::remove_if;
+		list.erase(
+			remove_if( list.begin( ), list.end( ), [&]( const auto& item ) {
+				auto strong_ptr = item.lock( );
+				return	strong_ptr ? ( strong_ptr.get( )->*member_function_pointer )( ::std::forward<t_call_args>( arguments )... ), false : true;
+			} )
+			,list.end( )
+		);
     }
 
 private:
     vector< weak_ptr< t_listener > > list;
 };
+
 
 class button_listener
 {
@@ -105,8 +101,8 @@ int main( int argument_count, char* argument_values[ ] )
     
     notifier += logger;
 
-    notifier.broadcast( &button_listener::on_clicked, "btn_start" );
-    notifier.broadcast( &button_listener::on_hover, 100 );
+    notifier( &button_listener::on_clicked, "btn_start" );
+    notifier( &button_listener::on_hover, 100 );
 
     return	EXIT_SUCCESS;
 }};
