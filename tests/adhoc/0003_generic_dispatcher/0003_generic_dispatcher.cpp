@@ -44,8 +44,8 @@ template< typename t_listener >
 class dispatcher
 {
 public:
-	using	dispatcher_error_type = ::std::vector< ::std::weak_ptr< t_listener > >;
-	using	dispatcher_result = ::std::expected< void, dispatcher_error_type >;
+	using	dispatcher_error = ::std::vector< ::std::weak_ptr< t_listener > >;
+	using	dispatcher_result = ::std::expected< void, dispatcher_error >;
 
     void operator +=( const shared_ptr<t_listener>& instance ) { list.emplace_back( instance ); }
 
@@ -57,27 +57,23 @@ public:
 		,t_call_args&&... arguments
 	)
 	{
-        dispatcher_error_type   failed_listeners;
+        dispatcher_error   failed_list;
 		list.erase(
-			remove_if( list.begin( ), list.end( ), [&]( const auto& item ) {
+			remove_if( list.begin( ), list.end( ), [&]( const auto& current_listener ) {
 				try {
-					if( auto strong_ptr = item.lock( ) )
-                    {
-						( strong_ptr.get( )->*member_function_pointer )( ::std::forward<t_call_args>( arguments )... );
-                        return	false;
-                    }
+					if( auto strong_ptr = current_listener.lock( ) )
+                        return	( strong_ptr.get( )->*member_function_pointer )( ::std::forward<t_call_args>( arguments )... ), false;
 					return	true;
 				} catch( ... ) {
-                    if( auto strong_ptr = item.lock( ) )
-                        failed_listeners.emplace_back( strong_ptr );
-                    return	true;
+					failed_list.emplace_back( current_listener );
 				}
+				return	true;
 			} )
 			,list.end( )
 		);
 
-        if( not failed_listeners.empty( ) )
-            return	::std::unexpected( failed_listeners );
+        if( not failed_list.empty( ) )
+            return	::std::unexpected( failed_list );
         return	{ };
     }
 
