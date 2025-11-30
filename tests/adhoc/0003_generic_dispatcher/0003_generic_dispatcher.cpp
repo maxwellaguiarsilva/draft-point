@@ -44,10 +44,10 @@ template< typename t_listener >
 class dispatcher
 {
 public:
-	using	dispatcher_error_type = ::std::vector< ::std::shared_ptr< t_listener > >;
+	using	dispatcher_error_type = ::std::vector< ::std::weak_ptr< t_listener > >;
 	using	dispatcher_result = ::std::expected< void, dispatcher_error_type >;
 
-    void operator +=( shared_ptr<t_listener> instance ) { list.push_back( instance ); }
+    void operator +=( const shared_ptr<t_listener>& instance ) { list.emplace_back( instance ); }
 
     //	t_method_args para deduzir a assinatura do ponteiro de função
     //	t_call_args para deduzir os argumentos passados no broadcast
@@ -69,7 +69,7 @@ public:
 					return	true;
 				} catch( ... ) {
                     if( auto strong_ptr = item.lock( ) )
-                        failed_listeners.push_back( strong_ptr );
+                        failed_listeners.emplace_back( strong_ptr );
                     return	true;
 				}
 			} )
@@ -97,21 +97,17 @@ public:
 
 class button_logger : public button_listener {
 public:
-    void on_clicked( const string& button_name ) override
-	{
-        println( "button clicked: {}", button_name );
-    }
-    void on_hover( int duration ) override
-	{
-        println( "hover: {}", duration );
-    }
+    void on_clicked( const string& button_name ) override { println( "button clicked: {}", button_name ); }
+    void on_hover( int duration ) override { println( "hover: {}", duration ); }
 };
 
 
 int main( int argument_count, char* argument_values[ ] )
 {{
-
-
+	//	const vector< string > arguments( argument_values, argument_values + argument_count );
+	//	for( const auto& value : arguments )
+	//		println( "{}", value );
+	
     auto logger = make_shared<button_logger>( );
     dispatcher<button_listener> notifier;
     
