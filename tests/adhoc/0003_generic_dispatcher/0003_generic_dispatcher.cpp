@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <string>
 #include <memory>
+#include <expected>
 
 
 using	::std::vector;
@@ -43,26 +44,41 @@ template< typename t_listener >
 class dispatcher
 {
 public:
+	using	dispatcher_error_type = ::std::vector< ::std::shared_ptr< t_listener > >;
+	using	dispatcher_result = ::std::expected< void, dispatcher_error_type >;
+
     void operator +=( shared_ptr<t_listener> instance ) { list.push_back( instance ); }
 
     //	t_method_args para deduzir a assinatura do ponteiro de função
     //	t_call_args para deduzir os argumentos passados no broadcast
     template <typename... t_method_args, typename... t_call_args>
-    void operator () (
+    dispatcher_result operator () (
 		 void ( t_listener::*member_function_pointer )( t_method_args... )
 		,t_call_args&&... arguments
 	)
 	{
+        dispatcher_error_type   failed_listeners;
 		list.erase(
 			remove_if( list.begin( ), list.end( ), [&]( const auto& item ) {
 				try {
 					if( auto strong_ptr = item.lock( ) )
-						return	( strong_ptr.get( )->*member_function_pointer )( ::std::forward<t_call_args>( arguments )... ), false;
-				} catch( ... ) { }
-				return	true;
+                    {
+						( strong_ptr.get( )->*member_function_pointer )( ::std::forward<t_call_args>( arguments )... );
+                        return	false;
+                    }
+					return	true;
+				} catch( ... ) {
+                    if( auto strong_ptr = item.lock( ) )
+                        failed_listeners.push_back( strong_ptr );
+                    return	true;
+				}
 			} )
 			,list.end( )
 		);
+
+        if( not failed_listeners.empty( ) )
+            return	::std::unexpected( failed_listeners );
+        return	{ };
     }
 
 private:
@@ -94,17 +110,17 @@ public:
 
 int main( int argument_count, char* argument_values[ ] )
 {{
-    const vector< string > arguments( argument_values, argument_values + argument_count );
-	//	for( const auto& value : arguments )
-	//		println( "{}", value );
+
 
     auto logger = make_shared<button_logger>( );
     dispatcher<button_listener> notifier;
     
     notifier += logger;
 
-    notifier( &button_listener::on_clicked, "btn_start" );
-    notifier( &button_listener::on_hover, 100 );
+    if( auto result = notifier( &button_listener::on_clicked, "btn_start" ); not result.has_value( ) )
+        println( "Error dispatching on_clicked: {} listeners failed", result.error( ).size( ) );
+    if( auto result = notifier( &button_listener::on_hover, 100 ); not result.has_value( ) )
+        println( "Error dispatching on_hover: {} listeners failed", result.error( ).size( ) );
 
     return	EXIT_SUCCESS;
 }};
