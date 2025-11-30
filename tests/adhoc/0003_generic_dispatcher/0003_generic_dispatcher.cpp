@@ -53,11 +53,13 @@ public:
 		,t_call_args&&... arguments
 	)
 	{
-		using	::std::remove_if;
 		list.erase(
 			remove_if( list.begin( ), list.end( ), [&]( const auto& item ) {
-				auto strong_ptr = item.lock( );
-				return	strong_ptr ? ( strong_ptr.get( )->*member_function_pointer )( ::std::forward<t_call_args>( arguments )... ), false : true;
+				try {
+					if( auto strong_ptr = item.lock( ) )
+						return	( strong_ptr.get( )->*member_function_pointer )( ::std::forward<t_call_args>( arguments )... ), false;
+				} catch( ... ) { }
+				return	true;
 			} )
 			,list.end( )
 		);
