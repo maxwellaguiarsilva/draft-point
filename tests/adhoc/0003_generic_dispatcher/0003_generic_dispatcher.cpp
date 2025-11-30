@@ -91,19 +91,20 @@ public:
 };
 
 
-class button_logger : public button_listener {
+class button_logger final : public button_listener 
+{
 public:
     void on_clicked( const string& button_name ) override { println( "button clicked: {}", button_name ); }
     void on_hover( int duration ) override { println( "hover: {}", duration ); }
 };
 
 
-int main( int argument_count, char* argument_values[ ] )
+int main( const int argument_count, const char* argument_values[ ] )
 {{
-	//	const vector< string > arguments( argument_values, argument_values + argument_count );
-	//	for( const auto& value : arguments )
-	//		println( "{}", value );
-	
+	const vector< string > arguments( argument_values, argument_values + argument_count );
+	for( const auto& value : arguments )
+		println( "{}", value );
+
     auto logger = make_shared<button_logger>( );
     dispatcher<button_listener> notifier;
     
