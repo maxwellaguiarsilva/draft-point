@@ -47,11 +47,11 @@ public:
 	base( ) { println( "{}{}: ctc base{}", m_blue, static_cast<void*>(this), m_reset ); }
 	virtual ~base( ) { println( "{}{}: dtc base{}", m_red, static_cast<void*>(this), m_reset ); }
 };
-class derived : public base
+class derived final : public base
 {
 public:
 	derived( ) { println( "{}{}: ctc derived{}", m_blue, static_cast<void*>(this), m_reset ); }
-	virtual ~derived( ) { println( "{}{}: dtc derived{}", m_red, static_cast<void*>(this), m_reset ); }
+	~derived( ) override { println( "{}{}: dtc derived{}", m_red, static_cast<void*>(this), m_reset ); }
 };
 
 
