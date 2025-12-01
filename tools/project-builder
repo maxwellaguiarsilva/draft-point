@@ -89,8 +89,26 @@ build_binary( )
 }
 
 
+cpp_check_project( )
+{
+	printf "%*s\n" 50 " " | sed "s/ /_/g"
+	cppcheck --quiet \
+		--enable=all \
+		--suppress=missingIncludeSystem --suppress=checkersReport \
+		--check-level=exhaustive \
+		--cppcheck-build-dir="${folders[build]}" \
+		--include="${folders[include]}" \
+		--inline-suppr \
+		--std="${project[cpp_version]}" \
+		--error-exitcode=1 \
+		-j 8 \
+		"${folders[source]}" "${folders[tests]}" || return "$?"
+	printf "%*s\n" 50 " " | sed "s/ /_/g"
+}
+
 build_project( )
 {
+	cpp_check_project || return "$?"
 	mkdir -p "${folders[build]}" "${folders[dist]}"
 	while read -r line; do build_cpp_file "$line" || return "${?}"; done <<< "$( find . -name "${project[file_filter]}" )"
 	while read -r line; do build_binary "$line"; done <<< "$( find . -name "${project[file_filter]}" -type f -exec grep -lE "${project[main_regexp]}" {} \; )"
