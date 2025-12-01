@@ -63,8 +63,9 @@ int main( )
 {{
 
 	//	registra a ação para o sinal sigwinch.
-	assert( signal( SIGWINCH, signal_handler ) not_eq SIG_ERR, "erro ao registrar o manipulador de sinal sigwinch" );
-
+	if( signal( SIGWINCH, signal_handler ) == SIG_ERR )
+		return	println( "erro ao registrar o manipulador de sinal sigwinch" ), EXIT_FAILURE;
+	
 	println( "redimensione a janela do terminal: pressione ctrl+c para sair" );
 	print_terminal_size( );
 	
