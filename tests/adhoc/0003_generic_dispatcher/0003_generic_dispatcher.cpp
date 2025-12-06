@@ -22,36 +22,29 @@
  */
 
 
-#include <print>
 #include <vector>
 #include <algorithm>
-#include <string>
-#include <format>
 #include <memory>
 #include <functional>
 #include <expected>
 #include <exception>
 #include <mutex>
+#include <utility>
+
 
 using	::std::vector;
-using	::std::string;
-using	::std::format;
-using	::std::println;
-using	::std::print;
+using	::std::make_shared;
 using	::std::shared_ptr;
 using	::std::weak_ptr;
 using	::std::remove_if;
-using	::std::make_shared;
 using	::std::expected;
 using	::std::unexpected;
-using	::std::exception;
 using	::std::exception_ptr;
-using	::std::runtime_error;
 using	::std::current_exception;
-using	::std::rethrow_exception;
-using	::std::function;
 using	::std::lock_guard;
 using	::std::mutex;
+using	::std::invoke;
+
 
 
 template< typename t_listener >
@@ -71,7 +64,6 @@ public:
 	{
 		auto lock = lock_guard( m_mutex );
 		m_list.emplace_back( instance );
-		clear( );
 	}
 
     //	t_method_args para deduzir a assinatura do ponteiro de função
@@ -85,15 +77,20 @@ public:
 		list l_list;
 		{
 			auto lock = lock_guard( m_mutex );
-			clear( );
 			l_list = m_list;
 		};
         error   failed_list;
+		bool flg_clear = false;
 		for( const auto& current_listener : l_list )
-			try {
-				if( auto locked = current_listener.lock( ) )
-					( locked.get( )->*member_function_pointer )( arguments... );
-			} catch( ... ) { failed_list.emplace_back( current_listener, current_exception( ) ); }
+			if( auto locked = current_listener.lock( ) )
+				try {
+					invoke( member_function_pointer, locked.get( ), arguments... );
+				} catch( ... ) { failed_list.emplace_back( current_listener, current_exception( ) ); }
+			else
+				flg_clear = true;
+
+		if( flg_clear )
+			clear( );
 
         if( failed_list.empty( ) )
 			return	{ };
@@ -106,12 +103,27 @@ private:
 
 	void clear( )
 	{
+		auto lock = lock_guard( m_mutex );
 		m_list.erase(
 			remove_if( m_list.begin() , m_list.end( ), [ ](const auto& ptr) { return ptr.expired(); } )
 			,m_list.end( )
 		);
 	}
 };
+
+
+//	aqui começa o código que serve apenas para demonstrar como usar
+
+#include <print>
+#include <string>
+#include <format>
+
+using	::std::string;
+using	::std::print;
+using	::std::println;
+using	::std::format;
+using	::std::exception;
+using	::std::runtime_error;
 
 
 class button_listener
@@ -139,7 +151,8 @@ public:
 
 
 
-using button_result = dispatcher<button_listener>::result;
+using	button_result	=	dispatcher<button_listener>::result;
+using	::std::rethrow_exception;
 
 void handle_result( const button_result& result ) {
     if( result.has_value( ) )
