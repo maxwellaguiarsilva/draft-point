@@ -38,14 +38,16 @@ using	::std::shared_ptr;
 using	::std::weak_ptr;
 using	::std::remove_if;
 using	::std::make_shared;
+using	::std::expected;
+using	::std::unexpected;
 
 
 template< typename t_listener >
 class dispatcher
 {
 public:
-	using	dispatcher_error = ::std::vector< ::std::weak_ptr< t_listener > >;
-	using	dispatcher_result = ::std::expected< void, dispatcher_error >;
+	using	dispatcher_error = vector< weak_ptr< t_listener > >;
+	using	dispatcher_result = expected< void, dispatcher_error >;
 
     void operator +=( const shared_ptr<t_listener>& instance ) { list.emplace_back( instance ); }
 
@@ -61,8 +63,8 @@ public:
 		list.erase(
 			remove_if( list.begin( ), list.end( ), [&]( const auto& current_listener ) {
 				try {
-					if( auto strong_ptr = current_listener.lock( ) )
-                        return	( strong_ptr.get( )->*member_function_pointer )( ::std::forward<t_call_args>( arguments )... ), false;
+					if( auto locked = current_listener.lock( ) )
+                        return	( locked.get( )->*member_function_pointer )( ::std::forward<t_call_args>( arguments )... ), false;
 					return	true;
 				} catch( ... ) {
 					failed_list.emplace_back( current_listener );
@@ -73,7 +75,7 @@ public:
 		);
 
         if( not failed_list.empty( ) )
-            return	::std::unexpected( failed_list );
+            return	unexpected( failed_list );
         return	{ };
     }
 
