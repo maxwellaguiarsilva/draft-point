@@ -108,15 +108,13 @@ cpp_check_project( )
 
 build_project( )
 {
-	cpp_check_project || return "$?"
 	mkdir -p "${folders[build]}" "${folders[dist]}"
+	cpp_check_project || return "$?"
 	while read -r line; do build_cpp_file "$line" || return "${?}"; done <<< "$( find . -name "${project[file_filter]}" )"
 	while read -r line; do build_binary "$line"; done <<< "$( find . -name "${project[file_filter]}" -type f -exec grep -lE "${project[main_regexp]}" {} \; )"
 	while read -r line; do remove_orphaned_object "$line"; done <<< "$( find . -name "*.o" )"
 }
 
 build_project
-
-#	TODO: cppcheck --enable=all --suppress=missingIncludeSystem --suppress=checkersReport 
 
 
