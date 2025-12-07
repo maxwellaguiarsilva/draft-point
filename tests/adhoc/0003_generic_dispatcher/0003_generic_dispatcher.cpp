@@ -22,106 +22,9 @@
  */
 
 
-#include <vector>
-#include <algorithm>
-#include <memory>
-#include <functional>
-#include <expected>
-#include <exception>
-#include <mutex>
-#include <utility>
-#include <sak/sak.hpp>
+#include <pattern/dispatcher.hpp>
 
 
-using	::std::vector;
-using	::std::make_shared;
-using	::std::shared_ptr;
-using	::std::weak_ptr;
-using	::std::erase_if;
-using	::std::expected;
-using	::std::unexpected;
-using	::std::exception_ptr;
-using	::std::current_exception;
-using	::std::lock_guard;
-using	::std::mutex;
-using	::std::atomic;
-using	::std::memory_order_acquire;
-using	::std::memory_order_release;
-using	::std::invoke;
-
-
-
-template< typename t_listener >
-class dispatcher final
-{
-public:
-
-	dispatcher( ) = default;
-	delete_copy_move_ctc( dispatcher );
-
-	struct failed_info
-	{
-		weak_ptr< t_listener >  listener;
-		exception_ptr           exception;
-	};
-	using	error	=	vector< failed_info >;
-	using	result	=	expected< void, error >;
-	using	list	=	vector< weak_ptr< t_listener > >;
-
-    void operator +=( const shared_ptr<t_listener>& instance )
-	{
-		auto lock = lock_guard( m_mutex );
-		m_list.emplace_back( instance );
-	}
-
-    template <typename t_method, typename... t_call_args>
-    result operator () (
-		 t_method member_function_pointer
-		,t_call_args&&... arguments
-	)
-	{
-		unsigned l_clear_count;
-		list l_list;
-		{
-			auto lock	=	lock_guard( m_mutex );
-			l_list		=	m_list;
-			l_clear_count	=	m_clear_count.load( memory_order_acquire );
-		};
-        error   failed_list;
-		bool flg_clear = false;
-		for( const auto& current_listener : l_list )
-			if( auto locked = current_listener.lock( ) )
-				try {
-					invoke( member_function_pointer, locked.get( ), arguments... );
-				} catch( ... ) { failed_list.emplace_back( current_listener, current_exception( ) ); }
-			else
-				flg_clear = true;
-
-		if( flg_clear )
-			clear( l_clear_count );
-
-        if( failed_list.empty( ) )
-			return	{ };
-		return	unexpected( failed_list );
-    }
-
-private:
-    list	m_list;
-	mutex	m_mutex;
-	atomic<unsigned>	m_clear_count	=	0;
-
-	void clear( unsigned l_clear_count )
-	{
-		auto lock = lock_guard( m_mutex );
-		if(	l_clear_count != m_clear_count.load( memory_order_acquire ) )
-			return;
-		erase_if( m_list, [ ](const auto& ptr) { return ptr.expired( ); } );
-		m_clear_count.fetch_add( 1, memory_order_release );
-	}
-};
-
-
-//	aqui começa o código que serve apenas para demonstrar como usar
 
 #include <print>
 #include <string>
@@ -160,7 +63,7 @@ public:
 
 
 
-using	button_result	=	dispatcher<button_listener>::result;
+using	button_result	=	::pattern::dispatcher<button_listener>::result;
 using	::std::rethrow_exception;
 
 void handle_result( const button_result& result ) {
@@ -180,7 +83,7 @@ int main( const int argument_count, const char* argument_values[ ] )
 	for( const auto& value : arguments )
 		println( "{}", value );
 
-    dispatcher<button_listener> notifier;
+    ::pattern::dispatcher<button_listener> notifier;
     
     auto normal = make_shared<button_logger>( );
     auto unsafe = make_shared<unsafe_logger>( );
