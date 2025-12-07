@@ -44,6 +44,9 @@ using	::std::exception_ptr;
 using	::std::current_exception;
 using	::std::lock_guard;
 using	::std::mutex;
+using	::std::atomic;
+using	::std::memory_order_acquire;
+using	::std::memory_order_release;
 using	::std::invoke;
 
 
@@ -77,10 +80,12 @@ public:
 		,t_call_args&&... arguments
 	)
 	{
+		unsigned l_clear_count;
 		list l_list;
 		{
-			auto lock = lock_guard( m_mutex );
-			l_list = m_list;
+			auto lock	=	lock_guard( m_mutex );
+			l_list		=	m_list;
+			l_clear_count	=	m_clear_count.load( memory_order_acquire );
 		};
         error   failed_list;
 		bool flg_clear = false;
@@ -93,7 +98,7 @@ public:
 				flg_clear = true;
 
 		if( flg_clear )
-			clear( );
+			clear( l_clear_count );
 
         if( failed_list.empty( ) )
 			return	{ };
@@ -103,11 +108,15 @@ public:
 private:
     list	m_list;
 	mutex	m_mutex;
+	atomic<unsigned>	m_clear_count	=	0;
 
-	void clear( )
+	void clear( unsigned l_clear_count )
 	{
 		auto lock = lock_guard( m_mutex );
+		if(	l_clear_count != m_clear_count.load( memory_order_acquire ) )
+			return;
 		erase_if( m_list, [ ](const auto& ptr) { return ptr.expired( ); } );
+		m_clear_count.fetch_add( 1, memory_order_release );
 	}
 };
 
