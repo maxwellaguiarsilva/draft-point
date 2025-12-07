@@ -22,20 +22,23 @@
  */
 
 
-#include <pattern/dispatcher.hpp>
-
-
 
 #include <print>
 #include <string>
+#include <vector>
 #include <format>
+#include <pattern/dispatcher.hpp>
+
 
 using	::std::string;
+using	::std::vector;
+using	::std::make_shared;
 using	::std::print;
 using	::std::println;
 using	::std::format;
 using	::std::exception;
 using	::std::runtime_error;
+using	::pattern::dispatcher;
 
 
 class button_listener
@@ -62,14 +65,13 @@ public:
 };
 
 
-
-using	button_result	=	::pattern::dispatcher<button_listener>::result;
+using	button_result	=	dispatcher<button_listener>::result;
 using	::std::rethrow_exception;
 
 void handle_result( const button_result& result ) {
     if( result.has_value( ) )
         return;
-    println( "error dispatching on_clicked: {} listeners failed", result.error( ).size( ) );
+    println( "error: {} listeners failed", result.error( ).size( ) );
     for( const auto& failed : result.error( ) )
         if( auto locked = failed.listener.lock( ) )
             try { rethrow_exception( failed.exception ); } catch( const exception& error ) {
@@ -77,13 +79,14 @@ void handle_result( const button_result& result ) {
             }
 }
 
+
 int main( const int argument_count, const char* argument_values[ ] )
 {{
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
 		println( "{}", value );
 
-    ::pattern::dispatcher<button_listener> notifier;
+    dispatcher<button_listener> notifier;
     
     auto normal = make_shared<button_logger>( );
     auto unsafe = make_shared<unsafe_logger>( );
