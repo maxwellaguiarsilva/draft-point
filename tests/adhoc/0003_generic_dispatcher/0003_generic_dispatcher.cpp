@@ -30,13 +30,14 @@
 #include <exception>
 #include <mutex>
 #include <utility>
+#include <sak/sak.hpp>
 
 
 using	::std::vector;
 using	::std::make_shared;
 using	::std::shared_ptr;
 using	::std::weak_ptr;
-using	::std::remove_if;
+using	::std::erase_if;
 using	::std::expected;
 using	::std::unexpected;
 using	::std::exception_ptr;
@@ -48,9 +49,13 @@ using	::std::invoke;
 
 
 template< typename t_listener >
-class dispatcher
+class dispatcher final
 {
 public:
+
+	dispatcher( ) = default;
+	delete_copy_move_ctc( dispatcher );
+
 	struct failed_info
 	{
 		weak_ptr< t_listener >  listener;
@@ -66,11 +71,9 @@ public:
 		m_list.emplace_back( instance );
 	}
 
-    //	t_method_args para deduzir a assinatura do ponteiro de função
-    //	t_call_args para deduzir os argumentos passados no broadcast
-    template <typename... t_method_args, typename... t_call_args>
+    template <typename t_method, typename... t_call_args>
     result operator () (
-		 void ( t_listener::*member_function_pointer )( t_method_args... )
+		 t_method member_function_pointer
 		,t_call_args&&... arguments
 	)
 	{
@@ -104,10 +107,7 @@ private:
 	void clear( )
 	{
 		auto lock = lock_guard( m_mutex );
-		m_list.erase(
-			remove_if( m_list.begin() , m_list.end( ), [ ](const auto& ptr) { return ptr.expired(); } )
-			,m_list.end( )
-		);
+		erase_if( m_list, [ ](const auto& ptr) { return ptr.expired( ); } );
 	}
 };
 
@@ -130,23 +130,23 @@ class button_listener
 {
 public:
     virtual ~button_listener( ) = default;
-    virtual void on_clicked( const string& button_name ) = 0;
-    virtual void on_hover( int duration ) = 0;
+    virtual void on_clicked( const string& button_name ) const = 0;
+    virtual void on_hover( int duration ) const = 0;
 };
 
 
 class button_logger final : public button_listener 
 {
 public:
-    void on_clicked( const string& button_name ) override { println( "button clicked: {}", button_name ); }
-    void on_hover( int duration ) override { println( "hover: {}", duration ); }
+    void on_clicked( const string& button_name ) const override { println( "button clicked: {}", button_name ); }
+    void on_hover( int duration ) const override { println( "hover: {}", duration ); }
 };
 
 class unsafe_logger final : public button_listener
 {
 public:
-    void on_clicked( const string& button_name ) override { throw runtime_error( format( "error on button clicked listener: {}", button_name ) ); }
-    void on_hover( int duration ) override { throw runtime_error( format( "error on button hover listener: {}", duration ) ); }
+    void on_clicked( const string& button_name ) const override { throw runtime_error( format( "error on button clicked listener: {}", button_name ) ); }
+    void on_hover( int duration ) const override { throw runtime_error( format( "error on button hover listener: {}", duration ) ); }
 };
 
 
@@ -157,11 +157,11 @@ using	::std::rethrow_exception;
 void handle_result( const button_result& result ) {
     if( result.has_value( ) )
         return;
-    println( "Error dispatching on_clicked: {} listeners failed", result.error( ).size( ) );
+    println( "error dispatching on_clicked: {} listeners failed", result.error( ).size( ) );
     for( const auto& failed : result.error( ) )
         if( auto locked = failed.listener.lock( ) )
             try { rethrow_exception( failed.exception ); } catch( const exception& error ) {
-                println( "{}" , error.what( ) );
+                println( "    -   {}" , error.what( ) );
             }
 }
 
