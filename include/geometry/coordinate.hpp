@@ -116,7 +116,10 @@ public:
 	{ }
 	
 
-	__581074281_operator( + )
+	//	__581074281_operator( + )
+	inline auto operator +=( const coordinate& other ) noexcept { return apply_array_operation( other, plus<>{} ); }
+	inline auto operator +=( des_type other ) noexcept { return apply_scalar_operation( other, plus<>{} ); }
+	
 	__581074281_operator( - )
 	__581074281_operator( * )
 	__581074281_operator_not_eq_zero( / )
@@ -162,6 +165,9 @@ private:
 
 
 }
+
+template< typename type_t, typename other_t >
+inline constexpr auto operator + ( type_t left, const other_t& right ) noexcept { return left+=right; };
 
 
 #endif
