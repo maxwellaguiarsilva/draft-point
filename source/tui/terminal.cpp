@@ -65,7 +65,7 @@ auto terminal::clear_screen( bool full_reset ) -> void
 	{
 		set_text_style( text_style::reset );
 		set_raw_mode( false );
-		move_cursor( point( {0, 0} ) );
+		move_cursor( point( 0, 0 ) );
 	}
 	print( "\033[2J" );
 }

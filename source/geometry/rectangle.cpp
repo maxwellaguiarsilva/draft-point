@@ -24,6 +24,7 @@
 
 
 #include <geometry/rectangle.hpp>
+#include <ranges>
 
 
 namespace geometry {
@@ -37,7 +38,7 @@ using	::geometry::point;
 auto rectangle::contains( const point& a_point ) const noexcept -> bool
 {
 	return	all_of(
-		iota( ( size_t )0, start.size( ) )
+		 iota( ( size_t )0, start.size( ) )
 		,[ & ]( size_t index ) { return a_point[ index ] >= start[ index ] and a_point[ index ] <= end[ index ]; }
 	);
 }

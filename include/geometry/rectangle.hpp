@@ -29,8 +29,6 @@
 
 #include <sak/sak.hpp>
 #include <array>
-#include <algorithm>
-#include <ranges>
 #include <geometry/point.hpp>
 
 
