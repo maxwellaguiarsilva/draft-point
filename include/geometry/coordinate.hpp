@@ -28,7 +28,6 @@
 #define header_guard_581074281
 
 
-#include <sak/sak.hpp>
 #include <array>
 #include <concepts>
 #include <algorithm>
