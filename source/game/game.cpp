@@ -36,7 +36,7 @@ using	::sak::to_lower_case;
 
 game::game( )
 	:m_terminal{ }
-	,m_player{ m_terminal.size / 2 }
+	,m_player{ *( m_terminal.size / 2 ) }
 	,m_fps{ }
 { m_fps.set_limit( 30 ); }
 

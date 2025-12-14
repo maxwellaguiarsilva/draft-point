@@ -40,31 +40,9 @@
 #include <compare>
 
 
-#define __581074281_loop( a_operator, a_type, a_decl_size, a_if_zero, a_right_value ) \
-coordinate& operator a_operator##=( a_type other ) \
-{ \
-	a_decl_size \
-	a_if_zero \
-	for_each( *this, [ & ]( des_type& value ){ value a_operator##= a_right_value; } ); \
-	return	*this; \
-} \
-coordinate operator a_operator ( a_type other ) const noexcept { return ( coordinate( *this ) a_operator##= other ); } 
-
-
-#define __581074281_overload( a_operator, a_if_zero_coordinate, a_if_zero_scalar ) \
-__581074281_loop( a_operator, const coordinate&, size_t index = 0;, a_if_zero_coordinate, other[ index++ ] ) \
-__581074281_loop( a_operator, des_type, , a_if_zero_scalar, other ) \
-
-
-#define __581074281_operator( a_operator ) \
-__581074281_overload( a_operator, , )
-
-#define __581074281_operator_not_eq_zero( a_operator ) \
-__581074281_overload( \
-	 a_operator \
-	,if( not any_of( other, [ ]( des_type value ) { return value == 0; } ) ) \
-	,if( other not_eq 0 ) \
-)
+#define __581074281_compound_operator( a_operator, a_math_operation, a_array_operation, a_scalar_operation ) \
+inline auto operator a_operator##= ( const coordinate& other ) noexcept { return a_array_operation( other, a_math_operation<>{} ); } \
+inline auto operator a_operator##= ( des_type other ) noexcept { return a_scalar_operation( other, a_math_operation<>{} ); } \
 
 
 namespace geometry {
@@ -79,8 +57,10 @@ using	::std::size_t;
 using	::std::views::zip;
 using	::std::ranges::for_each;
 using	::std::ranges::any_of;
+using	::std::ranges::all_of;
 //	--------------------------------------------------
 using	::std::expected;
+using	::std::unexpected;
 //	--------------------------------------------------
 using	::std::plus;
 using	::std::minus;
@@ -98,6 +78,7 @@ enum class math_error
 	,square_root_of_negative
 };
 
+using	math_error::division_by_zero;
 
 
 template< typename des_type = int, size_t num_dimensions = 2 >
@@ -105,7 +86,7 @@ class coordinate : public array< des_type, num_dimensions >
 {
 public:
 	using	super_type = array< des_type, num_dimensions >;
-	using	math_result = expected< des_type, math_error >;
+	using	math_result = expected< coordinate, math_error >;
 
 	template< typename... t_args >
 		requires( sizeof...( t_args ) == num_dimensions
@@ -116,23 +97,18 @@ public:
 	{ }
 	
 
-	//	__581074281_operator( + )
-	inline auto operator +=( const coordinate& other ) noexcept { return apply_array_operation( other, plus<>{} ); }
-	inline auto operator +=( des_type other ) noexcept { return apply_scalar_operation( other, plus<>{} ); }
-	
-	__581074281_operator( - )
-	__581074281_operator( * )
-	__581074281_operator_not_eq_zero( / )
-	__581074281_operator_not_eq_zero( % )
+	__581074281_compound_operator( +	,plus		,apply_array_operation		,apply_scalar_operation	)
+	__581074281_compound_operator( -	,minus		,apply_array_operation		,apply_scalar_operation	)
+	__581074281_compound_operator( *	,multiplies	,apply_array_operation		,apply_scalar_operation	)
+	__581074281_compound_operator( /	,divides	,apply_safe_array_operation	,apply_safe_scalar_operation	)
+	__581074281_compound_operator( %	,modulus	,apply_safe_array_operation	,apply_safe_scalar_operation	)
 
 
-	bool operator==( const coordinate& other ) const noexcept = default;
-
-	bool is_inside( const coordinate& other ) const noexcept
+	auto is_inside( const coordinate& other ) const noexcept -> bool
 	{
-		return	not any_of( zip( *this, other ), [ ]( const auto& pair ){
-			const auto& [ a_this, a_other ] = pair;
-			return	a_this > a_other;
+		return	all_of( zip( *this, other ), [ ]( const auto& pair ){
+			const auto& [ left, right ] = pair;
+			return	left <= right;
 		} );
 	}
 
@@ -146,7 +122,7 @@ public:
 
 private:
 	template< typename t_function >
-	coordinate& apply_array_operation( const coordinate& other, const t_function& operation )
+	auto apply_array_operation( const coordinate& other, const t_function& operation ) -> coordinate&
 	{
 		for( auto&& [ left, right ] : zip( *this, other ) )
 			left = operation( left, right );
@@ -154,10 +130,31 @@ private:
 	}
 
 	template< typename t_function >
-	coordinate& apply_scalar_operation( des_type other, const t_function& operation )
+	auto apply_scalar_operation( des_type other, const t_function& operation ) -> coordinate&
 	{
 		for_each( *this, [ & ]( des_type& value ){ value = operation( value, other ); } );
 		return	*this;
+	}
+
+	auto is_safe_denominator( ) const noexcept -> bool
+	{
+		return	not any_of( *this, [ ]( const auto& value ){ return value == 0; } );
+	}
+
+	template< typename t_function >
+	auto apply_safe_array_operation( const coordinate& other, const t_function& operation ) -> math_result
+	{
+		if( not is_safe_denominator( ) )
+			return	unexpected( division_by_zero );
+		return	apply_array_operation( other, operation );
+	}
+
+	template< typename t_function >
+	auto apply_safe_scalar_operation( des_type other, const t_function& operation ) -> math_result
+	{
+		if( other == 0 )
+			return	unexpected( division_by_zero );
+		return	apply_scalar_operation( other, operation );
 	}
 
 
@@ -166,79 +163,19 @@ private:
 
 }
 
-template< typename type_t, typename other_t >
-inline constexpr auto operator + ( type_t left, const other_t& right ) noexcept { return left+=right; };
+
+#define __581074281_binary_operator( a_operator ) \
+template< typename type_t, typename other_t > \
+inline constexpr auto operator a_operator ( type_t left, const other_t& right ) noexcept { return left a_operator##= right; };
+
+
+__581074281_binary_operator( + )
+__581074281_binary_operator( - )
+__581074281_binary_operator( * )
+__581074281_binary_operator( / )
+__581074281_binary_operator( % )
 
 
 #endif
-
-
-//	coordinate& operator +=( const coordinate& other ) {
-//		size_t index = 0;
-//		for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value += other[ index++ ]; } );
-//		return *this;
-//	}
-//	coordinate& operator +=( des_type other ) {
-//		for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value += other; } );
-//		return *this;
-//	}
-//	coordinate operator + ( const coordinate& other ) const noexcept { return ( coordinate( *this ) += other ); }
-//	coordinate operator + ( des_type other ) const noexcept { return ( coordinate( *this ) += other ); }
-//
-//
-//	coordinate& operator -=( const coordinate& other ) {
-//		size_t index = 0;
-//		for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value -= other[ index++ ]; } );
-//		return *this;
-//	}
-//	coordinate& operator -=( des_type other ) {
-//		for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value -= other; } );
-//		return *this;
-//	}
-//	coordinate operator - ( const coordinate& other ) const noexcept { return ( coordinate( *this ) -= other ); }
-//	coordinate operator - ( des_type other ) const noexcept { return ( coordinate( *this ) -= other ); }
-//
-//
-//	coordinate& operator *=( const coordinate& other ) {
-//		size_t index = 0;
-//		for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value *= other[ index++ ]; } );
-//		return *this;
-//	}
-//	coordinate& operator *=( des_type other ) {
-//		for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value *= other; } );
-//		return *this;
-//	}
-//	coordinate operator * ( const coordinate& other ) const noexcept { return ( coordinate( *this ) *= other ); }
-//	coordinate operator * ( des_type other ) const noexcept { return ( coordinate( *this ) *= other ); }
-//
-//
-//	coordinate& operator /=( const coordinate& other ) {
-//		size_t index = 0;
-//		if( not any_of( other, [ ]( des_type value ) { return value == 0; } ) )
-//			for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value /= other[ index++ ]; } );
-//		return *this;
-//	}
-//	coordinate& operator /=( des_type other ) {
-//		if( other not_eq 0 )
-//			for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value /= other; } );
-//		return *this;
-//	}
-//	coordinate operator / ( const coordinate& other ) const noexcept { return ( coordinate( *this ) /= other ); }
-//	coordinate operator / ( des_type other ) const noexcept { return ( coordinate( *this ) /= other ); }
-//
-//
-//	coordinate& operator %=( const coordinate& other ) {
-//		size_t index = 0;
-//		if( not any_of( other, [ ]( des_type value ) { return value == 0; } ) )
-//			for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value %= other[ index++ ]; } );
-//		return *this;
-//	}
-//	coordinate& operator %=( des_type other ) {
-//		if( other not_eq 0 )
-//			for_each( this->begin( ), this->end( ), [ & ]( des_type& value ){ value %= other; } );
-//		return *this;
-//	}
-//	coordinate operator % ( const coordinate& other ) const noexcept { return ( coordinate( *this ) %= other ); }
-//	coordinate operator % ( des_type other ) const noexcept { return ( coordinate( *this ) %= other ); }
 
 
