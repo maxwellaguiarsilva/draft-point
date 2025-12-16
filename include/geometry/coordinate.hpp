@@ -39,9 +39,13 @@
 #include <compare>
 
 
-#define __581074281_compound_operator( a_operator, a_math_operation, a_array_operation, a_scalar_operation ) \
-inline auto operator a_operator##= ( const coordinate& other ) noexcept { return a_array_operation( other, a_math_operation<>{} ); } \
-inline auto operator a_operator##= ( t_scalar other ) noexcept { return a_scalar_operation( other, a_math_operation<>{} ); } \
+#define __581074281_compound_operator( a_operator, a_math_operation ) \
+inline auto operator a_operator##= ( const coordinate& other ) noexcept -> coordinate& { return apply_operation( other, a_math_operation<>{} ); } \
+inline auto operator a_operator##= ( t_scalar other ) noexcept -> coordinate& { return apply_operation( repeat( other ), a_math_operation<>{} ); } \
+
+#define __581074281_safe_compound_operator( a_operator, a_math_operation ) \
+inline auto operator a_operator##= ( const coordinate& other ) noexcept -> math_result { return apply_safe_array_operation( other, a_math_operation<>{} ); } \
+inline auto operator a_operator##= ( t_scalar other ) noexcept -> math_result { return apply_safe_scalar_operation( other, a_math_operation<>{} ); } \
 
 
 namespace geometry {
@@ -51,12 +55,16 @@ namespace geometry {
 using	::std::array;
 //	--------------------------------------------------
 using	::std::convertible_to;
+using	::std::invocable;
 //	--------------------------------------------------
 using	::std::size_t;
 using	::std::views::zip;
+using	::std::views::repeat;
+using	::std::ranges::transform;
 using	::std::ranges::for_each;
 using	::std::ranges::any_of;
 using	::std::ranges::all_of;
+using	::std::ranges::fold_left;
 //	--------------------------------------------------
 using	::std::expected;
 using	::std::unexpected;
@@ -68,6 +76,7 @@ using	::std::divides;
 using	::std::modulus;
 using	::std::sqrt;
 //	--------------------------------------------------
+
 
 namespace math {
 
@@ -88,18 +97,21 @@ template< arithmetic t_scalar >
 constexpr auto square( t_scalar value ) noexcept { return value * value; }
 
 
+
+
 }
 
 
 using	::geometry::math::error::division_by_zero;
+using	::geometry::math::arithmetic;
 
 
-template< typename t_scalar = int, size_t num_dimensions = 2 >
+template< arithmetic t_scalar = int, size_t num_dimensions = 2 >
 class coordinate : public array< t_scalar, num_dimensions >
 {
 public:
 	using	super_type = array< t_scalar, num_dimensions >;
-	using	math_result = expected< coordinate, math_error >;
+	using	math_result = expected< coordinate, geometry::math::error >;
 
 	template< typename... t_args >
 		requires( sizeof...( t_args ) == num_dimensions
@@ -110,11 +122,11 @@ public:
 	{ }
 	
 
-	__581074281_compound_operator( +	,plus		,apply_array_operation		,apply_scalar_operation			)
-	__581074281_compound_operator( -	,minus		,apply_array_operation		,apply_scalar_operation			)
-	__581074281_compound_operator( *	,multiplies	,apply_array_operation		,apply_scalar_operation			)
-	__581074281_compound_operator( /	,divides	,apply_safe_array_operation	,apply_safe_scalar_operation	)
-	__581074281_compound_operator( %	,modulus	,apply_safe_array_operation	,apply_safe_scalar_operation	)
+	__581074281_compound_operator( +	,plus		)
+	__581074281_compound_operator( -	,minus		)
+	__581074281_compound_operator( *	,multiplies	)
+	__581074281_safe_compound_operator( /	,divides	)
+	__581074281_safe_compound_operator( %	,modulus	)
 
 
 	auto is_inside( const coordinate& other ) const noexcept -> bool
@@ -127,26 +139,17 @@ public:
 
 	auto get_length( ) const noexcept -> t_scalar
 	{
-		t_scalar sum_of_squares	=	0;
-		for( const auto& value : *this )
-			sum_of_squares += value * value;
-		return	static_cast< t_scalar >( sqrt( sum_of_squares ) );
+		using	::std::views::transform;
+		using	::geometry::math::square;
+		return	sqrt( fold_left( *this | transform( square< t_scalar > ), 0, plus<>() ) );
 	}
 
 private:
-	template< typename t_function >
-	auto apply_array_operation( const coordinate& other, const t_function& operation ) -> coordinate&
-	{
-		for( auto&& [ left, right ] : zip( *this, other ) )
-			left = operation( left, right );
-		return	*this;
-	}
 
-	template< typename t_function >
-	auto apply_scalar_operation( t_scalar other, const t_function& operation ) -> coordinate&
+	template< typename t_other, invocable< t_scalar, t_scalar > t_function >
+	auto apply_operation( t_other other, const t_function& operation ) -> coordinate&
 	{
-		for_each( *this, [ & ]( t_scalar& value ){ value = operation( value, other ); } );
-		return	*this;
+		return	transform( *this, other, this->begin( ), operation ), *this;
 	}
 
 	auto is_safe_denominator( ) const noexcept -> bool
@@ -159,7 +162,7 @@ private:
 	{
 		if( not other.is_safe_denominator( ) )
 			return	unexpected( division_by_zero );
-		return	apply_array_operation( other, operation );
+		return	apply_operation( other, operation );
 	}
 
 	template< typename t_function >
@@ -167,7 +170,7 @@ private:
 	{
 		if( other == 0 )
 			return	unexpected( division_by_zero );
-		return	apply_scalar_operation( other, operation );
+		return	apply_operation( repeat( other ), operation );
 	}
 
 
