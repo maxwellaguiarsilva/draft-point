@@ -41,7 +41,7 @@
 
 #define __581074281_compound_operator( a_operator, a_math_operation, a_array_operation, a_scalar_operation ) \
 inline auto operator a_operator##= ( const coordinate& other ) noexcept { return a_array_operation( other, a_math_operation<>{} ); } \
-inline auto operator a_operator##= ( des_type other ) noexcept { return a_scalar_operation( other, a_math_operation<>{} ); } \
+inline auto operator a_operator##= ( t_scalar other ) noexcept { return a_scalar_operation( other, a_math_operation<>{} ); } \
 
 
 namespace geometry {
@@ -69,36 +69,50 @@ using	::std::modulus;
 using	::std::sqrt;
 //	--------------------------------------------------
 
+namespace math {
 
-enum class math_error
+
+enum class error
 {
 	 division_by_zero
 	,arithmetic_overflow
 	,square_root_of_negative
 };
 
-using	math_error::division_by_zero;
+
+using	::std::is_arithmetic_v;
+template< typename t_arithmetic >
+concept arithmetic = is_arithmetic_v< t_arithmetic >;
+
+template< arithmetic t_scalar >
+constexpr auto square( t_scalar value ) noexcept { return value * value; }
 
 
-template< typename des_type = int, size_t num_dimensions = 2 >
-class coordinate : public array< des_type, num_dimensions >
+}
+
+
+using	::geometry::math::error::division_by_zero;
+
+
+template< typename t_scalar = int, size_t num_dimensions = 2 >
+class coordinate : public array< t_scalar, num_dimensions >
 {
 public:
-	using	super_type = array< des_type, num_dimensions >;
+	using	super_type = array< t_scalar, num_dimensions >;
 	using	math_result = expected< coordinate, math_error >;
 
 	template< typename... t_args >
 		requires( sizeof...( t_args ) == num_dimensions
-			and ( convertible_to< t_args, des_type > and ... )
+			and ( convertible_to< t_args, t_scalar > and ... )
 		)
 	constexpr coordinate( t_args... a_args )
-		: super_type{ static_cast< des_type >( a_args )... }
+		: super_type{ static_cast< t_scalar >( a_args )... }
 	{ }
 	
 
-	__581074281_compound_operator( +	,plus		,apply_array_operation		,apply_scalar_operation	)
-	__581074281_compound_operator( -	,minus		,apply_array_operation		,apply_scalar_operation	)
-	__581074281_compound_operator( *	,multiplies	,apply_array_operation		,apply_scalar_operation	)
+	__581074281_compound_operator( +	,plus		,apply_array_operation		,apply_scalar_operation			)
+	__581074281_compound_operator( -	,minus		,apply_array_operation		,apply_scalar_operation			)
+	__581074281_compound_operator( *	,multiplies	,apply_array_operation		,apply_scalar_operation			)
 	__581074281_compound_operator( /	,divides	,apply_safe_array_operation	,apply_safe_scalar_operation	)
 	__581074281_compound_operator( %	,modulus	,apply_safe_array_operation	,apply_safe_scalar_operation	)
 
@@ -111,12 +125,12 @@ public:
 		} );
 	}
 
-	auto get_length( ) const noexcept -> des_type
+	auto get_length( ) const noexcept -> t_scalar
 	{
-		des_type sum_of_squares	=	0;
+		t_scalar sum_of_squares	=	0;
 		for( const auto& value : *this )
 			sum_of_squares += value * value;
-		return	static_cast< des_type >( sqrt( sum_of_squares ) );
+		return	static_cast< t_scalar >( sqrt( sum_of_squares ) );
 	}
 
 private:
@@ -129,9 +143,9 @@ private:
 	}
 
 	template< typename t_function >
-	auto apply_scalar_operation( des_type other, const t_function& operation ) -> coordinate&
+	auto apply_scalar_operation( t_scalar other, const t_function& operation ) -> coordinate&
 	{
-		for_each( *this, [ & ]( des_type& value ){ value = operation( value, other ); } );
+		for_each( *this, [ & ]( t_scalar& value ){ value = operation( value, other ); } );
 		return	*this;
 	}
 
@@ -143,13 +157,13 @@ private:
 	template< typename t_function >
 	auto apply_safe_array_operation( const coordinate& other, const t_function& operation ) -> math_result
 	{
-		if( not is_safe_denominator( ) )
+		if( not other.is_safe_denominator( ) )
 			return	unexpected( division_by_zero );
 		return	apply_array_operation( other, operation );
 	}
 
 	template< typename t_function >
-	auto apply_safe_scalar_operation( des_type other, const t_function& operation ) -> math_result
+	auto apply_safe_scalar_operation( t_scalar other, const t_function& operation ) -> math_result
 	{
 		if( other == 0 )
 			return	unexpected( division_by_zero );
