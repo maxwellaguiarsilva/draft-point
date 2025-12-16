@@ -1,7 +1,6 @@
 #   Coding Style Guidelines for C++ Project
 
 This document outlines the coding style conventions to be followed for this project.
-Adhering to these guidelines ensures consistency and readability across the codebase.
 The rules can be bypassed if a specific keyword is included in a single comment (e.g., `ignore-some-specific-rule`).
 
 
