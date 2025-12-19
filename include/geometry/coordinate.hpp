@@ -40,12 +40,45 @@
 
 
 #define __581074281_compound_operator( a_operator, a_math_operation ) \
-inline auto operator a_operator##= ( const coordinate& other ) noexcept -> coordinate& { return apply_operation( other, a_math_operation<>{} ); } \
-inline auto operator a_operator##= ( t_scalar other ) noexcept -> coordinate& { return apply_operation( repeat( other ), a_math_operation<>{} ); } \
+inline auto operator a_operator##= ( const coordinate& other ) noexcept -> coordinate& { return apply_operation( other, a_math_operation ); } \
+inline auto operator a_operator##= ( t_scalar other ) noexcept -> coordinate& { return apply_operation( repeat( other ), a_math_operation ); } \
 
 #define __581074281_safe_compound_operator( a_operator, a_math_operation ) \
-inline auto operator a_operator##= ( const coordinate& other ) noexcept -> math_result { return apply_safe_array_operation( other, a_math_operation<>{} ); } \
-inline auto operator a_operator##= ( t_scalar other ) noexcept -> math_result { return apply_safe_scalar_operation( other, a_math_operation<>{} ); } \
+inline auto operator a_operator##= ( const coordinate& other ) noexcept -> math_result { return apply_safe_array_operation( other, a_math_operation ); } \
+inline auto operator a_operator##= ( t_scalar other ) noexcept -> math_result { return apply_safe_scalar_operation( other, a_math_operation ); } \
+
+
+
+using	::std::constructible_from;
+
+
+
+template< typename t_function >
+struct tupled
+{
+private:
+    t_function m_function;
+public:
+    template< typename t_init >
+        requires constructible_from<t_function, t_init>
+    constexpr explicit tupled( t_init&& init_function )
+        :m_function( ::std::forward< t_init >( init_function ) )
+	{ }
+
+    template< typename t_self, typename t_tuple >
+    constexpr auto operator()( this t_self&& self, t_tuple&& arguments )
+        noexcept( noexcept(
+			apply( ::std::forward< t_self >( self ).m_function, ::std::forward< t_tuple >( arguments ) )
+		) )
+		-> decltype(
+			apply( ::std::forward< t_self >( self ).m_function, ::std::forward< t_tuple >( arguments ) )
+		) 
+    {
+        return	apply( ::std::forward< t_self >( self ).m_function, ::std::forward< t_tuple >( arguments ) );
+    }
+};
+template< typename t_function >
+tupled(t_function) -> tupled<t_function>;
 
 
 namespace geometry {
@@ -58,8 +91,11 @@ using	::std::convertible_to;
 using	::std::invocable;
 //	--------------------------------------------------
 using	::std::size_t;
-using	::std::views::zip;
+using	::std::apply;
+using	::std::bind_back;
+using	::std::identity;
 using	::std::views::repeat;
+using	::std::views::zip;
 using	::std::ranges::transform;
 using	::std::ranges::for_each;
 using	::std::ranges::any_of;
@@ -69,12 +105,13 @@ using	::std::ranges::fold_left;
 using	::std::expected;
 using	::std::unexpected;
 //	--------------------------------------------------
-using	::std::plus;
-using	::std::minus;
-using	::std::multiplies;
-using	::std::divides;
-using	::std::modulus;
 using	::std::sqrt;
+inline constexpr auto plus			=	::std::plus( );
+inline constexpr auto minus			=	::std::minus( );
+inline constexpr auto multiplies	=	::std::multiplies( );
+inline constexpr auto divides		=	::std::divides( );
+inline constexpr auto modulus		=	::std::modulus( );
+inline constexpr auto less_equal	=	::std::less_equal( );
 //	--------------------------------------------------
 
 
@@ -93,15 +130,16 @@ using	::std::is_arithmetic_v;
 template< typename t_arithmetic >
 concept arithmetic = is_arithmetic_v< t_arithmetic >;
 
-template< arithmetic t_scalar >
-constexpr auto square( t_scalar value ) noexcept { return value * value; }
-
-
-
+struct __square
+{
+	template< arithmetic t_scalar >
+	constexpr inline auto operator () ( t_scalar value ) const noexcept { return value * value; }
+};
+inline constexpr auto square = __square( );
 
 }
 
-
+using	::geometry::math::square;
 using	::geometry::math::error::division_by_zero;
 using	::geometry::math::arithmetic;
 
@@ -131,17 +169,13 @@ public:
 
 	auto is_inside( const coordinate& other ) const noexcept -> bool
 	{
-		return	all_of( zip( *this, other ), [ ]( const auto& pair ){
-			const auto& [ left, right ] = pair;
-			return	left <= right;
-		} );
+		return	all_of( zip( *this, other ), tupled{ less_equal } );
 	}
 
 	auto get_length( ) const noexcept -> t_scalar
 	{
 		using	::std::views::transform;
-		using	::geometry::math::square;
-		return	sqrt( fold_left( *this | transform( square< t_scalar > ), 0, plus<>() ) );
+		return	sqrt( fold_left( *this | transform( square ), 0, plus ) );
 	}
 
 private:
