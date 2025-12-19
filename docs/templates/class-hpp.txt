@@ -5,7 +5,7 @@
 #ifndef {{header_guard}}
 #define {{header_guard}}
 
-#include <sak.hpp>
+#include <sak/sak.hpp>
 {{list_open include_list}}#include <{{list_item include_list}}>
 {{list_close include_list}}
 
