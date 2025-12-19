@@ -72,7 +72,7 @@ auto terminal::clear_screen( bool full_reset ) -> void
 
 auto terminal::read_char( ) -> char
 {
-	char c;
+	char c = 0;
 	read( STDIN_FILENO, &c, 1 );
 	return	c;
 }
