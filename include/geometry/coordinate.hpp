@@ -89,7 +89,7 @@ using	::math::arithmetic;
 
 
 template< arithmetic t_scalar = int, size_t num_dimensions = 2 >
-class coordinate : public array< t_scalar, num_dimensions >
+class coordinate
 {
 public:
 	using	super_type = array< t_scalar, num_dimensions >;
@@ -100,7 +100,7 @@ public:
 			and ( convertible_to< t_args, t_scalar > and ... )
 		)
 	constexpr coordinate( t_args... a_args )
-		: super_type{ static_cast< t_scalar >( a_args )... }
+		: m_data{ static_cast< t_scalar >( a_args )... }
 	{ }
 	
 
@@ -111,28 +111,40 @@ public:
 	__581074281_safe_compound_operator( %	,modulus	)
 
 
+	constexpr auto begin( ) noexcept { return m_data.begin( ); }
+	constexpr auto begin( ) const noexcept { return m_data.begin( ); }
+	constexpr auto end( ) noexcept { return m_data.end( ); }
+	constexpr auto end( ) const noexcept { return m_data.end( ); }
+
+	constexpr auto size( ) const noexcept -> size_t { return num_dimensions; }
+
+	constexpr auto operator []( size_t index ) noexcept -> t_scalar& { return m_data[ index ]; }
+	constexpr auto operator []( size_t index ) const noexcept -> const t_scalar& { return m_data[ index ]; }
+
+
 	auto is_inside( const coordinate& other ) const noexcept -> bool
 	{
-		return	all_of( zip( *this, other ), less_equal );
+		return	all_of( zip( m_data, other.m_data ), less_equal );
 	}
 
 	auto get_length( ) const noexcept -> t_scalar
 	{
 		using	::std::views::transform;
-		return	sqrt( fold_left( *this | transform( square ), 0, plus ) );
+		return	sqrt( fold_left( m_data | transform( square ), 0, plus ) );
 	}
 
 private:
+	array< t_scalar, num_dimensions >	m_data;
 
 	template< typename t_other, invocable< t_scalar, t_scalar > t_function >
 	auto apply_operation( t_other other, const t_function& operation ) -> coordinate&
 	{
-		return	transform( *this, other, this->begin( ), operation ), *this;
+		return	transform( m_data, other, m_data.begin( ), operation ), *this;
 	}
 
 	auto is_safe_denominator( ) const noexcept -> bool
 	{
-		return	not any_of( *this, bind_back( equal_to, 0 ) );
+		return	not any_of( m_data, bind_back( equal_to, 0 ) );
 	}
 
 	template< typename t_function >
