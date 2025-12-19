@@ -37,6 +37,7 @@
 #include <cstddef>	//	size_t
 #include <cmath>	//	sqrt
 #include <compare>
+#include <pattern/tupled.hpp>
 
 
 #define __581074281_compound_operator( a_operator, a_math_operation ) \
@@ -49,38 +50,6 @@ inline auto operator a_operator##= ( t_scalar other ) noexcept -> math_result { 
 
 
 
-using	::std::constructible_from;
-
-
-
-template< typename t_function >
-struct tupled
-{
-private:
-    t_function m_function;
-public:
-    template< typename t_init >
-        requires constructible_from<t_function, t_init>
-    constexpr explicit tupled( t_init&& init_function )
-        :m_function( ::std::forward< t_init >( init_function ) )
-	{ }
-
-    template< typename t_self, typename t_tuple >
-    constexpr auto operator()( this t_self&& self, t_tuple&& arguments )
-        noexcept( noexcept(
-			apply( ::std::forward< t_self >( self ).m_function, ::std::forward< t_tuple >( arguments ) )
-		) )
-		-> decltype(
-			apply( ::std::forward< t_self >( self ).m_function, ::std::forward< t_tuple >( arguments ) )
-		) 
-    {
-        return	apply( ::std::forward< t_self >( self ).m_function, ::std::forward< t_tuple >( arguments ) );
-    }
-};
-template< typename t_function >
-tupled(t_function) -> tupled<t_function>;
-
-
 namespace geometry {
 
 
@@ -91,7 +60,7 @@ using	::std::convertible_to;
 using	::std::invocable;
 //	--------------------------------------------------
 using	::std::size_t;
-using	::std::apply;
+using	::pattern::tupled;
 using	::std::bind_back;
 using	::std::identity;
 using	::std::views::repeat;
@@ -111,7 +80,7 @@ inline constexpr auto minus			=	::std::minus( );
 inline constexpr auto multiplies	=	::std::multiplies( );
 inline constexpr auto divides		=	::std::divides( );
 inline constexpr auto modulus		=	::std::modulus( );
-inline constexpr auto less_equal	=	::std::less_equal( );
+inline constexpr auto less_equal	=	tupled{ ::std::less_equal( ) };
 //	--------------------------------------------------
 
 
@@ -169,7 +138,7 @@ public:
 
 	auto is_inside( const coordinate& other ) const noexcept -> bool
 	{
-		return	all_of( zip( *this, other ), tupled{ less_equal } );
+		return	all_of( zip( *this, other ), less_equal );
 	}
 
 	auto get_length( ) const noexcept -> t_scalar
