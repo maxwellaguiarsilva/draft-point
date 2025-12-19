@@ -51,8 +51,8 @@ terminal::terminal( )
 	:m_size( { 0, 0 } )
 {
 	struct winsize m_ws;
-	assert( tcgetattr( STDIN_FILENO, &m_original_termios ) not_eq 1, "terminal: tcgetattr error" );
-	assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) not_eq 1, "terminal: ioctl error" );
+	assert( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, "terminal: tcgetattr error" );
+	assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) == 0, "terminal: ioctl error" );
 	m_size = { m_ws.ws_col, m_ws.ws_row };
 	clear_screen( true );
 	set_raw_mode( true );
@@ -101,10 +101,10 @@ auto terminal::set_raw_mode( bool enable ) -> void
 		raw.c_lflag		&=	~( ECHO | ICANON );	//	disable echo and canonical mode
 		raw.c_cc[VMIN]	=	0;	//	minimum number of characters for non-canonical read
 		raw.c_cc[VTIME]	=	0;	//	timeout in deciseconds for non-canonical read
-		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &raw ) not_eq 1, "terminal: tcsetattr error" );
+		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &raw ) == 0, "terminal: tcsetattr error" );
 	}
 	else
-		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &m_original_termios ) not_eq 1, "terminal: tcsetattr error" );
+		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &m_original_termios ) == 0, "terminal: tcsetattr error" );
 }
 
 auto terminal::set_text_style( text_style style ) -> void { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
