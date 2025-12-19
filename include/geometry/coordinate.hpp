@@ -36,7 +36,6 @@
 #include <expected>
 #include <cstddef>	//	size_t
 #include <cmath>	//	sqrt
-#include <compare>
 #include <pattern/tupled.hpp>
 
 
@@ -62,11 +61,9 @@ using	::std::invocable;
 using	::std::size_t;
 using	::pattern::tupled;
 using	::std::bind_back;
-using	::std::identity;
 using	::std::views::repeat;
 using	::std::views::zip;
 using	::std::ranges::transform;
-using	::std::ranges::for_each;
 using	::std::ranges::any_of;
 using	::std::ranges::all_of;
 using	::std::ranges::fold_left;
@@ -80,6 +77,7 @@ inline constexpr auto minus			=	::std::minus( );
 inline constexpr auto multiplies	=	::std::multiplies( );
 inline constexpr auto divides		=	::std::divides( );
 inline constexpr auto modulus		=	::std::modulus( );
+inline constexpr auto equal_to		=	::std::equal_to( );
 inline constexpr auto less_equal	=	tupled{ ::std::less_equal( ) };
 //	--------------------------------------------------
 
@@ -157,7 +155,7 @@ private:
 
 	auto is_safe_denominator( ) const noexcept -> bool
 	{
-		return	not any_of( *this, [ ]( const auto& value ){ return value == 0; } );
+		return	not any_of( *this, bind_back( equal_to, 0 ) );
 	}
 
 	template< typename t_function >
