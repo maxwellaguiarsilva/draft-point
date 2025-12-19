@@ -33,44 +33,11 @@
 #include <functional>
 #include <cstdlib>
 
-#include <tuple>
-#include <utility>
-#include <concepts>
-#include <type_traits>
+#include <pattern/tupled.hpp>
 //	--------------------------------------------------
 
 
-using	::std::apply;
-using	::std::is_class_v;
-using	::std::is_function_v;
-using	::std::remove_cvref_t;
-using	::std::remove_pointer_t;
-using	::std::tuple_size;
-
-
-template< typename t_invocable >
-concept invocable	=
-		is_class_v< remove_cvref_t< t_invocable > >
-	or	is_function_v< remove_pointer_t< remove_cvref_t< t_invocable > > >
-;
-template< typename t_tuple >
-concept is_tuple = requires { typename tuple_size< remove_cvref_t< t_tuple > >::type; };
-
-
-template< invocable t_invocable >
-struct tupled
-{
-    t_invocable m_function;
-    template< is_tuple t_tuple >
-    inline constexpr auto operator()( t_tuple&& args ) const { return apply( m_function, ::std::forward< t_tuple >( args ) ); }
-};
-
-
-template< typename func_type >
-tupled( func_type ) -> tupled< func_type >;
-
-
-inline constexpr auto less_equal = tupled{ ::std::less_equal{} };
+inline constexpr auto less_equal = ::pattern::tupled{ ::std::less_equal{} };
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
