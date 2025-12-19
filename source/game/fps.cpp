@@ -50,6 +50,8 @@ auto fps::set_limit( int limit ) -> void
 
 auto fps::compute( ) -> int
 {
+	//	the first frame count is inaccurate, but this avoids the overhead of a conditional check
+	//	for a one-time correction, the fps stabilizes from the second frame onwards
 	auto	end_time	=	high_resolution_clock::now( );
 	auto	frame_time	=	duration_cast<microseconds>( end_time - m_start_time );
 	m_start_time		=	end_time;
