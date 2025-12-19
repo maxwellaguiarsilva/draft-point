@@ -40,7 +40,7 @@ build_cpp_file( )
 	then
 		echo "build: ${files[cpp]}"
 		mkdir -p "$( dirname "${files[obj]}" )"
-		g++ -m64 -c "${compile_warnings[@]}" -MMD -MP -std="${project[cpp_version]}"	\
+		g++ -m64 -O2 -c "${compile_warnings[@]}" -MMD -MP -std="${project[cpp_version]}"	\
 			-I"${folders[include]}"	\
 			-MF "${files[dep]}"		\
 			-o "${files[obj]}"		\
@@ -89,7 +89,7 @@ build_binary( )
 	echo "${files[bin]} from ${files[main]}"
 	for obj_file in "${link_list[@]}"; do echo -e "\t${obj_file}"; done
 
-	g++ -m64 -o "${files[bin]}" "${folders[build]}/${files[main]%.*}.o" "${link_list[@]}" "${lib_list[@]}" || exit 1
+	g++ -O2 -m64 -o "${files[bin]}" "${folders[build]}/${files[main]%.*}.o" "${link_list[@]}" "${lib_list[@]}" || exit 1
 }
 
 
