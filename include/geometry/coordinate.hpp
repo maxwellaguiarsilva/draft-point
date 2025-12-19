@@ -36,6 +36,7 @@
 #include <expected>
 #include <cstddef>	//	size_t
 #include <cmath>	//	sqrt
+#include <math/math.hpp>
 #include <pattern/tupled.hpp>
 
 
@@ -82,33 +83,9 @@ inline constexpr auto less_equal	=	tupled{ ::std::less_equal( ) };
 //	--------------------------------------------------
 
 
-namespace math {
-
-
-enum class error
-{
-	 division_by_zero
-	,arithmetic_overflow
-	,square_root_of_negative
-};
-
-
-using	::std::is_arithmetic_v;
-template< typename t_arithmetic >
-concept arithmetic = is_arithmetic_v< t_arithmetic >;
-
-struct __square
-{
-	template< arithmetic t_scalar >
-	constexpr inline auto operator () ( t_scalar value ) const noexcept { return value * value; }
-};
-inline constexpr auto square = __square( );
-
-}
-
-using	::geometry::math::square;
-using	::geometry::math::error::division_by_zero;
-using	::geometry::math::arithmetic;
+using	::math::square;
+using	::math::error::division_by_zero;
+using	::math::arithmetic;
 
 
 template< arithmetic t_scalar = int, size_t num_dimensions = 2 >
@@ -116,7 +93,7 @@ class coordinate : public array< t_scalar, num_dimensions >
 {
 public:
 	using	super_type = array< t_scalar, num_dimensions >;
-	using	math_result = expected< coordinate, geometry::math::error >;
+	using	math_result = expected< coordinate, ::math::error >;
 
 	template< typename... t_args >
 		requires( sizeof...( t_args ) == num_dimensions
