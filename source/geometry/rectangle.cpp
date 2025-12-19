@@ -37,10 +37,7 @@ using	::geometry::point;
 
 auto rectangle::contains( const point& a_point ) const noexcept -> bool
 {
-	return	all_of(
-		 iota( ( size_t )0, start.size( ) )
-		,[ & ]( size_t index ) { return a_point[ index ] >= start[ index ] and a_point[ index ] <= end[ index ]; }
-	);
+	return	start( ).is_inside( a_point ) and a_point.is_inside( end( ) );
 }
 
 
