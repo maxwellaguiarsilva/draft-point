@@ -29,7 +29,7 @@
 namespace game {
 
 
-using	::std::chrono::milliseconds;
+using	::std::chrono::microseconds;
 using	::std::chrono::high_resolution_clock;
 using	::std::chrono::duration_cast;
 using	::std::this_thread::sleep_for;
@@ -51,15 +51,15 @@ auto fps::set_limit( int limit ) -> void
 auto fps::compute( ) -> int
 {
 	auto	end_time	=	high_resolution_clock::now( );
-	auto	frame_time	=	duration_cast<milliseconds>( end_time - m_start_time );
+	auto	frame_time	=	duration_cast<microseconds>( end_time - m_start_time );
 	m_start_time		=	end_time;
 
-	milliseconds target_frame_time = milliseconds{ 1000 } / ( enable ? m_limit : 1000 );
+	microseconds target_frame_time = microseconds{ 1000000 } / ( enable ? m_limit : 1000000 );
 
 	if( frame_time < target_frame_time )
 		sleep_for( target_frame_time - frame_time );
 
-	return 1000 / frame_time.count( );
+	return ( frame_time.count( ) > 0 ) ? ( 1000000 / frame_time.count( ) ) : m_limit;
 }
 
 
