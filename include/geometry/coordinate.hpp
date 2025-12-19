@@ -48,6 +48,10 @@ inline auto operator a_operator##= ( t_scalar other ) noexcept -> coordinate& { 
 inline auto operator a_operator##= ( const coordinate& other ) noexcept -> math_result { return apply_safe_array_operation( other, a_math_operation ); } \
 inline auto operator a_operator##= ( t_scalar other ) noexcept -> math_result { return apply_safe_scalar_operation( other, a_math_operation ); } \
 
+#define __581074281_export_m_data_method( a_method ) \
+constexpr auto a_method( ) noexcept { return m_data.a_method( ); } \
+constexpr auto a_method( ) const noexcept { return m_data.a_method( ); }
+
 
 
 namespace geometry {
@@ -110,13 +114,11 @@ public:
 	__581074281_safe_compound_operator( /	,divides	)
 	__581074281_safe_compound_operator( %	,modulus	)
 
-
-	constexpr auto begin( ) noexcept { return m_data.begin( ); }
-	constexpr auto begin( ) const noexcept { return m_data.begin( ); }
-	constexpr auto end( ) noexcept { return m_data.end( ); }
-	constexpr auto end( ) const noexcept { return m_data.end( ); }
+	__581074281_export_m_data_method( begin )
+	__581074281_export_m_data_method( end )
 
 	constexpr auto size( ) const noexcept -> size_t { return num_dimensions; }
+	
 
 	constexpr auto operator []( size_t index ) noexcept -> t_scalar& { return m_data[ index ]; }
 	constexpr auto operator []( size_t index ) const noexcept -> const t_scalar& { return m_data[ index ]; }
