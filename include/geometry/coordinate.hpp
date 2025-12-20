@@ -33,20 +33,16 @@
 #include <algorithm>
 #include <ranges>
 #include <functional>
-#include <expected>
-#include <cstddef>	//	size_t
-#include <cmath>	//	sqrt
+#include <cstddef>	//	 size_t
+#include <cmath>	//	 sqrt
 #include <math/math.hpp>
 #include <pattern/tupled.hpp>
 
 
-#define __581074281_compound_operator( a_operator, a_math_operation ) \
-inline auto operator a_operator##= ( const coordinate& other ) noexcept -> coordinate& { return apply_operation( other, a_math_operation ); } \
-inline auto operator a_operator##= ( t_scalar other ) noexcept -> coordinate& { return apply_operation( repeat( other ), a_math_operation ); } \
+#define __581074281_compound_operator( a_operator, a_math_operation, a_check, a_no_except ) \
+inline constexpr auto operator a_operator##= ( const coordinate& other ) a_no_except -> coordinate& { return apply_operation( other, other, a_math_operation, a_check ); } \
+inline constexpr auto operator a_operator##= ( t_scalar other ) a_no_except -> coordinate& { return apply_operation( repeat( other ), other, a_math_operation, a_check ); } \
 
-#define __581074281_safe_compound_operator( a_operator, a_math_operation ) \
-inline auto operator a_operator##= ( const coordinate& other ) noexcept -> math_result { return apply_safe_array_operation( other, a_math_operation ); } \
-inline auto operator a_operator##= ( t_scalar other ) noexcept -> math_result { return apply_safe_scalar_operation( other, a_math_operation ); } \
 
 #define __581074281_export_m_data_method( a_method ) \
 constexpr auto a_method( ) noexcept { return m_data.a_method( ); } \
@@ -62,6 +58,7 @@ using	::std::array;
 //	--------------------------------------------------
 using	::std::convertible_to;
 using	::std::invocable;
+using	::std::same_as;
 //	--------------------------------------------------
 using	::std::size_t;
 using	::pattern::tupled;
@@ -73,31 +70,53 @@ using	::std::ranges::any_of;
 using	::std::ranges::all_of;
 using	::std::ranges::fold_left;
 //	--------------------------------------------------
-using	::std::expected;
-using	::std::unexpected;
-//	--------------------------------------------------
 using	::std::sqrt;
-inline constexpr auto plus			=	::std::plus( );
-inline constexpr auto minus			=	::std::minus( );
-inline constexpr auto multiplies	=	::std::multiplies( );
-inline constexpr auto divides		=	::std::divides( );
-inline constexpr auto modulus		=	::std::modulus( );
-inline constexpr auto equal_to		=	::std::equal_to( );
-inline constexpr auto less_equal	=	tupled{ ::std::less_equal( ) };
+inline constexpr auto plus			= 	::std::plus( );
+inline constexpr auto minus			= 	::std::minus( );
+inline constexpr auto multiplies	= 	::std::multiplies( );
+inline constexpr auto divides		= 	::std::divides( );
+inline constexpr auto modulus		= 	::std::modulus( );
+inline constexpr auto equal_to		= 	::std::equal_to( );
+inline constexpr auto less_equal	= 	tupled{ ::std::less_equal( ) };
 //	--------------------------------------------------
 
 
 using	::math::square;
-using	::math::error::division_by_zero;
 using	::math::arithmetic;
+using	::math::error::division_by_zero;
+
+
+struct __unsafe_denominator {
+	template< typename T >
+	inline constexpr auto operator()( const T& ) const noexcept -> void { } 
+};
+inline constexpr auto unsafe_denominator = __unsafe_denominator{ };
+
+struct __safe_denominator {
+	template< typename T >
+	inline constexpr auto operator()( const T& value ) const -> void { check( value ); } 
+private:
+	template< typename T >
+	inline constexpr auto check( const T& value ) const -> void requires requires { value.is_safe_denominator( ); } {
+		if ( not value.is_safe_denominator( ) ) throw ::math::exception{ division_by_zero };
+	}
+	template< typename T >
+	inline constexpr auto check( const T& value ) const -> void {
+		if ( value == 0 ) throw ::math::exception{ division_by_zero };
+	}
+};
+inline constexpr auto safe_denominator = __safe_denominator{ };
+
+
+template< typename T >
+concept denominator_security_checker = same_as< T, __unsafe_denominator > or same_as< T, __safe_denominator >; 
 
 
 template< arithmetic t_scalar = int, size_t num_dimensions = 2 >
 class coordinate
 {
 public:
-	using	super_type = array< t_scalar, num_dimensions >;
-	using	math_result = expected< coordinate, ::math::error >;
+	using		super_type = array< t_scalar, num_dimensions >; 
 
 	template< typename... t_args >
 		requires( sizeof...( t_args ) == num_dimensions
@@ -105,64 +124,51 @@ public:
 		)
 	constexpr coordinate( t_args... a_args )
 		: m_data{ static_cast< t_scalar >( a_args )... }
-	{ }
+	{
+	}
+ 
 	
-
-	__581074281_compound_operator( +	,plus		)
-	__581074281_compound_operator( -	,minus		)
-	__581074281_compound_operator( *	,multiplies	)
-	__581074281_safe_compound_operator( /	,divides	)
-	__581074281_safe_compound_operator( %	,modulus	)
+	__581074281_compound_operator( + 	,plus		,unsafe_denominator	,noexcept	)
+	__581074281_compound_operator( - 	,minus		,unsafe_denominator	,noexcept	)
+	__581074281_compound_operator( * 	,multiplies	,unsafe_denominator	,noexcept	)
+	__581074281_compound_operator( / 	,divides	,safe_denominator	,			)
+	__581074281_compound_operator( % 	,modulus	,safe_denominator	,			)
 
 	__581074281_export_m_data_method( begin )
 	__581074281_export_m_data_method( end )
 
-	constexpr auto size( ) const noexcept -> size_t { return num_dimensions; }
+	constexpr auto size( ) const noexcept -> size_t { return num_dimensions; } 
 	
 
 	constexpr auto operator []( size_t index ) noexcept -> t_scalar& { return m_data[ index ]; }
 	constexpr auto operator []( size_t index ) const noexcept -> const t_scalar& { return m_data[ index ]; }
 
 
-	auto is_inside( const coordinate& other ) const noexcept -> bool
+	constexpr auto is_inside( const coordinate& other ) const noexcept -> bool
 	{
 		return	all_of( zip( m_data, other.m_data ), less_equal );
 	}
 
-	auto get_length( ) const noexcept -> t_scalar
+	constexpr auto get_length( ) const noexcept -> t_scalar
 	{
 		using	::std::views::transform;
-		return	sqrt( fold_left( m_data | transform( square ), 0, plus ) );
+		return	static_cast< t_scalar >( sqrt( fold_left( m_data | transform( square ), 0, plus ) ) );
 	}
 
-private:
-	array< t_scalar, num_dimensions >	m_data;
-
-	template< typename t_other, invocable< t_scalar, t_scalar > t_function >
-	auto apply_operation( t_other other, const t_function& operation ) -> coordinate&
-	{
-		return	transform( m_data, other, m_data.begin( ), operation ), *this;
-	}
-
-	auto is_safe_denominator( ) const noexcept -> bool
+	constexpr auto is_safe_denominator( ) const noexcept -> bool
 	{
 		return	not any_of( m_data, bind_back( equal_to, 0 ) );
 	}
 
-	template< typename t_function >
-	auto apply_safe_array_operation( const coordinate& other, const t_function& operation ) -> math_result
-	{
-		if( not other.is_safe_denominator( ) )
-			return	unexpected( division_by_zero );
-		return	apply_operation( other, operation );
-	}
+private:
+	array< t_scalar, num_dimensions >			m_data;
 
-	template< typename t_function >
-	auto apply_safe_scalar_operation( t_scalar other, const t_function& operation ) -> math_result
+	template< typename t_other_data, typename t_check_value, invocable< t_scalar, t_scalar > t_function, denominator_security_checker t_check >
+	constexpr auto apply_operation( t_other_data other_data, t_check_value check_value, const t_function& operation, const t_check& check ) -> coordinate&
 	{
-		if( other == 0 )
-			return	unexpected( division_by_zero );
-		return	apply_operation( repeat( other ), operation );
+		check( check_value );
+		transform( m_data, other_data, m_data.begin( ), operation );
+		return *this;
 	}
 
 
@@ -174,7 +180,7 @@ private:
 
 #define __581074281_binary_operator( a_operator ) \
 template< typename type_t, typename other_t > \
-inline constexpr auto operator a_operator ( type_t left, const other_t& right ) noexcept { return left a_operator##= right; };
+inline constexpr auto operator a_operator ( type_t left, const other_t& right ) { return left a_operator##= right; };
 
 
 __581074281_binary_operator( + )

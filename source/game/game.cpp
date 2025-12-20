@@ -36,7 +36,7 @@ using	::sak::to_lower_case;
 
 game::game( )
 	:m_terminal{ }
-	,m_player{ *( m_terminal.size / 2 ) }
+	,m_player{ m_terminal.size / 2 }
 	,m_fps{ }
 { m_fps.set_limit( 30 ); }
 
@@ -47,12 +47,14 @@ auto game::run( ) -> void
 	const point& frame_size	=	m_terminal.size;
 	point&	position	=	m_player.position;
 	point	zero		=	{ 0, 0 };
+	//	the screen doesn't scroll because it doesn't have a line break, i've already validated it
 	point	label_position	=	{ 1, frame_size[1] };
 
 	bool exit_loop = false;
 
 	while( true )
 	{
+		//	the bug with the special keys is not important to the purpose of this project
 		char code = m_terminal.read_char( );
 		if( code not_eq 0 )
 		{

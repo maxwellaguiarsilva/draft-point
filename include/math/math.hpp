@@ -29,6 +29,7 @@
 
 
 #include <type_traits>
+#include <exception>
 
 
 namespace math {
@@ -39,6 +40,24 @@ enum class error
 	 division_by_zero
 	,arithmetic_overflow
 	,square_root_of_negative
+};
+
+
+struct exception : ::std::exception
+{
+	error m_error;
+	constexpr exception( error a_error ) : m_error( a_error ) { }
+	
+	const char* what( ) const noexcept override
+	{
+		switch( m_error )
+		{
+			case error::division_by_zero: return "math: division by zero";
+			case error::arithmetic_overflow: return "math: arithmetic overflow";
+			case error::square_root_of_negative: return "math: square root of negative number";
+		}
+		return "math: unknown error";
+	}
 };
 
 
