@@ -7,16 +7,19 @@ This document outlines the procedure for performing a comprehensive evaluation o
 1.  **Do Not Modify Files:**
     Under no circumstances should any files be modified during this check.
 
-2.  **Complete Project Evaluation:**
-    Perform a thorough assessment of the project to verify that no details have been overlooked.
+2.  **Focus on Functional Integrity:**
+    The evaluation must prioritize finding critical errors, logic flaws, memory safety issues, and undefined behaviors. **Do not** report on code style compliance or aesthetic preferences, as these are explicitly out of scope for this workflow.
 
-3.  **Respect Intentional Issues:**
+3.  **Identify Significant Issues:**
+    Flag issues that, while not critical bugs, represent technical debt, potential maintenance problems, or confusing logic that should be signaled to the developer.
+
+4.  **Respect Intentional Issues:**
     Some errors or bugs may be accompanied by comments in the code explicitly stating they should be ignored. In such cases, they must be disregarded.
 
-4.  **Ignore Unused Assets:**
+5.  **Ignore Unused Assets:**
     Do not include unused classes or files in the evaluation.
 
-5.  **Starting Point:**
+6.  **Starting Point:**
     Begin the evaluation process from the `source/main.cpp` file.
 
 ## Customization
