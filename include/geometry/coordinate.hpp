@@ -148,6 +148,8 @@ public:
 		return	all_of( zip( m_data, other.m_data ), less_equal );
 	}
 
+	//	truncation may occur depending on the type of scalar chosen
+	//	this is acceptable for this project
 	constexpr auto get_length( ) const noexcept -> t_scalar
 	{
 		using	::std::views::transform;
