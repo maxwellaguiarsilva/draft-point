@@ -91,29 +91,35 @@ using	::math::error::division_by_zero;
 
 
 struct __unsafe_denominator {
-	template< typename T >
-	constexpr auto operator()( const T& ) const noexcept -> void { } 
+	template< typename t_denominator >
+	constexpr auto operator()( const t_denominator& ) const noexcept -> void { } 
 };
 inline constexpr auto unsafe_denominator = __unsafe_denominator{ };
 
 struct __safe_denominator {
-	template< typename T >
-	constexpr auto operator()( const T& value ) const -> void { check( value ); } 
+	template< typename t_denominator >
+	constexpr auto operator()( const t_denominator& value ) const -> void { check( value ); } 
 private:
-	template< typename T >
-	constexpr auto check( const T& value ) const -> void requires requires { value.is_safe_denominator( ); } {
-		if ( not value.is_safe_denominator( ) ) throw ::math::exception{ division_by_zero };
+	using	::math::exception;
+	template< typename t_denominator >
+	constexpr auto check( const t_denominator& value ) const -> void
+	requires requires { value.is_safe_denominator( ); }
+	{
+		if( not value.is_safe_denominator( ) )	
+			throw	exception{ division_by_zero };
 	}
-	template< typename T >
-	constexpr auto check( const T& value ) const -> void {
-		if ( value == 0 ) throw ::math::exception{ division_by_zero };
+	template< typename t_denominator >
+	constexpr auto check( const t_denominator& value ) const -> void
+	{
+		if( value == 0 )
+			throw	exception{ division_by_zero };
 	}
 };
 inline constexpr auto safe_denominator = __safe_denominator{ };
 
 
-template< typename T >
-concept denominator_security_checker = same_as< T, __unsafe_denominator > or same_as< T, __safe_denominator >; 
+template< typename t_denominator >
+concept denominator_security_checker = same_as< t_denominator, __unsafe_denominator > or same_as< t_denominator, __safe_denominator >; 
 
 
 struct __flip {
