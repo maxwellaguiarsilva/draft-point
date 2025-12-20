@@ -38,3 +38,7 @@ This document outlines the steps for quickly pushing code changes to GitHub with
     git diff
     ```
 
+6.  **Communication:**
+    Inform the user that the procedure was completed successfully.
+    In this final communication, show exactly which commit message was used, enclosed in `backticks`.
+
