@@ -72,7 +72,7 @@ auto game::run( ) -> void
 
 
 		m_player.step_move( );
-		if( not zero.is_inside( position ) )
+		if( not zero.is_all_less_equal( position ) )
 			position += frame_size;
 		position %= frame_size;
 

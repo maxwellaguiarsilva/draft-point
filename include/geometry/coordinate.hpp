@@ -161,7 +161,7 @@ public:
 	constexpr auto operator []( size_t index ) const noexcept -> const t_scalar& { return m_data[ index ]; }
 
 
-	constexpr auto is_inside( const coordinate& other ) const noexcept -> bool
+	constexpr auto is_all_less_equal( const coordinate& other ) const noexcept -> bool
 	{
 		return	all_of( zip( m_data, other.m_data ), less_equal );
 	}
