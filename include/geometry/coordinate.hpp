@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <ranges>
 #include <functional>
+#include <utility>
 #include <cstddef>	//	 size_t
 #include <cmath>	//	 sqrt
 #include <math/math.hpp>
@@ -40,8 +41,11 @@
 
 
 #define __581074281_compound_operator( a_operator, a_math_operation, a_check, a_no_except ) \
-inline constexpr auto operator a_operator##= ( const coordinate& other ) a_no_except -> coordinate& { return apply_operation( other, other, a_math_operation, a_check ); } \
-inline constexpr auto operator a_operator##= ( t_scalar other ) a_no_except -> coordinate& { return apply_operation( repeat( other ), other, a_math_operation, a_check ); } \
+constexpr auto operator a_operator##= ( const coordinate& other ) a_no_except -> coordinate& { return apply_operation( other, other, a_math_operation, a_check ); } \
+constexpr auto operator a_operator##= ( t_scalar other ) a_no_except -> coordinate& { return apply_operation( repeat( other ), other, a_math_operation, a_check ); } \
+friend constexpr auto operator a_operator ( coordinate left, const coordinate& right ) a_no_except -> coordinate { return left a_operator##= right; } \
+friend constexpr auto operator a_operator ( coordinate left, t_scalar right ) a_no_except -> coordinate { return left a_operator##= right; } \
+friend constexpr auto operator a_operator ( t_scalar left, coordinate right ) a_no_except -> coordinate { return right.apply_operation( repeat( left ), right, flip( a_math_operation ), a_check ); }
 
 
 #define __581074281_export_m_data_method( a_method ) \
@@ -88,20 +92,20 @@ using	::math::error::division_by_zero;
 
 struct __unsafe_denominator {
 	template< typename T >
-	inline constexpr auto operator()( const T& ) const noexcept -> void { } 
+	constexpr auto operator()( const T& ) const noexcept -> void { } 
 };
 inline constexpr auto unsafe_denominator = __unsafe_denominator{ };
 
 struct __safe_denominator {
 	template< typename T >
-	inline constexpr auto operator()( const T& value ) const -> void { check( value ); } 
+	constexpr auto operator()( const T& value ) const -> void { check( value ); } 
 private:
 	template< typename T >
-	inline constexpr auto check( const T& value ) const -> void requires requires { value.is_safe_denominator( ); } {
+	constexpr auto check( const T& value ) const -> void requires requires { value.is_safe_denominator( ); } {
 		if ( not value.is_safe_denominator( ) ) throw ::math::exception{ division_by_zero };
 	}
 	template< typename T >
-	inline constexpr auto check( const T& value ) const -> void {
+	constexpr auto check( const T& value ) const -> void {
 		if ( value == 0 ) throw ::math::exception{ division_by_zero };
 	}
 };
@@ -110,6 +114,19 @@ inline constexpr auto safe_denominator = __safe_denominator{ };
 
 template< typename T >
 concept denominator_security_checker = same_as< T, __unsafe_denominator > or same_as< T, __safe_denominator >; 
+
+
+struct __flip {
+	template< typename t_function >
+	struct __wrapper {
+		t_function m_function;
+		template< typename T, typename U >
+		constexpr auto operator ( )( T&& t, U&& u ) const -> decltype( auto ) { return m_function( ::std::forward< U >( u ), ::std::forward< T >( t ) ); }
+	};
+	template< typename t_function >
+	constexpr auto operator ( )( t_function a_function ) const { return __wrapper< t_function >{ a_function }; }
+};
+inline constexpr auto flip = __flip{ };
 
 
 template< arithmetic t_scalar = int, size_t num_dimensions = 2 >
@@ -177,18 +194,6 @@ private:
 
 
 }
-
-
-#define __581074281_binary_operator( a_operator ) \
-template< typename type_t, typename other_t > \
-inline constexpr auto operator a_operator ( type_t left, const other_t& right ) { return left a_operator##= right; };
-
-
-__581074281_binary_operator( + )
-__581074281_binary_operator( - )
-__581074281_binary_operator( * )
-__581074281_binary_operator( / )
-__581074281_binary_operator( % )
 
 
 #endif
