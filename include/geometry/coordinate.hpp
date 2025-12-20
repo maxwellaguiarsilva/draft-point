@@ -100,7 +100,7 @@ struct __safe_denominator {
 	template< typename t_denominator >
 	constexpr auto operator()( const t_denominator& value ) const -> void { check( value ); } 
 private:
-	using	::math::exception;
+	using	exception = ::math::exception;
 	template< typename t_denominator >
 	constexpr auto check( const t_denominator& value ) const -> void
 	requires requires { value.is_safe_denominator( ); }
@@ -139,8 +139,6 @@ template< arithmetic t_scalar = int, size_t num_dimensions = 2 >
 class coordinate
 {
 public:
-	using		super_type = array< t_scalar, num_dimensions >; 
-
 	template< typename... t_args >
 		requires( sizeof...( t_args ) == num_dimensions
 			and ( convertible_to< t_args, t_scalar > and ... )
@@ -158,10 +156,7 @@ public:
 
 	__581074281_export_m_data_method( begin )
 	__581074281_export_m_data_method( end )
-
 	constexpr auto size( ) const noexcept -> size_t { return num_dimensions; } 
-	
-
 	constexpr auto operator []( size_t index ) noexcept -> t_scalar& { return m_data[ index ]; }
 	constexpr auto operator []( size_t index ) const noexcept -> const t_scalar& { return m_data[ index ]; }
 
