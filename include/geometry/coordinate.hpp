@@ -124,10 +124,9 @@ public:
 		)
 	constexpr coordinate( t_args... a_args )
 		: m_data{ static_cast< t_scalar >( a_args )... }
-	{
-	}
- 
+	{ }
 	
+
 	__581074281_compound_operator( + 	,plus		,unsafe_denominator	,noexcept	)
 	__581074281_compound_operator( - 	,minus		,unsafe_denominator	,noexcept	)
 	__581074281_compound_operator( * 	,multiplies	,unsafe_denominator	,noexcept	)
