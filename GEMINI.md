@@ -1,5 +1,5 @@
 ## Gemini Added Memories
-- This is a C++23 project. Always prefer the most modern version of the code, such as `ranges` and `views`.
+- This is a C++23 project. Always prefer the most modern version of the code, such as `ranges`, `views` and `Niebloids`.
 - `int main( ... ){{ ... }}` it is correct, it should not be corrected to use only one {}.
 - After producing any C++ code, validate it using the guidelines in the document `docs/agent/coding-style/cpp.md`
 - Do not modify anything in the project until explicitly requested. Do not test or compile the project until explicitly requested.
