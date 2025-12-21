@@ -23,7 +23,7 @@
 
 
 #include <print>		//	print
-#include <sak/sak.hpp>	//	assert
+#include <sak/sak.hpp>	//	ensure
 #include <unistd.h>		//	stdout_fileno, pause
 #include <sys/ioctl.h>	//	ioctl
 #include <csignal>		//	signal
@@ -38,6 +38,7 @@ using	::std::atomic_flag;
 using	::std::signal;
 using	::std::jthread;
 using	::std::stop_token;
+using	::sak::ensure;
 
 
 atomic_flag flg_window_changed;
@@ -46,7 +47,7 @@ atomic_flag flg_window_changed;
 void print_terminal_size( )
 {
 	struct winsize window_size;
-	assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) not_eq -1, "erro no get_win_size" );
+	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) not_eq -1, "erro no get_win_size" );
 
 	println( "Tamanho do terminal: {} por {}", window_size.ws_col, window_size.ws_row );
 }

@@ -32,19 +32,23 @@
 
 
 #include <stdexcept>
+#include <string>
 #include <sak/default_ctc_dtc.hpp>
 #include <sak/using.hpp>
 
 using	::std::runtime_error;
+using	::std::string;
 
-
-#define assert( expression, message ) \
-	if( not ( expression ) ) throw runtime_error( message );
 
 #define between( value, left, right ) ( value >= left and value <= right )
 
 
 namespace sak {
+
+inline constexpr auto ensure( bool expression, const string& message )
+{
+	if( not expression ) throw runtime_error( message );
+}
 
 constexpr char delta_lower_case	=	( 'a' - 'A' );
 inline char to_lower_case( char code ) noexcept { return ( between( code, 'A', 'Z' ) ? code + delta_lower_case : code ); };

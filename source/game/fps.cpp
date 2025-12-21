@@ -29,6 +29,7 @@
 namespace game {
 
 
+using	::sak::ensure;
 using	::std::chrono::microseconds;
 using	::std::chrono::high_resolution_clock;
 using	::std::chrono::duration_cast;
@@ -44,7 +45,7 @@ fps::fps( int limit )
 
 auto fps::set_limit( int limit ) -> void
 {
-	assert( between( limit, 1, 300 ), "the fps limit must be between 1 and 300!" );
+	ensure( between( limit, 1, 300 ), "the fps limit must be between 1 and 300!" );
 	m_limit = limit;
 }
 

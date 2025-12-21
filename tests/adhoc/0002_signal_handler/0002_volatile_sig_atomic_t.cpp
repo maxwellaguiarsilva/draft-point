@@ -23,7 +23,7 @@
 
 
 #include <print>		//	print
-#include <sak/sak.hpp>	//	assert
+#include <sak/sak.hpp>	//	ensure
 #include <unistd.h>		//	stdout_fileno
 #include <sys/ioctl.h>	//	ioctl
 #include <signal.h>		//	signal handling (sigaction, siginfo_t, etc.)
@@ -32,6 +32,7 @@
 
 using	::std::println;
 using	::std::print;
+using	::sak::ensure;
 
 
 //	precisa ser `volatile` para ser `signal_thread_safe`
@@ -43,7 +44,7 @@ volatile sig_atomic_t flg_window_changed = 0;
 void print_terminal_size( )
 {
 	struct winsize window_size;
-	assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) not_eq -1, "erro no get_win_size" );
+	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) not_eq -1, "erro no get_win_size" );
 
 	println( "Tamanho do terminal: {} por {}", window_size.ws_col, window_size.ws_row );
 }
@@ -72,7 +73,7 @@ void setup_signal_handler( )
 	signal_action.sa_flags = SA_RESTART;
 
 	//	registra a ação para o sinal sigwinch.
-	assert( sigaction( SIGWINCH, &signal_action, NULL ) not_eq -1, "erro ao registrar o manipulador de sinal sigwinch" );
+	ensure( sigaction( SIGWINCH, &signal_action, NULL ) not_eq -1, "erro ao registrar o manipulador de sinal sigwinch" );
 }
 
 int main( )

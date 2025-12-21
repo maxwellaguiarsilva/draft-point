@@ -23,6 +23,7 @@
 
 //	ignore-no-comments-rule
 
+#include <sak/sak.hpp>
 #include <tui/terminal.hpp>
 #include <format>
 #include <iostream>
@@ -47,6 +48,7 @@ __using( ::std::
 )
 
 
+using	::sak::ensure;
 using	::tui::point;
 using	color		=	::tui::terminal::color;
 using	text_style	=	::tui::terminal::text_style;
@@ -65,12 +67,11 @@ const terminal::error_messages_type terminal::error_messages =
 terminal::terminal( )
 {
 	winsize m_ws;
-	if( tcgetattr( STDIN_FILENO, &m_original_termios ) not_eq 0 )
-		throw ::std::runtime_error( error_messages.at( tcgetattr_failed ) );
-	if( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) not_eq 0 )
-		throw ::std::runtime_error( error_messages.at( ioctl_failed ) );
+	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, error_messages.at( tcgetattr_failed ) );
+	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) == 0, error_messages.at( ioctl_failed ) );
 	m_bounds.start	=	{ 1, 1 };
 	m_bounds.end	=	{ m_ws.ws_col, m_ws.ws_row };
+	ensure( m_bounds.end > point{ 0, 0 }, "error: invalid terminal size" );
 	clear_screen( true );
 	set_raw_mode( true );
 }
