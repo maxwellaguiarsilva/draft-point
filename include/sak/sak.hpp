@@ -40,15 +40,10 @@ using	::std::runtime_error;
 using	::std::string;
 
 
-#define between( value, left, right ) ( value >= left and value <= right )
-
-
 namespace sak {
 
-inline constexpr auto ensure( bool expression, const string& message )
-{
-	if( not expression ) throw runtime_error( message );
-}
+inline constexpr auto between( const auto& value, const auto& left, const auto& right ) { return ( value >= left and value <= right ); }
+inline constexpr auto ensure( bool expression, const string& message ) { if( not expression ) throw runtime_error( message ); }
 
 constexpr char delta_lower_case	=	( 'a' - 'A' );
 inline char to_lower_case( char code ) noexcept { return ( between( code, 'A', 'Z' ) ? code + delta_lower_case : code ); };

@@ -71,7 +71,7 @@ terminal::terminal( )
 	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) == 0, error_messages.at( ioctl_failed ) );
 	m_bounds.start	=	{ 1, 1 };
 	m_bounds.end	=	{ m_ws.ws_col, m_ws.ws_row };
-	ensure( m_bounds.end > point{ 0, 0 }, "error: invalid terminal size" );
+	ensure( m_bounds.start.is_all_less_equal( m_bounds.end ), "error: invalid terminal size" );
 	clear_screen( true );
 	set_raw_mode( true );
 }

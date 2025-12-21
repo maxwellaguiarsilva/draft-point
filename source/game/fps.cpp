@@ -29,6 +29,7 @@
 namespace game {
 
 
+using	::sak::between;
 using	::sak::ensure;
 using	::std::chrono::microseconds;
 using	::std::chrono::high_resolution_clock;
