@@ -160,7 +160,8 @@ The rules can be bypassed if a specific keyword is included in a single comment 
 
 ##  13. Validation.
     *   After producing any C++ code, perform a final validation to ensure all of the preceding items have been strictly followed.
-        *   If any item is not in compliance with this document, use the available tools to make the necessary adjustments.
+    *   If any item is not in compliance with this document, inform the programmer of the problem and request permission to perform the adjustment.
+    *   Perform the adjustment only after receiving explicit consent from the programmer.
     *   Do not consider the code to have been properly delivered until this validation is fully compliant.
 
 ##  14. Validation with cppcheck.
