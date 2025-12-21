@@ -29,15 +29,12 @@
 
 #include <sak/sak.hpp>
 #include <string>
-#include <unordered_map>
 #include <geometry/point.hpp>
 
 
 namespace game {
-namespace direction {
 
 using	::std::string;
-using	::std::unordered_map;
 using	::geometry::point;
 
 
@@ -58,37 +55,42 @@ using enum direction;
 
 struct __use_direction
 {
-	constexpr auto operator ( )( direction a_direction ) const -> const string&
-	{
-		const auto item = m_directions.find( a_direction );
-		return	( item not_eq m_directions.end( ) ) ? item->second.name : s_none.name;
-	}
-
-	constexpr auto operator ( )( direction a_direction ) const -> const point&
-	{
-		const auto item = m_directions.find( a_direction );
-		return	( item not_eq m_directions.end( ) ) ? item->second.value : s_none.value;
-	}
 private:
-	struct __direction { string name; point value; }
-	static const unordered_map< direction, __direction > m_directions	=
+	struct __direction { string name; point value; };
+
+public:
+	constexpr auto operator ( )( direction a_direction ) const noexcept -> const __direction&
 	{
-		 {	up			,{	"up"			,{	0	,-1	}	}	}
-		,{	down		,{	"down"			,{	0	,1	}	}	}
-		,{	left		,{	"left"			,{	-1	,0	}	}	}
-		,{	right		,{	"right"			,{	1	,0	}	}	}
-		,{	up_left		,{	"up_left"		,{	-1	,-1	}	}	}
-		,{	up_right	,{	"up_right"		,{	1	,-1	}	}	}
-		,{	down_left	,{	"down_left"		,{	-1	,1	}	}	}
-		,{	down_right	,{	"down_right"	,{	1	,1	}	}	}
-	};
-	static const __direction m_none	=	{ "none", { 0, 0 } };
+		static constexpr __direction	up_d			{	"up"			,{	0	,-1	}	};
+		static constexpr __direction	down_d			{	"down"			,{	0	,1	}	};
+		static constexpr __direction	left_d			{	"left"			,{	-1	,0	}	};
+		static constexpr __direction	right_d			{	"right"			,{	1	,0	}	};
+		static constexpr __direction	up_left_d		{	"up_left"		,{	-1	,-1	}	};
+		static constexpr __direction	up_right_d		{	"up_right"		,{	1	,-1	}	};
+		static constexpr __direction	down_left_d		{	"down_left"		,{	-1	,1	}	};
+		static constexpr __direction	down_right_d	{	"down_right"	,{	1	,1	}	};
+		static constexpr __direction	none_d			{	"none"			,{	0	,0	}	};
+
+		switch( a_direction )
+		{
+			case up:			return up_d;
+			case down:			return down_d;
+			case left:			return left_d;
+			case right:			return right_d;
+			case up_left:		return up_left_d;
+			case up_right:		return up_right_d;
+			case down_left:		return down_left_d;
+			case down_right:	return down_right_d;
+			case none:			[[fallthrough]];
+			default:			return none_d;
+		}
+	}
 
 };
 inline constexpr auto use_direction	=	__use_direction{ };
 
 
-} } 
+}
 
 
 #endif

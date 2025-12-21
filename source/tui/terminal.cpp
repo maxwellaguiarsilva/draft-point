@@ -55,13 +55,7 @@ __using( ::
 using	::tui::point;
 using	color		=	::tui::terminal::color;
 using	text_style	=	::tui::terminal::text_style;
-
-__using( ::terminal::error::
-	,out_of_bounds
-	,tcgetattr_failed
-	,tcsetattr_failed
-	,ioctl_failed
-)
+using	enum	::tui::terminal::error;
 
 const terminal::error_messages_type terminal::error_messages = 
 {

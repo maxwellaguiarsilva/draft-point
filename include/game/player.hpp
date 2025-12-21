@@ -39,6 +39,7 @@ namespace game {
 using	::tui::terminal;
 using	::geometry::point;
 using	::game::direction;
+using	enum	::game::direction;
 
 
 class player

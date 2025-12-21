@@ -43,7 +43,7 @@ game::game( )
 
 auto game::run( ) -> void
 {
-	using enum direction	=	::game::direction::direction;
+	using enum direction;
 	const point& frame_size	=	m_terminal.size;
 	point&	position	=	m_player.position;
 	point	zero		=	{ 0, 0 };
@@ -81,7 +81,7 @@ auto game::run( ) -> void
 				" | fps: " + to_string( m_fps.compute( ) )
 			+ 	" | width: " + to_string( frame_size[0] )
 			+ 	" | height: " + to_string( frame_size[1] )
-			+ 	" | direction: " + use_direction( player.get_direction( ) )
+			+ 	" | direction: " + use_direction( m_player.get_direction( ) ).name
 			+ 	" | length: " + to_string( position.get_length( ) )
 			+ 	" | "
 		);
