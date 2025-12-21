@@ -45,17 +45,13 @@ __using( ::std::
 	,flush
 	,format
 )
-__using( ::
-	,ioctl
-	,read
-	,tcgetattr
-	,tcsetattr
-	,winsize
-)
+
+
 using	::tui::point;
 using	color		=	::tui::terminal::color;
 using	text_style	=	::tui::terminal::text_style;
 using	enum	::tui::terminal::error;
+
 
 const terminal::error_messages_type terminal::error_messages = 
 {
@@ -79,6 +75,7 @@ terminal::terminal( )
 	set_raw_mode( true );
 }
 terminal::~terminal( ) noexcept { clear_screen( true ); }
+
 
 auto terminal::clear_screen( bool full_reset ) -> expected< void, error >
 {
