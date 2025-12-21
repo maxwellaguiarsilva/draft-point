@@ -41,7 +41,7 @@ using	time_point = ::std::chrono::high_resolution_clock::time_point;
 class fps final
 {
 public:
-	fps( int limit = 60 );
+	explicit fps( int limit = 60 );
 	~fps( ) noexcept = default;
 
 	delete_copy_move_ctc( fps );
