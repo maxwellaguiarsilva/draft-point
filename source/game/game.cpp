@@ -57,7 +57,7 @@ auto game::run( ) -> void
 
 	while( true )
 	{
-		//	the bug with the special keys is not important to the purpose of this project
+		//	any bugs caused by read_char are not important in this project and should be ignored
 		char code = m_terminal.read_char( );
 		if( code not_eq 0 )
 		{
