@@ -101,7 +101,7 @@ cpp_check_project( )
 		--suppress=missingIncludeSystem --suppress=checkersReport \
 		--check-level=exhaustive \
 		--cppcheck-build-dir="${folders[build]}" \
-		--include="${folders[include]}" \
+		-I"${folders[include]}" \
 		--inline-suppr \
 		--std="${project[cpp_version]}" \
 		--error-exitcode=1 \
