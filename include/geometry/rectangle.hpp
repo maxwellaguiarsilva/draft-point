@@ -41,14 +41,14 @@ using	::geometry::point;
 
 class rectangle
 {
+private:
+	array< point, 2 > m_data;
 public:
+	constexpr rectangle( ) : m_data{ } { }
 	point&	start	=	m_data[0];
 	point&	end		=	m_data[1];
 
 	auto contains( const point& a_point ) const noexcept -> bool;
-
-private:
-	array< point, 2 > m_data;
 };
 
 

@@ -126,7 +126,7 @@ or	same_as< t_denominator_checker, __safe_denominator >;
 
 #define __581074281_operator( a_operator, a_math_operation, a_check, a_no_except ) \
 constexpr auto operator a_operator##= ( const coordinate& other ) a_no_except -> coordinate& { return apply_operation( other, a_math_operation, a_check ); } \
-constexpr auto operator a_operator##= ( t_scalar other ) a_no_except -> coordinate& { return apply_operation( repeat( other ), a_math_operation, a_check ); } \
+constexpr auto operator a_operator##= ( t_scalar other ) a_no_except -> coordinate& { return apply_operation( other, a_math_operation, a_check ); } \
 friend constexpr auto operator a_operator ( coordinate left, const coordinate& right ) a_no_except -> coordinate { return left a_operator##= right; } \
 friend constexpr auto operator a_operator ( coordinate left, t_scalar right ) a_no_except -> coordinate { return left a_operator##= right; } \
 
@@ -144,6 +144,8 @@ template< is_arithmetic t_scalar = int, size_t num_dimensions = 2 >
 class coordinate
 {
 public:
+	constexpr coordinate( ) : m_data{ } { }
+
 	template< typename... t_args >
 		requires( sizeof...( t_args ) == num_dimensions
 			and ( convertible_to< t_args, t_scalar > and ... )
@@ -188,16 +190,14 @@ private:
 	array< t_scalar, num_dimensions >			m_data;
 
 	template< typename t_other, invocable< t_scalar, t_scalar > t_operation, denominator_checker t_checker >
+	requires	is_coordinate< t_other > or is_arithmetic< t_other >
 	constexpr auto apply_operation( t_other other, const t_operation& operation, const t_checker& checker ) -> coordinate&
 	{
+		checker( other );
 		if constexpr( is_coordinate< t_other > )
-		{
-			checker( other );
 			transform( m_data, other, m_data.begin( ), operation );
-		} else {
-			checker( *( other.begin( ) ) );
+		else
 			transform( m_data, repeat( other ), m_data.begin( ), operation );
-		}
 		return *this;
 	}
 

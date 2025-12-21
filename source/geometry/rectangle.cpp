@@ -35,9 +35,9 @@ using	::std::views::iota;
 using	::geometry::point;
 
 
-auto rectangle::contains( const point& a_point ) const noexcept -> bool
+auto rectangle::contains( const point& other ) const noexcept -> bool
 {
-	return	start( ).is_all_less_equal( a_point ) and a_point.is_all_less_equal( end( ) );
+	return	start.is_all_less_equal( other ) and other.is_all_less_equal( end );
 }
 
 
