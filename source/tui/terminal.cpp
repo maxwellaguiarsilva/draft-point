@@ -26,6 +26,7 @@
 #include <tui/terminal.hpp>
 #include <format>
 #include <iostream>
+#include <termios.h>
 #include <unistd.h>		//	STDIN_FILENO, read
 #include <sys/ioctl.h>	//	TIOCGWINSZ
 
@@ -43,6 +44,13 @@ __using( ::std::
 	,endl
 	,flush
 	,format
+)
+__using( ::
+	,ioctl
+	,read
+	,tcgetattr
+	,tcsetattr
+	,winsize
 )
 using	::tui::point;
 using	color		=	::tui::terminal::color;
@@ -66,7 +74,7 @@ const terminal::error_messages_type terminal::error_messages =
 
 terminal::terminal( )
 {
-	struct winsize m_ws;
+	winsize m_ws;
 	if( tcgetattr( STDIN_FILENO, &m_original_termios ) not_eq 0 )
 		throw ::std::runtime_error( error_messages.at( tcgetattr_failed ) );
 	if( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) not_eq 0 )

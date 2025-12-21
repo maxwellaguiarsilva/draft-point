@@ -30,6 +30,7 @@
 
 #include <sak/sak.hpp>
 #include <geometry/geometry.hpp>
+#include <termios.h>
 #include <string>
 #include <unordered_map>
 #include <expected>
@@ -43,6 +44,7 @@ using	::geometry::rectangle;
 using	::std::string;
 using	::std::expected;
 using	::std::unexpected;
+using	::termios;
 
 class terminal final
 {
@@ -105,7 +107,7 @@ public:
 private:
 	auto print_error( error error_code ) const noexcept -> void;
 
-	struct termios m_original_termios;
+	termios		m_original_termios;
 	rectangle	m_bounds;
 	point&		m_size	=	m_bounds.end;
 public:
