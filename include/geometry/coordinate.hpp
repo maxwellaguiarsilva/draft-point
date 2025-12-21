@@ -46,36 +46,52 @@ namespace geometry {
 
 
 //	--------------------------------------------------
-using	::std::array;
+using	::pattern::tupled;
 //	--------------------------------------------------
+using	::std::array;
+using	::std::bind_back;
 using	::std::convertible_to;
 using	::std::invocable;
-using	::std::same_as;
-//	--------------------------------------------------
+using	::std::ranges::all_of;
+using	::std::ranges::any_of;
+using	::std::ranges::fold_left;
+using	::std::ranges::transform;
 using	::std::size_t;
-using	::pattern::tupled;
-using	::std::bind_back;
 using	::std::views::repeat;
 using	::std::views::zip;
-using	::std::ranges::transform;
-using	::std::ranges::any_of;
-using	::std::ranges::all_of;
-using	::std::ranges::fold_left;
 //	--------------------------------------------------
 using	::std::sqrt;
-inline constexpr auto plus			= 	::std::plus( );
-inline constexpr auto minus			= 	::std::minus( );
-inline constexpr auto multiplies	= 	::std::multiplies( );
-inline constexpr auto divides		= 	::std::divides( );
-inline constexpr auto modulus		= 	::std::modulus( );
-inline constexpr auto equal_to		= 	::std::equal_to( );
-inline constexpr auto less_equal	= 	::std::less_equal( );
+using	::math::plus;
+using	::math::minus;
+using	::math::multiplies;
+using	::math::divides;
+using	::math::modulus;
+using	::math::equal_to;
+using	::math::less_equal;
 //	--------------------------------------------------
-
-
 using	::math::square;
 using	::math::is_arithmetic;
 using	::math::error::division_by_zero;
+//	--------------------------------------------------
+
+
+
+using	::std::true_type;
+using	::std::false_type;
+using	::std::remove_cvref_t;
+template< is_arithmetic, size_t > class coordinate;
+template< typename t_coordinate >
+struct __is_coordinate : false_type { };
+template< is_arithmetic t_scalar, size_t num_dimensions >
+struct __is_coordinate< coordinate< t_scalar, num_dimensions > > : true_type { };
+template< typename t_coordinate >
+concept is_coordinate = __is_coordinate< remove_cvref_t< t_coordinate > >::value;
+
+using	::std::same_as;
+template< typename t_denominator_checker >
+concept denominator_checker	=
+	same_as< t_denominator_checker, __unsafe_denominator >
+or	same_as< t_denominator_checker, __safe_denominator >; 
 
 
 struct __unsafe_denominator {
@@ -106,23 +122,6 @@ private:
 inline constexpr auto safe_denominator = __safe_denominator{ };
 
 
-using	::std::true_type;
-using	::std::false_type;
-using	::std::remove_cvref_t;
-template< is_arithmetic, size_t > class coordinate;
-template< typename t_coordinate >
-struct __is_coordinate : false_type { };
-template< is_arithmetic t_scalar, size_t num_dimensions >
-struct __is_coordinate< coordinate< t_scalar, num_dimensions > > : true_type { };
-template< typename t_coordinate >
-concept is_coordinate = __is_coordinate< remove_cvref_t< t_coordinate > >::value;
-
-
-template< typename t_denominator_checker >
-concept denominator_checker	=
-	same_as< t_denominator_checker, __unsafe_denominator >
-or	same_as< t_denominator_checker, __safe_denominator >; 
-
 
 #define __581074281_operator( a_operator, a_operation, a_check, a_no_except ) \
 constexpr auto operator a_operator##= ( const coordinate& other ) a_no_except -> coordinate& { return apply_operation( other, a_operation, a_check ); } \
@@ -136,12 +135,9 @@ friend constexpr auto operator a_operator ( t_scalar left, const coordinate& rig
 	return	result a_operator##= right; \
 }
 
-
-
 #define __581074281_export_m_data_method( a_method ) \
 constexpr auto a_method( ) noexcept { return m_data.a_method( ); } \
 constexpr auto a_method( ) const noexcept { return m_data.a_method( ); }
-
 
 
 template< is_arithmetic t_scalar = int, size_t num_dimensions = 2 >
@@ -174,7 +170,7 @@ public:
 
 	constexpr auto is_all_less_equal( const coordinate& other ) const noexcept -> bool
 	{
-		return	all_of( zip( m_data, other.m_data ), tupled{ less_equal } );
+		return	all_of( zip( m_data, other.m_data ), tupled( less_equal ) );
 	}
 
 	//	truncation may occur depending on the type of scalar chosen
