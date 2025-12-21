@@ -48,12 +48,12 @@ using	text_style	=	::tui::terminal::text_style;
 
 
 terminal::terminal( )
-	:m_size( { 0, 0 } )
 {
 	struct winsize m_ws;
 	assert( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, "terminal: tcgetattr error" );
 	assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) == 0, "terminal: ioctl error" );
-	m_size = { m_ws.ws_col, m_ws.ws_row };
+	m_bounds.start	=	{ 1, 1 }
+	m_bounds.end	=	{ m_ws.ws_col, m_ws.ws_row };
 	clear_screen( true );
 	set_raw_mode( true );
 }

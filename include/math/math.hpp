@@ -30,6 +30,7 @@
 
 #include <type_traits>
 #include <exception>
+#include <utility>
 
 
 namespace math {
@@ -63,15 +64,33 @@ struct exception : ::std::exception
 
 using	::std::is_arithmetic_v;
 template< typename t_arithmetic >
-concept arithmetic = is_arithmetic_v< t_arithmetic >;
+concept is_arithmetic = is_arithmetic_v< t_arithmetic >;
 
 
 struct __square
 {
-	template< arithmetic t_scalar >
+	template< is_arithmetic t_scalar >
 	constexpr inline auto operator () ( t_scalar value ) const noexcept { return value * value; }
 };
 inline constexpr auto square = __square( );
+
+
+struct __flip
+{
+	template< typename t_function >
+	struct __wrapper
+	{
+		t_function m_function;
+		template< typename t_left, typename t_right >
+		constexpr auto operator ( )( t_left&& left, t_right&& right ) const -> decltype( auto )
+		{
+			return	m_function( ::std::forward< t_right >( right ), ::std::forward< t_left >( left ) );
+		}
+	};
+	template< typename t_function >
+	constexpr auto operator ( )( t_function a_function ) const { return __wrapper< t_function >{ a_function }; }
+};
+inline constexpr auto flip = __flip{ };
 
 
 }

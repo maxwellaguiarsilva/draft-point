@@ -38,6 +38,7 @@ namespace tui {
 
 
 using	::geometry::point;
+using	::geometry::rectangle;
 using	::std::string;
 
 class terminal final
@@ -87,7 +88,8 @@ public:
 
 private:
 	struct termios m_original_termios;
-	point m_size;
+	rectangle	m_bounds;
+	point&		m_size	=	m_bounds.end;
 public:
 	const point& size = m_size;
 };

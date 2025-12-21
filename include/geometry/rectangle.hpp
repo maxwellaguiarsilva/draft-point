@@ -27,14 +27,9 @@
 #ifndef header_guard_192621987
 #define header_guard_192621987
 
-#include <sak/sak.hpp>
+
 #include <array>
 #include <geometry/point.hpp>
-
-
-#define __192621987_export_m_data_index( a_method, a_index ) \
-constexpr auto a_method( ) noexcept -> point& { return m_data[ a_index ]; } \
-constexpr auto a_method( ) const noexcept -> const point& { return m_data[ a_index ]; }
 
 
 namespace geometry {
@@ -47,8 +42,8 @@ using	::geometry::point;
 class rectangle
 {
 public:
-	__192621987_export_m_data_index( start, 0 )
-	__192621987_export_m_data_index( end, 1 )
+	point&	start	=	m_data[0];
+	point&	end		=	m_data[1];
 
 	auto contains( const point& a_point ) const noexcept -> bool;
 
