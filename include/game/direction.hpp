@@ -18,48 +18,40 @@
  * File:   game/direction.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-11-09 15:30
+ * Created on 2025-12-21 17:39
  */
 
 
 
 #pragma once
-#ifndef header_guard_499869391
-#define header_guard_499869391
+#ifndef header_guard_399468167
+#define header_guard_399468167
 
 #include <sak/sak.hpp>
-#include <geometry/point.hpp>
+#include <string>
 
 
 namespace game {
+namespace direction {
 
-using	::geometry::point;
+using	::std::string;
 
-class direction
+
+enum class direction
 {
-public:
-	enum class direction_value 
-	{
-		up = 0, down, left, right
-	};
-
-	direction( const direction_value& a_direction );
-
-	operator const point& ( ) const noexcept;
-
-private:
-	direction_value m_direction;
-
-	static const point	m_up;
-	static const point	m_down;
-	static const point	m_left;
-	static const point	m_right;
-	static const point	m_none;
-
-};
+	 up	=	0
+	,down
+	,left
+	,right
+	,up_left
+	,up_right
+	,down_left
+	,down_right
+	;
+}
 
 
-} 
+} } 
 
 
 #endif
