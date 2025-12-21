@@ -100,6 +100,7 @@ The rules can be bypassed if a specific keyword is included in a single comment 
 
 ##  11. **Main Function Scope:**
     *   The `main` function must always contain an additional, explicit scope block `{}` immediately after its opening curly brace. This ensures that all stack-allocated objects within `main` have their destructors called before `main` exits, promoting predictable resource management.
+    *   **This rule applies strictly to the `main` function.** All other functions, methods, and control structures must use standard single braces `{}` or no braces where permitted.
     *   **Example (Good):**
         ```cpp
         int main( )
