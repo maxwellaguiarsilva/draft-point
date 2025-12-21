@@ -46,6 +46,14 @@ using	color		=	::tui::terminal::color;
 using	text_style	=	::tui::terminal::text_style;
 
 
+const terminal::error_messages_type terminal::error_messages = 
+{
+	 { terminal::error::out_of_bounds, "terminal: cursor position out of bounds" }
+	,{ terminal::error::tcgetattr_failed, "terminal: tcgetattr error" }
+	,{ terminal::error::tcsetattr_failed, "terminal: tcsetattr error" }
+	,{ terminal::error::ioctl_failed, "terminal: ioctl error" }
+};
+
 
 terminal::terminal( )
 {

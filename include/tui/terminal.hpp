@@ -29,9 +29,9 @@
 
 
 #include <sak/sak.hpp>
+#include <geometry/point.hpp>
 #include <string>
-#include <termios.h>
-#include <geometry/geometry.hpp>
+#include <unordered_map>
 
 
 namespace tui {
@@ -69,6 +69,19 @@ public:
 		,hide			=	8
 		,crossed_out	=	9
 	};
+
+	enum class error
+	{
+		 out_of_bounds
+		,tcgetattr_failed
+		,tcsetattr_failed
+		,ioctl_failed
+	};
+
+
+	using	error_messages_type = ::std::unordered_map< error, string >;
+	static const error_messages_type	error_messages;
+
 
 	terminal( );
 	~terminal( ) noexcept;
