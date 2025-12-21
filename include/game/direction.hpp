@@ -30,6 +30,7 @@
 #include <sak/sak.hpp>
 #include <string>
 #include <unordered_map>
+#include <geometry/point.hpp>
 
 
 namespace game {
@@ -37,6 +38,7 @@ namespace direction {
 
 using	::std::string;
 using	::std::unordered_map;
+using	::geometry::point;
 
 
 enum class direction
@@ -52,28 +54,36 @@ enum class direction
 	,none
 };
 
+using enum direction;
 
 struct __use_direction
 {
 	constexpr auto operator ( )( direction a_direction ) const -> const string&
 	{
-		static const unordered_map< direction, string > s_directions =
-		{
-			 {	direction::up			,"up"			}
-			,{	direction::down			,"down"			}
-			,{	direction::left			,"left"			}
-			,{	direction::right		,"right"		}
-			,{	direction::up_left		,"up_left"		}
-			,{	direction::up_right		,"up_right"		}
-			,{	direction::down_left	,"down_left"	}
-			,{	direction::down_right	,"down_right"	}
-		};
-
-		static const string s_none	=	"none";
-
-		const auto name = s_directions.find( a_direction );
-		return	( name not_eq s_directions.end( ) ) ? name->second : s_none;
+		const auto item = m_directions.find( a_direction );
+		return	( item not_eq m_directions.end( ) ) ? item->second.name : s_none.name;
 	}
+
+	constexpr auto operator ( )( direction a_direction ) const -> const point&
+	{
+		const auto item = m_directions.find( a_direction );
+		return	( item not_eq m_directions.end( ) ) ? item->second.value : s_none.value;
+	}
+private:
+	struct __direction { string name; point value; }
+	static const unordered_map< direction, __direction > m_directions	=
+	{
+		 {	up			,{	"up"			,{	0	,-1	} }
+		,{	down		,{	"down"			,{	0	,1	} }
+		,{	left		,{	"left"			,{	-1	,0	} }
+		,{	right		,{	"right"			,{	1	,0	} }
+		,{	up_left		,{	"up_left"		,{	0	,0	} }
+		,{	up_right	,{	"up_right"		,{	0	,0	} }
+		,{	down_left	,{	"down_left"		,{	0	,0	} }
+		,{	down_right	,{	"down_right"	,{	0	,0	} }
+	};
+	static const __direction m_none	=	{ "none", { 0, 0 } };
+
 };
 inline constexpr auto use_direction	=	__use_direction{ };
 
