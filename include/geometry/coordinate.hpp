@@ -124,13 +124,17 @@ concept denominator_checker	=
 or	same_as< t_denominator_checker, __safe_denominator >; 
 
 
-#define __581074281_operator( a_operator, a_math_operation, a_check, a_no_except ) \
-constexpr auto operator a_operator##= ( const coordinate& other ) a_no_except -> coordinate& { return apply_operation( other, a_math_operation, a_check ); } \
-constexpr auto operator a_operator##= ( t_scalar other ) a_no_except -> coordinate& { return apply_operation( other, a_math_operation, a_check ); } \
+#define __581074281_operator( a_operator, a_operation, a_check, a_no_except ) \
+constexpr auto operator a_operator##= ( const coordinate& other ) a_no_except -> coordinate& { return apply_operation( other, a_operation, a_check ); } \
+constexpr auto operator a_operator##= ( t_scalar other          ) a_no_except -> coordinate& { return apply_operation( other, a_operation, a_check ); } \
 friend constexpr auto operator a_operator ( coordinate left, const coordinate& right ) a_no_except -> coordinate { return left a_operator##= right; } \
-friend constexpr auto operator a_operator ( coordinate left, t_scalar right ) a_no_except -> coordinate { return left a_operator##= right; } \
-
-//	friend constexpr auto operator a_operator ( t_scalar left, const coordinate& right ) a_no_except -> coordinate { return // TODO }
+friend constexpr auto operator a_operator ( coordinate left, t_scalar right          ) a_no_except -> coordinate { return left a_operator##= right; } \
+friend constexpr auto operator a_operator ( t_scalar left, const coordinate& right   ) a_no_except -> coordinate \
+{ \
+	coordinate result{ }; \
+	result.m_data.fill( left ); \
+	return	result a_operator##= right; \
+}
 
 
 
