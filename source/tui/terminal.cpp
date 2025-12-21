@@ -77,7 +77,7 @@ terminal::terminal( )
 terminal::~terminal( ) noexcept { clear_screen( true ); }
 
 
-auto terminal::clear_screen( bool full_reset ) -> expected< void, error >
+auto terminal::clear_screen( bool full_reset ) -> void
 {
 	if( full_reset )
 	{
@@ -87,7 +87,6 @@ auto terminal::clear_screen( bool full_reset ) -> expected< void, error >
 		move_cursor( point( 0, 0 ) );
 	}
 	print( "\033[2J" );
-	return { };
 }
 
 auto terminal::read_char( ) -> char
@@ -97,7 +96,7 @@ auto terminal::read_char( ) -> char
 	return	c;
 }
 
-auto terminal::move_cursor( const point& position ) -> expected< void, error > 
+auto terminal::move_cursor( const point& position ) -> result 
 { 
 	if( not m_bounds.contains( position ) )
 		return	unexpected( out_of_bounds );
@@ -117,7 +116,7 @@ auto terminal::refresh( ) -> void { cout << flush; }
 auto terminal::set_color( color color, bool background ) -> void { print( format( "\033[{}m", static_cast<int>( color ) + ( background ? 40 : 30 ) ) ); }
 auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }
 
-auto terminal::set_raw_mode( bool enable ) -> expected< void, error >
+auto terminal::set_raw_mode( bool enable ) -> result
 {
 	set_cursor( not enable );
 	if( enable )

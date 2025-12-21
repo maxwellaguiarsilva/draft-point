@@ -4,7 +4,5 @@
 - Always use the `using` keyword to avoid the scope resolution operator `::` (fully qualified names), except for "ADL-sensitive" functions like `::std::move`, `::std::forward`, `::std::addressof`, and `::std::declval`, which must always be fully qualified.
 - Do not modify anything in the project until explicitly requested. Do not test or compile the project until explicitly requested.
 - Use the `project-builder` command to compile the project, and never directly invoke g++ or clang.
-- The `docs/agent/` directory contains markdown files with specific instructions for this programming assistant.
-- When a user makes a request, check if there is a relevant markdown file in `docs/agent/` that provides instructions for that request. If a relevant file is found, I will load its content into the conversation context to guide my actions.
 - Commit messages must be in en-us.
 

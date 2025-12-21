@@ -46,9 +46,12 @@ auto game::run( ) -> void
 	using enum direction;
 	const point& frame_size	=	m_terminal.size;
 	point&	position	=	m_player.position;
-	point	zero		=	{ 0, 0 };
 	//	the screen doesn't scroll because it doesn't have a line break, i've already validated it
 	point	label_position	=	{ 1, frame_size[1] };
+
+	point	bounds_start	=	{ 1, 1 };
+	point	bounds_end		=	frame_size - 2;
+	point	bounds_size		=	bounds_end - bounds_start;
 
 	bool exit_loop = false;
 
@@ -71,9 +74,9 @@ auto game::run( ) -> void
 		}
 
 		m_player.step_move( );
-		if( not zero.is_all_less_equal( position ) )
-			position += frame_size;
-		position %= frame_size;
+		if( not bounds_start.is_all_less_equal( position ) )
+			position += bounds_size;
+		position %= bounds_size;
 
 		m_terminal.clear_screen( );
 		m_player.draw( m_terminal );

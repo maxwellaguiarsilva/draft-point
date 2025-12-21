@@ -83,6 +83,7 @@ public:
 		,ioctl_failed
 	};
 
+	using result = expected< void, error >;
 
 	using	error_messages_type = ::std::unordered_map< error, string >;
 	static const error_messages_type	error_messages;
@@ -93,15 +94,15 @@ public:
 
 	delete_copy_move_ctc( terminal );
 
-	auto clear_screen( bool full_reset = false ) -> expected< void, error >;
+	auto clear_screen( bool full_reset = false ) -> void;
 	auto read_char( ) -> char;
-	auto move_cursor( const point& position ) -> expected< void, error >;
+	auto move_cursor( const point& position ) -> result;
 	auto print( const string& text ) -> void;
 	auto print( const point& position, const string& text ) -> void;
 	auto refresh( ) -> void;
 	auto set_color( color color_code, bool flg_background = false ) -> void;
 	auto set_cursor( bool enable ) -> void;
-	auto set_raw_mode( bool enable ) -> expected< void, error >;
+	auto set_raw_mode( bool enable ) -> result;
 	auto set_text_style( text_style style ) -> void;
 
 private:
