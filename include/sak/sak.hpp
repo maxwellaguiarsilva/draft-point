@@ -33,6 +33,7 @@
 
 #include <stdexcept>
 #include <sak/default_ctc_dtc.hpp>
+#include <sak/using.hpp>
 
 using	::std::runtime_error;
 

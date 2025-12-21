@@ -32,38 +32,24 @@
 
 
 #define __using_1( p, a )	using	p a;
-
-
 #define __using_2( p, a, b ) \
 	__using_1( p, a ) \
 	__using_1( p, b )
-
-
 #define __using_3( p, a, b, c ) \
 	__using_2( p, a, b ) \
 	__using_1( p, c )
-
-
 #define __using_4( p, a, b, c, d ) \
 	__using_3( p, a, b, c ) \
 	__using_1( p, d )
-
-
 #define __using_5( p, a, b, c, d, e ) \
 	__using_4( p, a, b, c, d ) \
 	__using_1( p, e )
-
-
 #define __using_6( p, a, b, c, d, e, f ) \
 	__using_5( p, a, b, c, d, e ) \
 	__using_1( p, f )
-
-
 #define __using_7( p, a, b, c, d, e, f, g ) \
 	__using_6( p, a, b, c, d, e, f ) \
 	__using_1( p, g )
-
-
 #define __using_8( p, a, b, c, d, e, f, g, h ) \
 	__using_7( p, a, b, c, d, e, f, g ) \
 	__using_1( p, h )
