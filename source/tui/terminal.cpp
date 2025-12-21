@@ -39,6 +39,8 @@ namespace tui {
 
 __using( ::std::
 	,cout
+	,cerr
+	,endl
 	,flush
 	,format
 )
@@ -98,6 +100,8 @@ auto terminal::read_char( ) -> char
 
 auto terminal::move_cursor( const point& position ) -> expected< void, error > 
 { 
+	if( not m_bounds.contains( position ) )
+		return	unexpected( out_of_bounds );
 	print( format( "\033[{};{}H", position[1], position[0] ) ); 
 	return { };
 }
@@ -128,18 +132,14 @@ auto terminal::set_raw_mode( bool enable ) -> expected< void, error >
 			return unexpected( tcsetattr_failed );
 	}
 	else if( tcsetattr( STDIN_FILENO, TCSAFLUSH, &m_original_termios ) not_eq 0 )
-		return unexpected( tcsetattr_failed );
+		return	unexpected( tcsetattr_failed );
 
 	return { };
 }
 
 auto terminal::set_text_style( text_style style ) -> void { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
 
-auto terminal::print_error( error error_code ) const noexcept -> void
-{
-	::std::cerr << error_messages.at( error_code ) << ::std::endl;
-}
-
+auto terminal::print_error( error error_code ) const noexcept -> void { cerr << error_messages.at( error_code ) << endl; }
 
 
 };
