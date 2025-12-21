@@ -43,7 +43,7 @@ game::game( )
 
 auto game::run( ) -> void
 {
-	using	direction	=	::game::direction::direction_value;
+	using enum direction	=	::game::direction::direction;
 	const point& frame_size	=	m_terminal.size;
 	point&	position	=	m_player.position;
 	point	zero		=	{ 0, 0 };
@@ -60,16 +60,15 @@ auto game::run( ) -> void
 		{
 			switch( to_lower_case( code ) )
 			{
-				case 'w': m_player.set_direction( direction::up );		break;
-				case 'a': m_player.set_direction( direction::left );	break;
-				case 's': m_player.set_direction( direction::down );	break;
-				case 'd': m_player.set_direction( direction::right );	break;
+				case 'w': m_player.set_direction( up );		break;
+				case 'a': m_player.set_direction( left );	break;
+				case 's': m_player.set_direction( down );	break;
+				case 'd': m_player.set_direction( right );	break;
 				case 'q': exit_loop = true; break;
 			}
 			if( exit_loop )
 				break;
 		}
-
 
 		m_player.step_move( );
 		if( not zero.is_all_less_equal( position ) )
@@ -82,6 +81,7 @@ auto game::run( ) -> void
 				" | fps: " + to_string( m_fps.compute( ) )
 			+ 	" | width: " + to_string( frame_size[0] )
 			+ 	" | height: " + to_string( frame_size[1] )
+			+ 	" | direction: " + use_direction( player.get_direction( ) )
 			+ 	" | length: " + to_string( position.get_length( ) )
 			+ 	" | "
 		);

@@ -87,12 +87,6 @@ struct __is_coordinate< coordinate< t_scalar, num_dimensions > > : true_type { }
 template< typename t_coordinate >
 concept is_coordinate = __is_coordinate< remove_cvref_t< t_coordinate > >::value;
 
-using	::std::same_as;
-template< typename t_denominator_checker >
-concept denominator_checker	=
-	same_as< t_denominator_checker, __unsafe_denominator >
-or	same_as< t_denominator_checker, __safe_denominator >; 
-
 
 struct __unsafe_denominator {
 	template< typename t_denominator >
@@ -120,6 +114,12 @@ private:
 	}
 };
 inline constexpr auto safe_denominator = __safe_denominator{ };
+
+using	::std::same_as;
+template< typename t_denominator_checker >
+concept denominator_checker	=
+	same_as< t_denominator_checker, __unsafe_denominator >
+or	same_as< t_denominator_checker, __safe_denominator >; 
 
 
 
