@@ -77,10 +77,10 @@ private:
 		,{	down		,{	"down"			,{	0	,1	} }
 		,{	left		,{	"left"			,{	-1	,0	} }
 		,{	right		,{	"right"			,{	1	,0	} }
-		,{	up_left		,{	"up_left"		,{	0	,0	} }
-		,{	up_right	,{	"up_right"		,{	0	,0	} }
-		,{	down_left	,{	"down_left"		,{	0	,0	} }
-		,{	down_right	,{	"down_right"	,{	0	,0	} }
+		,{	up_left		,{	"up_left"		,{	-1	,-1	} }
+		,{	up_right	,{	"up_right"		,{	1	,-1	} }
+		,{	down_left	,{	"down_left"		,{	-1	,1	} }
+		,{	down_right	,{	"down_right"	,{	1	,1	} }
 	};
 	static const __direction m_none	=	{ "none", { 0, 0 } };
 
