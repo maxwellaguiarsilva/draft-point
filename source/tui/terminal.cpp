@@ -37,29 +37,38 @@
 
 namespace tui {
 
-
-using	::std::cout;
-using	::std::flush;
-using	::std::format;
+__using( ::std::
+	,cout
+	,flush
+	,format
+)
 using	::tui::point;
 using	color		=	::tui::terminal::color;
 using	text_style	=	::tui::terminal::text_style;
 
+__using( ::terminal::error::
+	,out_of_bounds
+	,tcgetattr_failed
+	,tcsetattr_failed
+	,ioctl_failed
+)
 
 const terminal::error_messages_type terminal::error_messages = 
 {
-	 { terminal::error::out_of_bounds, "terminal: cursor position out of bounds" }
-	,{ terminal::error::tcgetattr_failed, "terminal: tcgetattr error" }
-	,{ terminal::error::tcsetattr_failed, "terminal: tcsetattr error" }
-	,{ terminal::error::ioctl_failed, "terminal: ioctl error" }
+	 { out_of_bounds	,"terminal: cursor position out of bounds" }
+	,{ tcgetattr_failed	,"terminal: tcgetattr error" }
+	,{ tcsetattr_failed	,"terminal: tcsetattr error" }
+	,{ ioctl_failed		,"terminal: ioctl error" }
 };
 
 
 terminal::terminal( )
 {
 	struct winsize m_ws;
-	assert( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, "terminal: tcgetattr error" );
-	assert( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) == 0, "terminal: ioctl error" );
+	if( tcgetattr( STDIN_FILENO, &m_original_termios ) not_eq 0 )
+		throw ::std::runtime_error( error_messages.at( tcgetattr_failed ) );
+	if( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) not_eq 0 )
+		throw ::std::runtime_error( error_messages.at( ioctl_failed ) );
 	m_bounds.start	=	{ 1, 1 };
 	m_bounds.end	=	{ m_ws.ws_col, m_ws.ws_row };
 	clear_screen( true );
@@ -67,15 +76,17 @@ terminal::terminal( )
 }
 terminal::~terminal( ) noexcept { clear_screen( true ); }
 
-auto terminal::clear_screen( bool full_reset ) -> void
+auto terminal::clear_screen( bool full_reset ) -> expected< void, error >
 {
 	if( full_reset )
 	{
 		set_text_style( text_style::reset );
-		set_raw_mode( false );
+		if( auto result = set_raw_mode( false ); not result )
+			print_error( result.error( ) );
 		move_cursor( point( 0, 0 ) );
 	}
 	print( "\033[2J" );
+	return { };
 }
 
 auto terminal::read_char( ) -> char
@@ -85,7 +96,11 @@ auto terminal::read_char( ) -> char
 	return	c;
 }
 
-auto terminal::move_cursor( const point& position ) -> void { print( format( "\033[{};{}H", position[1], position[0] ) ); }
+auto terminal::move_cursor( const point& position ) -> expected< void, error > 
+{ 
+	print( format( "\033[{};{}H", position[1], position[0] ) ); 
+	return { };
+}
 
 auto terminal::print( const string& text ) -> void { cout << text; }
 auto terminal::print( const point& position, const string& text ) -> void
@@ -99,7 +114,7 @@ auto terminal::refresh( ) -> void { cout << flush; }
 auto terminal::set_color( color color, bool background ) -> void { print( format( "\033[{}m", static_cast<int>( color ) + ( background ? 40 : 30 ) ) ); }
 auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }
 
-auto terminal::set_raw_mode( bool enable ) -> void
+auto terminal::set_raw_mode( bool enable ) -> expected< void, error >
 {
 	set_cursor( not enable );
 	if( enable )
@@ -109,13 +124,21 @@ auto terminal::set_raw_mode( bool enable ) -> void
 		raw.c_lflag		&=	~( ECHO | ICANON );	//	disable echo and canonical mode
 		raw.c_cc[VMIN]	=	0;	//	minimum number of characters for non-canonical read
 		raw.c_cc[VTIME]	=	0;	//	timeout in deciseconds for non-canonical read
-		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &raw ) == 0, "terminal: tcsetattr error" );
+		if( tcsetattr( STDIN_FILENO, TCSAFLUSH, &raw ) not_eq 0 )
+			return unexpected( tcsetattr_failed );
 	}
-	else
-		assert( tcsetattr( STDIN_FILENO, TCSAFLUSH, &m_original_termios ) == 0, "terminal: tcsetattr error" );
+	else if( tcsetattr( STDIN_FILENO, TCSAFLUSH, &m_original_termios ) not_eq 0 )
+		return unexpected( tcsetattr_failed );
+
+	return { };
 }
 
 auto terminal::set_text_style( text_style style ) -> void { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
+
+auto terminal::print_error( error error_code ) const noexcept -> void
+{
+	::std::cerr << error_messages.at( error_code ) << ::std::endl;
+}
 
 
 

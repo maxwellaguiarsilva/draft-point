@@ -32,6 +32,7 @@
 #include <geometry/point.hpp>
 #include <string>
 #include <unordered_map>
+#include <expected>
 
 
 namespace tui {
@@ -40,6 +41,8 @@ namespace tui {
 using	::geometry::point;
 using	::geometry::rectangle;
 using	::std::string;
+using	::std::expected;
+using	::std::unexpected;
 
 class terminal final
 {
@@ -88,18 +91,20 @@ public:
 
 	delete_copy_move_ctc( terminal );
 
-	auto clear_screen( bool full_reset = false ) -> void;
+	auto clear_screen( bool full_reset = false ) -> expected< void, error >;
 	auto read_char( ) -> char;
-	auto move_cursor( const point& position ) -> void;
+	auto move_cursor( const point& position ) -> expected< void, error >;
 	auto print( const string& text ) -> void;
 	auto print( const point& position, const string& text ) -> void;
 	auto refresh( ) -> void;
 	auto set_color( color color_code, bool flg_background = false ) -> void;
 	auto set_cursor( bool enable ) -> void;
-	auto set_raw_mode( bool enable ) -> void;
+	auto set_raw_mode( bool enable ) -> expected< void, error >;
 	auto set_text_style( text_style style ) -> void;
 
 private:
+	auto print_error( error error_code ) const noexcept -> void;
+
 	struct termios m_original_termios;
 	rectangle	m_bounds;
 	point&		m_size	=	m_bounds.end;
