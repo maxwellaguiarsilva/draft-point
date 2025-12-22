@@ -48,30 +48,26 @@ namespace geometry {
 //	--------------------------------------------------
 using	::pattern::tupled;
 //	--------------------------------------------------
-using	::std::array;
-using	::std::bind_back;
-using	::std::convertible_to;
-using	::std::invocable;
-using	::std::ranges::all_of;
-using	::std::ranges::any_of;
-using	::std::ranges::fold_left;
-using	::std::ranges::transform;
-using	::std::size_t;
-using	::std::views::repeat;
-using	::std::views::zip;
+__using( ::std::
+	,array
+	,bind_back
+	,convertible_to
+	,invocable
+	,size_t
+	,sqrt
+)
+__using( ::std::ranges::
+	,all_of
+	,any_of
+	,fold_left
+	,transform
+)
+__using( ::std::views::, zip, repeat )
 //	--------------------------------------------------
-using	::std::sqrt;
-using	::math::plus;
-using	::math::minus;
-using	::math::multiplies;
-using	::math::divides;
-using	::math::modulus;
-using	::math::equal_to;
-using	::math::less_equal;
-//	--------------------------------------------------
-using	::math::square;
-using	::math::is_arithmetic;
+__using( ::math::, plus, minus, multiplies, divides, modulus )
+__using( ::math::, square, equal_to, less_equal, is_arithmetic )
 using	::math::error::division_by_zero;
+//	--------------------------------------------------
 //	--------------------------------------------------
 
 

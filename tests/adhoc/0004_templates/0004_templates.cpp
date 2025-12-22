@@ -44,15 +44,16 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
 	using	::std::string;
 	using	::std::vector;
+
+	const vector< string > arguments( argument_values, argument_values + argument_count );
+	for( const auto& value : arguments )
+		println( "{}", value );
+	
 	using	::std::array;
 	using	::std::println;
 	using	::std::make_pair;
 	using	::std::ranges::all_of;
 	using	::std::views::zip;
-	
-	const vector< string > arguments( argument_values, argument_values + argument_count );
-	for( const auto& value : arguments )
-		println( "{}", value );
 	
 	array left	=	{ 1, 2, 3, 4, 5 };
 	array right	=	{ 2, 3, 4, 5, 6 };
