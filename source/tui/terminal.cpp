@@ -107,10 +107,12 @@ auto terminal::move_cursor( const point& position ) -> result
 }
 
 auto terminal::print( const string& text ) -> void { cout << text; }
-auto terminal::print( const point& position, const string& text ) -> void
+auto terminal::print( const point& position, const string& text ) -> result
 {
-	move_cursor( position );
+	if( auto status = move_cursor( position ); not status )
+		return	status;
 	print( text );
+	return	{ };
 }
 
 auto terminal::refresh( ) -> void { cout << flush; }

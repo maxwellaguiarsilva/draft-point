@@ -97,7 +97,7 @@ public:
 	auto read_char( ) -> char;
 	auto move_cursor( const point& position ) -> result;
 	auto print( const string& text ) -> void;
-	auto print( const point& position, const string& text ) -> void;
+	auto print( const point& position, const string& text ) -> result;
 	auto refresh( ) -> void;
 	auto set_color( color color_code, bool flg_background = false ) -> void;
 	auto set_cursor( bool enable ) -> void;
