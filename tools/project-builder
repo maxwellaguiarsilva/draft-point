@@ -120,6 +120,9 @@ build_project( )
 	print_line
 }
 
+
+[[ "${1}" == "clear" ]] && rm -rf "${folders[build]}" "${folders[dist]}"
+
 build_project
 
 
