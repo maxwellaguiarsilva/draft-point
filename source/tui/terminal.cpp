@@ -85,7 +85,7 @@ auto terminal::clear_screen( bool full_reset ) -> void
 		set_text_style( text_style::reset );
 		if( auto result = set_raw_mode( false ); not result )
 			print_error( result.error( ) );
-		move_cursor( point( 0, 0 ) );
+		move_cursor( m_bounds.start );
 	}
 	print( "\033[2J" );
 }
