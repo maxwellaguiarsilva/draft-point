@@ -61,6 +61,7 @@ const terminal::error_messages_type terminal::error_messages =
 	,{ tcgetattr_failed	,"terminal: tcgetattr error" }
 	,{ tcsetattr_failed	,"terminal: tcsetattr error" }
 	,{ ioctl_failed		,"terminal: ioctl error" }
+	,{ unknown			,"terminal: unknown error" }
 };
 
 
@@ -84,7 +85,7 @@ auto terminal::clear_screen( bool full_reset ) -> void
 	{
 		set_text_style( text_style::reset );
 		if( auto result = set_raw_mode( false ); not result )
-			print_error( result.error( ) );
+			print( result.error( ) );
 		move_cursor( m_bounds.start );
 	}
 	print( "\033[2J" );
@@ -138,7 +139,7 @@ auto terminal::set_raw_mode( bool enable ) -> result
 
 auto terminal::set_text_style( text_style style ) -> void { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
 
-auto terminal::print_error( error error_code ) const noexcept -> void { cerr << error_messages.at( error_code ) << endl; }
+auto terminal::print( const error& error_code ) const noexcept -> void { cerr << get_error_message( error_code ) << endl; }
 
 
 };

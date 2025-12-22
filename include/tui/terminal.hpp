@@ -81,12 +81,11 @@ public:
 		,tcgetattr_failed
 		,tcsetattr_failed
 		,ioctl_failed
+		,unknown
 	};
 
-	using result = expected< void, error >;
-
-	using	error_messages_type = ::std::unordered_map< error, string >;
-	static const error_messages_type	error_messages;
+	using	result	=	expected< void, error >;
+	using	error_messages	=	::std::unordered_map< error, string >;
 
 
 	terminal( );
@@ -105,8 +104,11 @@ public:
 	auto set_raw_mode( bool enable ) -> result;
 	auto set_text_style( text_style style ) -> void;
 
+	auto get_error_message( const error& error_code ) const noexcept -> const string&;
+
 private:
-	auto print_error( error error_code ) const noexcept -> void;
+	static const error_messages m_error_messages;
+	auto print( const error& error_code ) const noexcept -> void
 
 	termios		m_original_termios;
 	rectangle	m_bounds;
