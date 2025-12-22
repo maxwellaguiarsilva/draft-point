@@ -50,8 +50,8 @@ auto game::run( ) -> void
 	point	label_position	=	{ 1, frame_size[1] };
 
 	point	bounds_start	=	{ 1, 1 };
-	point	bounds_end		=	frame_size - 2;
-	point	bounds_size		=	bounds_end - bounds_start;
+	point	bounds_end		=	frame_size - 1;
+	point	bounds_size		=	bounds_end - bounds_start + 1;
 
 	bool exit_loop = false;
 
@@ -76,14 +76,15 @@ auto game::run( ) -> void
 		m_player.step_move( );
 		if( not bounds_start.is_all_less_equal( position ) )
 			position += bounds_size;
-		position %= bounds_size;
+		if( not position.is_all_less_equal( bounds_end ) )
+			position = ( position - bounds_start ) % bounds_size + bounds_start;
 
 		m_terminal.clear_screen( );
 		m_player.draw( m_terminal );
 		m_terminal.print( label_position,
 				" | fps: " + to_string( m_fps.compute( ) )
-			+ 	" | width: " + to_string( frame_size[0] )
-			+ 	" | height: " + to_string( frame_size[1] )
+			+ 	" | size: " + to_string( frame_size[0] ) + " x " + to_string( frame_size[1] )
+			+ 	" | player: " + to_string( position[0] ) + " x " + to_string( position[1] )
 			+ 	" | direction: " + use_direction( m_player.get_direction( ) ).name
 			+ 	" | length: " + to_string( position.get_length( ) )
 			+ 	" | "
