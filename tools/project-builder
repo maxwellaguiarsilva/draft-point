@@ -96,10 +96,10 @@ build_binary( )
 cpp_check_project( )
 {
 	print_line
-	#	--cppcheck-build-dir="${folders[build]}" \
 	cppcheck --quiet \
 		--enable=all \
 		--suppress=missingIncludeSystem --suppress=checkersReport \
+		--cppcheck-build-dir="${folders[build]}" \
 		--check-level=exhaustive \
 		-I"${folders[include]}" \
 		--inline-suppr \
