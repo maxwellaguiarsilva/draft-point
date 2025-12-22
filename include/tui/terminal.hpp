@@ -108,7 +108,7 @@ public:
 
 private:
 	static const error_messages m_error_messages;
-	auto print( const error& error_code ) const noexcept -> void
+	auto print( const error& error_code ) const noexcept -> void;
 
 	termios		m_original_termios;
 	rectangle	m_bounds;

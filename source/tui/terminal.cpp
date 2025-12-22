@@ -55,7 +55,7 @@ using	text_style	=	::tui::terminal::text_style;
 using	enum	::tui::terminal::error;
 
 
-const terminal::error_messages_type terminal::error_messages = 
+const terminal::error_messages terminal::m_error_messages	=
 {
 	 { out_of_bounds	,"terminal: cursor position out of bounds" }
 	,{ tcgetattr_failed	,"terminal: tcgetattr error" }
@@ -68,8 +68,8 @@ const terminal::error_messages_type terminal::error_messages =
 terminal::terminal( )
 {
 	winsize m_ws;
-	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, error_messages.at( tcgetattr_failed ) );
-	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) == 0, error_messages.at( ioctl_failed ) );
+	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, get_error_message( tcgetattr_failed ) );
+	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) == 0, get_error_message( ioctl_failed ) );
 	m_bounds.start	=	{ 1, 1 };
 	m_bounds.end	=	{ m_ws.ws_col, m_ws.ws_row };
 	ensure( m_bounds.start.is_all_less_equal( m_bounds.end ), "error: invalid terminal size" );
@@ -103,7 +103,7 @@ auto terminal::move_cursor( const point& position ) -> result
 	if( not m_bounds.contains( position ) )
 		return	unexpected( out_of_bounds );
 	print( format( "\033[{};{}H", position[1], position[0] ) ); 
-	return { };
+	return	{ };
 }
 
 auto terminal::print( const string& text ) -> void { cout << text; }
@@ -129,7 +129,7 @@ auto terminal::set_raw_mode( bool enable ) -> result
 		raw.c_cc[VMIN]	=	0;	//	minimum number of characters for non-canonical read
 		raw.c_cc[VTIME]	=	0;	//	timeout in deciseconds for non-canonical read
 		if( tcsetattr( STDIN_FILENO, TCSAFLUSH, &raw ) not_eq 0 )
-			return unexpected( tcsetattr_failed );
+			return	unexpected( tcsetattr_failed );
 	}
 	else if( tcsetattr( STDIN_FILENO, TCSAFLUSH, &m_original_termios ) not_eq 0 )
 		return	unexpected( tcsetattr_failed );
@@ -139,9 +139,16 @@ auto terminal::set_raw_mode( bool enable ) -> result
 
 auto terminal::set_text_style( text_style style ) -> void { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
 
+auto terminal::get_error_message( const error& error_code ) const noexcept -> const string&
+{
+	if ( const auto it = m_error_messages.find( error_code ); it != m_error_messages.end( ) )
+		return	it->second;
+	return	m_error_messages.find( unknown )->second;
+}
+
 auto terminal::print( const error& error_code ) const noexcept -> void { cerr << get_error_message( error_code ) << endl; }
 
 
-};
+}
 
 
