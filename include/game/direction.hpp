@@ -59,30 +59,30 @@ private:
 	struct __direction { string name; point value; };
 
 public:
-	constexpr auto operator ( )( direction a_direction ) const noexcept -> const __direction&
+	constexpr auto operator ( )( const direction& a_direction ) const noexcept -> const __direction&
 	{
-		static constexpr __direction	up_d			{	"up"			,{	0	,-1	}	};
-		static constexpr __direction	down_d			{	"down"			,{	0	,1	}	};
-		static constexpr __direction	left_d			{	"left"			,{	-1	,0	}	};
-		static constexpr __direction	right_d			{	"right"			,{	1	,0	}	};
-		static constexpr __direction	up_left_d		{	"up_left"		,{	-1	,-1	}	};
-		static constexpr __direction	up_right_d		{	"up_right"		,{	1	,-1	}	};
-		static constexpr __direction	down_left_d		{	"down_left"		,{	-1	,1	}	};
-		static constexpr __direction	down_right_d	{	"down_right"	,{	1	,1	}	};
-		static constexpr __direction	none_d			{	"none"			,{	0	,0	}	};
+		static __direction	up_d			{	"up"			,{	0	,-1	}	};
+		static __direction	down_d			{	"down"			,{	0	,1	}	};
+		static __direction	left_d			{	"left"			,{	-1	,0	}	};
+		static __direction	right_d			{	"right"			,{	1	,0	}	};
+		static __direction	up_left_d		{	"up_left"		,{	-1	,-1	}	};
+		static __direction	up_right_d		{	"up_right"		,{	1	,-1	}	};
+		static __direction	down_left_d		{	"down_left"		,{	-1	,1	}	};
+		static __direction	down_right_d	{	"down_right"	,{	1	,1	}	};
+		static __direction	none_d			{	"none"			,{	0	,0	}	};
 
 		switch( a_direction )
 		{
-			case up:			return up_d;
-			case down:			return down_d;
-			case left:			return left_d;
-			case right:			return right_d;
-			case up_left:		return up_left_d;
-			case up_right:		return up_right_d;
-			case down_left:		return down_left_d;
-			case down_right:	return down_right_d;
-			case none:			[[fallthrough]];
-			default:			return none_d;
+			case	up:			return	up_d;
+			case	down:		return	down_d;
+			case	left:		return	left_d;
+			case	right:		return	right_d;
+			case	up_left:	return	up_left_d;
+			case	up_right:	return	up_right_d;
+			case	down_left:	return	down_left_d;
+			case	down_right:	return	down_right_d;
+			case	none:		[[fallthrough]];
+			default:			return	none_d;
 		}
 	}
 
