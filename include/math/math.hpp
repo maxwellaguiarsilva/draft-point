@@ -30,6 +30,7 @@
 
 #include <type_traits>
 #include <exception>
+#include <functional>
 #include <utility>
 
 
@@ -78,28 +79,19 @@ concept is_arithmetic = is_arithmetic_v< t_arithmetic >;
 
 struct __square
 {
-	template< is_arithmetic t_scalar >
-	constexpr inline auto operator () ( t_scalar value ) const noexcept { return value * value; }
+	constexpr auto operator () ( auto value ) const noexcept { return value * value; }
 };
 inline constexpr auto square = __square( );
 
 
-struct __flip
+struct __between
 {
-	template< typename t_function >
-	struct __wrapper
+	constexpr auto operator ( )( auto value, auto start, auto end ) const noexcept -> bool
 	{
-		t_function m_function;
-		template< typename t_left, typename t_right >
-		constexpr auto operator ( )( t_left&& left, t_right&& right ) const -> decltype( auto )
-		{
-			return	m_function( ::std::forward< t_right >( right ), ::std::forward< t_left >( left ) );
-		}
-	};
-	template< typename t_function >
-	constexpr auto operator ( )( t_function a_function ) const { return __wrapper< t_function >{ a_function }; }
+		return	value >= start and value <= end;
+	}
 };
-inline constexpr auto flip = __flip{ };
+inline constexpr auto between = __between{ };
 
 
 }

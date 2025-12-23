@@ -31,19 +31,22 @@
 //	sak	=	swiss_army_knife
 
 
-#include <stdexcept>
 #include <string>
-#include <sak/default_ctc_dtc.hpp>
 #include <sak/using.hpp>
-
-using	::std::runtime_error;
-using	::std::string;
+#include <sak/default_ctc_dtc.hpp>
+#include <math/math.hpp>
 
 
 namespace sak {
 
-inline constexpr auto between( const auto& value, const auto& left, const auto& right ) { return ( value >= left and value <= right ); }
+
+using	::std::string;
+using	::std::runtime_error;
+using	::math::between;
+
+
 inline constexpr auto ensure( bool expression, const string& message ) { if( not expression ) throw runtime_error( message ); }
+
 
 constexpr char delta_lower_case	=	( 'a' - 'A' );
 inline char to_lower_case( char code ) noexcept { return ( between( code, 'A', 'Z' ) ? code + delta_lower_case : code ); };
