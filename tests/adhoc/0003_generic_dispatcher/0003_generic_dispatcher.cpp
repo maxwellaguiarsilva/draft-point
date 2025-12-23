@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 #include <format>
+#include <cstdlib>
 #include <pattern/dispatcher.hpp>
 
 
@@ -80,8 +81,11 @@ void handle_result( const button_result& result ) {
 }
 
 
-int main( const int argument_count, const char* argument_values[ ] )
+auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
+	using	::std::string;
+	using	::std::vector;
+
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
 		println( "{}", value );

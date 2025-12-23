@@ -23,6 +23,9 @@
 
 
 #include <print>		//	print
+#include <string>
+#include <vector>
+#include <cstdlib>
 #include <sak/sak.hpp>	//	ensure
 #include <unistd.h>		//	stdout_fileno
 #include <sys/ioctl.h>	//	ioctl
@@ -76,8 +79,15 @@ void setup_signal_handler( )
 	ensure( sigaction( SIGWINCH, &signal_action, NULL ) not_eq -1, "erro ao registrar o manipulador de sinal sigwinch" );
 }
 
-int main( )
+auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
+	using	::std::string;
+	using	::std::vector;
+
+	const vector< string > arguments( argument_values, argument_values + argument_count );
+	for( const auto& value : arguments )
+		println( "{}", value );
+
 	::game::fps fps(10);
 
 	setup_signal_handler( );

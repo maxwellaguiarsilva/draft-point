@@ -23,6 +23,9 @@
 
 
 #include <print>		//	print
+#include <string>
+#include <vector>
+#include <cstdlib>
 #include <sak/sak.hpp>	//	ensure
 #include <unistd.h>		//	stdout_fileno, pause
 #include <sys/ioctl.h>	//	ioctl
@@ -60,8 +63,14 @@ void signal_handler( int signal_number )
 }
 
 
-int main( )
+auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
+	using	::std::string;
+	using	::std::vector;
+
+	const vector< string > arguments( argument_values, argument_values + argument_count );
+	for( const auto& value : arguments )
+		println( "{}", value );
 
 	//	registra a ação para o sinal sigwinch.
 	if( signal( SIGWINCH, signal_handler ) == SIG_ERR )

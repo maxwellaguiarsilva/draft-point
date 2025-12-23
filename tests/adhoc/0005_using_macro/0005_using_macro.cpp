@@ -25,6 +25,8 @@
 #include <sak/using.hpp>
 #include <vector>
 #include <string>
+#include <print>
+#include <cstdlib>
 #include <iostream>
 
 
@@ -47,7 +49,17 @@ void run( )
 }
 
 
-int main( )
+auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
+	using	::std::string;
+	using	::std::vector;
+	using	::std::println;
+
+	const vector< string > arguments( argument_values, argument_values + argument_count );
+	for( const auto& value : arguments )
+		println( "{}", value );
+
 	test::run( );
-}}
+
+	return	EXIT_SUCCESS;
+}};

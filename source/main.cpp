@@ -23,16 +23,25 @@
 
 
 
-#include <iostream>
+#include <print>
+#include <string>
+#include <vector>
+#include <cstdlib>
 #include <game/game.hpp>
 
 
-using	::std::exception;
-using	::std::cerr;
-
-
-int main( )
+auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
+	using	::std::string;
+	using	::std::vector;
+	using	::std::println;
+
+	const vector< string > arguments( argument_values, argument_values + argument_count );
+	for( const auto& value : arguments )
+		println( "{}", value );
+
+	using	::std::exception;
+
 	try
 	{
 		::game::game game;
@@ -40,9 +49,9 @@ int main( )
 
 	} catch( const exception& e )
 	{
-		cerr << "error: " << e.what( ) << "\n";
-		return	1;
+		println( "error: {}", e.what( ) );
+		return	EXIT_FAILURE;
 	}
 
-	return	0;
-}}
+	return	EXIT_SUCCESS;
+}};

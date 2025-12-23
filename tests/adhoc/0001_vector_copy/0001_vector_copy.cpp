@@ -28,6 +28,7 @@
 #include <print>
 #include <vector>
 #include <memory>
+#include <cstdlib>
 
 
 using	::std::print;
@@ -69,8 +70,15 @@ public:
 };
 
 
-int main( )
+auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
+	using	::std::string;
+	using	::std::vector;
+
+	const vector< string > arguments( argument_values, argument_values + argument_count );
+	for( const auto& value : arguments )
+		println( "{}", value );
+
 	const string line( 50, '-' );
 	println( "{}\n", line );
 	{
@@ -87,5 +95,5 @@ int main( )
 		list.pop_back( );
 	}
 	println( "{}\n", line );
-	return	0;
+	return	EXIT_SUCCESS;
 }};
