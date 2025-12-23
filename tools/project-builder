@@ -7,15 +7,16 @@ declare -a lib_list
 declare -a compile_warnings
 
 
-project[cpp_version]="${project[cpp_version]:-"c++23"}"
-project[file_extension]="${file_extension:-"cpp"}"
-project[file_filter]="${project[file_filter]:-"*.${project[file_extension]}"}"
-project[main_regexp]="${project[main_regexp]:-"\\b(int|auto)\\s+main\\s*\\("}"
-folders[source]="${folders[source]:-"source"}"
-folders[include]="${folders[include]:-"include"}"
-folders[tests]="${folders[tests]:-"tests"}"
-folders[build]="${folders[build]:-"build"}"
-folders[dist]="${folders[dist]:-"dist"}"
+project[cpp_version]="c++23"
+project[file_extension]="cpp"
+project[file_filter]="*.${project[file_extension]}"
+project[main_regexp]="\\b(int|auto)\\s+main\\s*\\("
+folders[source]="source"
+folders[include]="include"
+folders[tests]="tests"
+folders[build]="build"
+folders[dist]="dist"
+
 
 #	lib_list+=( "-lncurses" )
 compile_warnings+=( "-Wfatal-errors" )
