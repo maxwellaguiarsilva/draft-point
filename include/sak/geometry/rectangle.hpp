@@ -51,7 +51,7 @@ public:
 
 	constexpr auto contains( const point& a_point ) const noexcept -> bool
 	{
-		return	start.is_all_less_equal( a_point ) and a_point.is_all_less_equal( end );
+		return	start.encloses( a_point ) and a_point.encloses( end );
 	};
 };
 

@@ -75,9 +75,9 @@ auto game::run( ) -> void
 		}
 
 		m_player.step_move( );
-		if( not bounds_start.is_all_less_equal( position ) )
+		if( not bounds_start.encloses( position ) )
 			position += bounds_size;
-		if( not position.is_all_less_equal( bounds_end ) )
+		if( not position.encloses( bounds_end ) )
 			position = ( position - bounds_start ) % bounds_size + bounds_start;
 
 		m_terminal.clear_screen( );
