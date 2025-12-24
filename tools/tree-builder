@@ -31,12 +31,14 @@ class cpp:
         self.object_path = os.path.join(build_base, self.hierarchy + ".o")
         self.dependency_path = self.object_path + ".d"
 
+        self.is_test = base_folder == config["folders"]["tests"]
+
         with open(path, 'r') as f:
             content = f.read()
             self.is_main = bool(re.search(config["main_regexp"], content))
 
     def __repr__(self):
-        return (f"cpp(hierarchy='{self.hierarchy}', is_main={self.is_main}, "
+        return (f"cpp(hierarchy='{self.hierarchy}', is_main={self.is_main}, is_test={self.is_test}, "
                 f"cpp_path='{self.cpp_path}', object_path='{self.object_path}', "
                 f"dependency_path='{self.dependency_path}')")
 
