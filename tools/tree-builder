@@ -3,6 +3,7 @@
 
 import glob
 import os
+import re
 
 config    =    {
      "cpp_version": "c++23"
@@ -18,15 +19,35 @@ config    =    {
     }
 }
 
+class cpp:
+    def __init__(self, path, base_folder):
+        self.path = path
+        # Remove o prefixo da pasta base e a extensão
+        relative_path = os.path.relpath(path, base_folder)
+        self.hierarchy = os.path.splitext(relative_path)[0]
+        
+        with open(path, 'r') as f:
+            content = f.read()
+            self.is_main = bool(re.search(config["main_regexp"], content))
+
+    def __repr__(self):
+        return f"cpp(hierarchy='{self.hierarchy}', is_main={self.is_main}, path='{self.path}')"
+
 #   preencha as listas abaixo com o path dos arquivos
 #   as pastas devem ser as que estão no dict `config`
 include_list    =   glob.glob(os.path.join(config["folders"]["include"], "**/*.hpp"), recursive=True)
 source_list     =   glob.glob(os.path.join(config["folders"]["source"], "**/*.cpp"), recursive=True)
 tests_list      =   glob.glob(os.path.join(config["folders"]["tests"], "**/*.cpp"), recursive=True)
 
+# Criação da cpp_list
+cpp_list = []
+for p in source_list:
+    cpp_list.append(cpp(p, config["folders"]["source"]))
+for p in tests_list:
+    cpp_list.append(cpp(p, config["folders"]["tests"]))
+
 print(f"include_list = {include_list}")
-print(f"source_list = {source_list}")
-print(f"tests_list = {tests_list}")
+print(f"cpp_list = {cpp_list}")
 
 
 
