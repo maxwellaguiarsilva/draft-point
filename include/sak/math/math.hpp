@@ -31,11 +31,22 @@
 #include <type_traits>
 #include <exception>
 #include <functional>
+#include <algorithm>
 #include <utility>
+#include <cmath>
 
 
 namespace sak {
 namespace math {
+
+
+inline constexpr auto plus			= 	::std::plus{ };
+inline constexpr auto minus			= 	::std::minus{ };
+inline constexpr auto multiplies	= 	::std::multiplies{ };
+inline constexpr auto divides		= 	::std::divides{ };
+inline constexpr auto modulus		= 	::std::modulus{ };
+inline constexpr auto equal_to		= 	::std::equal_to{ };
+inline constexpr auto less_equal	= 	::std::less_equal{ };
 
 
 enum class error
@@ -69,13 +80,6 @@ template< typename t_arithmetic >
 concept is_arithmetic = is_arithmetic_v< t_arithmetic >;
 
 
-struct __square
-{
-	constexpr auto operator ( ) ( auto value ) const noexcept { return value * value; }
-};
-inline constexpr auto square = __square( );
-
-
 struct __between
 {
 	constexpr auto operator ( ) ( auto value, auto start, auto end ) const noexcept -> bool
@@ -86,16 +90,32 @@ struct __between
 inline constexpr auto between = __between{ };
 
 
-inline constexpr auto plus			= 	::std::plus( );
-inline constexpr auto minus			= 	::std::minus( );
-inline constexpr auto multiplies	= 	::std::multiplies( );
-inline constexpr auto divides		= 	::std::divides( );
-inline constexpr auto modulus		= 	::std::modulus( );
-inline constexpr auto equal_to		= 	::std::equal_to( );
-inline constexpr auto less_equal	= 	::std::less_equal( );
+using	::std::ranges::fold_left;
+struct __sum
+{
+	constexpr auto operator ( ) ( const auto& list ) const noexcept { return fold_left( list, 0, plus ); }
+};
+inline constexpr auto sum = __sum{ };
+
+
+struct __square
+{
+	constexpr auto operator ( ) ( auto value ) const noexcept { return value * value; }
+};
+inline constexpr auto square = __square{ };
+
+
+struct __square_root
+{
+	constexpr auto operator ( ) ( const auto& value ) const noexcept { return sqrt( value ); }
+};
+inline constexpr auto square_root = __square_root{ };
+
 
 
 } }
 
 
 #endif
+
+

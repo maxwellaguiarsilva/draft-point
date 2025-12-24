@@ -36,7 +36,6 @@
 #include <functional>
 #include <utility>
 #include <cstddef>	//	 size_t
-#include <cmath>	//	 sqrt
 #include <sak/math/math.hpp>
 #include <sak/pattern/tupled.hpp>
 
@@ -64,7 +63,7 @@ __using( ::std::ranges::
 )
 __using( ::std::views::, zip, repeat )
 __using( ::sak::math::, plus, minus, multiplies, divides, modulus )
-__using( ::sak::math::, square, equal_to, less_equal, is_arithmetic )
+__using( ::sak::math::, sum, square, square_root, equal_to, less_equal, is_arithmetic )
 //	--------------------------------------------------
 
 
@@ -133,7 +132,7 @@ public:
 	constexpr auto get_length( ) const noexcept -> t_scalar
 	{
 		using	::std::views::transform;
-		return	static_cast< t_scalar >( sqrt( fold_left( m_data | transform( square ), 0, plus ) ) );
+		return	square_root( sum( transform( m_data, square ) ) );
 	}
 
 private:
