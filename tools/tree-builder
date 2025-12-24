@@ -56,7 +56,11 @@ class hpp:
         self.hierarchy = os.path.splitext( relative_path )[0]
 
     def __repr__( self ):
-        return f"hpp( hierarchy='{self.hierarchy}', hpp_path='{self.hpp_path}' )"
+        return ( f"\nhpp("
+            f"\n     hierarchy='{self.hierarchy}'"
+            f"\n    ,hpp_path='{self.cpp_path}'"
+            f"\n)"
+        )
 
 class project:
     def __init__( self, config ):
