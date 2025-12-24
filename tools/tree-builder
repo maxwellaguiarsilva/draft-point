@@ -1,11 +1,14 @@
 #!/usr/bin/python3
 
 
+import glob
+import os
+
 config    =    {
      "cpp_version": "c++23"
     ,"file_extension": "cpp"
     ,"file_filter": "*.cpp"
-    ,"main_regexp": r"\b(int|auto)\s+main\s*\(",
+    ,"main_regexp": r"\b(int|auto)\s+main\s*\("
     ,"folders": {
          "source": "source"
         ,"include": "include"
@@ -17,9 +20,14 @@ config    =    {
 
 #   preencha as listas abaixo com o path dos arquivos
 #   as pastas devem ser as que estão no dict `config`
-include_list    =   [ ] #   todos hpp da pasta include
-source_list     =   [ ] #   todos cpp da pasta source
-tests_list      =   [ ] #   todos cpp da pasta tests
+include_list    =   glob.glob(os.path.join(config["folders"]["include"], "**/*.hpp"), recursive=True)
+source_list     =   glob.glob(os.path.join(config["folders"]["source"], "**/*.cpp"), recursive=True)
+tests_list      =   glob.glob(os.path.join(config["folders"]["tests"], "**/*.cpp"), recursive=True)
+
+print(f"include_list = {include_list}")
+print(f"source_list = {source_list}")
+print(f"tests_list = {tests_list}")
+
 
 
 
