@@ -27,9 +27,10 @@
 #ifndef header_guard_185813530
 #define header_guard_185813530
 
-#include <sak/sak.hpp>
+
 #include <tui/terminal.hpp>
-#include <geometry/point.hpp>
+#include <sak/sak.hpp>
+#include <sak/geometry/geometry.hpp>
 #include <game/direction.hpp>
 
 
@@ -37,7 +38,7 @@ namespace game {
 
 
 using	::tui::terminal;
-using	::geometry::point;
+using	::sak::geometry::point;
 using	::game::direction;
 using	enum	::game::direction;
 

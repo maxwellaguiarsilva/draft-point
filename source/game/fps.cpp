@@ -24,12 +24,13 @@
 
 
 #include <game/fps.hpp>
+#include <sak/math/math.hpp>
 
 
 namespace game {
 
 
-using	::sak::between;
+using	::sak::math::between;
 using	::sak::ensure;
 using	::std::chrono::microseconds;
 using	::std::chrono::high_resolution_clock;

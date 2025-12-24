@@ -34,7 +34,6 @@
 #include <string>
 #include <sak/using.hpp>
 #include <sak/default_ctc_dtc.hpp>
-#include <math/math.hpp>
 
 
 namespace sak {
@@ -42,15 +41,9 @@ namespace sak {
 
 using	::std::string;
 using	::std::runtime_error;
-using	::math::between;
 
 
 inline constexpr auto ensure( bool expression, const string& message ) { if( not expression ) throw runtime_error( message ); }
-
-
-constexpr char delta_lower_case	=	( 'a' - 'A' );
-inline char to_lower_case( char code ) noexcept { return ( between( code, 'A', 'Z' ) ? code + delta_lower_case : code ); };
-//	inline char to_upper_case( char code ) noexcept { return ( between( code, 'a', 'z' ) ? code - delta_lower_case : code ); };
 
 
 }

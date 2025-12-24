@@ -33,11 +33,11 @@
 #include <functional>
 #include <cstdlib>
 
-#include <pattern/tupled.hpp>
+#include <sak/pattern/tupled.hpp>
 //	--------------------------------------------------
 
 
-inline constexpr auto less_equal = ::pattern::tupled{ ::std::less_equal{} };
+inline constexpr auto less_equal = ::sak::pattern::tupled{ ::std::less_equal{} };
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   geometry/coordinate.hpp
+ * File:   sak/geometry/coordinate.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-10-16 14:02
@@ -37,16 +37,16 @@
 #include <utility>
 #include <cstddef>	//	 size_t
 #include <cmath>	//	 sqrt
-#include <math/math.hpp>
-#include <pattern/tupled.hpp>
+#include <sak/math/math.hpp>
+#include <sak/pattern/tupled.hpp>
 
 
-
+namespace sak {
 namespace geometry {
 
 
 //	--------------------------------------------------
-using	::pattern::tupled;
+using	::sak::pattern::tupled;
 //	--------------------------------------------------
 __using( ::std::
 	,array
@@ -63,18 +63,12 @@ __using( ::std::ranges::
 	,transform
 )
 __using( ::std::views::, zip, repeat )
-//	--------------------------------------------------
-__using( ::math::, plus, minus, multiplies, divides, modulus )
-__using( ::math::, square, equal_to, less_equal, is_arithmetic )
-using	::math::error::division_by_zero;
-//	--------------------------------------------------
+__using( ::sak::math::, plus, minus, multiplies, divides, modulus )
+__using( ::sak::math::, square, equal_to, less_equal, is_arithmetic, error::division_by_zero )
 //	--------------------------------------------------
 
 
-
-using	::std::true_type;
-using	::std::false_type;
-using	::std::remove_cvref_t;
+__using( ::std::, true_type, false_type, remove_cvref_t, same_as )
 template< is_arithmetic, size_t > class coordinate;
 template< typename t_coordinate >
 struct __is_coordinate : false_type { };
@@ -94,7 +88,7 @@ struct __safe_denominator {
 	template< typename t_denominator >
 	constexpr auto operator()( const t_denominator& value ) const -> void { check( value ); } 
 private:
-	using	exception = ::math::exception;
+	using	exception = ::sak::math::exception;
 	template< typename t_denominator >
 	constexpr auto check( const t_denominator& value ) const -> void
 	requires requires { value.is_safe_denominator( ); }
@@ -111,7 +105,6 @@ private:
 };
 inline constexpr auto safe_denominator = __safe_denominator{ };
 
-using	::std::same_as;
 template< typename t_denominator_checker >
 concept denominator_checker	=
 	same_as< t_denominator_checker, __unsafe_denominator >
@@ -201,7 +194,7 @@ private:
 };
 
 
-}
+} }
 
 
 #endif

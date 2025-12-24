@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   geometry/geometry.hpp
+ * File:   sak/geometry/geometry.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-11-15 18:14
@@ -27,17 +27,19 @@
 #ifndef header_guard_356592464
 #define header_guard_356592464
 
+
 #include <sak/sak.hpp>
-#include <geometry/rectangle.hpp>
+#include <sak/geometry/rectangle.hpp>
 
 
+namespace sak {
 namespace geometry {
 
 
-using	::geometry::rectangle;
+using	::sak::geometry::rectangle;
 
 
-} 
+} } 
 
 
 #endif

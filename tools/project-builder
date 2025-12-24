@@ -30,50 +30,6 @@ print_line( )
 	printf "%*s\n" "${1:-50}" " " | sed "s/ /_/g"
 }
 
-touched_by_header( )
-{
-	local header
-	local header_rel
-	local target_file
-	local inc_dir="${folders[include]%/}"
-	local touched
-	local i
-
-	[[ ! -d "${inc_dir}" ]] && return
-
-	# Pass 1: Header to Header propagation
-	for (( i=0; i<5; i++ )); do
-		touched=0
-		while read -r header; do
-			[[ -z "${header}" ]] && continue
-			header_rel="${header#${inc_dir}/}"
-			while read -r target_file; do
-				[[ -z "${target_file}" ]] && continue
-				[[ "${header}" == "${target_file}" ]] && continue
-				if [[ "${header}" -nt "${target_file}" ]]; then
-					touch "${target_file}"
-					touched=1
-				fi
-			done <<< "$( grep -lRE "^\s*#include\s*[<\"]${header_rel}[>\"]" "${inc_dir}" --include="*.hpp" 2>/dev/null )"
-		done <<< "$( find "${inc_dir}" -name "*.hpp" -type f )"
-		[[ "${touched}" -eq 0 ]] && break
-	done
-
-	# Pass 2: Header to CPP
-	while read -r header; do
-		[[ -z "${header}" ]] && continue
-		header_rel="${header#${inc_dir}/}"
-		
-		find "${folders[source]}" "${folders[tests]}" -type f -name "${project[file_filter]}" -print0 2>/dev/null | \
-			xargs -0 grep -lE "^\s*#include\s*[<\"]${header_rel}[>\"]" 2>/dev/null | \
-			while read -r target_file; do
-				[[ -z "${target_file}" ]] && continue
-				if [[ "${header}" -nt "${target_file}" ]]; then
-					touch "${target_file}"
-				fi
-			done
-	done <<< "$( find "${inc_dir}" -name "*.hpp" -type f )"
-}
 
 build_cpp_file( )
 {
@@ -158,7 +114,6 @@ cpp_check_project( )
 
 build_project( )
 {
-	touched_by_header
 	mkdir -p "${folders[build]}" "${folders[dist]}"
 	cpp_check_project || return "$?"
 	while read -r line; do build_cpp_file "$line" || return "${?}"; done <<< "$( find . -name "${project[file_filter]}" )"

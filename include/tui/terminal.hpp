@@ -29,7 +29,7 @@
 
 
 #include <sak/sak.hpp>
-#include <geometry/geometry.hpp>
+#include <sak/geometry/geometry.hpp>
 #include <termios.h>
 #include <string>
 #include <unordered_map>
@@ -39,8 +39,8 @@
 namespace tui {
 
 
-using	::geometry::point;
-using	::geometry::rectangle;
+using	::sak::geometry::point;
+using	::sak::geometry::rectangle;
 using	::std::string;
 using	::std::expected;
 using	::std::unexpected;

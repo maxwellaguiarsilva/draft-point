@@ -15,51 +15,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   0005_using_macro.cpp
+ * File:   sak/string.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-12-21 23:46:47
+ * Created on 2025-12-23 21:31
  */
 
 
-#include <sak/using.hpp>
-#include <vector>
+
+#pragma once
+#ifndef header_guard_501228163
+#define header_guard_501228163
+
+#include <sak/sak.hpp>
 #include <string>
-#include <print>
-#include <cstdlib>
-#include <iostream>
 
 
-namespace test {
+namespace sak {
 
 
-__using( ::std::, vector, string, cout, endl )
+using	::std::string;
+using	::sak::math::between;
 
 
-void run( )
-{
-	vector< string > list;
-	list.push_back( "hello" );
-	list.push_back( "world" );
-	for( const auto& item : list )
-		cout << item << endl;
-}
+constexpr char delta_lower_case	=	( 'a' - 'A' );
+inline char to_lower_case( char code ) noexcept { return ( between( code, 'A', 'Z' ) ? code + delta_lower_case : code ); };
+//	inline char to_upper_case( char code ) noexcept { return ( between( code, 'a', 'z' ) ? code - delta_lower_case : code ); };
 
 
 }
 
 
-auto main( const int argument_count, const char* argument_values[ ] ) -> int
-{{
-	using	::std::string;
-	using	::std::vector;
-	using	::std::println;
+#endif
 
-	const vector< string > arguments( argument_values, argument_values + argument_count );
-	for( const auto& value : arguments )
-		println( "{}", value );
 
-	test::run( );
-
-	return	EXIT_SUCCESS;
-}};

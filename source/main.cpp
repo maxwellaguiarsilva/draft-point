@@ -46,7 +46,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	{
 		::game::game game;
 		game.run( );
-
 	} catch( const exception& e )
 	{
 		println( "error: {}", e.what( ) );
@@ -55,3 +54,5 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 	return	EXIT_SUCCESS;
 }};
+
+

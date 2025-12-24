@@ -28,18 +28,20 @@
 #include <vector>
 #include <format>
 #include <cstdlib>
-#include <pattern/dispatcher.hpp>
+#include <sak/pattern/dispatcher.hpp>
 
 
-using	::std::string;
-using	::std::vector;
-using	::std::make_shared;
-using	::std::print;
-using	::std::println;
-using	::std::format;
-using	::std::exception;
-using	::std::runtime_error;
-using	::pattern::dispatcher;
+__using( ::std::
+	,string
+	,vector
+	,make_shared
+	,print
+	,println
+	,format
+	,exception
+	,runtime_error
+)
+using	::sak::pattern::dispatcher;
 
 
 class button_listener

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   geometry/point.hpp
+ * File:   sak/geometry/point.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-11-15 18:18
@@ -27,18 +27,20 @@
 #ifndef header_guard_323731945
 #define header_guard_323731945
 
+
 #include <sak/sak.hpp>
-#include <geometry/coordinate.hpp>
+#include <sak/geometry/coordinate.hpp>
 
 
+namespace sak {
 namespace geometry {
 
 
-using	::geometry::coordinate;
+using	::sak::geometry::coordinate;
 using	point = coordinate< int, 2 >;
 
 
-}
+} }
 
 
 #endif

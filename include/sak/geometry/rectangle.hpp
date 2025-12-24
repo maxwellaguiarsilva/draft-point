@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   geometry/rectangle.hpp
+ * File:   sak/geometry/rectangle.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-11-15 18:23
@@ -29,14 +29,15 @@
 
 
 #include <array>
-#include <geometry/point.hpp>
+#include <sak/geometry/point.hpp>
 
 
+namespace sak {
 namespace geometry {
 
 
 using	::std::array;
-using	::geometry::point;
+using	::sak::geometry::point;
 
 
 class rectangle
@@ -48,11 +49,14 @@ public:
 	point&	start	=	m_data[0];
 	point&	end		=	m_data[1];
 
-	auto contains( const point& a_point ) const noexcept -> bool;
+	constexpr auto contains( const point& a_point ) const noexcept -> bool
+	{
+		return	start.is_all_less_equal( a_point ) and a_point.is_all_less_equal( end );
+	};
 };
 
 
-} 
+} }
 
 
 #endif

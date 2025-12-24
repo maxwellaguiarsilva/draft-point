@@ -24,12 +24,13 @@
 
 
 #include <game/game.hpp>
+#include <sak/string.hpp>
 
 
 namespace game {
 
 
-using	::geometry::point;
+using	::sak::geometry::point;
 using	::std::to_string;
 using	::sak::to_lower_case;
 

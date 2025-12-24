@@ -29,13 +29,13 @@
 
 #include <sak/sak.hpp>
 #include <string>
-#include <geometry/point.hpp>
+#include <sak/geometry/point.hpp>
 
 
 namespace game {
 
 using	::std::string;
-using	::geometry::point;
+using	::sak::geometry::point;
 
 
 enum class direction

@@ -32,8 +32,8 @@
 #include <sys/ioctl.h>	//	TIOCGWINSZ
 
 
-//	legenda:
-//	terminal configuration get attribute
+//	glossary:
+//	tcgetattr	=	terminal configuration get attribute
 //	tiocgwinsz	=	terminal input output configuration get window size
 
 

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   math/math.hpp
+ * File:   sak/math/math.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-12-19 18:56
@@ -34,6 +34,7 @@
 #include <utility>
 
 
+namespace sak {
 namespace math {
 
 
@@ -94,7 +95,7 @@ struct __between
 inline constexpr auto between = __between{ };
 
 
-}
+} }
 
 
 #endif

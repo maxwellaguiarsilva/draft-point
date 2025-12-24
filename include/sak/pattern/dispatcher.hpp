@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   pattern/dispatcher.hpp
+ * File:   sak/pattern/dispatcher.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
  * Created on 2025-12-07 18:44
@@ -40,6 +40,7 @@
 #include <vector>
 
 
+namespace sak {
 namespace pattern {
 
 
@@ -138,7 +139,7 @@ private:
 };
 
 
-};
+} };
 
 
 #endif
