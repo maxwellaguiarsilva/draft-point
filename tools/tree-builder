@@ -62,6 +62,27 @@ class cpp:
         )
 
 
+class binary_builder:
+    def __init__( self, cpp ):
+        if not cpp.is_main:
+            raise ValueError( f"O arquivo {cpp.cpp_path} não contém uma função main." )
+        
+        self.cpp = cpp
+        dist_folder  = self.cpp.project.config["folders"]["dist"]
+        
+        # O binário terá apenas o nome do arquivo, sem a extensão e sem a hierarquia
+        binary_name = os.path.basename( self.cpp.cpp_path )
+        binary_name = os.path.splitext( binary_name )[0]
+        self.binary_path = os.path.join( dist_folder, binary_name )
+
+    def __repr__( self ):
+        return ( f"\nbinary_builder("
+            f"\n     hierarchy='{self.cpp.hierarchy}'"
+            f"\n    ,binary_path='{self.binary_path}'"
+            f"\n)"
+        )
+
+
 class hpp:
     def __init__( self, path, project ):
         self.project  = project
@@ -86,11 +107,14 @@ class project:
 
         self.hpp_list = [hpp( p, self ) for p in include_list]
         self.cpp_list = [cpp( p, self ) for p in source_list + tests_list]
-        self.binary_list = [c for c in self.cpp_list if c.is_main]
+        self.binary_list = [binary_builder( c ) for c in self.cpp_list if c.is_main]
 
     def build( self ):
         print( f"hpp_list = {self.hpp_list}" )
         print( f"cpp_list = {self.cpp_list}" )
+        print( f"binary_list = {self.binary_list}" )
 
 
 project( config ).build( )
+
+
