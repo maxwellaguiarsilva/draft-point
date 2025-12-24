@@ -19,6 +19,8 @@ config    =    {
     }
 }
 
+
+
 class cpp:
     def __init__( self, path, project ):
         self.project  = project
@@ -84,6 +86,7 @@ class project:
 
         self.hpp_list = [hpp( p, self ) for p in include_list]
         self.cpp_list = [cpp( p, self ) for p in source_list + tests_list]
+        self.binary_list = [c for c in self.cpp_list if c.is_main]
 
     def build( self ):
         print( f"hpp_list = {self.hpp_list}" )
