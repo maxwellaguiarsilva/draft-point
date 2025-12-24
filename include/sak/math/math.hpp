@@ -38,15 +38,6 @@ namespace sak {
 namespace math {
 
 
-inline constexpr auto plus			= 	::std::plus( );
-inline constexpr auto minus			= 	::std::minus( );
-inline constexpr auto multiplies	= 	::std::multiplies( );
-inline constexpr auto divides		= 	::std::divides( );
-inline constexpr auto modulus		= 	::std::modulus( );
-inline constexpr auto equal_to		= 	::std::equal_to( );
-inline constexpr auto less_equal	= 	::std::less_equal( );
-
-
 enum class error
 {
 	 division_by_zero
@@ -93,6 +84,15 @@ struct __between
 	}
 };
 inline constexpr auto between = __between{ };
+
+
+inline constexpr auto plus			= 	::std::plus( );
+inline constexpr auto minus			= 	::std::minus( );
+inline constexpr auto multiplies	= 	::std::multiplies( );
+inline constexpr auto divides		= 	::std::divides( );
+inline constexpr auto modulus		= 	::std::modulus( );
+inline constexpr auto equal_to		= 	::std::equal_to( );
+inline constexpr auto less_equal	= 	::std::less_equal( );
 
 
 } }
