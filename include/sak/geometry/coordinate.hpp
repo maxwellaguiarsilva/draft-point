@@ -29,12 +29,7 @@
 
 
 #include <array>
-#include <concepts>
-#include <type_traits>
-#include <algorithm>
 #include <ranges>
-#include <functional>
-#include <utility>
 #include <cstddef>	//	 size_t
 #include <sak/math/math.hpp>
 #include <sak/pattern/tupled.hpp>
@@ -49,16 +44,12 @@ using	::sak::pattern::tupled;
 //	--------------------------------------------------
 __using( ::std::
 	,array
-	,bind_back
 	,convertible_to
 	,invocable
 	,size_t
-	,sqrt
 )
 __using( ::std::ranges::
 	,all_of
-	,any_of
-	,fold_left
 	,transform
 )
 __using( ::std::views::, zip, repeat )
@@ -124,7 +115,7 @@ public:
 
 	constexpr auto encloses( const coordinate& other ) const noexcept -> bool
 	{
-		return	all_of( zip( m_data, other.m_data ), tupled( less_equal ) );
+		return	all_of( zip( *this, other ), tupled( less_equal ) );
 	}
 
 	//	truncation may occur depending on the type of scalar chosen
