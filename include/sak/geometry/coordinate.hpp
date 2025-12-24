@@ -64,7 +64,7 @@ __using( ::std::ranges::
 )
 __using( ::std::views::, zip, repeat )
 __using( ::sak::math::, plus, minus, multiplies, divides, modulus )
-__using( ::sak::math::, square, equal_to, less_equal, is_arithmetic, error::division_by_zero )
+__using( ::sak::math::, square, equal_to, less_equal, is_arithmetic )
 //	--------------------------------------------------
 
 
@@ -78,46 +78,12 @@ template< typename t_coordinate >
 concept is_coordinate = __is_coordinate< remove_cvref_t< t_coordinate > >::value;
 
 
-struct __unsafe_denominator {
-	template< typename t_denominator >
-	constexpr auto operator()( const t_denominator& ) const noexcept -> void { } 
-};
-inline constexpr auto unsafe_denominator = __unsafe_denominator{ };
-
-struct __safe_denominator {
-	template< typename t_denominator >
-	constexpr auto operator()( const t_denominator& value ) const -> void { check( value ); } 
-private:
-	using	exception = ::sak::math::exception;
-	template< typename t_denominator >
-	constexpr auto check( const t_denominator& value ) const -> void
-	requires requires { value.is_safe_denominator( ); }
-	{
-		if( not value.is_safe_denominator( ) )	
-			throw	exception{ division_by_zero };
-	}
-	template< typename t_denominator >
-	constexpr auto check( const t_denominator& value ) const -> void
-	{
-		if( value == 0 )
-			throw	exception{ division_by_zero };
-	}
-};
-inline constexpr auto safe_denominator = __safe_denominator{ };
-
-template< typename t_denominator_checker >
-concept denominator_checker	=
-	same_as< t_denominator_checker, __unsafe_denominator >
-or	same_as< t_denominator_checker, __safe_denominator >; 
-
-
-
-#define __581074281_operator( a_operator, a_operation, a_check, a_no_except ) \
-constexpr auto operator a_operator##= ( const coordinate& other ) a_no_except -> coordinate& { return apply_operation( other, a_operation, a_check ); } \
-constexpr auto operator a_operator##= ( t_scalar other          ) a_no_except -> coordinate& { return apply_operation( other, a_operation, a_check ); } \
-friend constexpr auto operator a_operator ( coordinate left, const coordinate& right ) a_no_except -> coordinate { return left a_operator##= right; } \
-friend constexpr auto operator a_operator ( coordinate left, t_scalar right          ) a_no_except -> coordinate { return left a_operator##= right; } \
-friend constexpr auto operator a_operator ( t_scalar left, const coordinate& right   ) a_no_except -> coordinate \
+#define __581074281_operator( a_operator, a_operation ) \
+constexpr auto operator a_operator##= ( const coordinate& other ) noexcept -> coordinate& { return apply_operation( other, a_operation ); } \
+constexpr auto operator a_operator##= ( t_scalar other          ) noexcept -> coordinate& { return apply_operation( other, a_operation ); } \
+friend constexpr auto operator a_operator ( coordinate left, const coordinate& right ) noexcept -> coordinate { return left a_operator##= right; } \
+friend constexpr auto operator a_operator ( coordinate left, t_scalar right          ) noexcept -> coordinate { return left a_operator##= right; } \
+friend constexpr auto operator a_operator ( t_scalar left, const coordinate& right   ) noexcept -> coordinate \
 { \
 	coordinate result{ }; \
 	result.m_data.fill( left ); \
@@ -144,11 +110,11 @@ public:
 	{ }
 	
 
-	__581074281_operator( + 	,plus		,unsafe_denominator	,noexcept	)
-	__581074281_operator( - 	,minus		,unsafe_denominator	,noexcept	)
-	__581074281_operator( * 	,multiplies	,unsafe_denominator	,noexcept	)
-	__581074281_operator( / 	,divides	,safe_denominator	,			)
-	__581074281_operator( % 	,modulus	,safe_denominator	,			)
+	__581074281_operator( + 	,plus		)
+	__581074281_operator( - 	,minus		)
+	__581074281_operator( * 	,multiplies	)
+	__581074281_operator( / 	,divides	)
+	__581074281_operator( % 	,modulus	)
 
 	__581074281_export_m_data_method( begin )
 	__581074281_export_m_data_method( end )
@@ -170,19 +136,13 @@ public:
 		return	static_cast< t_scalar >( sqrt( fold_left( m_data | transform( square ), 0, plus ) ) );
 	}
 
-	constexpr auto is_safe_denominator( ) const noexcept -> bool
-	{
-		return	not any_of( m_data, bind_back( equal_to, 0 ) );
-	}
-
 private:
 	array< t_scalar, num_dimensions >			m_data;
 
-	template< typename t_other, invocable< t_scalar, t_scalar > t_operation, denominator_checker t_checker >
+	template< typename t_other, invocable< t_scalar, t_scalar > t_operation >
 	requires	is_coordinate< t_other > or is_arithmetic< t_other >
-	constexpr auto apply_operation( t_other other, const t_operation& operation, const t_checker& checker ) -> coordinate&
+	constexpr auto apply_operation( t_other other, const t_operation& operation ) noexcept -> coordinate&
 	{
-		checker( other );
 		if constexpr( is_coordinate< t_other > )
 			transform( m_data, other, m_data.begin( ), operation );
 		else
