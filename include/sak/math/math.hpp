@@ -80,14 +80,14 @@ concept is_arithmetic = is_arithmetic_v< t_arithmetic >;
 
 struct __square
 {
-	constexpr auto operator () ( auto value ) const noexcept { return value * value; }
+	constexpr auto operator ( ) ( auto value ) const noexcept { return value * value; }
 };
 inline constexpr auto square = __square( );
 
 
 struct __between
 {
-	constexpr auto operator ( )( auto value, auto start, auto end ) const noexcept -> bool
+	constexpr auto operator ( ) ( auto value, auto start, auto end ) const noexcept -> bool
 	{
 		return	value >= start and value <= end;
 	}

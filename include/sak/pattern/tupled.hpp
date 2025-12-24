@@ -49,16 +49,21 @@ concept is_tuple = requires { typename tuple_size< remove_cvref_t< t_tuple > >::
 
 
 template< invocable t_invocable >
-struct tupled
+struct __tupled_caller
 {
     t_invocable m_function;
     template< is_tuple t_tuple >
-    inline constexpr auto operator()( t_tuple&& args ) const { return apply( m_function, ::std::forward< t_tuple >( args ) ); }
+    constexpr auto operator ( )( const t_tuple& args ) const { return apply( m_function, args ); }
 };
+struct __tupled
+{
+	template< invocable t_invocable >
+    constexpr auto operator( )( const t_invocable& invocable ) const {
+		return	__tupled_caller< t_invocable >{ invocable };
+	}
+};
+inline constexpr auto tupled = __tupled{ };
 
-
-template< typename func_type >
-tupled( func_type ) -> tupled< func_type >;
 
 
 } }

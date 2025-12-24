@@ -37,7 +37,7 @@
 //	--------------------------------------------------
 
 
-inline constexpr auto less_equal = ::sak::pattern::tupled{ ::std::less_equal{} };
+inline constexpr auto less_equal = ::sak::pattern::tupled( ::std::less_equal{} );
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
