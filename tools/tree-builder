@@ -21,17 +21,24 @@ config    =    {
 
 class cpp:
     def __init__(self, path, base_folder):
-        self.path = path
+        self.cpp_path = path
         # Remove o prefixo da pasta base e a extensão
         relative_path = os.path.relpath(path, base_folder)
         self.hierarchy = os.path.splitext(relative_path)[0]
         
+        # Caminhos no diretório de build
+        build_base = os.path.join(config["folders"]["build"], base_folder)
+        self.object_path = os.path.join(build_base, self.hierarchy + ".o")
+        self.dependency_path = self.object_path + ".d"
+
         with open(path, 'r') as f:
             content = f.read()
             self.is_main = bool(re.search(config["main_regexp"], content))
 
     def __repr__(self):
-        return f"cpp(hierarchy='{self.hierarchy}', is_main={self.is_main}, path='{self.path}')"
+        return (f"cpp(hierarchy='{self.hierarchy}', is_main={self.is_main}, "
+                f"cpp_path='{self.cpp_path}', object_path='{self.object_path}', "
+                f"dependency_path='{self.dependency_path}')")
 
 #   preencha as listas abaixo com o path dos arquivos
 #   as pastas devem ser as que estão no dict `config`
