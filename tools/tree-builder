@@ -21,27 +21,32 @@ config    =    {
 
 class cpp:
     def __init__( self, path, project ):
+        self.project  = project
         self.cpp_path = path
 
-        if path.startswith( project.config["folders"]["tests"] ):
-            base_folder = project.config["folders"]["tests"]
-            self.is_test = True
-        else:
-            base_folder = project.config["folders"]["source"]
-            self.is_test = False
+        source_folder = self.project.config["folders"]["source"]
+        tests_folder  = self.project.config["folders"]["tests"]
+        build_folder  = self.project.config["folders"]["build"]
+        main_regexp   = self.project.config["main_regexp"]
+
+        self.is_test = self.__check_if_test( )
+        base_folder  = tests_folder if self.is_test else source_folder
 
         # Remove o prefixo da pasta base e a extensão
         relative_path = os.path.relpath( path, base_folder )
         self.hierarchy = os.path.splitext( relative_path )[0]
         
         # Caminhos no diretório de build
-        build_base = os.path.join( project.config["folders"]["build"], base_folder )
+        build_base = os.path.join( build_folder, base_folder )
         self.object_path = os.path.join( build_base, self.hierarchy + ".o" )
         self.dependency_path = self.object_path + ".d"
 
         with open( path, 'r' ) as f:
             content = f.read( )
-            self.is_main = bool( re.search( project.config["main_regexp"], content ) )
+            self.is_main = bool( re.search( main_regexp, content ) )
+
+    def __check_if_test( self ):
+        return self.cpp_path.startswith( self.project.config["folders"]["tests"] )
 
     def __repr__( self ):
         return ( f"\ncpp("
@@ -56,8 +61,10 @@ class cpp:
 
 
 class hpp:
-    def __init__( self, path, base_folder ):
+    def __init__( self, path, project ):
+        self.project  = project
         self.hpp_path = path
+        base_folder   = self.project.config["folders"]["include"]
         relative_path = os.path.relpath( path, base_folder )
         self.hierarchy = os.path.splitext( relative_path )[0]
 
@@ -75,7 +82,7 @@ class project:
         source_list     =   glob.glob( os.path.join( config["folders"]["source"], "**/*.cpp" ), recursive=True )
         tests_list      =   glob.glob( os.path.join( config["folders"]["tests"], "**/*.cpp" ), recursive=True )
 
-        self.hpp_list = [hpp( p, config["folders"]["include"] ) for p in include_list]
+        self.hpp_list = [hpp( p, self ) for p in include_list]
         self.cpp_list = [cpp( p, self ) for p in source_list + tests_list]
 
     def build( self ):
@@ -84,5 +91,3 @@ class project:
 
 
 project( config ).build( )
-
-
