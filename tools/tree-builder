@@ -61,20 +61,18 @@ class hpp:
 class project:
     def __init__( self, config ):
         self.config = config
+        include_list    =   glob.glob( os.path.join( config["folders"]["include"], "**/*.hpp" ), recursive=True )
+        source_list     =   glob.glob( os.path.join( config["folders"]["source"], "**/*.cpp" ), recursive=True )
+        tests_list      =   glob.glob( os.path.join( config["folders"]["tests"], "**/*.cpp" ), recursive=True )
 
-#   preencha as listas abaixo com o path dos arquivos
-#   as pastas devem ser as que estão no dict `config`
-include_list    =   glob.glob( os.path.join( config["folders"]["include"], "**/*.hpp" ), recursive=True )
-source_list     =   glob.glob( os.path.join( config["folders"]["source"], "**/*.cpp" ), recursive=True )
-tests_list      =   glob.glob( os.path.join( config["folders"]["tests"], "**/*.cpp" ), recursive=True )
+        self.hpp_list = [hpp( p, config["folders"]["include"] ) for p in include_list]
+        self.cpp_list = [cpp( p, config["folders"]["source"] ) for p in source_list] + [cpp( p, config["folders"]["tests"] ) for p in tests_list]
 
-# Criação das listas de objetos
-hpp_list = [hpp( p, config["folders"]["include"] ) for p in include_list]
-cpp_list = [cpp( p, config["folders"]["source"] ) for p in source_list] + [cpp( p, config["folders"]["tests"] ) for p in tests_list]
-
-print( f"hpp_list = {hpp_list}" )
-print( f"cpp_list = {cpp_list}" )
+    def build( self ):
+        print( f"hpp_list = {self.hpp_list}" )
+        print( f"cpp_list = {self.cpp_list}" )
 
 
+project( config ).build( )
 
 
