@@ -58,7 +58,7 @@ class hpp:
     def __repr__( self ):
         return ( f"\nhpp("
             f"\n     hierarchy='{self.hierarchy}'"
-            f"\n    ,hpp_path='{self.cpp_path}'"
+            f"\n    ,hpp_path='{self.hpp_path}'"
             f"\n)"
         )
 
