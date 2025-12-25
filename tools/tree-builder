@@ -5,21 +5,6 @@ import glob
 import os
 import re
 
-config    =    {
-     "cpp_version": "c++23"
-    ,"file_extension": "cpp"
-    ,"file_filter": "*.cpp"
-    ,"main_regexp": r"\b(int|auto)\s+main\s*\("
-    ,"folders": {
-         "source": "source"
-        ,"include": "include"
-        ,"tests": "tests"
-        ,"build": "build"
-        ,"dist": "dist"
-    }
-}
-
-
 
 class cpp:
     def __init__( self, path, project ):
@@ -51,14 +36,17 @@ class cpp:
         return self.cpp_path.startswith( self.project.config["folders"]["tests"] )
 
     def __repr__( self ):
-        return ( f"\ncpp("
-            f"\n     hierarchy='{self.hierarchy}'"
-            f"\n    ,is_main={self.is_main}"
-            f"\n    ,is_test={self.is_test}"
-            f"\n    ,cpp_path='{self.cpp_path}'"
-            f"\n    ,object_path='{self.object_path}'"
-            f"\n    ,dependency_path='{self.object_path}'"
-            f"\n)"
+        included_keys = [f'"{k}"' for k in self.included_items.keys()] if hasattr(self, 'included_items') else []
+        included_items_str = "[" + ", ".join(included_keys) + "]"
+        return ( f"{{"
+            f"\"hierarchy\": \"{self.hierarchy}\""
+            f", \"is_main\": {str(self.is_main).lower()}"
+            f", \"is_test\": {str(self.is_test).lower()}"
+            f", \"cpp_path\": \"{self.cpp_path}\""
+            f", \"object_path\": \"{self.object_path}\""
+            f", \"dependency_path\": \"{self.dependency_path}\""
+            f", \"included_items\": {included_items_str}"
+            f"}}"
         )
 
 
@@ -76,10 +64,10 @@ class binary_builder:
         self.binary_path = os.path.join( dist_folder, binary_name )
 
     def __repr__( self ):
-        return ( f"\nbinary_builder("
-            f"\n     hierarchy='{self.cpp.hierarchy}'"
-            f"\n    ,binary_path='{self.binary_path}'"
-            f"\n)"
+        return ( f"{{"
+            f"\"hierarchy\": \"{self.cpp.hierarchy}\""
+            f", \"binary_path\": \"{self.binary_path}\""
+            f"}}"
         )
 
 
@@ -94,10 +82,13 @@ class hpp:
             self.content = f.read( )
 
     def __repr__( self ):
-        return ( f"\nhpp("
-            f"\n     hierarchy='{self.hierarchy}'"
-            f"\n    ,hpp_path='{self.hpp_path}'"
-            f"\n)"
+        included_keys = [f'"{k}"' for k in self.included_items.keys()] if hasattr(self, 'included_items') else []
+        included_items_str = "[" + ", ".join(included_keys) + "]"
+        return ( f"{{"
+            f"\"hierarchy\": \"{self.hierarchy}\""
+            f", \"hpp_path\": \"{self.hpp_path}\""
+            f", \"included_items\": {included_items_str}"
+            f"}}"
         )
 
 class project:
@@ -113,7 +104,7 @@ class project:
         self.hierarchy_items = self.__get_hierarchy_items( )
 
         self.__update_pair_info( )
-        self.__update_included_items_on_hpp( )
+        self.__update_included_items( )
 
     def __get_hierarchy_items( self ):
         hierarchy_items = {}
@@ -132,23 +123,42 @@ class project:
             if hpp_obj:
                 hpp_obj.cpp = cpp_obj
 
-    def __update_included_items_on_hpp( self ):
+    def __update_included_items( self ):
         include_pattern = re.compile( r'#include\s+["<]([^">]+)[">]' )
-        for h_obj in self.hpp_list:
-            h_obj.included_items = {}
-            matches = include_pattern.findall( h_obj.content )
+        for obj in self.hpp_list + self.cpp_list:
+            obj.included_items = {}
+            matches = include_pattern.findall( obj.content )
             for match in matches:
                 included_hierarchy = os.path.splitext( match )[0]
                 if included_hierarchy in self.hierarchy_items:
-                    h_obj.included_items[included_hierarchy] = self.hierarchy_items[included_hierarchy]
+                    obj.included_items[included_hierarchy] = self.hierarchy_items[included_hierarchy]
+
+    def __repr__( self ):
+        items = [ ]
+        for key, value in self.hierarchy_items.items( ):
+            cpp_json = str( value[ "cpp" ] ) if value[ "cpp" ] else "null"
+            hpp_json = str( value[ "hpp" ] ) if value[ "hpp" ] else "null"
+            items.append( f"\"{key}\": {{ \"cpp\": {cpp_json}, \"hpp\": {hpp_json} }}" )
+        return "{\n " + "\n ,".join( items ) + "\n}"
 
     def build( self ):
-        #   print( f"hpp_list = {self.hpp_list}" )
-        #   print( f"cpp_list = {self.cpp_list}" )
-        #   print( f"binary_list = {self.binary_list}" )
-        print( f"hierarchy_items = {self.hierarchy_items}" )
+        print( self.binary_list )
 
 
-project( config ).build( )
+current_project = project( {
+     "cpp_version": "c++23"
+    ,"file_extension": "cpp"
+    ,"file_filter": "*.cpp"
+    ,"main_regexp": r"\b(int|auto)\s+main\s*\("
+    ,"folders": {
+         "source": "source"
+        ,"include": "include"
+        ,"tests": "tests"
+        ,"build": "build"
+        ,"dist": "dist"
+    }
+} )
+print( current_project )
+current_project.build( )
 
 
