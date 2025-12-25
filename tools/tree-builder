@@ -110,9 +110,10 @@ class project:
         self.hpp_list = [hpp( p, self ) for p in include_list]
         self.cpp_list = [cpp( p, self ) for p in source_list + tests_list]
         self.binary_list = [binary_builder( c ) for c in self.cpp_list if c.is_main]
-
         self.hierarchy_items = self.__get_hierarchy_items( )
+
         self.__update_pair_info( )
+        self.__update_included_items_on_hpp( )
 
     def __get_hierarchy_items( self ):
         hierarchy_items = {}
@@ -131,15 +132,15 @@ class project:
             if hpp_obj:
                 hpp_obj.cpp = cpp_obj
 
-    def __update_include_list( self ):
-        #   implemente esss metodo
-        #   para cada hpp
-        #   inicializa hpp.include_list = [ ]
-        #   ele deve avaliar as clasulas #include dentro do arquivo
-        #   verifique se a entrada #include existe no hierarchy_items
-        #   se existe então faz append em hpp.include_list do objeto hpp que foi usado no arquivo
-        #   só os hpp por enquanto, nesse momento nada cpp
-        return  None
+    def __update_included_items_on_hpp( self ):
+        include_pattern = re.compile( r'#include\s+["<]([^">]+)[">]' )
+        for h_obj in self.hpp_list:
+            h_obj.included_items = {}
+            matches = include_pattern.findall( h_obj.content )
+            for match in matches:
+                included_hierarchy = os.path.splitext( match )[0]
+                if included_hierarchy in self.hierarchy_items:
+                    h_obj.included_items[included_hierarchy] = self.hierarchy_items[included_hierarchy]
 
     def build( self ):
         #   print( f"hpp_list = {self.hpp_list}" )
