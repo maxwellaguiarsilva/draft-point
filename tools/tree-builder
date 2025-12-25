@@ -69,11 +69,18 @@ class binary_builder:
         binary_name = os.path.basename( self.cpp.path )
         binary_name = os.path.splitext( binary_name )[0]
         self.binary_path = os.path.join( dist_folder, binary_name )
+        
+        if os.path.exists( self.binary_path ):
+            self.modified_at = datetime.datetime.fromtimestamp( os.path.getmtime( self.binary_path ) )
+        else:
+            self.modified_at = None
 
     def __repr__( self ):
+        modified_at_str = f"\"{self.modified_at.isoformat()}\"" if self.modified_at else "null"
         return ( f"{{"
             f"\"hierarchy\": \"{self.cpp.hierarchy}\""
             f", \"binary_path\": \"{self.binary_path}\""
+            f", \"modified_at\": {modified_at_str}"
             f"}}"
         )
 
