@@ -137,23 +137,15 @@ class cpp( project_file ):
         else:
             self.compiled_at = None
     
-    #   llm-prompt-target 
+
     def build( self ):
         if self.compiled_at and self.dependencies_modified_at <= self.compiled_at:
             return
-
-        cppcheck_params = self.project._get_cppcheck_params
         compile_params = self.project._get_compile_params
-        
-        cppcheck_command = f"cppcheck {cppcheck_params} {self.path}"
         compiler_command = f"{self.project.config['compiler']['executable']} {compile_params} -c {self.path} -o {self.object_path}"
 
-        print( f"cppcheck: {cppcheck_command}" )
-        if os.system( cppcheck_command ) != 0:
-            raise Exception( f"cppcheck falhou para {self.path}" )
-        
-        print( f"clang++: {compiler_command}" )
         if os.system( compiler_command ) != 0:
+            print( f"clang++: {compiler_command}" )
             raise Exception( f"clang++ falhou para {self.path}" )
 
 
@@ -385,9 +377,11 @@ class project:
             "--enable=all",
             "--suppress=missingIncludeSystem",
             "--suppress=checkersReport",
+            f"--cppcheck-build-dir={config['paths']['build']}",
             "--inline-suppr",
             f"--std={config['compiler']['standard']}",
-            "--error-exitcode=1"
+            "--error-exitcode=1",
+            "-j 8"
         ]
         
         if config['quality_control']['static_analysis']['strictness'] == "exhaustive":
@@ -399,6 +393,22 @@ class project:
             
         return " ".join( params )
 
+    def check_code( self ):
+        if not self.config['quality_control']['static_analysis']['enabled']:
+            return
+
+        cppcheck_params = self._get_cppcheck_params
+        
+        # Constrói a lista de todos os arquivos .cpp e .hpp
+        source_dir = self.config['paths']['source']
+        tests_dir = self.config['paths']['tests']
+        
+        cppcheck_command = f"cppcheck {cppcheck_params} \"{source_dir}\" \"{tests_dir}\""
+        
+        if os.system( cppcheck_command ) != 0:
+            print( f"cppcheck: {cppcheck_command}" )
+            raise Exception( "cppcheck falhou para o projeto" )
+
     def __repr__( self ):
         items = [ ]
         for key, value in self.hierarchy_items.items( ):
@@ -408,6 +418,7 @@ class project:
         return "{\n " + "\n ,".join( items ) + "\n}"
 
     def build( self ):
+        self.check_code( )
         for c in self.cpp_list:
             os.makedirs( os.path.dirname( c.object_path ), exist_ok=True )
             c.build( )
