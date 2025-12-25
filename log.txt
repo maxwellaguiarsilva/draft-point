@@ -1,0 +1,396 @@
+hierarchy_items = {
+  "game/fps": {
+    "cpp": {
+      "hierarchy": "game/fps",
+      "is_main": false,
+      "is_test": false,
+      "cpp_path": "source/game/fps.cpp",
+      "object_path": "build/source/game/fps.o",
+      "dependency_path": "build/source/game/fps.o.d",
+      "modified_at": "2025-12-24T10:22:29.353640",
+      "included_items": [
+        "game/fps",
+        "sak/math/math"
+      ]
+    },
+    "hpp": {
+      "hierarchy": "game/fps",
+      "hpp_path": "include/game/fps.hpp",
+      "modified_at": "2025-12-24T10:22:29.345640",
+      "included_items": [
+        "sak/sak"
+      ]
+    }
+  },
+  "game/game": {
+    "cpp": {
+      "hierarchy": "game/game",
+      "is_main": false,
+      "is_test": false,
+      "cpp_path": "source/game/game.cpp",
+      "object_path": "build/source/game/game.o",
+      "dependency_path": "build/source/game/game.o.d",
+      "modified_at": "2025-12-24T10:22:29.353640",
+      "included_items": [
+        "game/game",
+        "sak/string"
+      ]
+    },
+    "hpp": {
+      "hierarchy": "game/game",
+      "hpp_path": "include/game/game.hpp",
+      "modified_at": "2025-12-24T10:22:29.345640",
+      "included_items": [
+        "sak/sak",
+        "tui/terminal",
+        "game/player",
+        "game/fps"
+      ]
+    }
+  },
+  "game/player": {
+    "cpp": {
+      "hierarchy": "game/player",
+      "is_main": false,
+      "is_test": false,
+      "cpp_path": "source/game/player.cpp",
+      "object_path": "build/source/game/player.o",
+      "dependency_path": "build/source/game/player.o.d",
+      "modified_at": "2025-12-24T10:22:29.357640",
+      "included_items": [
+        "game/player",
+        "tui/terminal"
+      ]
+    },
+    "hpp": {
+      "hierarchy": "game/player",
+      "hpp_path": "include/game/player.hpp",
+      "modified_at": "2025-12-24T10:22:29.345640",
+      "included_items": [
+        "tui/terminal",
+        "sak/sak",
+        "sak/geometry/geometry",
+        "game/direction"
+      ]
+    }
+  },
+  "game/direction": {
+    "cpp": null,
+    "hpp": {
+      "hierarchy": "game/direction",
+      "hpp_path": "include/game/direction.hpp",
+      "modified_at": "2025-12-24T10:22:29.345640",
+      "included_items": [
+        "sak/sak",
+        "sak/geometry/point"
+      ]
+    }
+  },
+  "game/renderer/drawable": {
+    "cpp": {
+      "hierarchy": "game/renderer/drawable",
+      "is_main": false,
+      "is_test": false,
+      "cpp_path": "source/game/renderer/drawable.cpp",
+      "object_path": "build/source/game/renderer/drawable.o",
+      "dependency_path": "build/source/game/renderer/drawable.o.d",
+      "modified_at": "2025-12-24T10:22:29.357640",
+      "included_items": [
+        "game/renderer/drawable"
+      ]
+    },
+    "hpp": {
+      "hierarchy": "game/renderer/drawable",
+      "hpp_path": "include/game/renderer/drawable.hpp",
+      "modified_at": "2025-12-24T10:22:29.345640",
+      "included_items": [
+        "sak/sak",
+        "game/game"
+      ]
+    }
+  },
+  "game/renderer/renderer": {
+    "cpp": {
+      "hierarchy": "game/renderer/renderer",
+      "is_main": false,
+      "is_test": false,
+      "cpp_path": "source/game/renderer/renderer.cpp",
+      "object_path": "build/source/game/renderer/renderer.o",
+      "dependency_path": "build/source/game/renderer/renderer.o.d",
+      "modified_at": "2025-12-24T10:22:29.357640",
+      "included_items": [
+        "game/renderer/renderer"
+      ]
+    },
+    "hpp": {
+      "hierarchy": "game/renderer/renderer",
+      "hpp_path": "include/game/renderer/renderer.hpp",
+      "modified_at": "2025-12-24T10:22:29.345640",
+      "included_items": [
+        "sak/sak",
+        "game/game"
+      ]
+    }
+  },
+  "tui/terminal": {
+    "cpp": {
+      "hierarchy": "tui/terminal",
+      "is_main": false,
+      "is_test": false,
+      "cpp_path": "source/tui/terminal.cpp",
+      "object_path": "build/source/tui/terminal.o",
+      "dependency_path": "build/source/tui/terminal.o.d",
+      "modified_at": "2025-12-24T10:22:29.357640",
+      "included_items": [
+        "sak/sak",
+        "tui/terminal"
+      ]
+    },
+    "hpp": {
+      "hierarchy": "tui/terminal",
+      "hpp_path": "include/tui/terminal.hpp",
+      "modified_at": "2025-12-24T10:22:29.349640",
+      "included_items": [
+        "sak/sak",
+        "sak/geometry/geometry"
+      ]
+    }
+  },
+  "sak/using": {
+    "cpp": null,
+    "hpp": {
+      "hierarchy": "sak/using",
+      "hpp_path": "include/sak/using.hpp",
+      "modified_at": "2025-12-24T10:22:29.349640",
+      "included_items": []
+    }
+  },
+  "sak/sak": {
+    "cpp": null,
+    "hpp": {
+      "hierarchy": "sak/sak",
+      "hpp_path": "include/sak/sak.hpp",
+      "modified_at": "2025-12-24T10:22:29.349640",
+      "included_items": [
+        "sak/using",
+        "sak/default_ctc_dtc"
+      ]
+    }
+  },
+  "sak/default_ctc_dtc": {
+    "cpp": null,
+    "hpp": {
+      "hierarchy": "sak/default_ctc_dtc",
+      "hpp_path": "include/sak/default_ctc_dtc.hpp",
+      "modified_at": "2025-12-24T10:22:29.349640",
+      "included_items": []
+    }
+  },
+  "sak/string": {
+    "cpp": null,
+    "hpp": {
+      "hierarchy": "sak/string",
+      "hpp_path": "include/sak/string.hpp",
+      "modified_at": "2025-12-24T10:22:29.353640",
+      "included_items": [
+        "sak/sak"
+      ]
+    }
+  },
+  "sak/geometry/coordinate": {
+    "cpp": null,
+    "hpp": {
+      "hierarchy": "sak/geometry/coordinate",
+      "hpp_path": "include/sak/geometry/coordinate.hpp",
+      "modified_at": "2025-12-24T14:49:25.841634",
+      "included_items": [
+        "sak/math/math",
+        "sak/pattern/tupled"
+      ]
+    }
+  },
+  "sak/geometry/geometry": {
+    "cpp": null,
+    "hpp": {
+      "hierarchy": "sak/geometry/geometry",
+      "hpp_path": "include/sak/geometry/geometry.hpp",
+      "modified_at": "2025-12-24T10:22:29.349640",
+      "included_items": [
+        "sak/sak",
+        "sak/geometry/rectangle"
+      ]
+    }
+  },
+  "sak/geometry/point": {
+    "cpp": null,
+    "hpp": {
+      "hierarchy": "sak/geometry/point",
+      "hpp_path": "include/sak/geometry/point.hpp",
+      "modified_at": "2025-12-24T10:22:29.349640",
+      "included_items": [
+        "sak/sak",
+        "sak/geometry/coordinate"
+      ]
+    }
+  },
+  "sak/geometry/rectangle": {
+    "cpp": null,
+    "hpp": {
+      "hierarchy": "sak/geometry/rectangle",
+      "hpp_path": "include/sak/geometry/rectangle.hpp",
+      "modified_at": "2025-12-24T10:22:29.353640",
+      "included_items": [
+        "sak/geometry/point"
+      ]
+    }
+  },
+  "sak/math/math": {
+    "cpp": null,
+    "hpp": {
+      "hierarchy": "sak/math/math",
+      "hpp_path": "include/sak/math/math.hpp",
+      "modified_at": "2025-12-24T14:13:26.837635",
+      "included_items": []
+    }
+  },
+  "sak/pattern/dispatcher": {
+    "cpp": null,
+    "hpp": {
+      "hierarchy": "sak/pattern/dispatcher",
+      "hpp_path": "include/sak/pattern/dispatcher.hpp",
+      "modified_at": "2025-12-24T10:22:29.353640",
+      "included_items": [
+        "sak/sak"
+      ]
+    }
+  },
+  "sak/pattern/tupled": {
+    "cpp": null,
+    "hpp": {
+      "hierarchy": "sak/pattern/tupled",
+      "hpp_path": "include/sak/pattern/tupled.hpp",
+      "modified_at": "2025-12-24T10:22:29.353640",
+      "included_items": [
+        "sak/sak"
+      ]
+    }
+  },
+  "main": {
+    "cpp": {
+      "hierarchy": "main",
+      "is_main": true,
+      "is_test": false,
+      "cpp_path": "source/main.cpp",
+      "object_path": "build/source/main.o",
+      "dependency_path": "build/source/main.o.d",
+      "modified_at": "2025-12-24T10:22:29.357640",
+      "included_items": [
+        "game/game"
+      ]
+    },
+    "hpp": null
+  },
+  "adhoc/0001_vector_copy/0001_vector_copy": {
+    "cpp": {
+      "hierarchy": "adhoc/0001_vector_copy/0001_vector_copy",
+      "is_main": true,
+      "is_test": true,
+      "cpp_path": "tests/adhoc/0001_vector_copy/0001_vector_copy.cpp",
+      "object_path": "build/tests/adhoc/0001_vector_copy/0001_vector_copy.o",
+      "dependency_path": "build/tests/adhoc/0001_vector_copy/0001_vector_copy.o.d",
+      "modified_at": "2025-12-24T10:22:29.357640",
+      "included_items": [
+        "sak/sak"
+      ]
+    },
+    "hpp": null
+  },
+  "adhoc/0002_signal_handler/0002_atomic_flag": {
+    "cpp": {
+      "hierarchy": "adhoc/0002_signal_handler/0002_atomic_flag",
+      "is_main": true,
+      "is_test": true,
+      "cpp_path": "tests/adhoc/0002_signal_handler/0002_atomic_flag.cpp",
+      "object_path": "build/tests/adhoc/0002_signal_handler/0002_atomic_flag.o",
+      "dependency_path": "build/tests/adhoc/0002_signal_handler/0002_atomic_flag.o.d",
+      "modified_at": "2025-12-24T10:22:29.357640",
+      "included_items": [
+        "sak/sak",
+        "game/fps"
+      ]
+    },
+    "hpp": null
+  },
+  "adhoc/0002_signal_handler/0002_volatile_sig_atomic_t": {
+    "cpp": {
+      "hierarchy": "adhoc/0002_signal_handler/0002_volatile_sig_atomic_t",
+      "is_main": true,
+      "is_test": true,
+      "cpp_path": "tests/adhoc/0002_signal_handler/0002_volatile_sig_atomic_t.cpp",
+      "object_path": "build/tests/adhoc/0002_signal_handler/0002_volatile_sig_atomic_t.o",
+      "dependency_path": "build/tests/adhoc/0002_signal_handler/0002_volatile_sig_atomic_t.o.d",
+      "modified_at": "2025-12-24T10:22:29.357640",
+      "included_items": [
+        "sak/sak",
+        "game/fps"
+      ]
+    },
+    "hpp": null
+  },
+  "adhoc/0003_generic_dispatcher/0003_generic_dispatcher": {
+    "cpp": {
+      "hierarchy": "adhoc/0003_generic_dispatcher/0003_generic_dispatcher",
+      "is_main": true,
+      "is_test": true,
+      "cpp_path": "tests/adhoc/0003_generic_dispatcher/0003_generic_dispatcher.cpp",
+      "object_path": "build/tests/adhoc/0003_generic_dispatcher/0003_generic_dispatcher.o",
+      "dependency_path": "build/tests/adhoc/0003_generic_dispatcher/0003_generic_dispatcher.o.d",
+      "modified_at": "2025-12-24T10:22:29.361640",
+      "included_items": [
+        "sak/pattern/dispatcher"
+      ]
+    },
+    "hpp": null
+  },
+  "adhoc/0004_templates/0004_templates": {
+    "cpp": {
+      "hierarchy": "adhoc/0004_templates/0004_templates",
+      "is_main": true,
+      "is_test": true,
+      "cpp_path": "tests/adhoc/0004_templates/0004_templates.cpp",
+      "object_path": "build/tests/adhoc/0004_templates/0004_templates.o",
+      "dependency_path": "build/tests/adhoc/0004_templates/0004_templates.o.d",
+      "modified_at": "2025-12-24T10:22:29.361640",
+      "included_items": [
+        "sak/pattern/tupled"
+      ]
+    },
+    "hpp": null
+  }
+}
+binary_list = [
+  {
+    "hierarchy": "main",
+    "binary_path": "dist/main"
+  },
+  {
+    "hierarchy": "adhoc/0001_vector_copy/0001_vector_copy",
+    "binary_path": "dist/0001_vector_copy"
+  },
+  {
+    "hierarchy": "adhoc/0002_signal_handler/0002_atomic_flag",
+    "binary_path": "dist/0002_atomic_flag"
+  },
+  {
+    "hierarchy": "adhoc/0002_signal_handler/0002_volatile_sig_atomic_t",
+    "binary_path": "dist/0002_volatile_sig_atomic_t"
+  },
+  {
+    "hierarchy": "adhoc/0003_generic_dispatcher/0003_generic_dispatcher",
+    "binary_path": "dist/0003_generic_dispatcher"
+  },
+  {
+    "hierarchy": "adhoc/0004_templates/0004_templates",
+    "binary_path": "dist/0004_templates"
+  }
+]
