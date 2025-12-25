@@ -139,6 +139,9 @@ class cpp( project_file ):
     
     #   llm-prompt-target 
     def build( self ):
+        if self.compiled_at and self.dependencies_modified_at <= self.compiled_at:
+            return
+
         cppcheck_params = self.project._get_cppcheck_params
         compile_params = self.project._get_compile_params
         
