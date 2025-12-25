@@ -31,51 +31,51 @@ import re
 
 
 DEFAULT_CONFIG = {
-    # Informações do compilador
+    # Compiler information
     "compiler": {
-        "executable": "clang++",       # Opções: "g++", "clang++" ou caminho completo
-        "standard": "c++23",           # Exemplos: "c++17", "c++20", "c++23"
-        "use_64_bits": True,           # Abstração para -m64 (64 bits)
+        "executable": "clang++",       # Options: "g++", "clang++" or full path
+        "standard": "c++23",           # Examples: "c++17", "c++20", "c++23"
+        "use_64_bits": True,           # Abstraction for -m64 (64-bit)
     },
 
-    # Organização de pastas
+    # Folder organization
     "paths": {
-        "source": "source",            # Pasta com arquivos .cpp do projeto
-        "include": "include",          # Pasta com arquivos .hpp
-        "tests": "tests",              # Pasta com arquivos de teste .cpp
-        "build": "build",              # Pasta para objetos (.o) e dependências (.d)
-        "output": "dist",              # Pasta para os binários finais
+        "source": "source",            # Project source directory containing .cpp files
+        "include": "include",          # Project include directory containing .hpp files
+        "tests": "tests",              # Test source directory containing .cpp files
+        "build": "build",              # Build directory for object files (.o) and dependency files (.d)
+        "output": "dist",              # Output directory for the final binaries
     },
 
-    # Regras de compilação (O "como" compilar)
+    # Build rules (How to compile)
     "build_behavior": {
-        # Opções: "none" (-O0), "balanced" (-O2), "aggressive" (-O3), "debug" (-Og)
+        # Options: "none" (-O0), "balanced" (-O2), "aggressive" (-O3), "debug" (-Og)
         "optimization": "balanced",    
-        "debug_symbols": False,        # Gera símbolos para GDB (-g)
-        "generate_dependencies": True, # Gera arquivos .d (recompilação inteligente)
-        "experimental_library": True,  # Ativa -fexperimental-library
+        "debug_symbols": False,        # Generates symbols for GDB (-g)
+        "generate_dependencies": True, # Generates .d files (intelligent recompilation)
+        "experimental_library": True,  # Enables -fexperimental-library
     },
 
-    # Segurança e Qualidade (Flags de aviso e análise)
+    # Quality Control (Warning and analysis flags)
     "quality_control": {
-        # Opções: "minimal", "high" (-Wall -Wextra), "pedantic"
+        # Options: "minimal", "high" (-Wall -Wextra), "pedantic"
         "warning_level": "high",       
         "treat_warnings_as_errors": True, # -Werror
         "stop_on_first_error": True,      # -Wfatal-errors
         "static_analysis": {
             "enabled": True,
             "tool": "cppcheck",
-            "strictness": "exhaustive"    # Opções: "normal", "exhaustive"
+            "strictness": "exhaustive"    # Options: "normal", "exhaustive"
         }
     },
 
-    # Dependências externas (Sem prefixos -l ou -I)
+    # External dependencies (No -l or -I prefixes)
     "dependencies": {
-        "libraries": [],               # Exemplo: ["ncurses", "pthread"]
-        "include_dirs": []             # Caminhos extras para busca de headers
+        "libraries": [],               # Example: ["ncurses", "pthread"]
+        "include_dirs": []             # Additional paths for header search
     },
 
-    # Padrões de busca de arquivos
+    # File search patterns
     "patterns": {
         "source_extension": "cpp",
         "header_extension": "hpp",
