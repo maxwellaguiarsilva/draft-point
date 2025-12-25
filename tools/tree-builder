@@ -1,51 +1,58 @@
 #!/usr/bin/python3
 
 
+import datetime
 import glob
 import os
 import re
 
 
-class cpp:
-    def __init__( self, path, project ):
-        self.project  = project
-        self.cpp_path = path
+class project_file:
+    def __init__( self, path, project, base_folder ):
+        self.project = project
+        self.path = path
+        self.modified_at = datetime.datetime.fromtimestamp( os.path.getmtime( path ) )
 
-        source_folder = self.project.config["folders"]["source"]
-        tests_folder  = self.project.config["folders"]["tests"]
-        build_folder  = self.project.config["folders"]["build"]
-        main_regexp   = self.project.config["main_regexp"]
-
-        self.is_test = self.__check_if_test( )
-        base_folder  = tests_folder if self.is_test else source_folder
-
-        # Remove o prefixo da pasta base e a extensão
         relative_path = os.path.relpath( path, base_folder )
         self.hierarchy = os.path.splitext( relative_path )[0]
+
+        with open( path, 'r' ) as f:
+            self.content = f.read( )
+
+    def _repr_included_items( self ):
+        included_keys = [f'"{k}"' for k in self.included_items.keys()] if hasattr(self, 'included_items') else []
+        return "[" + ", ".join(included_keys) + "]"
+
+
+class cpp( project_file ):
+    def __init__( self, path, project ):
+        source_folder = project.config["folders"]["source"]
+        tests_folder  = project.config["folders"]["tests"]
+        build_folder  = project.config["folders"]["build"]
+        main_regexp   = project.config["main_regexp"]
+
+        self.is_test = path.startswith( tests_folder )
+        base_folder  = tests_folder if self.is_test else source_folder
+
+        super().__init__( path, project, base_folder )
         
         # Caminhos no diretório de build
         build_base = os.path.join( build_folder, base_folder )
         self.object_path = os.path.join( build_base, self.hierarchy + ".o" )
         self.dependency_path = self.object_path + ".d"
 
-        with open( path, 'r' ) as f:
-            self.content = f.read( )
         self.is_main = bool( re.search( main_regexp, self.content ) )
 
-    def __check_if_test( self ):
-        return self.cpp_path.startswith( self.project.config["folders"]["tests"] )
-
     def __repr__( self ):
-        included_keys = [f'"{k}"' for k in self.included_items.keys()] if hasattr(self, 'included_items') else []
-        included_items_str = "[" + ", ".join(included_keys) + "]"
         return ( f"{{"
             f"\"hierarchy\": \"{self.hierarchy}\""
             f", \"is_main\": {str(self.is_main).lower()}"
             f", \"is_test\": {str(self.is_test).lower()}"
-            f", \"cpp_path\": \"{self.cpp_path}\""
+            f", \"cpp_path\": \"{self.path}\""
             f", \"object_path\": \"{self.object_path}\""
             f", \"dependency_path\": \"{self.dependency_path}\""
-            f", \"included_items\": {included_items_str}"
+            f", \"modified_at\": \"{self.modified_at.isoformat()}\""
+            f", \"included_items\": {self._repr_included_items()}"
             f"}}"
         )
 
@@ -53,13 +60,13 @@ class cpp:
 class binary_builder:
     def __init__( self, cpp ):
         if not cpp.is_main:
-            raise ValueError( f"O arquivo {cpp.cpp_path} não contém uma função main." )
+            raise ValueError( f"O arquivo {cpp.path} não contém uma função main." )
         
         self.cpp = cpp
         dist_folder  = self.cpp.project.config["folders"]["dist"]
         
         # O binário terá apenas o nome do arquivo, sem a extensão e sem a hierarquia
-        binary_name = os.path.basename( self.cpp.cpp_path )
+        binary_name = os.path.basename( self.cpp.path )
         binary_name = os.path.splitext( binary_name )[0]
         self.binary_path = os.path.join( dist_folder, binary_name )
 
@@ -71,23 +78,17 @@ class binary_builder:
         )
 
 
-class hpp:
+class hpp( project_file ):
     def __init__( self, path, project ):
-        self.project  = project
-        self.hpp_path = path
-        base_folder   = self.project.config["folders"]["include"]
-        relative_path = os.path.relpath( path, base_folder )
-        self.hierarchy = os.path.splitext( relative_path )[0]
-        with open( path, 'r' ) as f:
-            self.content = f.read( )
+        base_folder = project.config["folders"]["include"]
+        super().__init__( path, project, base_folder )
 
     def __repr__( self ):
-        included_keys = [f'"{k}"' for k in self.included_items.keys()] if hasattr(self, 'included_items') else []
-        included_items_str = "[" + ", ".join(included_keys) + "]"
         return ( f"{{"
             f"\"hierarchy\": \"{self.hierarchy}\""
-            f", \"hpp_path\": \"{self.hpp_path}\""
-            f", \"included_items\": {included_items_str}"
+            f", \"hpp_path\": \"{self.path}\""
+            f", \"modified_at\": \"{self.modified_at.isoformat()}\""
+            f", \"included_items\": {self._repr_included_items()}"
             f"}}"
         )
 
