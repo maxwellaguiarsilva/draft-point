@@ -45,7 +45,7 @@ class cpp:
 
         with open( path, 'r' ) as f:
             self.content = f.read( )
-            self.is_main = bool( re.search( main_regexp, self.content ) )
+        self.is_main = bool( re.search( main_regexp, self.content ) )
 
     def __check_if_test( self ):
         return self.cpp_path.startswith( self.project.config["folders"]["tests"] )
@@ -90,6 +90,8 @@ class hpp:
         base_folder   = self.project.config["folders"]["include"]
         relative_path = os.path.relpath( path, base_folder )
         self.hierarchy = os.path.splitext( relative_path )[0]
+        with open( path, 'r' ) as f:
+            self.content = f.read( )
 
     def __repr__( self ):
         return ( f"\nhpp("
