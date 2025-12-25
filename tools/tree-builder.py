@@ -388,35 +388,7 @@ class project:
         print( self.binary_list )
 
 
-current_project = project( {
-    "compiler": {
-        "standard": "c++20",
-        "use_64_bits": False
-    },
-    "build_behavior": {
-        "optimization": "aggressive",
-        "debug_symbols": True,
-        "experimental_library": False
-    },
-    "quality_control": {
-        "warning_level": "pedantic",
-        "stop_on_first_error": False,
-        "static_analysis": {
-            "strictness": "normal"
-        }
-    },
-    "dependencies": {
-        "libraries": ["ncurses", "pthread"],
-        "include_dirs": ["/usr/local/include/custom"]
-    }
-} )
 print( current_project )
-
-if current_project.binary_list:
-    first_bin = current_project.binary_list[0]
-    print( f"\n--- Stress Test Parameters (Binary: {first_bin.cpp.hierarchy}) ---" )
-    print( f"Compile: {first_bin._get_compile_params()}" )
-    print( f"Link:    {first_bin._get_link_params()}" )
-    print( f"CppCheck: {first_bin._get_cppcheck_params()}" )
-
 current_project.build( )
+
+
