@@ -149,7 +149,12 @@ class cpp( project_file ):
         compiler_command = f"{self.project.config['compiler']['executable']} {compile_params} -c {self.path} -o {self.object_path}"
 
         print( f"cppcheck: {cppcheck_command}" )
+        if os.system( cppcheck_command ) != 0:
+            raise Exception( f"cppcheck falhou para {self.path}" )
+        
         print( f"clang++: {compiler_command}" )
+        if os.system( compiler_command ) != 0:
+            raise Exception( f"clang++ falhou para {self.path}" )
 
 
     def __repr__( self ):
@@ -410,11 +415,11 @@ class project:
         for b in self.binary_list:
             os.makedirs( os.path.dirname( b.binary_path ), exist_ok=True )
 
-        print( self.binary_list )
+        #   print( self.binary_list )
 
 
 current_project = project( { } )
-print( current_project )
+#   print( current_project )
 current_project.build( )
 
 
