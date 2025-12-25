@@ -43,7 +43,16 @@ class cpp( project_file ):
 
         self.is_main = bool( re.search( main_regexp, self.content ) )
 
+        if os.path.exists( self.object_path ) and os.path.exists( self.dependency_path ):
+            self.compiled_at = datetime.datetime.fromtimestamp( max( 
+                os.path.getmtime( self.object_path ), 
+                os.path.getmtime( self.dependency_path ) 
+            ) )
+        else:
+            self.compiled_at = None
+
     def __repr__( self ):
+        compiled_at_str = f"\"{self.compiled_at.isoformat()}\"" if self.compiled_at else "null"
         return ( f"{{"
             f"\"hierarchy\": \"{self.hierarchy}\""
             f", \"is_main\": {str(self.is_main).lower()}"
@@ -52,6 +61,7 @@ class cpp( project_file ):
             f", \"object_path\": \"{self.object_path}\""
             f", \"dependency_path\": \"{self.dependency_path}\""
             f", \"modified_at\": \"{self.modified_at.isoformat()}\""
+            f", \"compiled_at\": {compiled_at_str}"
             f", \"included_items\": {self._repr_included_items()}"
             f"}}"
         )
