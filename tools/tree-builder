@@ -109,11 +109,15 @@ class project:
         self.cpp_list = [cpp( p, self ) for p in source_list + tests_list]
         self.binary_list = [binary_builder( c ) for c in self.cpp_list if c.is_main]
 
-        self.hierarchy_items = {}
+        self.hierarchy_items = self.__get_hierarchy_items( )
+
+    def __get_hierarchy_items( self ):
+        hierarchy_items = {}
         for h in self.hpp_list:
-            self.hierarchy_items.setdefault( h.hierarchy, { "cpp": None, "hpp": None } )[ "hpp" ] = h
+            hierarchy_items.setdefault( h.hierarchy, { "cpp": None, "hpp": None } )[ "hpp" ] = h
         for c in self.cpp_list:
-            self.hierarchy_items.setdefault( c.hierarchy, { "cpp": None, "hpp": None } )[ "cpp" ] = c
+            hierarchy_items.setdefault( c.hierarchy, { "cpp": None, "hpp": None } )[ "cpp" ] = c
+        return hierarchy_items
 
     def build( self ):
         print( f"hpp_list = {self.hpp_list}" )
