@@ -136,6 +136,18 @@ class cpp( project_file ):
             ) )
         else:
             self.compiled_at = None
+    
+    #   llm-prompt-target 
+    def build( self ):
+        cppcheck_params = self.project._get_cppcheck_params
+        compile_params = self.project._get_compile_params
+        
+        cppcheck_command = f"cppcheck {cppcheck_params} {self.path}"
+        compiler_command = f"{self.project.config['compiler']['executable']} {compile_params} -c {self.path} -o {self.object_path}"
+
+        print( f"cppcheck: {cppcheck_command}" )
+        print( f"clang++: {compiler_command}" )
+
 
     def __repr__( self ):
         compiled_at_str = f"\"{self.compiled_at.isoformat()}\"" if self.compiled_at else "null"
@@ -174,77 +186,6 @@ class binary_builder:
 
         self.dependencies_list = []
         self._resolve_dependencies()
-
-    def _get_compile_params( self ):
-        config = self.cpp.project.config
-        params = []
-        
-        params.append( f"-std={config['compiler']['standard']}" )
-        if config['compiler']['use_64_bits']:
-            params.append( "-m64" )
-            
-        opt_map = { "none": "-O0", "balanced": "-O2", "aggressive": "-O3", "debug": "-Og" }
-        params.append( opt_map.get( config['build_behavior']['optimization'], "-O2" ) )
-        
-        if config['build_behavior']['debug_symbols']:
-            params.append( "-g" )
-        if config['build_behavior']['generate_dependencies']:
-            params.append( "-MMD -MP" )
-        if config['build_behavior']['experimental_library']:
-            params.append( "-fexperimental-library" )
-            
-        warn_map = { "minimal": ["-Wall"], "high": ["-Wall", "-Wextra"], "pedantic": ["-Wall", "-Wextra", "-Wpedantic"] }
-        params.extend( warn_map.get( config['quality_control']['warning_level'], ["-Wall", "-Wextra"] ) )
-        
-        if config['quality_control']['treat_warnings_as_errors']:
-            params.append( "-Werror" )
-        if config['quality_control']['stop_on_first_error']:
-            params.append( "-Wfatal-errors" )
-            
-        params.append( f"-I{config['paths']['include']}" )
-        for d in config['dependencies']['include_dirs']:
-            params.append( f"-I{d}" )
-            
-        return " ".join( params )
-
-    def _get_link_params( self ):
-        config = self.cpp.project.config
-        params = []
-        
-        if config['compiler']['use_64_bits']:
-            params.append( "-m64" )
-            
-        opt_map = { "none": "-O0", "balanced": "-O2", "aggressive": "-O3", "debug": "-Og" }
-        params.append( opt_map.get( config['build_behavior']['optimization'], "-O2" ) )
-
-        if config['build_behavior']['debug_symbols']:
-            params.append( "-g" )
-
-        for lib in config['dependencies']['libraries']:
-            params.append( f"-l{lib}" )
-            
-        return " ".join( params )
-
-    def _get_cppcheck_params( self ):
-        config = self.cpp.project.config
-        params = [
-            "--quiet",
-            "--enable=all",
-            "--suppress=missingIncludeSystem",
-            "--suppress=checkersReport",
-            "--inline-suppr",
-            f"--std={config['compiler']['standard']}",
-            "--error-exitcode=1"
-        ]
-        
-        if config['quality_control']['static_analysis']['strictness'] == "exhaustive":
-            params.append( "--check-level=exhaustive" )
-            
-        params.append( f"-I{config['paths']['include']}" )
-        for d in config['dependencies']['include_dirs']:
-            params.append( f"-I{d}" )
-            
-        return " ".join( params )
 
     def _resolve_dependencies( self ):
         visited = set()
@@ -376,6 +317,80 @@ class project:
                     if cpp_obj: cpp_obj.dependencies_modified_at = current_max
                     if hpp_obj: hpp_obj.dependencies_modified_at = current_max
 
+    @property
+    def _get_compile_params( self ):
+        config = self.config
+        params = []
+        
+        params.append( f"-std={config['compiler']['standard']}" )
+        if config['compiler']['use_64_bits']:
+            params.append( "-m64" )
+            
+        opt_map = { "none": "-O0", "balanced": "-O2", "aggressive": "-O3", "debug": "-Og" }
+        params.append( opt_map.get( config['build_behavior']['optimization'], "-O2" ) )
+        
+        if config['build_behavior']['debug_symbols']:
+            params.append( "-g" )
+        if config['build_behavior']['generate_dependencies']:
+            params.append( "-MMD -MP" )
+        if config['build_behavior']['experimental_library']:
+            params.append( "-fexperimental-library" )
+            
+        warn_map = { "minimal": ["-Wall"], "high": ["-Wall", "-Wextra"], "pedantic": ["-Wall", "-Wextra", "-Wpedantic"] }
+        params.extend( warn_map.get( config['quality_control']['warning_level'], ["-Wall", "-Wextra"] ) )
+        
+        if config['quality_control']['treat_warnings_as_errors']:
+            params.append( "-Werror" )
+        if config['quality_control']['stop_on_first_error']:
+            params.append( "-Wfatal-errors" )
+            
+        params.append( f"-I{config['paths']['include']}" )
+        for d in config['dependencies']['include_dirs']:
+            params.append( f"-I{d}" )
+            
+        return " ".join( params )
+
+    @property
+    def _get_link_params( self ):
+        config = self.config
+        params = []
+        
+        if config['compiler']['use_64_bits']:
+            params.append( "-m64" )
+            
+        opt_map = { "none": "-O0", "balanced": "-O2", "aggressive": "-O3", "debug": "-Og" }
+        params.append( opt_map.get( config['build_behavior']['optimization'], "-O2" ) )
+
+        if config['build_behavior']['debug_symbols']:
+            params.append( "-g" )
+
+        for lib in config['dependencies']['libraries']:
+            params.append( f"-l{lib}" )
+            
+        return " ".join( params )
+
+    @property
+    def _get_cppcheck_params( self ):
+        config = self.config
+        params = [
+            "--quiet",
+            "--enable=all",
+            "--suppress=missingIncludeSystem",
+            "--suppress=checkersReport",
+            "--inline-suppr",
+            f"--std={config['compiler']['standard']}",
+            "--error-exitcode=1"
+        ]
+        
+        if config['quality_control']['static_analysis']['strictness'] == "exhaustive":
+            params.append( "--check-level=exhaustive" )
+            
+        params.append( f"-I{config['paths']['include']}" )
+        for d in config['dependencies']['include_dirs']:
+            params.append( f"-I{d}" )
+            
+        return " ".join( params )
+
     def __repr__( self ):
         items = [ ]
         for key, value in self.hierarchy_items.items( ):
@@ -387,6 +402,7 @@ class project:
     def build( self ):
         for c in self.cpp_list:
             os.makedirs( os.path.dirname( c.object_path ), exist_ok=True )
+            c.build( )
 
         for b in self.binary_list:
             os.makedirs( os.path.dirname( b.binary_path ), exist_ok=True )
@@ -394,8 +410,9 @@ class project:
         print( self.binary_list )
 
 
-current_project = project( {} )
+current_project = project( { } )
 print( current_project )
 current_project.build( )
+
 
 
