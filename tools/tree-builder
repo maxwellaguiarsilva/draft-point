@@ -75,12 +75,44 @@ class binary_builder:
         else:
             self.modified_at = None
 
+        self.dependencies_list = []
+        self._resolve_dependencies()
+
+    def _resolve_dependencies( self ):
+        visited = set()
+        
+        def walk( hierarchy_name ):
+            if hierarchy_name in visited:
+                return
+            visited.add( hierarchy_name )
+            
+            item = self.cpp.project.hierarchy_items[ hierarchy_name ]
+            cpp_obj = item[ "cpp" ]
+            hpp_obj = item[ "hpp" ]
+            
+            if cpp_obj:
+                self.dependencies_list.append( cpp_obj )
+            
+            # Combine includes from both cpp and hpp (if they exist)
+            all_includes = set()
+            if cpp_obj:
+                all_includes.update( cpp_obj.included_items.keys() )
+            if hpp_obj:
+                all_includes.update( hpp_obj.included_items.keys() )
+                
+            for incl_hierarchy in all_includes:
+                walk( incl_hierarchy )
+
+        walk( self.cpp.hierarchy )
+
     def __repr__( self ):
         modified_at_str = f"\"{self.modified_at.isoformat()}\"" if self.modified_at else "null"
+        dependencies_json = [ f"\"{d.hierarchy}\"" for d in self.dependencies_list ]
         return ( f"{{"
             f"\"hierarchy\": \"{self.cpp.hierarchy}\""
             f", \"binary_path\": \"{self.binary_path}\""
             f", \"modified_at\": {modified_at_str}"
+            f", \"dependencies_list\": [{', '.join(dependencies_json)}]"
             f"}}"
         )
 
@@ -108,13 +140,13 @@ class project:
 
         self.hpp_list = [hpp( p, self ) for p in include_list]
         self.cpp_list = [cpp( p, self ) for p in source_list + tests_list]
+        self.hierarchy_items = self._get_hierarchy_items( )
+
+        self._update_pair_info( )
+        self._update_included_items( )
         self.binary_list = [binary_builder( c ) for c in self.cpp_list if c.is_main]
-        self.hierarchy_items = self.__get_hierarchy_items( )
 
-        self.__update_pair_info( )
-        self.__update_included_items( )
-
-    def __get_hierarchy_items( self ):
+    def _get_hierarchy_items( self ):
         hierarchy_items = {}
         for h in self.hpp_list:
             hierarchy_items.setdefault( h.hierarchy, { "cpp": None, "hpp": None } )[ "hpp" ] = h
@@ -122,7 +154,7 @@ class project:
             hierarchy_items.setdefault( c.hierarchy, { "cpp": None, "hpp": None } )[ "cpp" ] = c
         return hierarchy_items
 
-    def __update_pair_info( self ):
+    def _update_pair_info( self ):
         for item in self.hierarchy_items.values( ):
             cpp_obj = item[ "cpp" ]
             hpp_obj = item[ "hpp" ]
@@ -131,7 +163,7 @@ class project:
             if hpp_obj:
                 hpp_obj.cpp = cpp_obj
 
-    def __update_included_items( self ):
+    def _update_included_items( self ):
         include_pattern = re.compile( r'#include\s+["<]([^">]+)[">]' )
         for obj in self.hpp_list + self.cpp_list:
             obj.included_items = {}
