@@ -34,7 +34,7 @@ class project_file:
         self.project = project
         self.path = path
         self.modified_at = datetime.datetime.fromtimestamp( os.path.getmtime( path ) )
-
+        self.dependencies_modified_at = self.modified_at
         relative_path = os.path.relpath( path, base_folder )
         self.hierarchy = os.path.splitext( relative_path )[0]
 
@@ -57,7 +57,6 @@ class cpp( project_file ):
         base_folder  = tests_folder if self.is_test else source_folder
 
         super().__init__( path, project, base_folder )
-        self.dependencies_modified_at = self.modified_at
         
         # Caminhos no diretório de build
         build_base = os.path.join( build_folder, base_folder )
@@ -194,10 +193,11 @@ class project:
             hpp_obj = item[ "hpp" ]
             if cpp_obj:
                 cpp_obj.hpp = hpp_obj
-                if hpp_obj:
-                    cpp_obj.dependencies_modified_at = max( cpp_obj.dependencies_modified_at, hpp_obj.modified_at )
             if hpp_obj:
                 hpp_obj.cpp = cpp_obj
+            if cpp_obj and hpp_obj:
+                cpp_obj.dependencies_modified_at = max( cpp_obj.dependencies_modified_at, hpp_obj.modified_at )
+                hpp_obj.dependencies_modified_at = max( cpp_obj.dependencies_modified_at, hpp_obj.modified_at )
 
     def _update_included_items( self ):
         include_pattern = re.compile( r'#include\s+["<]([^">]+)[">]' )
