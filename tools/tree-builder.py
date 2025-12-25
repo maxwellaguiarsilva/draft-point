@@ -31,38 +31,51 @@ import re
 
 
 DEFAULT_CONFIG = {
+    # Informações do compilador
     "compiler": {
-        "executable": "g++",
-        "standard": "c++23",
-        "use_64_bits": True,
+        "executable": "clang++",       # Opções: "g++", "clang++" ou caminho completo
+        "standard": "c++23",           # Exemplos: "c++17", "c++20", "c++23"
+        "use_64_bits": True,           # Abstração para -m64 (64 bits)
     },
+
+    # Organização de pastas
     "paths": {
-        "source": "source",
-        "include": "include",
-        "tests": "tests",
-        "build": "build",
-        "output": "dist",
+        "source": "source",            # Pasta com arquivos .cpp do projeto
+        "include": "include",          # Pasta com arquivos .hpp
+        "tests": "tests",              # Pasta com arquivos de teste .cpp
+        "build": "build",              # Pasta para objetos (.o) e dependências (.d)
+        "output": "dist",              # Pasta para os binários finais
     },
+
+    # Regras de compilação (O "como" compilar)
     "build_behavior": {
-        "optimization": "balanced",
-        "debug_symbols": False,
-        "generate_dependencies": True,
-        "experimental_library": True,
+        # Opções: "none" (-O0), "balanced" (-O2), "aggressive" (-O3), "debug" (-Og)
+        "optimization": "balanced",    
+        "debug_symbols": False,        # Gera símbolos para GDB (-g)
+        "generate_dependencies": True, # Gera arquivos .d (recompilação inteligente)
+        "experimental_library": True,  # Ativa -fexperimental-library
     },
+
+    # Segurança e Qualidade (Flags de aviso e análise)
     "quality_control": {
-        "warning_level": "high",
-        "treat_warnings_as_errors": True,
-        "stop_on_first_error": True,
+        # Opções: "minimal", "high" (-Wall -Wextra), "pedantic"
+        "warning_level": "high",       
+        "treat_warnings_as_errors": True, # -Werror
+        "stop_on_first_error": True,      # -Wfatal-errors
         "static_analysis": {
             "enabled": True,
             "tool": "cppcheck",
-            "strictness": "exhaustive"
+            "strictness": "exhaustive"    # Opções: "normal", "exhaustive"
         }
     },
+
+    # Dependências externas (Sem prefixos -l ou -I)
     "dependencies": {
-        "libraries": [],
-        "include_dirs": []
+        "libraries": [],               # Exemplo: ["ncurses", "pthread"]
+        "include_dirs": []             # Caminhos extras para busca de headers
     },
+
+    # Padrões de busca de arquivos
     "patterns": {
         "source_extension": "cpp",
         "header_extension": "hpp",
