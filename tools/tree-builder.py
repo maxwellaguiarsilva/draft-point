@@ -340,7 +340,7 @@ class project:
                 hpp_obj.dependencies_modified_at = max( cpp_obj.dependencies_modified_at, hpp_obj.modified_at )
 
     def _update_included_items( self ):
-        include_pattern = re.compile( r'#include\s+["\\]<([^">]+)[">]' )
+        include_pattern = re.compile( r'#include\s*[<"]([^>"]+)[>"]' )
         for obj in self.hpp_list + self.cpp_list:
             obj.included_items = {}
             matches = include_pattern.findall( obj.content )
@@ -385,9 +385,16 @@ class project:
         return "{\n " + "\n ,".join( items ) + "\n}"
 
     def build( self ):
+        for c in self.cpp_list:
+            os.makedirs( os.path.dirname( c.object_path ), exist_ok=True )
+
+        for b in self.binary_list:
+            os.makedirs( os.path.dirname( b.binary_path ), exist_ok=True )
+
         print( self.binary_list )
 
 
+current_project = project( {} )
 print( current_project )
 current_project.build( )
 
