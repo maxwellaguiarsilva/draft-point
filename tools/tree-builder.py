@@ -177,6 +177,7 @@ class project:
 
         self._update_pair_info( )
         self._update_included_items( )
+        self._stabilize_dependencies( )
         self.binary_list = [binary_builder( c ) for c in self.cpp_list if c.is_main]
 
     def _get_hierarchy_items( self ):
@@ -208,6 +209,33 @@ class project:
                 included_hierarchy = os.path.splitext( match )[0]
                 if included_hierarchy in self.hierarchy_items:
                     obj.included_items[included_hierarchy] = self.hierarchy_items[included_hierarchy]
+
+    def _stabilize_dependencies( self ):
+        has_changes = True
+        while has_changes:
+            has_changes = False
+            for item in self.hierarchy_items.values( ):
+                cpp_obj = item[ "cpp" ]
+                hpp_obj = item[ "hpp" ]
+                
+                # Pega a data atual da hierarquia
+                current_max = datetime.datetime.min
+                if cpp_obj: current_max = max( current_max, cpp_obj.dependencies_modified_at )
+                if hpp_obj: current_max = max( current_max, hpp_obj.dependencies_modified_at )
+                old_max = current_max
+                
+                # Verifica dependências de ambos
+                for obj in [ o for o in [cpp_obj, hpp_obj] if o ]:
+                    for dep_item in obj.included_items.values( ):
+                        if dep_item[ "hpp" ]:
+                            current_max = max( current_max, dep_item[ "hpp" ].dependencies_modified_at )
+                        if dep_item[ "cpp" ]:
+                            current_max = max( current_max, dep_item[ "cpp" ].dependencies_modified_at )
+                
+                if current_max > old_max:
+                    has_changes = True
+                    if cpp_obj: cpp_obj.dependencies_modified_at = current_max
+                    if hpp_obj: hpp_obj.dependencies_modified_at = current_max
 
     def __repr__( self ):
         items = [ ]
