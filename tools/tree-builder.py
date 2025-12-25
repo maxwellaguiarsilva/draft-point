@@ -23,10 +23,61 @@
 #   Created on 2025-12-25 16:09:39
 
 
+import copy
 import datetime
 import glob
 import os
 import re
+
+
+DEFAULT_CONFIG = {
+    "compiler": {
+        "executable": "g++",
+        "standard": "c++23",
+        "use_64_bits": True,
+    },
+    "paths": {
+        "source": "source",
+        "include": "include",
+        "tests": "tests",
+        "build": "build",
+        "output": "dist",
+    },
+    "build_behavior": {
+        "optimization": "balanced",
+        "debug_symbols": False,
+        "generate_dependencies": True,
+        "experimental_library": True,
+    },
+    "quality_control": {
+        "warning_level": "high",
+        "treat_warnings_as_errors": True,
+        "stop_on_first_error": True,
+        "static_analysis": {
+            "enabled": True,
+            "tool": "cppcheck",
+            "strictness": "exhaustive"
+        }
+    },
+    "dependencies": {
+        "libraries": [],
+        "include_dirs": []
+    },
+    "patterns": {
+        "source_extension": "cpp",
+        "header_extension": "hpp",
+        "main_function": r"\b(int|auto)\s+main\s*\("
+    }
+}
+
+
+def deep_update( source, overrides ):
+    for key, value in overrides.items( ):
+        if isinstance( value, dict ) and key in source and isinstance( source[ key ], dict ):
+            deep_update( source[ key ], value )
+        else:
+            source[ key ] = value
+    return source
 
 
 class project_file:
@@ -48,10 +99,10 @@ class project_file:
 
 class cpp( project_file ):
     def __init__( self, path, project ):
-        source_folder = project.config["folders"]["source"]
-        tests_folder  = project.config["folders"]["tests"]
-        build_folder  = project.config["folders"]["build"]
-        main_regexp   = project.config["main_regexp"]
+        source_folder = project.config["paths"]["source"]
+        tests_folder  = project.config["paths"]["tests"]
+        build_folder  = project.config["paths"]["build"]
+        main_regexp   = project.config["patterns"]["main_function"]
 
         self.is_test = path.startswith( tests_folder )
         base_folder  = tests_folder if self.is_test else source_folder
@@ -96,7 +147,7 @@ class binary_builder:
             raise ValueError( f"O arquivo {cpp.path} não contém uma função main." )
         
         self.cpp = cpp
-        dist_folder  = self.cpp.project.config["folders"]["dist"]
+        dist_folder  = self.cpp.project.config["paths"]["output"]
         
         # O binário terá apenas o nome do arquivo, sem a extensão e sem a hierarquia
         binary_name = os.path.basename( self.cpp.path )
@@ -152,7 +203,7 @@ class binary_builder:
 
 class hpp( project_file ):
     def __init__( self, path, project ):
-        base_folder = project.config["folders"]["include"]
+        base_folder = project.config["paths"]["include"]
         super().__init__( path, project, base_folder )
 
     def __repr__( self ):
@@ -166,10 +217,14 @@ class hpp( project_file ):
 
 class project:
     def __init__( self, config ):
-        self.config = config
-        include_list    =   glob.glob( os.path.join( config["folders"]["include"], "**/*.hpp" ), recursive=True )
-        source_list     =   glob.glob( os.path.join( config["folders"]["source"], "**/*.cpp" ), recursive=True )
-        tests_list      =   glob.glob( os.path.join( config["folders"]["tests"], "**/*.cpp" ), recursive=True )
+        self.config = deep_update( copy.deepcopy( DEFAULT_CONFIG ), config )
+        
+        include_ext = self.config["patterns"]["header_extension"]
+        source_ext  = self.config["patterns"]["source_extension"]
+
+        include_list    =   glob.glob( os.path.join( self.config["paths"]["include"], f"**/*.{include_ext}" ), recursive=True )
+        source_list     =   glob.glob( os.path.join( self.config["paths"]["source"], f"**/*.{source_ext}" ), recursive=True )
+        tests_list      =   glob.glob( os.path.join( self.config["paths"]["tests"], f"**/*.{source_ext}" ), recursive=True )
 
         self.hpp_list = [hpp( p, self ) for p in include_list]
         self.cpp_list = [cpp( p, self ) for p in source_list + tests_list]
@@ -201,7 +256,7 @@ class project:
                 hpp_obj.dependencies_modified_at = max( cpp_obj.dependencies_modified_at, hpp_obj.modified_at )
 
     def _update_included_items( self ):
-        include_pattern = re.compile( r'#include\s+["<]([^">]+)[">]' )
+        include_pattern = re.compile( r'#include\s+["\\]<([^">]+)[">]' )
         for obj in self.hpp_list + self.cpp_list:
             obj.included_items = {}
             matches = include_pattern.findall( obj.content )
@@ -249,20 +304,6 @@ class project:
         print( self.binary_list )
 
 
-current_project = project( {
-     "cpp_version": "c++23"
-    ,"file_extension": "cpp"
-    ,"file_filter": "*.cpp"
-    ,"main_regexp": r"\b(int|auto)\s+main\s*\("
-    ,"folders": {
-         "source": "source"
-        ,"include": "include"
-        ,"tests": "tests"
-        ,"build": "build"
-        ,"dist": "dist"
-    }
-} )
+current_project = project( { } )
 print( current_project )
 current_project.build( )
-
-
