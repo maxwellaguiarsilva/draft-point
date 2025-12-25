@@ -44,8 +44,8 @@ class cpp:
         self.dependency_path = self.object_path + ".d"
 
         with open( path, 'r' ) as f:
-            content = f.read( )
-            self.is_main = bool( re.search( main_regexp, content ) )
+            self.content = f.read( )
+            self.is_main = bool( re.search( main_regexp, self.content ) )
 
     def __check_if_test( self ):
         return self.cpp_path.startswith( self.project.config["folders"]["tests"] )
@@ -120,7 +120,6 @@ class project:
             hierarchy_items.setdefault( c.hierarchy, { "cpp": None, "hpp": None } )[ "cpp" ] = c
         return hierarchy_items
 
-
     def __update_pair_info( self ):
         for item in self.hierarchy_items.values( ):
             cpp_obj = item[ "cpp" ]
@@ -129,6 +128,16 @@ class project:
                 cpp_obj.hpp = hpp_obj
             if hpp_obj:
                 hpp_obj.cpp = cpp_obj
+
+    def __update_include_list( self ):
+        #   implemente esss metodo
+        #   para cada hpp
+        #   inicializa hpp.include_list = [ ]
+        #   ele deve avaliar as clasulas #include dentro do arquivo
+        #   verifique se a entrada #include existe no hierarchy_items
+        #   se existe então faz append em hpp.include_list do objeto hpp que foi usado no arquivo
+        #   só os hpp por enquanto, nesse momento nada cpp
+        return  None
 
     def build( self ):
         #   print( f"hpp_list = {self.hpp_list}" )
