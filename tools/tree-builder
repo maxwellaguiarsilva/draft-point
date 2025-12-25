@@ -110,6 +110,7 @@ class project:
         self.binary_list = [binary_builder( c ) for c in self.cpp_list if c.is_main]
 
         self.hierarchy_items = self.__get_hierarchy_items( )
+        self.__update_pair_info( )
 
     def __get_hierarchy_items( self ):
         hierarchy_items = {}
@@ -119,10 +120,20 @@ class project:
             hierarchy_items.setdefault( c.hierarchy, { "cpp": None, "hpp": None } )[ "cpp" ] = c
         return hierarchy_items
 
+
+    def __update_pair_info( self ):
+        for item in self.hierarchy_items.values( ):
+            cpp_obj = item[ "cpp" ]
+            hpp_obj = item[ "hpp" ]
+            if cpp_obj:
+                cpp_obj.hpp = hpp_obj
+            if hpp_obj:
+                hpp_obj.cpp = cpp_obj
+
     def build( self ):
-        print( f"hpp_list = {self.hpp_list}" )
-        print( f"cpp_list = {self.cpp_list}" )
-        print( f"binary_list = {self.binary_list}" )
+        #   print( f"hpp_list = {self.hpp_list}" )
+        #   print( f"cpp_list = {self.cpp_list}" )
+        #   print( f"binary_list = {self.binary_list}" )
         print( f"hierarchy_items = {self.hierarchy_items}" )
 
 
