@@ -43,7 +43,7 @@ DEFAULT_CONFIG = {
         "source": "source",            # Project source directory containing .cpp files
         "include": "include",          # Project include directory containing .hpp files
         "tests": "tests",              # Test source directory containing .cpp files
-        "build": "build",              # Build directory for object files (.o) and dependency files (.d)
+        "build": "build",              # Build directory for object files (.o)
         "output": "dist",              # Output directory for the final binaries
     },
 
@@ -52,7 +52,7 @@ DEFAULT_CONFIG = {
         # Options: "none" (-O0), "balanced" (-O2), "aggressive" (-O3), "debug" (-Og)
         "optimization": "balanced",    
         "debug_symbols": False,        # Generates symbols for GDB (-g)
-        "generate_dependencies": True, # Generates .d files (intelligent recompilation)
+        "generate_dependencies": False, # Generates .d files (intelligent recompilation)
         "experimental_library": True,  # Enables -fexperimental-library
     },
 
@@ -125,15 +125,11 @@ class cpp( project_file ):
         # Caminhos no diretório de build
         build_base = os.path.join( build_folder, base_folder )
         self.object_path = os.path.join( build_base, self.hierarchy + ".o" )
-        self.dependency_path = self.object_path + ".d"
 
         self.is_main = bool( re.search( main_regexp, self.content ) )
 
-        if os.path.exists( self.object_path ) and os.path.exists( self.dependency_path ):
-            self.compiled_at = datetime.datetime.fromtimestamp( max( 
-                os.path.getmtime( self.object_path ), 
-                os.path.getmtime( self.dependency_path ) 
-            ) )
+        if os.path.exists( self.object_path ):
+            self.compiled_at = datetime.datetime.fromtimestamp( os.path.getmtime( self.object_path ) )
         else:
             self.compiled_at = None
     
@@ -141,6 +137,10 @@ class cpp( project_file ):
     def build( self ):
         if self.compiled_at and self.dependencies_modified_at <= self.compiled_at:
             return
+
+        print( "-" * 50 )
+        print( f"compilando o arquivo {self.path}" )
+
         compile_params = self.project._get_compile_params
         compiler_command = f"{self.project.config['compiler']['executable']} {compile_params} -c {self.path} -o {self.object_path}"
 
@@ -157,7 +157,6 @@ class cpp( project_file ):
             f", \"is_test\": {str(self.is_test).lower()}"
             f", \"cpp_path\": \"{self.path}\""
             f", \"object_path\": \"{self.object_path}\""
-            f", \"dependency_path\": \"{self.dependency_path}\""
             f", \"modified_at\": \"{self.modified_at.isoformat()}\""
             f", \"dependencies_modified_at\": \"{self.dependencies_modified_at.isoformat()}\""
             f", \"compiled_at\": {compiled_at_str}"
