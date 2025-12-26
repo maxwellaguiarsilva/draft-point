@@ -24,6 +24,7 @@
 
 
 import copy
+import concurrent.futures
 import datetime
 import glob
 import os
@@ -54,6 +55,7 @@ DEFAULT_CONFIG = {
         "debug_symbols": False,         # Generates symbols for GDB (-g)
         "generate_dependencies": False, # Generates .d files (intelligent recompilation)
         "experimental_library": True,   # Enables -fexperimental-library
+        "max_threads": os.cpu_count( ) or 1,
     },
 
     # Quality Control (Warning and analysis flags)
@@ -408,6 +410,31 @@ class project:
         weak_line = "-" * line_size
 
         self.check_code( )
+
+        # 1. Collect all unique CPP files to build
+        all_cpps = { }
+        for b in self.binary_list:
+            for c in b.dependencies_list:
+                all_cpps[ c.path ] = c
+
+        # 2. Ensure build directories exist
+        for c in all_cpps.values( ):
+            os.makedirs( os.path.dirname( c.object_path ), exist_ok=True )
+
+        # 3. Parallel compilation
+        max_workers = self.config[ "build_behavior" ].get( "max_threads", os.cpu_count( ) or 1 )
+        print( f"\nCompiling {len(all_cpps)} files using {max_workers} threads..." )
+        
+        with concurrent.futures.ThreadPoolExecutor( max_workers = max_workers ) as executor:
+            futures = [ executor.submit( c.build ) for c in all_cpps.values( ) ]
+            for future in concurrent.futures.as_completed( futures ):
+                try:
+                    future.result( )
+                except Exception as e:
+                    print( f"\nError during build: {e}" )
+                    raise e
+
+        # 4. Linking (sequential per binary)
         for b in self.binary_list:
             print( "\n" )
             print( strong_line )
@@ -418,9 +445,7 @@ class project:
             object_files = []
             flg_link   =   False
             for c in b.dependencies_list:
-                os.makedirs( os.path.dirname( c.object_path ), exist_ok=True )
                 object_files.append( c.object_path )
-                c.build( )
                 if c.compiled_at and ( ( not b.modified_at ) or b.modified_at < c.compiled_at ):
                     flg_link = True
             
