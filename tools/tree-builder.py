@@ -31,6 +31,13 @@ import os
 import re
 
 
+def get_cpu_count( ):
+    try:
+        return  len( os.sched_getaffinity( 0 ) )
+    except AttributeError:
+        return  os.cpu_count( ) or 1
+
+
 DEFAULT_CONFIG = {
     # Compiler information
     "compiler": {
@@ -55,7 +62,7 @@ DEFAULT_CONFIG = {
         "debug_symbols": False,         # Generates symbols for GDB (-g)
         "generate_dependencies": False, # Generates .d files (intelligent recompilation)
         "experimental_library": True,   # Enables -fexperimental-library
-        "max_threads": os.cpu_count( ) or 1,
+        "max_threads": get_cpu_count( ),
     },
 
     # Quality Control (Warning and analysis flags)
@@ -422,7 +429,7 @@ class project:
             os.makedirs( os.path.dirname( c.object_path ), exist_ok=True )
 
         # 3. Parallel compilation
-        max_workers = self.config[ "build_behavior" ].get( "max_threads", os.cpu_count( ) or 1 )
+        max_workers = self.config[ "build_behavior" ].get( "max_threads", get_cpu_count( ) )
         print( f"\nCompiling {len(all_cpps)} files using {max_workers} threads..." )
         
         with concurrent.futures.ThreadPoolExecutor( max_workers = max_workers ) as executor:
