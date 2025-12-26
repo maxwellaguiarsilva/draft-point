@@ -255,8 +255,6 @@ class project:
         self.cpp_list = [cpp( p, self ) for p in source_list + tests_list]
         self.hierarchy_items = self._get_hierarchy_items( )
 
-        self._update_pair_info( )
-        self._update_included_items( )
         self._stabilize_dependencies( )
         self.binary_list = [binary_builder( c ) for c in self.cpp_list if c.is_main]
 
@@ -276,11 +274,9 @@ class project:
                 cpp_obj.hpp = hpp_obj
             if hpp_obj:
                 hpp_obj.cpp = cpp_obj
-            if cpp_obj and hpp_obj:
-                cpp_obj.dependencies_modified_at = max( cpp_obj.dependencies_modified_at, hpp_obj.modified_at )
-                hpp_obj.dependencies_modified_at = max( cpp_obj.dependencies_modified_at, hpp_obj.modified_at )
 
     def _update_included_items( self ):
+        self._update_pair_info( )
         include_pattern = re.compile( r'#include\s*[<"]([^>"]+)[>"]' )
         for obj in self.hpp_list + self.cpp_list:
             obj.included_items = {}
@@ -291,31 +287,19 @@ class project:
                     obj.included_items[included_hierarchy] = self.hierarchy_items[included_hierarchy]
 
     def _stabilize_dependencies( self ):
+        self._update_included_items( )
         has_changes = True
         while has_changes:
             has_changes = False
-            for item in self.hierarchy_items.values( ):
-                cpp_obj = item[ "cpp" ]
-                hpp_obj = item[ "hpp" ]
-                
-                # Pega a data atual da hierarquia
-                current_max = datetime.datetime.min
-                if cpp_obj: current_max = max( current_max, cpp_obj.dependencies_modified_at )
-                if hpp_obj: current_max = max( current_max, hpp_obj.dependencies_modified_at )
+            for obj in self.hpp_list + self.cpp_list:
+                current_max = max( datetime.datetime.min, obj.dependencies_modified_at )
                 old_max = current_max
-                
-                # Verifica dependências de ambos
-                for obj in [ o for o in [cpp_obj, hpp_obj] if o ]:
-                    for dep_item in obj.included_items.values( ):
-                        if dep_item[ "hpp" ]:
-                            current_max = max( current_max, dep_item[ "hpp" ].dependencies_modified_at )
-                        if dep_item[ "cpp" ]:
-                            current_max = max( current_max, dep_item[ "cpp" ].dependencies_modified_at )
-                
+                for dep_item in obj.included_items.values( ):
+                    if dep_item[ "hpp" ]:
+                        current_max = max( current_max, dep_item[ "hpp" ].dependencies_modified_at )
                 if current_max > old_max:
                     has_changes = True
-                    if cpp_obj: cpp_obj.dependencies_modified_at = current_max
-                    if hpp_obj: hpp_obj.dependencies_modified_at = current_max
+                    obj.dependencies_modified_at = current_max
 
     @property
     def _get_compile_params( self ):
