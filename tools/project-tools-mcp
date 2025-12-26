@@ -2,6 +2,7 @@
 
 
 import sys
+import os
 import subprocess
 import datetime
 import time
@@ -73,6 +74,62 @@ def	create_class(
     message += write_template_file( file_path, "class-cpp", data )
 
     return  message
+
+
+@mcp.tool( )
+def create_test(
+         hierarchy: str
+        ,flg_adhoc: bool = False
+        ,include_list: list[ str ] = [ ]
+    ) -> str:
+    """Creates a new C++ test file.
+    If flg_adhoc is True, creates an adhoc test in tests/adhoc/NNNN_hierarchy/.
+    If flg_adhoc is False, creates a structured test in tests/path/test_path_hierarchy.cpp.
+    """
+    message = ""
+    
+    if flg_adhoc:
+        adhoc_dir = "tests/adhoc"
+        if not os.path.exists( adhoc_dir ):
+            os.makedirs( adhoc_dir, exist_ok=True )
+        
+        existing_adhocs = [ d for d in os.listdir( adhoc_dir ) if os.path.isdir( os.path.join( adhoc_dir, d ) ) ]
+        max_counter = 0
+        for d in existing_adhocs:
+            match = re.match( r"(\d+)_", d )
+            if match:
+                counter = int( match.group( 1 ) )
+                if counter > max_counter:
+                    max_counter = counter
+        
+        next_counter = max_counter + 1
+        prefix = f"{next_counter:04d}"
+        test_folder = f"{prefix}_{hierarchy}"
+        file_path = f"{adhoc_dir}/{test_folder}/{prefix}_{hierarchy}.cpp"
+        display_hierarchy = hierarchy
+    else:
+        hierarchy_list = re.split( r"[/:\\.]+", hierarchy )
+        path = "/".join( hierarchy_list[:-1] )
+        filename = "test_" + "_".join( hierarchy_list ) + ".cpp"
+        
+        if path:
+            file_path = f"tests/{path}/{filename}"
+        else:
+            file_path = f"tests/{filename}"
+        display_hierarchy = hierarchy
+
+    data = {
+         "num_year": datetime.datetime.now( ).strftime( "%Y" )
+        ,"des_full_name": get_git_config_value( "user.name" )
+        ,"des_email": get_git_config_value( "user.email" )
+        ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
+        ,"des_file_path": file_path
+        ,"hierarchy": display_hierarchy
+        ,"include_list": include_list
+    }
+
+    message += write_template_file( file_path, "test-cpp", data )
+    return message
 
 
 @mcp.tool( )
