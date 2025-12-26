@@ -127,12 +127,12 @@ class cpp( project_file ):
         self.object_path = os.path.join( build_base, self.hierarchy + ".o" )
 
         self.is_main = bool( re.search( main_regexp, self.content ) )
-
+        self.compiled_at = self._get_compiled_at( )
+ 
+    def _get_compiled_at( self ):
         if os.path.exists( self.object_path ):
-            self.compiled_at = datetime.datetime.fromtimestamp( os.path.getmtime( self.object_path ) )
-        else:
-            self.compiled_at = None
-    
+            return  datetime.datetime.fromtimestamp( os.path.getmtime( self.object_path ) )
+        return  None
 
     def build( self ):
         if self.compiled_at and self.dependencies_modified_at <= self.compiled_at:
@@ -145,6 +145,7 @@ class cpp( project_file ):
         if os.system( compiler_command ) != 0:
             print( f"clang++: {compiler_command}" )
             raise Exception( f"clang++ failed for {self.path}" )
+        self.compiled_at = self._get_compiled_at( )
 
 
     def __repr__( self ):
@@ -415,19 +416,24 @@ class project:
             os.makedirs( os.path.dirname( b.binary_path ), exist_ok=True )
             
             object_files = []
+            flg_link   =   False
             for c in b.dependencies_list:
                 os.makedirs( os.path.dirname( c.object_path ), exist_ok=True )
                 object_files.append( c.object_path )
                 c.build( )
+                if c.compiled_at and ( ( not b.modified_at ) or b.modified_at < c.compiled_at ):
+                    flg_link = True
             
-            object_files_str = " ".join( object_files )
-            linker_command = f"{self.config['compiler']['executable']} {object_files_str} {self._get_link_params} -o {b.binary_path}"
-            
-            if os.system( linker_command ) != 0:
-                print( weak_line )
-                print( f"clang++: {linker_command}" )
-                print( weak_line )
-                raise Exception( f"clang++ failed to link binary {b.binary_path}" )
+            if flg_link:
+                print( f"    [link]: {os.path.basename( b.binary_path )}" )
+                object_files_str = " ".join( object_files )
+                linker_command = f"{self.config['compiler']['executable']} {object_files_str} {self._get_link_params} -o {b.binary_path}"
+                
+                if os.system( linker_command ) != 0:
+                    print( weak_line )
+                    print( f"clang++: {linker_command}" )
+                    print( weak_line )
+                    raise Exception( f"clang++ failed to link binary {b.binary_path}" )
 
             print( strong_line )
 
