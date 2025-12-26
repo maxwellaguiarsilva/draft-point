@@ -122,7 +122,7 @@ class cpp( project_file ):
 
         super().__init__( path, project, base_folder )
         
-        # Caminhos no diretório de build
+        # Build directory paths
         build_base = os.path.join( build_folder, base_folder )
         self.object_path = os.path.join( build_base, self.hierarchy + ".o" )
 
@@ -136,17 +136,15 @@ class cpp( project_file ):
 
     def build( self ):
         if self.compiled_at and self.dependencies_modified_at <= self.compiled_at:
+            print( f"    [cached]: {self.hierarchy}" )
             return
-
-        print( "-" * 50 )
-        print( f"compilando o arquivo {self.path}" )
-
+        print( f"    [build]: {self.hierarchy}" )
         compile_params = self.project._get_compile_params
         compiler_command = f"{self.project.config['compiler']['executable']} {compile_params} -c {self.path} -o {self.object_path}"
 
         if os.system( compiler_command ) != 0:
             print( f"clang++: {compiler_command}" )
-            raise Exception( f"clang++ falhou para {self.path}" )
+            raise Exception( f"clang++ failed for {self.path}" )
 
 
     def __repr__( self ):
@@ -168,12 +166,12 @@ class cpp( project_file ):
 class binary_builder:
     def __init__( self, cpp ):
         if not cpp.is_main:
-            raise ValueError( f"O arquivo {cpp.path} não contém uma função main." )
+            raise ValueError( f"File {cpp.path} does not contain a main function." )
         
         self.cpp = cpp
         dist_folder  = self.cpp.project.config["paths"]["output"]
         
-        # O binário terá apenas o nome do arquivo, sem a extensão e sem a hierarquia
+        # The binary will only have the filename, without the extension and without the hierarchy
         binary_name = os.path.basename( self.cpp.path )
         binary_name = os.path.splitext( binary_name )[0]
         self.binary_path = os.path.join( dist_folder, binary_name )
@@ -385,7 +383,7 @@ class project:
         
         cppcheck_params = self._get_cppcheck_params
         
-        # Constrói a lista de todos os arquivos .cpp e .hpp
+        # Builds the list of all .cpp and .hpp files
         source_dir = self.config['paths']['source']
         tests_dir = self.config['paths']['tests']
         
@@ -393,7 +391,7 @@ class project:
         
         if os.system( cppcheck_command ) != 0:
             print( f"cppcheck: {cppcheck_command}" )
-            raise Exception( "cppcheck falhou para o projeto" )
+            raise Exception( "cppcheck failed for the project" )
 
     def __repr__( self ):
         items = [ ]
@@ -418,7 +416,6 @@ class project:
             
             object_files = []
             for c in b.dependencies_list:
-                print( "    " + c.hierarchy )
                 os.makedirs( os.path.dirname( c.object_path ), exist_ok=True )
                 object_files.append( c.object_path )
                 c.build( )
@@ -430,7 +427,7 @@ class project:
                 print( weak_line )
                 print( f"clang++: {linker_command}" )
                 print( weak_line )
-                raise Exception( f"clang++ falhou ao linkar o binário {b.binary_path}" )
+                raise Exception( f"clang++ failed to link binary {b.binary_path}" )
 
             print( strong_line )
 
