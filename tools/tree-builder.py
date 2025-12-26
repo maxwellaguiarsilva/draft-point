@@ -381,6 +381,9 @@ class project:
         if not self.config['quality_control']['static_analysis']['enabled']:
             return
 
+        build_dir = self.config['paths']['build']
+        os.makedirs( build_dir, exist_ok=True )
+        
         cppcheck_params = self._get_cppcheck_params
         
         # Constrói a lista de todos os arquivos .cpp e .hpp
@@ -402,15 +405,35 @@ class project:
         return "{\n " + "\n ,".join( items ) + "\n}"
 
     def build( self ):
+        line_size = 50
+        strong_line = "=" * line_size
+        weak_line = "-" * line_size
+
         self.check_code( )
-        for c in self.cpp_list:
-            os.makedirs( os.path.dirname( c.object_path ), exist_ok=True )
-            c.build( )
-
         for b in self.binary_list:
+            print( "\n" )
+            print( strong_line )
+            print( b.binary_path )
+            print( weak_line )
             os.makedirs( os.path.dirname( b.binary_path ), exist_ok=True )
+            
+            object_files = []
+            for c in b.dependencies_list:
+                print( "    " + c.hierarchy )
+                os.makedirs( os.path.dirname( c.object_path ), exist_ok=True )
+                object_files.append( c.object_path )
+                c.build( )
+            
+            object_files_str = " ".join( object_files )
+            linker_command = f"{self.config['compiler']['executable']} {object_files_str} {self._get_link_params} -o {b.binary_path}"
+            
+            if os.system( linker_command ) != 0:
+                print( weak_line )
+                print( f"clang++: {linker_command}" )
+                print( weak_line )
+                raise Exception( f"clang++ falhou ao linkar o binário {b.binary_path}" )
 
-        #   print( self.binary_list )
+            print( strong_line )
 
 
 current_project = project( { } )
