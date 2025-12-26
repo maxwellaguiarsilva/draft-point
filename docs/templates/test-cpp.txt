@@ -10,6 +10,7 @@
 {{list_close include_list}}
 //	--------------------------------------------------
 
+
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
 	using	::std::string;
@@ -17,6 +18,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	using	::std::println;
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
+	for( const auto& value : arguments )
+		println( "{}", value );
 	
 	println( "Iniciando testes para: {{hierarchy}}..." );
 
