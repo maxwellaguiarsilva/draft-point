@@ -412,9 +412,12 @@ class project:
         return "{\n " + "\n ,".join( items ) + "\n}"
 
     def build( self ):
+        start_time = datetime.datetime.now( )
         line_size = 50
         strong_line = "=" * line_size
         weak_line = "-" * line_size
+
+        print( f"Build started at: {start_time.strftime( '%Y-%m-%d %H:%M:%S' )}" )
 
         self.check_code( )
 
@@ -469,6 +472,10 @@ class project:
 
             print( strong_line )
 
+        end_time = datetime.datetime.now( )
+        elapsed_time = end_time - start_time
+        print( f"\nBuild ended at: {end_time.strftime( '%Y-%m-%d %H:%M:%S' )}" )
+        print( f"Elapsed time: {elapsed_time}" )
 
 current_project = project( { } )
 #   print( current_project )
