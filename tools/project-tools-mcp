@@ -75,6 +75,19 @@ def	create_class(
     return  message
 
 
+@mcp.tool( )
+def compile( ) -> str:
+    """Compiles the project using tree-builder.py. This command takes no arguments."""
+    try:
+        process = subprocess.run( [ "python3", "tools/tree-builder.py" ], capture_output=True, text=True )
+        if process.returncode == 0:
+            return  f"Build successful:\n{process.stdout}"
+        else:
+            return  f"Build failed:\n{process.stdout}\n{process.stderr}"
+    except Exception as e:
+        return  f"An error occurred during build: {str( e )}"
+
+
 if __name__ == "__main__":
     mcp.run()
 

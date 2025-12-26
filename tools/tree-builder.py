@@ -51,9 +51,9 @@ DEFAULT_CONFIG = {
     "build_behavior": {
         # Options: "none" (-O0), "balanced" (-O2), "aggressive" (-O3), "debug" (-Og)
         "optimization": "balanced",    
-        "debug_symbols": False,        # Generates symbols for GDB (-g)
+        "debug_symbols": False,         # Generates symbols for GDB (-g)
         "generate_dependencies": False, # Generates .d files (intelligent recompilation)
-        "experimental_library": True,  # Enables -fexperimental-library
+        "experimental_library": True,   # Enables -fexperimental-library
     },
 
     # Quality Control (Warning and analysis flags)
