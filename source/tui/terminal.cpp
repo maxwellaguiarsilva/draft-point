@@ -24,6 +24,7 @@
 //	ignore-no-comments-rule
 
 #include <sak/sak.hpp>
+#include <sak/pattern/value_or.hpp>
 #include <tui/terminal.hpp>
 #include <format>
 #include <iostream>
@@ -143,9 +144,8 @@ auto terminal::set_text_style( text_style style ) -> void { print( format( "\033
 
 auto terminal::get_error_message( const error& error_code ) const noexcept -> const string&
 {
-	if ( const auto it = m_error_messages.find( error_code ); it != m_error_messages.end( ) )
-		return	it->second;
-	return	m_error_messages.find( unknown )->second;
+	using	::sak::pattern::value_or;
+	return	value_or( m_error_messages, error_code, m_error_messages.find( unknown )->second );
 }
 
 auto terminal::print( const error& error_code ) const noexcept -> void { cerr << get_error_message( error_code ) << endl; }
