@@ -50,6 +50,7 @@ __using( ::std::
 
 
 using	::sak::ensure;
+using	::sak::pattern::value_or;
 using	::tui::point;
 using	color		=	::tui::terminal::color;
 using	text_style	=	::tui::terminal::text_style;
@@ -62,8 +63,8 @@ const terminal::error_messages terminal::m_error_messages	=
 	,{ tcgetattr_failed	,"terminal: tcgetattr error" }
 	,{ tcsetattr_failed	,"terminal: tcsetattr error" }
 	,{ ioctl_failed		,"terminal: ioctl error" }
-	,{ unknown			,"terminal: unknown error" }
 };
+const string terminal::m_unknown_error_message	=	"terminal: unknown error";
 
 
 terminal::terminal( )
@@ -144,8 +145,7 @@ auto terminal::set_text_style( text_style style ) -> void { print( format( "\033
 
 auto terminal::get_error_message( const error& error_code ) const noexcept -> const string&
 {
-	using	::sak::pattern::value_or;
-	return	value_or( m_error_messages, error_code, m_error_messages.find( unknown )->second );
+	return	value_or( m_error_messages, error_code, m_unknown_error_message ); //	"terminal: unknown error"
 }
 
 auto terminal::print( const error& error_code ) const noexcept -> void { cerr << get_error_message( error_code ) << endl; }

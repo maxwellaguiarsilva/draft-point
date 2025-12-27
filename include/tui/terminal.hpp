@@ -108,6 +108,7 @@ public:
 
 private:
 	static const error_messages m_error_messages;
+	static const string			m_unknown_error_message;
 	auto print( const error& error_code ) const noexcept -> void;
 
 	termios		m_original_termios;
