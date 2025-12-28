@@ -38,23 +38,23 @@ using	::std::print;
 using	::sak::ensure;
 
 
-//	precisa ser `volatile` para ser `signal_thread_safe`
+//	needs to be `volatile` to be `signal_thread_safe`
 volatile sig_atomic_t flg_window_changed = 0;
 
 /**
- * @brief Obtém e imprime o tamanho atual do terminal (linhas e colunas).
+ * @brief Gets and prints the current terminal size (rows and columns).
  */
 void print_terminal_size( )
 {
 	struct winsize window_size;
-	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) not_eq -1, "erro no get_win_size" );
+	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) not_eq -1, "error on get_win_size" );
 
-	println( "Tamanho do terminal: {} por {}", window_size.ws_col, window_size.ws_row );
+	println( "Terminal size: {} by {}", window_size.ws_col, window_size.ws_row );
 }
 
 /**
- * @brief Manipulador de sinal (Signal Handler) para SIGWINCH.
- * @param signal_number O número do sinal recebido (deve ser SIGWINCH).
+ * @brief Signal Handler for SIGWINCH.
+ * @param signal_number The received signal number (should be SIGWINCH).
  */
 void signal_window_change_handler( int signal_number ) {
 	if( signal_number == SIGWINCH )
@@ -62,21 +62,21 @@ void signal_window_change_handler( int signal_number ) {
 }
 
 /**
- * @brief Configura o manipulador para o sinal SIGWINCH.
+ * @brief Configures the handler for the SIGWINCH signal.
  */
 void setup_signal_handler( )
 {
 	struct sigaction signal_action;
 
-	//	atribuição a função a ser chamada
+	//	assign the function to be called
 	signal_action.sa_handler = signal_window_change_handler;
-	//	reinicia quaisquer flags que possam ser definidas
+	//	resets any flags that may be set
 	sigemptyset(&signal_action.sa_mask);
-	//	flags: sa_restart reinicia chamadas de sistema interrompidas.
+	//	flags: sa_restart restarts interrupted system calls.
 	signal_action.sa_flags = SA_RESTART;
 
-	//	registra a ação para o sinal sigwinch.
-	ensure( sigaction( SIGWINCH, &signal_action, NULL ) not_eq -1, "erro ao registrar o manipulador de sinal sigwinch" );
+	//	register the action for the sigwinch signal.
+	ensure( sigaction( SIGWINCH, &signal_action, NULL ) not_eq -1, "error registering sigwinch signal handler" );
 }
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
@@ -92,10 +92,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 	setup_signal_handler( );
 
-	println( "redimensione a janela do terminal: pressione ctrl+c para sair" );
+	println( "resize the terminal window: press ctrl+c to exit" );
 	print_terminal_size( );
 
-	// loop principal do programa
+	// main program loop
 	while( true )
 	{
 		if( flg_window_changed )

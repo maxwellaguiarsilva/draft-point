@@ -50,9 +50,9 @@ atomic_flag flg_window_changed;
 void print_terminal_size( )
 {
 	struct winsize window_size;
-	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) not_eq -1, "erro no get_win_size" );
+	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) not_eq -1, "error on get_win_size" );
 
-	println( "Tamanho do terminal: {} por {}", window_size.ws_col, window_size.ws_row );
+	println( "Terminal size: {} by {}", window_size.ws_col, window_size.ws_row );
 }
 
 
@@ -72,11 +72,11 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	for( const auto& value : arguments )
 		println( "{}", value );
 
-	//	registra a ação para o sinal sigwinch.
+	//	register the action for the sigwinch signal.
 	if( signal( SIGWINCH, signal_handler ) == SIG_ERR )
-		return	println( "erro ao registrar o manipulador de sinal sigwinch" ), EXIT_FAILURE;
+		return	println( "error registering sigwinch signal handler" ), EXIT_FAILURE;
 	
-	println( "redimensione a janela do terminal: pressione ctrl+c para sair" );
+	println( "resize the terminal window: press ctrl+c to exit" );
 	print_terminal_size( );
 	
 	jthread worker( []( stop_token stoken ) {

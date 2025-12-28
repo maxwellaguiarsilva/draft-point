@@ -43,15 +43,15 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	for( const auto& value : arguments )
 		println( "{}", value );
 	
-	println( "Iniciando testes para: perfect_forwarding..." );
+	println( "Starting tests for: perfect_forwarding..." );
 
-	auto target = []( int& ) { println( "Recebido: Lvalue reference" ); };
-	auto target_rview = []( int&& ) { println( "Recebido: Rvalue reference" ); };
+	auto target = []( int& ) { println( "Received: Lvalue reference" ); };
+	auto target_rview = []( int&& ) { println( "Received: Rvalue reference" ); };
 
-	// Para demonstrar perfect forwarding precisamos de um template ou auto&& em um contexto de dedução
+	// To demonstrate perfect forwarding we need a template or auto&& in a deduction context
 	auto wrapper = [&]( auto&& argument ) {
-		// Se passarmos para target diretamente, ele sempre verá como Lvalue (pois 'argument' tem nome)
-		// Por isso usamos ::std::forward
+		// If we pass to target directly, it will always see it as Lvalue (since 'argument' has a name)
+		// That's why we use ::std::forward
 		if constexpr ( requires { target( ::std::forward<decltype( argument )>( argument ) ); } )
 			target( ::std::forward<decltype( argument )>( argument ) );
 		else
@@ -59,10 +59,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	};
 
 	int value = 10;
-	println( "Passando lvalue:" );
+	println( "Passing lvalue:" );
 	wrapper( value );
 
-	println( "Passando rvalue:" );
+	println( "Passing rvalue:" );
 	wrapper( 20 );
 
     return	EXIT_SUCCESS;
