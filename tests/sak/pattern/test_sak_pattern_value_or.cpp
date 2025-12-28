@@ -29,10 +29,10 @@
 #include <cstdlib>
 
 #include <sak/pattern/value_or.hpp>
+#include <sak/ensure.hpp>
 #include <map>
 #include <unordered_map>
 #include <string>
-#include <cassert>
 
 //	--------------------------------------------------
 
@@ -47,30 +47,31 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	for( const auto& value : arguments )
 		println( "{}", value );
 	
-	println( "Iniciando testes para: sak/pattern/value_or..." );
+	println( "Starting tests for: sak/pattern/value_or..." );
 
 	using	::std::map;
 	using	::std::unordered_map;
 	using	::sak::pattern::value_or;
+	using	::sak::ensure;
 
 	{
 		map< string, float > fruits_price = { { "apple", 1.5f }, { "banana", 0.75f } };
 		
-		assert( value_or( fruits_price, "apple", 0.0f ) == 1.5f );
-		assert( value_or( fruits_price, "banana", 0.0f ) == 0.75f );
-		assert( value_or( fruits_price, "orange", 0.0f ) == 0.0f );
+		ensure( value_or( fruits_price, "apple", 0.0f ) == 1.5f, "Value for 'apple' should be 1.5f" );
+		ensure( value_or( fruits_price, "banana", 0.0f ) == 0.75f, "Value for 'banana' should be 0.75f" );
+		ensure( value_or( fruits_price, "orange", 0.0f ) == 0.0f, "Value for 'orange' should be 0.0f" );
 	}
 
 	{
 		unordered_map< int, string > id_to_name = { { 1, "Alice" }, { 2, "Bob" } };
 		string unknown = "Unknown";
 
-		assert( value_or( id_to_name, 1, unknown ) == "Alice" );
-		assert( value_or( id_to_name, 2, unknown ) == "Bob" );
-		assert( value_or( id_to_name, 3, unknown ) == "Unknown" );
+		ensure( value_or( id_to_name, 1, unknown ) == "Alice", "Value for ID 1 should be 'Alice'" );
+		ensure( value_or( id_to_name, 2, unknown ) == "Bob", "Value for ID 2 should be 'Bob'" );
+		ensure( value_or( id_to_name, 3, unknown ) == "Unknown", "Value for ID 3 should be 'Unknown'" );
 	}
 
-	println( "Todos os testes para sak/pattern/value_or passaram!" );
+	println( "All tests for sak/pattern/value_or passed!" );
 
     return	EXIT_SUCCESS;
 }};

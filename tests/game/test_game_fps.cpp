@@ -42,22 +42,22 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	for( const auto& value : arguments )
 		println( "{}", value );
 	
-	println( "Iniciando testes para: game/fps..." );
+	println( "Starting tests for: game/fps..." );
 
 	using	::game::fps;
 	fps monitor( 60 );
 
-	// Teste 1: Limite inicial
-	println( "Teste 1: Verificando estabilização do FPS..." );
-	monitor.compute( ); // Primeiro chamado para resetar m_start_time
+	// Test 1: Initial limit
+	println( "Test 1: Verifying FPS stabilization..." );
+	monitor.compute( ); // First call to reset m_start_time
 	for( int i = 0; i < 5; ++i )
 	{
 		int current_fps = monitor.compute( );
 		println( "Frame {}: {} FPS", i, current_fps );
 	}
 
-	// Teste 2: Mudança de limite
-	println( "Teste 2: Mudando limite para 30 FPS..." );
+	// Test 2: Limit change
+	println( "Test 2: Changing limit to 30 FPS..." );
 	monitor.set_limit( 30 );
 	monitor.compute( );
 	for( int i = 0; i < 5; ++i )

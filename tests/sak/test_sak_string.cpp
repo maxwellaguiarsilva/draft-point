@@ -45,7 +45,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	for( const auto& value : arguments )
 		println( "{}", value );
 	
-	println( "Iniciando testes para: sak/string..." );
+	println( "Starting tests for: sak/string..." );
 
 	using	::sak::to_lower_case;
 	using	::sak::to_upper_case;
@@ -71,7 +71,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	ensure( to_upper_case( string( "abc" ) ) == "ABC", "to_upper_case(\"abc\") failed" );
 	ensure( to_upper_case( string( "aBc123!" ) ) == "ABC123!", "to_upper_case(\"aBc123!\") failed" );
 
-	println( "Todos os testes para sak/string passaram!" );
+	println( "All tests for sak/string passed!" );
 
     return	EXIT_SUCCESS;
 }};

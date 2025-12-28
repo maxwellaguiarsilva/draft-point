@@ -6,5 +6,6 @@
 - Do not modify anything in the project until explicitly requested. Do not test or compile the project until explicitly requested.
 - Use the `compile` tool to compile the project, and never directly invoke g++ or clang.
 - Always prefer `sak::ensure` over `cassert` for tests and runtime checks.
+- All content in `.cpp` and `.hpp` files must be exclusively in `en-us`. Any `pt-br` terms or phrases are strictly forbidden in these files.
 - Commit messages must be in en-us.
 

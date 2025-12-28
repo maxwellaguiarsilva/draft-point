@@ -44,23 +44,23 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	using	::sak::geometry::point;
 	using	::sak::geometry::coordinate;
 
-	println( "Iniciando testes da classe coordinate..." );
+	println( "Starting tests for class coordinate..." );
 
-	// Teste 1: Construtor padrão e acesso
+	// Test 1: Default constructor and access
 	{
 		point p;
 		if ( p.size( ) != 2 or p[ 0 ] != 0 or p[ 1 ] != 0 ) return EXIT_FAILURE;
-		println( "Teste 1 (Construtor padrão) passou." );
+		println( "Test 1 (Default constructor) passed." );
 	}
 
-	// Teste 2: Construtor com parâmetros
+	// Test 2: Constructor with parameters
 	{
 		point p( 10, 20 );
 		if ( p[ 0 ] != 10 or p[ 1 ] != 20 ) return EXIT_FAILURE;
-		println( "Teste 2 (Construtor com parâmetros) passou." );
+		println( "Test 2 (Constructor with parameters) passed." );
 	}
 
-	// Teste 3: Operações aritméticas (+, -)
+	// Test 3: Arithmetic operations (+, -)
 	{
 		point p1( 1, 2 );
 		point p2( 3, 4 );
@@ -69,10 +69,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		point p4 = p2 - p1;
 		if ( p4[ 0 ] != 2 or p4[ 1 ] != 2 ) return EXIT_FAILURE;
-		println( "Teste 3 (Adição e Subtração) passou." );
+		println( "Test 3 (Addition and Subtraction) passed." );
 	}
 
-	// Teste 4: Operações com escalares (*, /, %)
+	// Test 4: Operations with scalars (*, /, %)
 	{
 		point p( 10, 20 );
 		point p1 = p * 2;
@@ -83,10 +83,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		point p3 = p % 3;
 		if ( p3[ 0 ] != 1 or p3[ 1 ] != 2 ) return EXIT_FAILURE;
-		println( "Teste 4 (Operações com escalares) passou." );
+		println( "Test 4 (Operations with scalars) passed." );
 	}
 
-	// Teste 5: Atribuição composta
+	// Test 5: Compound assignment
 	{
 		point p( 1, 1 );
 		p += point( 2, 3 );
@@ -94,10 +94,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		p *= 2;
 		if ( p[ 0 ] != 6 or p[ 1 ] != 8 ) return EXIT_FAILURE;
-		println( "Teste 5 (Atribuição composta) passou." );
+		println( "Test 5 (Compound assignment) passed." );
 	}
 
-	// Teste 6: encloses
+	// Test 6: encloses
 	{
 		point p1( 0, 0 );
 		point p2( 5, 5 );
@@ -106,17 +106,17 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		if ( not p1.encloses( p2 ) ) return EXIT_FAILURE;   // 0,0 <= 5,5
 		if ( not p2.encloses( p3 ) ) return EXIT_FAILURE;   // 5,5 <= 10,10
 		if ( p3.encloses( p2 ) ) return EXIT_FAILURE;       // 10,10 <= 5,5 is false
-		println( "Teste 6 (encloses) passou." );
+		println( "Test 6 (encloses) passed." );
 	}
 
-	// Teste 7: get_length
+	// Test 7: get_length
 	{
 		point p( 3, 4 );
 		if ( p.get_length( ) != 5 ) return EXIT_FAILURE;
-		println( "Teste 7 (get_length - int) passou." );
+		println( "Test 7 (get_length - int) passed." );
 	}
 
-	// Teste 8: Float coordinate
+	// Test 8: Float coordinate
 	{
 		using f_point = coordinate< float, 3 >;
 		f_point fp( 1.0f, 2.0f, 2.0f );
@@ -126,17 +126,17 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		f_point fp2 = fp * 0.5f;
 		if ( fp2[ 0 ] != 0.5f or fp2[ 1 ] != 1.0f or fp2[ 2 ] != 1.0f ) return EXIT_FAILURE;
-		println( "Teste 8 (Float coordinate e get_length) passou." );
+		println( "Test 8 (Float coordinate and get_length) passed." );
 	}
 
-	// Teste 9: Iteradores
+	// Test 9: Iterators
 	{
 		point p( 10, 20 );
 		if ( ::sak::math::sum( p ) != 30 ) return EXIT_FAILURE;
-		println( "Teste 9 (Iteradores/Sum) passou." );
+		println( "Test 9 (Iterators/Sum) passed." );
 	}
 
-	// Teste 10: Escalar à esquerda
+	// Test 10: Left-hand scalar
 	{
 		point p( 1, 2 );
 		point p1 = 10 + p;
@@ -144,10 +144,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		point p2 = 20 - p;
 		if ( p2[ 0 ] != 19 or p2[ 1 ] != 18 ) return EXIT_FAILURE;
-		println( "Teste 10 (Escalar à esquerda) passou." );
+		println( "Test 10 (Left-hand scalar) passed." );
 	}
 
-	println( "Todos os testes da classe coordinate passaram com sucesso!" );
+	println( "All tests for class coordinate passed successfully!" );
 
     return	EXIT_SUCCESS;
 }};
