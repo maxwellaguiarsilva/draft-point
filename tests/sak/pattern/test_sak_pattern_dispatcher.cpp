@@ -24,8 +24,8 @@ void test_dispatcher_basic_notification( )
 	l_dispatcher += l_listener;
 	auto l_result = l_dispatcher( &mock_listener::on_event );
 	
-	sak::ensure( l_result.has_value( ) );
-	sak::ensure( l_listener->called );
+	sak::ensure( l_result.has_value( ), "error: notification failed" );
+	sak::ensure( l_listener->called, "error: listener was not called" );
 }
 
 
