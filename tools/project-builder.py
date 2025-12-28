@@ -76,7 +76,11 @@ DEFAULT_CONFIG = {
         "static_analysis": {
             "enabled": True,
             "tool": "cppcheck",
-            "strictness": "exhaustive"    # Options: "normal", "exhaustive"
+            "strictness": "exhaustive",    # Options: "normal", "exhaustive"
+            "suppressions": [
+                "missingIncludeSystem",
+                "checkersReport"
+            ]
         }
     },
 
@@ -391,21 +395,25 @@ class project:
     @property
     def _get_cppcheck_params( self ):
         config = self.config
+        analysis_config = config['quality_control']['static_analysis']
+        
         params = [
             "--quiet",
             "--enable=all",
-            "--suppress=missingIncludeSystem",
-            "--suppress=checkersReport",
             f"--cppcheck-build-dir={config['paths']['build']}",
             "--inline-suppr",
             f"--std={config['compiler']['standard']}",
             "--error-exitcode=1",
-            "-j 8"
+            f"-j {config['build_behavior']['max_threads']}"
         ]
         
-        if config['quality_control']['static_analysis']['strictness'] == "exhaustive":
-            params.append( "--check-level=exhaustive" )
+        # Mapping strictness directly to --check-level
+        params.append( f"--check-level={analysis_config['strictness']}" )
             
+        # Add suppressions from config
+        for suppression in analysis_config.get( 'suppressions', [ ] ):
+            params.append( f"--suppress={suppression}" )
+
         params.append( f"-I{config['paths']['include']}" )
         for d in config['dependencies']['include_dirs']:
             params.append( f"-I{d}" )
