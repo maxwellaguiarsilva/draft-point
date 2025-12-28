@@ -28,7 +28,10 @@
 #define header_guard_501228163
 
 #include <sak/sak.hpp>
+#include <sak/math/math.hpp>
 #include <string>
+#include <ranges>
+#include <algorithm>
 
 
 namespace sak {
@@ -38,9 +41,41 @@ using	::std::string;
 using	::sak::math::between;
 
 
-constexpr char delta_lower_case	=	( 'a' - 'A' );
-inline char to_lower_case( char code ) noexcept { return ( between( code, 'A', 'Z' ) ? code + delta_lower_case : code ); };
-//	inline char to_upper_case( char code ) noexcept { return ( between( code, 'a', 'z' ) ? code - delta_lower_case : code ); };
+constexpr char delta_case	=	( 'a' - 'A' );
+
+
+struct __to_lower_case
+{
+	constexpr auto operator ( ) ( char code ) const noexcept -> char
+	{
+		return ( between( code, 'A', 'Z' ) ? static_cast< char >( code + delta_case ) : code );
+	}
+
+	auto operator ( ) ( const string& text ) const -> string
+	{
+		string result = text;
+		::std::ranges::transform( result, result.begin( ), *this );
+		return result;
+	}
+};
+inline constexpr auto to_lower_case = __to_lower_case{ };
+
+
+struct __to_upper_case
+{
+	constexpr auto operator ( ) ( char code ) const noexcept -> char
+	{
+		return ( between( code, 'a', 'z' ) ? static_cast< char >( code - delta_case ) : code );
+	}
+
+	auto operator ( ) ( const string& text ) const -> string
+	{
+		string result = text;
+		::std::ranges::transform( result, result.begin( ), *this );
+		return result;
+	}
+};
+inline constexpr auto to_upper_case = __to_upper_case{ };
 
 
 }
