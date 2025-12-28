@@ -13,6 +13,3 @@
 
 
 {{list_open namespace_list}}} {{list_close namespace_list}}
-
-
-
