@@ -45,25 +45,26 @@ namespace pattern {
 
 
 //    ------------------------------
-using    ::std::vector;
-using    ::std::erase_if;
+__using( ::std::
+	,vector
+	,erase_if
+	,make_shared
+	,shared_ptr
+	,weak_ptr
+	,expected
+	,unexpected
+	,exception_ptr
+)
+__using( ::std::
+	,current_exception
+	,atomic
+	,memory_order_acquire
+	,memory_order_release
+	,mutex
+	,lock_guard
+	,invoke
+)
 //    ------------------------------
-using    ::std::make_shared;
-using    ::std::shared_ptr;
-using    ::std::weak_ptr;
-//    ------------------------------
-using    ::std::expected;
-using    ::std::unexpected;
-using    ::std::exception_ptr;
-using    ::std::current_exception;
-//    ------------------------------
-using    ::std::atomic;
-using    ::std::memory_order_acquire;
-using    ::std::memory_order_release;
-using    ::std::mutex;
-using    ::std::lock_guard;
-//    ------------------------------
-using    ::std::invoke;
 
 
 template< typename t_listener >
