@@ -8,4 +8,5 @@
 - Use the `compile` tool to compile the project, and never directly invoke g++ or clang.
 - Always prefer `sak::ensure` over `cassert` for tests and runtime checks.
 - Commit messages must be in en-us.
+- All `.cpp` and `.hpp` files must end with exactly two empty lines.
 
