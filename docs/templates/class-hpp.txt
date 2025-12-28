@@ -9,11 +9,14 @@
 {{list_open include_list}}#include <{{list_item include_list}}>
 {{list_close include_list}}
 
+
 {{list_open namespace_list}}namespace {{list_item namespace_list}} {
 {{list_close namespace_list}}
 
+
 {{list_open using_list}}using	{{list_item using_list}};
 {{list_close using_list}}
+
 
 class {{class_name}}
 {
@@ -27,3 +30,4 @@ public:
 
 
 #endif
+
