@@ -40,13 +40,16 @@
 namespace tui {
 
 
-using	::sak::geometry::point;
-using	::sak::geometry::rectangle;
-using	::std::string;
-using	::std::ostream;
-using	::std::expected;
-using	::std::unexpected;
+__using( ::std::
+	,string
+	,ostream
+	,expected
+	,unexpected
+)
+using	point	=	::sak::geometry::coordinate< int, 2 >;
+using	rectangle	=	::sak::geometry::shapes< point >::rectangle;
 using	::termios;
+
 
 class terminal final
 {

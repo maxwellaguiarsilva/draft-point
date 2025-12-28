@@ -30,7 +30,7 @@
 namespace game {
 
 
-using	::sak::geometry::point;
+using	::game::geometry::point;
 using	::std::to_string;
 using	::sak::to_lower_case;
 

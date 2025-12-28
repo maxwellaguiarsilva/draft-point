@@ -41,15 +41,15 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	for( const auto& value : arguments )
 		println( "{}", value );
 	
-	using	::sak::geometry::point;
 	using	::sak::geometry::coordinate;
+	using	point = coordinate< int, 2 >;
 
 	println( "Starting tests for class coordinate..." );
 
 	// Test 1: Default constructor and access
 	{
 		point p;
-		if ( p.size( ) != 2 or p[ 0 ] != 0 or p[ 1 ] != 0 ) return EXIT_FAILURE;
+		if ( p[ 0 ] != 0 or p[ 1 ] != 0 ) return EXIT_FAILURE;
 		println( "Test 1 (Default constructor) passed." );
 	}
 

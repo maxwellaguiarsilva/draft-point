@@ -29,17 +29,38 @@
 
 
 #include <sak/sak.hpp>
-#include <sak/geometry/rectangle.hpp>
+#include <sak/geometry/coordinate.hpp>
 
 
 namespace sak {
 namespace geometry {
 
 
-using	::sak::geometry::rectangle;
+template< is_coordinate t_point = coordinate< int, 2 > >
+struct shapes
+{
+	
+	using	point	=	t_point;
+
+	class rectangle
+	{
+	private:
+		array< point, 2 > m_data;
+	public:
+		constexpr rectangle( ) : m_data{ } { }
+		point&	start	=	m_data[0];
+		point&	end		=	m_data[1];
+
+		constexpr auto contains( const point& a_point ) const noexcept -> bool
+		{
+			return	start.encloses( a_point ) and a_point.encloses( end );
+		};
+	};
+
+};
 
 
-} } 
+} }
 
 
 #endif

@@ -15,32 +15,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   sak/geometry/point.hpp
+ * File:   game/geometry.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-11-15 18:18
+ * Created on 2025-12-28 20:22
  */
 
 
 
 #pragma once
-#ifndef header_guard_323731945
-#define header_guard_323731945
-
+#ifndef header_guard_104340424
+#define header_guard_104340424
 
 #include <sak/sak.hpp>
 #include <sak/geometry/coordinate.hpp>
 
 
-namespace sak {
+
+namespace game {
 namespace geometry {
 
 
-using	::sak::geometry::coordinate;
-using	point = coordinate< int, 2 >;
+using	point		=	::sak::geometry::coordinate< int, 2 >;
+using	shapes		=	::sak::geometry::shapes< point >;
+using	rectangle	=	shapes::rectangle;
 
 
-} }
+} } 
 
 
 #endif

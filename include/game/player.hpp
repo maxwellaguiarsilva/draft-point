@@ -30,7 +30,7 @@
 
 #include <tui/terminal.hpp>
 #include <sak/sak.hpp>
-#include <sak/geometry/geometry.hpp>
+#include <game/geometry.hpp>
 #include <game/direction.hpp>
 
 
@@ -38,7 +38,7 @@ namespace game {
 
 
 using	::tui::terminal;
-using	::sak::geometry::point;
+using	::game::geometry::point;
 using	::game::direction;
 using	enum	::game::direction;
 
