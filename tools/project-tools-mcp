@@ -134,9 +134,9 @@ def create_test(
 
 @mcp.tool( )
 def compile( ) -> str:
-    """Compiles the project using tree-builder.py. This command takes no arguments."""
+    """Compiles the project using project-builder.py. This command takes no arguments."""
     try:
-        process = subprocess.run( [ "python3", "tools/tree-builder.py" ], capture_output=True, text=True )
+        process = subprocess.run( [ "python3", "tools/project-builder.py" ], capture_output=True, text=True )
         if process.returncode == 0:
             return  f"Build successful:\n{process.stdout}"
         else:

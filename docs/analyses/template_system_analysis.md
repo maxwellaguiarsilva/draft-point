@@ -22,7 +22,7 @@ O servidor MCP expõe ferramentas que utilizam o motor de templates para automa�
 
 *   **`create_class`:** Gera arquivos `.hpp` (em `include/`) e `.cpp` (em `source/`) para uma nova classe C++. Automatiza metadados (autor, data), header guards únicos e suporte a namespaces.
 *   **`create_test`:** Gera arquivos de teste C++ baseados no template `test-cpp.txt`, suportando tanto testes Adhoc quanto estruturados.
-*   **`compile`:** Interface para o script `tree-builder.py`, permitindo a compilação do projeto diretamente via MCP.
+*   **`compile`:** Interface para o script `project-builder.py`, permitindo a compilação do projeto diretamente via MCP.
 
 ### 1.3. Templates Disponíveis (`docs/templates/`)
 
