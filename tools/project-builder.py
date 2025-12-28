@@ -29,6 +29,8 @@ import datetime
 import glob
 import os
 import re
+import threading
+import subprocess
 
 
 def get_cpu_count( ):
@@ -144,17 +146,40 @@ class cpp( project_file ):
         return  None
 
     def build( self ):
-        if self.compiled_at and self.dependencies_modified_at <= self.compiled_at:
-            print( f"    [cached]: {self.hierarchy}" )
+        if self.project._stop_event.is_set( ):
             return
-        print( f"    [build]: {self.hierarchy}" )
+
+        if self.compiled_at and self.dependencies_modified_at <= self.compiled_at:
+            with self.project._lock:
+                if not self.project._stop_event.is_set( ):
+                    print( f"    [cached]: {self.hierarchy}" )
+            return
+
         compile_params = self.project._get_compile_params
         compiler_command = f"{self.project.config['compiler']['executable']} {compile_params} -c {self.path} -o {self.object_path}"
 
-        if os.system( compiler_command ) != 0:
-            print( f"clang++: {compiler_command}" )
-            raise Exception( f"clang++ failed for {self.path}" )
-        self.compiled_at = self._get_compiled_at( )
+        result = subprocess.run( compiler_command, shell=True, capture_output=True, text=True )
+
+        with self.project._lock:
+            if self.project._stop_event.is_set( ):
+                return
+
+            if result.returncode != 0:
+                self.project._stop_event.set( )
+                print( f"    [build]: {self.hierarchy} (FAILED)" )
+                if result.stderr:
+                    print( result.stderr, end="" )
+                if result.stdout:
+                    print( result.stdout, end="" )
+                print( f"compiler: {compiler_command}" )
+                raise Exception( f"Compilation failed for {self.path}" )
+            else:
+                print( f"    [build]: {self.hierarchy}" )
+                if result.stderr:
+                    print( result.stderr, end="" )
+                if result.stdout:
+                    print( result.stdout, end="" )
+                self.compiled_at = self._get_compiled_at( )
 
 
     def __repr__( self ):
@@ -261,6 +286,9 @@ class project:
         self.hpp_list = [hpp( p, self ) for p in include_list]
         self.cpp_list = [cpp( p, self ) for p in source_list + tests_list]
         self.hierarchy_items = self._get_hierarchy_items( )
+
+        self._lock = threading.Lock( )
+        self._stop_event = threading.Event( )
 
         self._stabilize_dependencies( )
         self.binary_list = [binary_builder( c ) for c in self.cpp_list if c.is_main]
@@ -437,12 +465,12 @@ class project:
         
         with concurrent.futures.ThreadPoolExecutor( max_workers = max_workers ) as executor:
             futures = [ executor.submit( c.build ) for c in all_cpps.values( ) ]
-            for future in concurrent.futures.as_completed( futures ):
-                try:
+            try:
+                for future in concurrent.futures.as_completed( futures ):
                     future.result( )
-                except Exception as e:
-                    print( f"\nError during build: {e}" )
-                    raise e
+            except Exception as e:
+                self._stop_event.set( )
+                raise e
 
         # 4. Linking (sequential per binary)
         for b in self.binary_list:
