@@ -46,6 +46,8 @@ DEFAULT_CONFIG = {
         "executable": "clang++",       # Options: "g++", "clang++" or full path
         "standard": "c++23",           # Examples: "c++17", "c++20", "c++23"
         "use_64_bits": True,           # Abstraction for -m64 (64-bit)
+        "extra_compile_flags": [],
+        "extra_link_flags": [],
     },
 
     # Folder organization
@@ -61,6 +63,12 @@ DEFAULT_CONFIG = {
     "build_behavior": {
         # Options: "none" (-O0), "balanced" (-O2), "aggressive" (-O3), "debug" (-Og)
         "optimization": "balanced",    
+        "optimization_levels": {
+            "none": "-O0",
+            "balanced": "-O2",
+            "aggressive": "-O3",
+            "debug": "-Og"
+        },
         "debug_symbols": False,         # Generates symbols for GDB (-g)
         "generate_dependencies": False, # Generates .d files (intelligent recompilation)
         "experimental_library": True,   # Enables -fexperimental-library
@@ -71,6 +79,11 @@ DEFAULT_CONFIG = {
     "quality_control": {
         # Options: "minimal", "high" (-Wall -Wextra), "pedantic"
         "warning_level": "high",       
+        "warning_levels": {
+            "minimal": ["-Wall"],
+            "high": ["-Wall", "-Wextra"],
+            "pedantic": ["-Wall", "-Wextra", "-Wpedantic"]
+        },
         "treat_warnings_as_errors": True, # -Werror
         "stop_on_first_error": True,      # -Wfatal-errors
         "static_analysis": {
@@ -87,7 +100,8 @@ DEFAULT_CONFIG = {
     # External dependencies (No -l or -I prefixes)
     "dependencies": {
         "libraries": [],               # Example: ["ncurses", "pthread"]
-        "include_dirs": []             # Additional paths for header search
+        "include_dirs": [],            # Additional paths for header search
+        "library_dirs": []             # Additional paths for library search
     },
 
     # File search patterns
@@ -349,8 +363,9 @@ class project:
         if config['compiler']['use_64_bits']:
             params.append( "-m64" )
             
-        opt_map = { "none": "-O0", "balanced": "-O2", "aggressive": "-O3", "debug": "-Og" }
-        params.append( opt_map.get( config['build_behavior']['optimization'], "-O2" ) )
+        opt_map = config['build_behavior'].get( 'optimization_levels', { } )
+        opt_level = config['build_behavior']['optimization']
+        params.append( opt_map.get( opt_level, opt_level ) )
         
         if config['build_behavior']['debug_symbols']:
             params.append( "-g" )
@@ -359,8 +374,9 @@ class project:
         if config['build_behavior']['experimental_library']:
             params.append( "-fexperimental-library" )
             
-        warn_map = { "minimal": ["-Wall"], "high": ["-Wall", "-Wextra"], "pedantic": ["-Wall", "-Wextra", "-Wpedantic"] }
-        params.extend( warn_map.get( config['quality_control']['warning_level'], ["-Wall", "-Wextra"] ) )
+        warn_map = config['quality_control'].get( 'warning_levels', { } )
+        warn_level = config['quality_control']['warning_level']
+        params.extend( warn_map.get( warn_level, [ warn_level ] ) )
         
         if config['quality_control']['treat_warnings_as_errors']:
             params.append( "-Werror" )
@@ -371,6 +387,8 @@ class project:
         for d in config['dependencies']['include_dirs']:
             params.append( f"-I{d}" )
             
+        params.extend( config['compiler'].get( 'extra_compile_flags', [ ] ) )
+
         return " ".join( params )
 
     @property
@@ -381,15 +399,21 @@ class project:
         if config['compiler']['use_64_bits']:
             params.append( "-m64" )
             
-        opt_map = { "none": "-O0", "balanced": "-O2", "aggressive": "-O3", "debug": "-Og" }
-        params.append( opt_map.get( config['build_behavior']['optimization'], "-O2" ) )
+        opt_map = config['build_behavior'].get( 'optimization_levels', { } )
+        opt_level = config['build_behavior']['optimization']
+        params.append( opt_map.get( opt_level, opt_level ) )
 
         if config['build_behavior']['debug_symbols']:
             params.append( "-g" )
 
+        for d in config['dependencies'].get( 'library_dirs', [ ] ):
+            params.append( f"-L{d}" )
+
         for lib in config['dependencies']['libraries']:
             params.append( f"-l{lib}" )
             
+        params.extend( config['compiler'].get( 'extra_link_flags', [ ] ) )
+
         return " ".join( params )
 
     @property
