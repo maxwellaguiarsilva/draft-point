@@ -108,7 +108,7 @@ public:
 
 	__581074281_export_m_data_method( begin )
 	__581074281_export_m_data_method( end )
-	constexpr auto size( ) const noexcept -> size_t { return num_dimensions; } 
+	constexpr static auto size( ) noexcept -> size_t { return num_dimensions; }
 	constexpr auto operator []( size_t index ) noexcept -> t_scalar& { return m_data[ index ]; }
 	constexpr auto operator []( size_t index ) const noexcept -> const t_scalar& { return m_data[ index ]; }
 
