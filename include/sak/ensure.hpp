@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  *
@@ -16,25 +15,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   sak/sak.hpp
+ * File:   sak/ensure.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-08-05 17:28
+ * Created on 2025-12-28 14:15
  */
 
 
 
 #pragma once
-#ifndef header_guard_039286706
-#define header_guard_039286706
-
-//	sak	=	swiss_army_knife
-
+#ifndef header_guard_553966683
+#define header_guard_553966683
 
 #include <string>
-#include <sak/using.hpp>
-#include <sak/default_ctc_dtc.hpp>
-#include <sak/ensure.hpp>
+#include <stdexcept>
 
 
 namespace sak {
@@ -44,9 +38,16 @@ using	::std::string;
 using	::std::runtime_error;
 
 
-}
+struct __ensure
+{
+	constexpr auto operator ( ) ( bool expression, const string& message ) const { if( not expression ) throw runtime_error( message ); }
+};
+inline constexpr auto ensure = __ensure{ };
+
+
+} 
+
 
 #endif
-
 
 
