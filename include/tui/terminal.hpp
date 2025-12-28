@@ -34,6 +34,7 @@
 #include <string>
 #include <unordered_map>
 #include <expected>
+#include <ostream>
 
 
 namespace tui {
@@ -42,6 +43,7 @@ namespace tui {
 using	::sak::geometry::point;
 using	::sak::geometry::rectangle;
 using	::std::string;
+using	::std::ostream;
 using	::std::expected;
 using	::std::unexpected;
 using	::termios;
@@ -94,7 +96,7 @@ public:
 	delete_copy_move_ctc( terminal );
 
 	auto clear_screen( bool full_reset = false ) -> void;
-	auto read_char( ) -> char;
+	static auto read_char( ) -> char;
 	auto move_cursor( const point& position ) -> result;
 	auto print( const string& text ) -> void;
 	auto print( const point& position, const string& text ) -> result;
@@ -104,13 +106,15 @@ public:
 	auto set_raw_mode( bool enable ) -> result;
 	auto set_text_style( text_style style ) -> void;
 
-	auto get_error_message( const error& error_code ) const noexcept -> const string&;
+	static auto get_error_message( const error& error_code ) noexcept -> const string&;
 
 private:
 	static const error_messages m_error_messages;
 	static const string			m_unknown_error_message;
 	auto print( const error& error_code ) const noexcept -> void;
 
+	ostream&	m_output;
+	ostream&	m_error_output;
 	termios		m_original_termios;
 	rectangle	m_bounds;
 	point&		m_size	=	m_bounds.end;

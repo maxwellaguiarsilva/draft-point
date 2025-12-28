@@ -68,6 +68,8 @@ const string terminal::m_unknown_error_message	=	"terminal: unknown error";
 
 
 terminal::terminal( )
+	:	m_output( cout )
+	,	m_error_output( cerr )
 {
 	winsize m_ws;
 	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, get_error_message( tcgetattr_failed ) );
@@ -108,7 +110,7 @@ auto terminal::move_cursor( const point& position ) -> result
 	return	{ };
 }
 
-auto terminal::print( const string& text ) -> void { cout << text; }
+auto terminal::print( const string& text ) -> void { m_output << text; }
 auto terminal::print( const point& position, const string& text ) -> result
 {
 	if( auto status = move_cursor( position ); not status )
@@ -117,7 +119,7 @@ auto terminal::print( const point& position, const string& text ) -> result
 	return	{ };
 }
 
-auto terminal::refresh( ) -> void { cout << flush; }
+auto terminal::refresh( ) -> void { m_output << flush; }
 
 auto terminal::set_color( color color, bool background ) -> void { print( format( "\033[{}m", static_cast<int>( color ) + ( background ? 40 : 30 ) ) ); }
 auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }
@@ -143,12 +145,12 @@ auto terminal::set_raw_mode( bool enable ) -> result
 
 auto terminal::set_text_style( text_style style ) -> void { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
 
-auto terminal::get_error_message( const error& error_code ) const noexcept -> const string&
+auto terminal::get_error_message( const error& error_code ) noexcept -> const string&
 {
 	return	value_or( m_error_messages, error_code, m_unknown_error_message ); //	"terminal: unknown error"
 }
 
-auto terminal::print( const error& error_code ) const noexcept -> void { cerr << get_error_message( error_code ) << endl; }
+auto terminal::print( const error& error_code ) const noexcept -> void { m_error_output << get_error_message( error_code ) << endl; }
 
 
 }
