@@ -1,4 +1,5 @@
 ## Gemini Added Memories
+- All content in `.cpp` and `.hpp` files must be exclusively in `en-us`. Any `pt-br` terms or phrases are strictly forbidden in these files.
 - This is a C++23 project. Always prefer the most modern version of the code, such as `ranges`, `views` and `Niebloids`.
 - `int main( ... ){{ ... }}` is correct and mandatory only for the `main` function. For all other functions and methods, single braces `{ ... }` must be used.
 - Always prefer `const reference` to avoid the use of `::std::forward` and `::std::move` whenever possible.
@@ -6,6 +7,5 @@
 - Do not modify anything in the project until explicitly requested. Do not test or compile the project until explicitly requested.
 - Use the `compile` tool to compile the project, and never directly invoke g++ or clang.
 - Always prefer `sak::ensure` over `cassert` for tests and runtime checks.
-- All content in `.cpp` and `.hpp` files must be exclusively in `en-us`. Any `pt-br` terms or phrases are strictly forbidden in these files.
 - Commit messages must be in en-us.
 
