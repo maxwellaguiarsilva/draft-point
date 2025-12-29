@@ -68,11 +68,11 @@ void test_dispatcher_basic_notification( )
 	dispatcher< mock_listener > l_dispatcher;
 	auto l_listener = make_shared< mock_listener >( );
 	
-l_dispatcher += l_listener;
+	l_dispatcher += l_listener;
 	auto l_result = l_dispatcher( &mock_listener::on_event );
 	
 	ensure( l_result.has_value( ), "error: notification failed" );
-ensure( l_listener->called, "error: listener was not called" );
+	ensure( l_listener->called, "error: listener was not called" );
 	
 	println( "   -> success: basic notification works\n" );
 }
@@ -87,7 +87,10 @@ struct button_listener
 
 struct button_logger final : public button_listener 
 {
-	void on_clicked( const string& button_name ) const override { println( "   -> button clicked: {}" , button_name ); }
+	void on_clicked( const string& button_name ) const override
+	{
+		println( "   -> button clicked: {}" , button_name );
+	}
 };
 
 
@@ -123,13 +126,13 @@ void test_dispatcher_complex_and_errors( )
 	auto l_normal = make_shared< button_logger >( );
 	auto l_unsafe = make_shared< unsafe_logger >( );
 	
-l_dispatcher += l_normal;
-l_dispatcher += l_unsafe;
+	l_dispatcher += l_normal;
+	l_dispatcher += l_unsafe;
 
 	auto l_result = l_dispatcher( &button_listener::on_clicked, "btn_test" );
-handle_result( l_result );
-		sak::ensure( not l_result.has_value( ), "error: should have failed for one listener" );
-sak::ensure( l_result.error( ).size( ) == 1, "error: unexpected number of failures" );
+	handle_result( l_result );
+	ensure( not l_result.has_value( ), "error: should have failed for one listener" );
+	ensure( l_result.error( ).size( ) == 1, "error: unexpected number of failures" );
 	
 	println( "   -> success: complex interface and error handling verified\n" );
 }
@@ -139,7 +142,7 @@ void test_dispatcher_cleanup( )
 {
 	println( "running: test_dispatcher_cleanup" );
 	
-dispatcher< mock_listener > l_dispatcher;
+	dispatcher< mock_listener > l_dispatcher;
 	
 	{
 		auto l_temp_listener = make_shared< mock_listener >( );
@@ -150,7 +153,7 @@ dispatcher< mock_listener > l_dispatcher;
 	// The next call will trigger the cleanup mechanism.
 	auto l_result = l_dispatcher( &mock_listener::on_event );
 	
-sak::ensure( l_result.has_value( ), "error: notification with expired listener failed" );
+	sak::ensure( l_result.has_value( ), "error: notification with expired listener failed" );
 	
 	println( "   -> success: cleanup system executed safely\n" );
 }
@@ -179,3 +182,5 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
     return	EXIT_SUCCESS;
 }};
+
+
