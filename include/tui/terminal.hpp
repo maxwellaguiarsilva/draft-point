@@ -35,6 +35,7 @@
 #include <unordered_map>
 #include <expected>
 #include <ostream>
+#include <memory>
 
 
 namespace tui {
@@ -45,6 +46,7 @@ __using( ::std::
 	,ostream
 	,expected
 	,unexpected
+	,shared_ptr
 )
 using	point	=	::sak::geometry::coordinate< int, 2 >;
 using	rectangle	=	::sak::geometry::shapes< point >::rectangle;
@@ -111,6 +113,14 @@ public:
 
 	static auto get_error_message( const error& error_code ) noexcept -> const string&;
 
+	class listener
+	{
+	public:
+		virtual ~listener( ) = default;
+		virtual void on_resize( const point& size ) = 0;
+	};
+	void operator +=( const shared_ptr< listener >& instance );
+
 private:
 	static const error_messages m_error_messages;
 	static const string			m_unknown_error_message;
@@ -121,8 +131,10 @@ private:
 	termios		m_original_termios;
 	rectangle	m_bounds;
 	point&		m_size	=	m_bounds.end;
+
 public:
 	const point& size = m_size;
+
 };
 
 
