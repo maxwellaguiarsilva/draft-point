@@ -32,6 +32,7 @@
 #include <tui/terminal.hpp>
 #include <game/player.hpp>
 #include <game/fps.hpp>
+#include <memory>
 
 
 namespace game {
@@ -40,6 +41,9 @@ namespace game {
 using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
+using	::game::geometry::point;
+using	::std::shared_ptr;
+using	::std::make_shared;
 
 
 class game
@@ -53,16 +57,29 @@ public:
 	auto run( ) -> void;
 
 private:
+	struct terminal_listener final : public terminal::listener
+	{
+		explicit terminal_listener( const point& a_size );
+		void on_resize( const point& a_size ) override;
+
+		point start;
+		point end;
+		point size;
+		point label_position;
+	};
+
 	terminal	m_terminal;
 	player		m_player;
 	fps			m_fps;
+	shared_ptr< terminal_listener > m_terminal_listener;
 
 };
 
 
-} 
+}
 
 
 #endif
+
 
 

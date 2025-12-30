@@ -35,11 +35,28 @@ using	::std::to_string;
 using	::sak::to_lower_case;
 
 
+game::terminal_listener::terminal_listener( const point& a_size )
+{ on_resize( a_size ); }
+
+
+void game::terminal_listener::on_resize( const point& a_size )
+{
+	start			=	{ 1, 1 };
+	end				=	a_size - 1;
+	size			=	end - start + 1;
+	label_position	=	{ 1, a_size[1] };
+}
+
+
 game::game( )
 	:m_terminal{ }
 	,m_player{ m_terminal.size / 2 }
 	,m_fps{ }
-{ m_fps.set_limit( 30 ); }
+	,m_terminal_listener{ make_shared< terminal_listener >( m_terminal.size ) }
+{
+	m_fps.set_limit( 30 );
+	m_terminal += m_terminal_listener;
+}
 
 
 auto game::run( ) -> void
@@ -48,11 +65,11 @@ auto game::run( ) -> void
 	const point& frame_size	=	m_terminal.size;
 	point&	position	=	m_player.position;
 	//	the screen doesn't scroll because it doesn't have a line break, i've already validated it
-	point	label_position	=	{ 1, frame_size[1] };
+	const point& label_position	=	m_terminal_listener->label_position;
 
-	point	bounds_start	=	{ 1, 1 };
-	point	bounds_end		=	frame_size - 1;
-	point	bounds_size		=	bounds_end - bounds_start + 1;
+	const point& bounds_start	=	m_terminal_listener->start;
+	const point& bounds_end		=	m_terminal_listener->end;
+	const point& bounds_size	=	m_terminal_listener->size;
 
 	bool exit_loop = false;
 
@@ -97,6 +114,7 @@ auto game::run( ) -> void
 }
 
 
-} 
+}
+
 
 
