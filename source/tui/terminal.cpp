@@ -79,8 +79,35 @@ terminal::terminal( )
 	ensure( m_bounds.start.encloses( m_bounds.end ), "error: invalid terminal size" );
 	clear_screen( true );
 	set_raw_mode( true );
+
+	sigset_t set;
+	sigemptyset( &set );
+	sigaddset( &set, SIGWINCH );
+	pthread_sigmask( SIG_BLOCK, &set, nullptr );
+
+	m_resize_thread	=	jthread( [ this, set ]( stop_token stoken )
+	{
+		winsize ws;
+		int sig = 0;
+		while( not stoken.stop_requested( ) )
+		{
+			if( sigwait( &set, &sig ) == 0 )
+			{
+				if( stoken.stop_requested( ) )
+					break;
+
+				if( sig == SIGWINCH and ioctl( STDOUT_FILENO, TIOCGWINSZ, &ws ) == 0 )
+					m_size	=	{ ws.ws_col, ws.ws_row };
+			}
+		}
+	} );
 }
-terminal::~terminal( ) noexcept { clear_screen( true ); }
+terminal::~terminal( ) noexcept
+{
+	m_resize_thread.request_stop( );
+	pthread_kill( m_resize_thread.native_handle( ), SIGWINCH );
+	clear_screen( true );
+}
 
 
 auto terminal::clear_screen( bool full_reset ) -> void

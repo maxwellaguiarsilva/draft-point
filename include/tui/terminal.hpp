@@ -36,6 +36,8 @@
 #include <expected>
 #include <ostream>
 #include <memory>
+#include <thread>
+#include <csignal>
 
 
 namespace tui {
@@ -47,6 +49,8 @@ __using( ::std::
 	,expected
 	,unexpected
 	,shared_ptr
+	,jthread
+	,stop_token
 )
 using	point	=	::sak::geometry::coordinate< int, 2 >;
 using	rectangle	=	::sak::geometry::shapes< point >::rectangle;
@@ -131,6 +135,7 @@ private:
 	termios		m_original_termios;
 	rectangle	m_bounds;
 	point&		m_size	=	m_bounds.end;
+	jthread		m_resize_thread;
 
 public:
 	const point& size = m_size;
