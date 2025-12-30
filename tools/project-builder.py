@@ -29,6 +29,7 @@ import datetime
 import glob
 import os
 import re
+import sys
 import threading
 import subprocess
 
@@ -459,9 +460,44 @@ class project:
         
         cppcheck_command = f"cppcheck {cppcheck_params} \"{source_dir}\" \"{tests_dir}\""
         
+        print( "Running static analysis (cppcheck)..." )
         if os.system( cppcheck_command ) != 0:
             print( f"cppcheck: {cppcheck_command}" )
             raise Exception( "cppcheck failed for the project" )
+        print( "Static analysis completed successfully." )
+
+    def ensure_trailing_newlines( self ):
+        include_ext = self.config["patterns"]["header_extension"]
+        source_ext  = self.config["patterns"]["source_extension"]
+        
+        search_paths = [
+            os.path.join( self.config["paths"]["include"], f"**/*.{include_ext}" ),
+            os.path.join( self.config["paths"]["source"], f"**/*.{source_ext}" ),
+            os.path.join( self.config["paths"]["tests"], f"**/*.{source_ext}" )
+        ]
+        
+        files_to_check = []
+        for path in search_paths:
+            files_to_check.extend( glob.glob( path, recursive=True ) )
+            
+        print( f"Checking trailing newlines for {len(files_to_check)} files..." )
+        modified_count = 0
+        
+        for file_path in files_to_check:
+            with open( file_path, 'r', encoding='utf-8' ) as f:
+                content = f.read( )
+            
+            # Remove all trailing whitespace and newlines, then add exactly three
+            # (one to end the content line, and two more for the empty lines)
+            new_content = content.rstrip( ) + "\n\n\n"
+            
+            if content != new_content:
+                with open( file_path, 'w', encoding='utf-8' ) as f:
+                    f.write( new_content )
+                modified_count += 1
+                print( f"    [fixed]: {file_path}" )
+        
+        print( f"Done. Modified {modified_count} files." )
 
     def __repr__( self ):
         items = [ ]
@@ -537,9 +573,18 @@ class project:
         print( f"\nBuild ended at: {end_time.strftime( '%Y-%m-%d %H:%M:%S' )}" )
         print( f"Elapsed time: {elapsed_time}" )
 
-current_project = project( { } )
-#   print( current_project )
-current_project.build( )
+
+if __name__ == "__main__":
+    current_project = project( { } )
+    if "--check" in sys.argv:
+        try:
+            current_project.check_code( )
+        except Exception:
+            sys.exit( 1 )
+    elif "--fix-newlines" in sys.argv:
+        current_project.ensure_trailing_newlines( )
+    else:
+        current_project.build( )
 
 
 

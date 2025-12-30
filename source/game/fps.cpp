@@ -69,6 +69,6 @@ auto fps::compute( ) -> int
 }
 
 
-} 
+}
 
 

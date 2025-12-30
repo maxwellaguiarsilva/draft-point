@@ -52,6 +52,6 @@ auto player::draw( terminal& terminal ) const noexcept -> void
 }
 
 
-} 
+}
 
 

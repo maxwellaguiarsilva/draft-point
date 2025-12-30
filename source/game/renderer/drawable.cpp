@@ -38,7 +38,6 @@ drawable::drawable( const point& p_position ) noexcept
 
 
 
-} } 
-
+} }
 
 

@@ -165,7 +165,7 @@ The rules can be bypassed if a specific keyword is included in a single comment 
     *   Do not consider the code to have been properly delivered until this validation is fully compliant.
 
 ##  14. Validation with cppcheck.
-    *   After completing the previous validation, perform a new validation using the "cppcheck" tool with `--enable=all --suppress=missingIncludeSystem`.
-        *   If the "cppcheck" tool returns any message, even if not critical, explain the reason and the proposed solution.
+    *   After completing the previous validation, perform a new validation using the `check` tool.
+        *   If the tool returns any message, even if not critical, explain the reason and the proposed solution.
 
 

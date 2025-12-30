@@ -36,7 +36,6 @@ using	::game::point;
 
 
 
-} } 
-
+} }
 
 

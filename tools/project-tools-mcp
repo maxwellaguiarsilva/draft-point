@@ -145,6 +145,32 @@ def compile( ) -> str:
         return  f"An error occurred during build: {str( e )}"
 
 
+@mcp.tool( )
+def check( ) -> str:
+    """Runs static analysis (cppcheck) on the project. This command takes no arguments."""
+    try:
+        process = subprocess.run( [ "python3", "tools/project-builder.py", "--check" ], capture_output=True, text=True )
+        if process.returncode == 0:
+            return  f"Static analysis successful:\n{process.stdout}"
+        else:
+            return  f"Static analysis failed:\n{process.stdout}\n{process.stderr}"
+    except Exception as e:
+        return  f"An error occurred during static analysis: {str( e )}"
+
+
+@mcp.tool( )
+def fix_newlines( ) -> str:
+    """Ensures that all .cpp and .hpp files end with exactly two empty lines. This command takes no arguments."""
+    try:
+        process = subprocess.run( [ "python3", "tools/project-builder.py", "--fix-newlines" ], capture_output=True, text=True )
+        if process.returncode == 0:
+            return  f"Newline fix successful:\n{process.stdout}"
+        else:
+            return  f"Newline fix failed:\n{process.stdout}\n{process.stderr}"
+    except Exception as e:
+        return  f"An error occurred during newline fix: {str( e )}"
+
+
 if __name__ == "__main__":
     mcp.run()
 
