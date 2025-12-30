@@ -30,6 +30,7 @@
 
 #include <sak/sak.hpp>
 #include <sak/geometry/geometry.hpp>
+#include <sak/pattern/dispatcher.hpp>
 #include <termios.h>
 #include <string>
 #include <unordered_map>
@@ -52,6 +53,7 @@ __using( ::std::
 	,jthread
 	,stop_token
 )
+using	::sak::pattern::dispatcher;
 using	point	=	::sak::geometry::coordinate< int, 2 >;
 using	rectangle	=	::sak::geometry::shapes< point >::rectangle;
 using	::termios;
@@ -136,6 +138,7 @@ private:
 	rectangle	m_bounds;
 	point&		m_size	=	m_bounds.end;
 	jthread		m_resize_thread;
+	dispatcher< listener >	m_dispatcher;
 
 public:
 	const point& size = m_size;

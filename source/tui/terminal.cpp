@@ -97,7 +97,10 @@ terminal::terminal( )
 					break;
 
 				if( sig == SIGWINCH and ioctl( STDOUT_FILENO, TIOCGWINSZ, &ws ) == 0 )
+				{
 					m_size	=	{ ws.ws_col, ws.ws_row };
+					m_dispatcher( &listener::on_resize, m_size );
+				}
 			}
 		}
 	} );
@@ -176,6 +179,8 @@ auto terminal::get_error_message( const error& error_code ) noexcept -> const st
 {
 	return	value_or( m_error_messages, error_code, m_unknown_error_message ); //	"terminal: unknown error"
 }
+
+void terminal::operator +=( const shared_ptr< listener >& instance ) { m_dispatcher += instance; }
 
 auto terminal::print( const error& error_code ) const noexcept -> void { m_error_output << get_error_message( error_code ) << endl; }
 
