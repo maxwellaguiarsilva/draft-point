@@ -1,17 +1,17 @@
 /*
- * Copyright (C) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+ * Copyright ( C ) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * ( at your option ) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU General License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
@@ -65,16 +65,16 @@ void test_dispatcher_basic_notification( )
 {
 	println( "running: test_dispatcher_basic_notification" );
 	
-	dispatcher< mock_listener > l_dispatcher;
-	auto l_listener = make_shared< mock_listener >( );
+	dispatcher< mock_listener > dispatcher_instance;
+	auto listener_instance = make_shared< mock_listener >( );
 	
-	l_dispatcher += l_listener;
-	auto l_result = l_dispatcher( &mock_listener::on_event );
+	dispatcher_instance += listener_instance;
+	auto result = dispatcher_instance( &mock_listener::on_event );
 	
-	ensure( l_result.has_value( ), "error: notification failed" );
-	ensure( l_listener->called, "error: listener was not called" );
+	ensure( result.has_value( ), "error: notification failed" );
+	ensure( listener_instance->called, "error: listener was not called" );
 	
-	println( "   -> success: basic notification works\n" );
+	println( "   -> success: basic notification works" );
 }
 
 
@@ -121,20 +121,20 @@ void test_dispatcher_complex_and_errors( )
 {
 	println( "running: test_dispatcher_complex_and_errors" );
 	
-	dispatcher< button_listener > l_dispatcher;
+	dispatcher< button_listener > dispatcher_instance;
 	
-	auto l_normal = make_shared< button_logger >( );
-	auto l_unsafe = make_shared< unsafe_logger >( );
+	auto normal_logger = make_shared< button_logger >( );
+	auto unsafe_logger_instance = make_shared< unsafe_logger >( );
 	
-	l_dispatcher += l_normal;
-	l_dispatcher += l_unsafe;
+	dispatcher_instance += normal_logger;
+	dispatcher_instance += unsafe_logger_instance;
 
-	auto l_result = l_dispatcher( &button_listener::on_clicked, "btn_test" );
-	handle_result( l_result );
-	ensure( not l_result.has_value( ), "error: should have failed for one listener" );
-	ensure( l_result.error( ).size( ) == 1, "error: unexpected number of failures" );
+	auto result = dispatcher_instance( &button_listener::on_clicked, "btn_test" );
+	handle_result( result );
+	ensure( not result.has_value( ), "error: should have failed for one listener" );
+	ensure( result.error( ).size( ) == 1, "error: unexpected number of failures" );
 	
-	println( "   -> success: complex interface and error handling verified\n" );
+	println( "   -> success: complex interface and error handling verified" );
 }
 
 
@@ -142,20 +142,20 @@ void test_dispatcher_cleanup( )
 {
 	println( "running: test_dispatcher_cleanup" );
 	
-	dispatcher< mock_listener > l_dispatcher;
+	dispatcher< mock_listener > dispatcher_instance;
 	
 	{
-		auto l_temp_listener = make_shared< mock_listener >( );
-		l_dispatcher += l_temp_listener;
+		auto temp_listener = make_shared< mock_listener >( );
+		dispatcher_instance += temp_listener;
 	}
 	
-	// At this point, the weak_ptr inside dispatcher is expired.
-	// The next call will trigger the cleanup mechanism.
-	auto l_result = l_dispatcher( &mock_listener::on_event );
+	//	at this point, the weak_ptr inside dispatcher is expired
+	//	the next call will trigger the cleanup mechanism
+	auto result = dispatcher_instance( &mock_listener::on_event );
 	
-	sak::ensure( l_result.has_value( ), "error: notification with expired listener failed" );
+	ensure( result.has_value( ), "error: notification with expired listener failed" );
 	
-	println( "   -> success: cleanup system executed safely\n" );
+	println( "   -> success: cleanup system executed safely" );
 }
 
 
@@ -167,20 +167,29 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	using	::std::string;
 	using	::std::vector;
 	using	::std::println;
+	using	::std::exception;
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
 		println( "{}" , value );
 	
-	println( "Starting tests for: sak/pattern/dispatcher..." );
+	try
+	{
+		println( "starting tests for: sak/pattern/dispatcher..." );
 
-	test_dispatcher_basic_notification( );
-	test_dispatcher_complex_and_errors( );
-	test_dispatcher_cleanup( );
+		test_dispatcher_basic_notification( );
+		test_dispatcher_complex_and_errors( );
+		test_dispatcher_cleanup( );
 
-	println( "All tests for sak/pattern/dispatcher passed!" );
+		println( "all tests for sak/pattern/dispatcher passed!" );
+	}
+	catch( const exception& error )
+	{
+		println( "test failed: {}", error.what( ) );
+		return EXIT_FAILURE;
+	}
 
-    return	EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }};
 
 
