@@ -51,9 +51,9 @@ void game::terminal_listener::on_resize( const point& a_size )
 
 game::game( )
 	:m_terminal{ }
-	,m_player{ m_terminal.size / 2 }
+	,m_player{ m_terminal.size( ) / 2 }
 	,m_fps{ }
-	,m_terminal_listener{ make_shared< terminal_listener >( m_terminal.size ) }
+	,m_terminal_listener{ make_shared< terminal_listener >( m_terminal.size( ) ) }
 {
 	m_fps.set_limit( 30 );
 	m_terminal += m_terminal_listener;
@@ -63,7 +63,7 @@ game::game( )
 auto game::run( ) -> void
 {
 	using enum direction;
-	const point& frame_size	=	m_terminal.size;
+	const point& frame_size	=	m_terminal.size( );
 	point&	position		=	m_player.position;
 	
 	const point& label_position	=	m_terminal_listener->label_position;

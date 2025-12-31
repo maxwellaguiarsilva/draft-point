@@ -74,9 +74,9 @@ terminal::terminal( )
 	winsize m_ws;
 	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, get_error_message( tcgetattr_failed ) );
 	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) == 0, get_error_message( ioctl_failed ) );
-	m_bounds.start	=	{ 1, 1 };
-	m_bounds.end	=	{ m_ws.ws_col, m_ws.ws_row };
-	ensure( m_bounds.start.encloses( m_bounds.end ), "error: invalid terminal size" );
+	m_bounds.from( )	=	{ 1, 1 };
+	m_bounds.to( )		=	{ m_ws.ws_col, m_ws.ws_row };
+	ensure( m_bounds.from( ).encloses( m_bounds.to( ) ), "error: invalid terminal size" );
 	clear_screen( true );
 	set_raw_mode( true );
 
@@ -98,8 +98,8 @@ terminal::terminal( )
 
 				if( sig == SIGWINCH and ioctl( STDOUT_FILENO, TIOCGWINSZ, &ws ) == 0 )
 				{
-					m_size	=	{ ws.ws_col, ws.ws_row };
-					m_dispatcher( &listener::on_resize, m_size );
+					m_bounds.to( )	=	{ ws.ws_col, ws.ws_row };
+					m_dispatcher( &listener::on_resize, size( ) );
 				}
 			}
 		}
@@ -120,7 +120,7 @@ auto terminal::clear_screen( bool full_reset ) -> void
 		set_text_style( text_style::reset );
 		if( auto result = set_raw_mode( false ); not result )
 			print( result.error( ) );
-		move_cursor( m_bounds.start );
+		move_cursor( m_bounds.from( ) );
 	}
 	print( "\033[2J" );
 }

@@ -48,13 +48,17 @@ struct shapes
 		array< point, 2 > m_data;
 	public:
 		constexpr rectangle( ) : m_data{ } { }
-		point&	start	=	m_data[0];
-		point&	end		=	m_data[1];
+
+		constexpr auto& from( ) noexcept { return m_data[ 0 ]; }
+		constexpr const auto& from( ) const noexcept { return m_data[ 0 ]; }
+
+		constexpr auto& to( ) noexcept { return m_data[ 1 ]; }
+		constexpr const auto& to( ) const noexcept { return m_data[ 1 ]; }
 
 		constexpr auto contains( const point& a_point ) const noexcept -> bool
 		{
-			return	start.encloses( a_point ) and a_point.encloses( end );
-		};
+			return	from( ).encloses( a_point ) and a_point.encloses( to( ) );
+		}
 	};
 
 };

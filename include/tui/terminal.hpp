@@ -136,12 +136,11 @@ private:
 	ostream&	m_error_output;
 	termios		m_original_termios;
 	rectangle	m_bounds;
-	point&		m_size	=	m_bounds.end;
 	jthread		m_resize_thread;
 	dispatcher< listener >	m_dispatcher;
 
 public:
-	const point& size = m_size;
+	constexpr auto size( ) const noexcept -> const point& { return m_bounds.to( ); }
 
 };
 
