@@ -9,7 +9,20 @@ The rules can be bypassed if a specific keyword is included in a single comment 
 ##  1. **No Comments in Code Implementation:** Exemption keyword: `// ignore-no-comments-rule`.
     *   Code should be self-documenting.
     *   Avoid adding comments within the code's implementation logic.
-    *   License headers and file description comments at the top of a file are permitted.
+    *   **Exemptions:**
+        *   License headers and file description comments at the top of a file are permitted.
+        *   Comments intended to support correct code evaluation by LLM models (e.g., explaining subtle behaviors to avoid false-positive bug reports).
+        *   Comments within test files are permitted to clarify test cases and expectations.
+    *   **Formatting Rules for Permitted Comments:**
+        *   Must start with `//` followed by a single horizontal tab `\t`.
+        *   Must be written entirely in lowercase.
+        *   Must NOT end with a period.
+        *   Each sentence must be placed on its own separate line.
+        *   **Example (Good):**
+            ```cpp
+            //	note: this specific behavior is intended to support older compilers
+            //	validated by test cases in tests/compiler_compat.cpp
+            ```
 
 ##  2. **Naming Convention:**
     *   All identifiers (variables, functions, classes, namespaces, macros, etc.) must use `snake_case`.
