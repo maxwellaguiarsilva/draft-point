@@ -69,8 +69,16 @@ concept is_coordinate = __is_coordinate< remove_cvref_t< t_coordinate > >::value
 
 
 #define __581074281_operator( a_operator, a_operation ) \
-constexpr auto operator a_operator##= ( const coordinate& other ) noexcept -> coordinate& { return apply_operation( other, a_operation ); } \
-constexpr auto operator a_operator##= ( t_scalar other          ) noexcept -> coordinate& { return apply_operation( other, a_operation ); } \
+constexpr auto operator a_operator##= ( const coordinate& other ) noexcept -> coordinate& \
+{ \
+	transform( m_data, other, m_data.begin( ), a_operation ); \
+	return	*this; \
+} \
+constexpr auto operator a_operator##= ( t_scalar other ) noexcept -> coordinate& \
+{ \
+	transform( m_data, repeat( other ), m_data.begin( ), a_operation ); \
+	return	*this; \
+} \
 friend constexpr auto operator a_operator ( coordinate left, const coordinate& right ) noexcept -> coordinate { return left a_operator##= right; } \
 friend constexpr auto operator a_operator ( coordinate left, t_scalar right          ) noexcept -> coordinate { return left a_operator##= right; } \
 friend constexpr auto operator a_operator ( t_scalar left, const coordinate& right   ) noexcept -> coordinate \
@@ -79,6 +87,7 @@ friend constexpr auto operator a_operator ( t_scalar left, const coordinate& rig
 	result.m_data.fill( left ); \
 	return	result a_operator##= right; \
 }
+
 
 #define __581074281_export_m_data_method( a_method ) \
 constexpr auto a_method( ) noexcept { return m_data.a_method( ); } \
@@ -128,17 +137,6 @@ public:
 
 private:
 	array< t_scalar, num_dimensions >			m_data;
-
-	template< typename t_other, invocable< t_scalar, t_scalar > t_operation >
-	requires	is_coordinate< t_other > or is_arithmetic< t_other >
-	constexpr auto apply_operation( t_other other, const t_operation& operation ) noexcept -> coordinate&
-	{
-		if constexpr( is_coordinate< t_other > )
-			transform( m_data, other, m_data.begin( ), operation );
-		else
-			transform( m_data, repeat( other ), m_data.begin( ), operation );
-		return *this;
-	}
 
 
 };
