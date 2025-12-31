@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <exception>
 
 #include <sak/ensure.hpp>
 {{list_open include_list}}#include <{{list_item include_list}}>
@@ -17,19 +18,28 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	using	::std::string;
 	using	::std::vector;
 	using	::std::println;
+	using	::std::exception;
 	using	::sak::ensure;
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
 		println( "{}", value );
 	
-	println( "Starting tests for: {{hierarchy}}..." );
+	try
+	{
+		println( "starting tests for: {{hierarchy}}..." );
 
-	// TODO: Implement tests here
+		//	todo: implement tests here using ensure( expression, message )
 
-	println( "All tests for {{hierarchy}} passed!" );
+		println( "all tests for {{hierarchy}} passed!" );
+	}
+	catch( const exception& error )
+	{
+		println( "test failed: {}", error.what( ) );
+		return EXIT_FAILURE;
+	}
 
-    return	EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }};
 
 
