@@ -22,16 +22,11 @@
  */
 
 
-//	--------------------------------------------------
 #include <print>
 #include <string>
 #include <vector>
 #include <cstdlib>
-
 #include <utility>
-#include <iostream>
-
-//	--------------------------------------------------
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
@@ -45,25 +40,26 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	
 	println( "Starting tests for: perfect_forwarding..." );
 
-	auto target = []( int& ) { println( "Received: Lvalue reference" ); };
-	auto target_rview = []( int&& ) { println( "Received: Rvalue reference" ); };
+	auto call_target_lvalue = []( int& ) { println( "Received: Lvalue reference" ); };
+	auto call_target_rvalue = []( int&& ) { println( "Received: Rvalue reference" ); };
 
-	// To demonstrate perfect forwarding we need a template or auto&& in a deduction context
-	auto wrapper = [&]( auto&& argument ) {
-		// If we pass to target directly, it will always see it as Lvalue (since 'argument' has a name)
-		// That's why we use ::std::forward
-		if constexpr ( requires { target( ::std::forward<decltype( argument )>( argument ) ); } )
-			target( ::std::forward<decltype( argument )>( argument ) );
+	//	to demonstrate perfect forwarding we need a template or auto&& in a deduction context
+	auto forwarding_wrapper = [&]( auto&& argument ) {
+		//	if we pass to target directly, it will always see it as lvalue
+		//	this happens because argument has a name
+		//	that's why we use ::std::forward
+		if constexpr ( requires { call_target_lvalue( ::std::forward< decltype( argument ) >( argument ) ); } )
+			call_target_lvalue( ::std::forward< decltype( argument ) >( argument ) );
 		else
-			target_rview( ::std::forward<decltype( argument )>( argument ) );
+			call_target_rvalue( ::std::forward< decltype( argument ) >( argument ) );
 	};
 
 	int value = 10;
 	println( "Passing lvalue:" );
-	wrapper( value );
+	forwarding_wrapper( value );
 
 	println( "Passing rvalue:" );
-	wrapper( 20 );
+	forwarding_wrapper( 20 );
 
     return	EXIT_SUCCESS;
 }};
