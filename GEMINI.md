@@ -1,5 +1,6 @@
 ## Gemini Added Memories
 - All content in `.cpp` and `.hpp` files must be exclusively in `en-us`. Any `pt-br` terms or phrases are strictly forbidden in these files.
+- The file `docs/agent/philosophy.md` defines the decision-making process when producing C++ code for the project.
 - This is a C++23 project. Always prefer the most modern version of the code, such as `ranges`, `views` and `Niebloids`.
 - `int main( ... ){{ ... }}` is correct and mandatory only for the `main` function. For all other functions and methods, single braces `{ ... }` must be used.
 - Always prefer `const reference` to avoid the use of `::std::forward` and `::std::move` whenever possible.
@@ -16,6 +17,5 @@
 - **Scope:** Generic C++ language-level code, free of business logic and independent of system/hardware. It contains tools that complement the standard library according to the project's needs.
 - **What to include:** Math utilities, geometry, design patterns, basic type extensions, and language helpers.
 - **What NOT to include:** Application-specific logic (e.g., game, TUI), hardware dependencies, or implementations tied to business rules.
-
 
 
