@@ -39,6 +39,7 @@
 #include <memory>
 #include <thread>
 #include <csignal>
+#include <mutex>
 
 
 namespace tui {
@@ -50,8 +51,12 @@ __using( ::std::
 	,expected
 	,unexpected
 	,shared_ptr
+)
+__using( ::std::
 	,jthread
 	,stop_token
+	,mutex
+	,lock_guard
 )
 using	::sak::pattern::dispatcher;
 using	point	=	::sak::geometry::coordinate< int, 2 >;
@@ -116,6 +121,7 @@ public:
 	auto set_cursor( bool enable ) -> void;
 	auto set_raw_mode( bool enable ) -> result;
 	auto set_text_style( text_style style ) -> void;
+	auto size( ) const noexcept -> point;
 
 	static auto get_error_message( const error& error_code ) noexcept -> const string&;
 
@@ -135,12 +141,10 @@ private:
 	ostream&	m_output;
 	ostream&	m_error_output;
 	termios		m_original_termios;
+	mutable mutex	m_mutex;
 	rectangle	m_bounds;
 	jthread		m_resize_thread;
 	dispatcher< listener >	m_dispatcher;
-
-public:
-	constexpr auto size( ) const noexcept -> const point& { return m_bounds.to( ); }
 
 };
 

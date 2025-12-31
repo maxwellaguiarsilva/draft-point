@@ -74,9 +74,12 @@ terminal::terminal( )
 	winsize m_ws;
 	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, get_error_message( tcgetattr_failed ) );
 	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) == 0, get_error_message( ioctl_failed ) );
-	m_bounds.from( )	=	{ 1, 1 };
-	m_bounds.to( )		=	{ m_ws.ws_col, m_ws.ws_row };
-	ensure( m_bounds.from( ).encloses( m_bounds.to( ) ), "error: invalid terminal size" );
+	{
+		auto lock = lock_guard( m_mutex );
+		m_bounds.from( )	=	{ 1, 1 };
+		m_bounds.to( )		=	{ m_ws.ws_col, m_ws.ws_row };
+		ensure( m_bounds.from( ).encloses( m_bounds.to( ) ), "error: invalid terminal size" );
+	}
 	clear_screen( true );
 	set_raw_mode( true );
 
@@ -98,7 +101,10 @@ terminal::terminal( )
 
 				if( sig == SIGWINCH and ioctl( STDOUT_FILENO, TIOCGWINSZ, &ws ) == 0 )
 				{
-					m_bounds.to( )	=	{ ws.ws_col, ws.ws_row };
+					{
+						auto lock = lock_guard( m_mutex );
+						m_bounds.to( )	=	{ ws.ws_col, ws.ws_row };
+					}
 					m_dispatcher( &listener::on_resize, size( ) );
 				}
 			}
@@ -120,7 +126,13 @@ auto terminal::clear_screen( bool full_reset ) -> void
 		set_text_style( text_style::reset );
 		if( auto result = set_raw_mode( false ); not result )
 			print( result.error( ) );
-		move_cursor( m_bounds.from( ) );
+		
+		point l_from;
+		{
+			auto lock = lock_guard( m_mutex );
+			l_from = m_bounds.from( );
+		}
+		move_cursor( l_from );
 	}
 	print( "\033[2J" );
 }
@@ -134,8 +146,11 @@ auto terminal::read_char( ) -> char
 
 auto terminal::move_cursor( const point& position ) -> result 
 { 
-	if( not m_bounds.contains( position ) )
-		return	unexpected( out_of_bounds );
+	{
+		auto lock = lock_guard( m_mutex );
+		if( not m_bounds.contains( position ) )
+			return	unexpected( out_of_bounds );
+	}
 	print( format( "\033[{};{}H", position[1], position[0] ) ); 
 	return	{ };
 }
@@ -174,6 +189,12 @@ auto terminal::set_raw_mode( bool enable ) -> result
 }
 
 auto terminal::set_text_style( text_style style ) -> void { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
+
+auto terminal::size( ) const noexcept -> point
+{
+	auto lock = lock_guard( m_mutex );
+	return m_bounds.to( );
+}
 
 auto terminal::get_error_message( const error& error_code ) noexcept -> const string&
 {
