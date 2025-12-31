@@ -85,15 +85,15 @@ terminal::terminal( )
 	sigaddset( &set, SIGWINCH );
 	pthread_sigmask( SIG_BLOCK, &set, nullptr );
 
-	m_resize_thread	=	jthread( [ this, set ]( stop_token stoken )
+	m_resize_thread	=	jthread( [ this, set ]( stop_token token )
 	{
 		winsize ws;
 		int sig = 0;
-		while( not stoken.stop_requested( ) )
+		while( not token.stop_requested( ) )
 		{
 			if( sigwait( &set, &sig ) == 0 )
 			{
-				if( stoken.stop_requested( ) )
+				if( token.stop_requested( ) )
 					break;
 
 				if( sig == SIGWINCH and ioctl( STDOUT_FILENO, TIOCGWINSZ, &ws ) == 0 )
