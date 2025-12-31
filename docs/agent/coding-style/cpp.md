@@ -27,6 +27,7 @@ The rules can be bypassed if a specific keyword is included in a single comment 
 
 ##  2. **Naming Convention:**
     *   All identifiers (variables, functions, classes, namespaces, macros, etc.) must use `snake_case`.
+    *   **Exemptions:** Identifiers from external libraries, such as the C++ Standard Library (STL), are exempt from this rule and should follow their original naming conventions (e.g., `EXIT_SUCCESS`, `std::runtime_error`).
     *   Macros that include a numerical prefix (e.g., `__123456789_my_macro`) are permitted and are considered compliant with this rule.
     *   Use descriptive and unabbreviated names for identifiers (e.g., `index` instead of `i`, `width` instead of `w`, `height` instead of `h`).
     *   Class member variables must be prefixed with `m_`.
