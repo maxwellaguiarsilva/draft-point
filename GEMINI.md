@@ -5,7 +5,7 @@
 - Always prefer `const reference` to avoid the use of `::std::forward` and `::std::move` whenever possible.
 - Prefer creating a `const reference` over repeated use of the `->` operator for pointer member access. Use `->` only when strictly necessary or when the pointer is used a single time, where creating a reference would be redundant for just one line of code.
 - Always use the `using` keyword to avoid the scope resolution operator `::` (fully qualified names). Except for "ADL-sensitive" functions like `::std::move`, `::std::forward`, `::std::addressof`, and `::std::declval`, which must always be fully qualified. In any case, they will be avoided whenever possible as per the previous instruction.
-- Do not modify anything in the project until explicitly requested. Do not test or compile the project until explicitly requested.
+- Do not modify anything in the project until explicitly requested. Do not test, compile, commit changes on the project until explicitly requested.
 - Use the `compile` tool to compile the project, and never directly invoke g++ or clang.
 - Always prefer `sak::ensure` over `cassert` for tests and runtime checks.
 - Commit messages must be in en-us.
