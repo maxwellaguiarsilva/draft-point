@@ -10,10 +10,11 @@ The rules can be bypassed if a specific keyword is included in a single comment 
     *   Code should be self-documenting.
     *   Avoid adding comments within the code's implementation logic.
     *   **Exemptions:**
-        *   License headers and file description comments at the top of a file are permitted.
+        *   License headers and file description comments at the top of a file are permitted and are NOT subject to the formatting rules below.
         *   Comments intended to support correct code evaluation by LLM models (e.g., explaining subtle behaviors to avoid false-positive bug reports).
         *   Comments within test files are permitted to clarify test cases and expectations.
     *   **Formatting Rules for Permitted Comments:**
+        *   These rules apply to comments within the code body and tests, but not to the exempt headers mentioned above.
         *   Must start with `//` followed by a single horizontal tab `\t`.
         *   Must be written entirely in lowercase.
         *   Must NOT end with a period.
