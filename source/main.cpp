@@ -30,16 +30,9 @@
 #include <game/game.hpp>
 
 
-auto main( const int argument_count, const char* argument_values[ ] ) -> int
+auto main( int, char*[ ] ) -> int
 {{
-	using	::std::string;
-	using	::std::vector;
 	using	::std::println;
-
-	const vector< string > arguments( argument_values, argument_values + argument_count );
-	for( const auto& value : arguments )
-		println( "{}", value );
-
 	using	::std::exception;
 
 	try
@@ -49,6 +42,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	} catch( const exception& e )
 	{
 		println( "error: {}", e.what( ) );
+		return	EXIT_FAILURE;
+	} catch( ... )
+	{
+		println( "error: an unknown exception occurred" );
 		return	EXIT_FAILURE;
 	}
 
