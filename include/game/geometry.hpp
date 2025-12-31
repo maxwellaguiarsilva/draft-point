@@ -29,6 +29,7 @@
 
 #include <sak/sak.hpp>
 #include <sak/geometry/coordinate.hpp>
+#include <sak/geometry/geometry.hpp>
 
 
 
