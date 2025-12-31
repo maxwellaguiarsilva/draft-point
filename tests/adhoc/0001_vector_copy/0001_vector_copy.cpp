@@ -31,49 +31,46 @@
 #include <cstdlib>
 
 
-using	::std::print;
-using	::std::println;
-using	::std::string;
-using	::std::vector;
-using	::std::unique_ptr;
-using	::std::make_unique;
-
-const auto m_red	=	"\033[41;5m";
-const auto m_blue	=	"\033[44;5m";
-const auto m_reset	=	"\033[0m";
+const auto red	=	"\033[41;5m";
+const auto blue	=	"\033[44;5m";
+const auto reset	=	"\033[0m";
 
 class base
 {
 public:
-	base( ) { println( "{}{}: ctc base{}", m_blue, static_cast<void*>(this), m_reset ); }
-	virtual ~base( ) { println( "{}{}: dtc base{}", m_red, static_cast<void*>(this), m_reset ); }
+	base( ) { ::std::println( "{}{}: ctc base{}", blue, static_cast< void* >( this ), reset ); }
+	virtual ~base( ) { ::std::println( "{}{}: dtc base{}", red, static_cast< void* >( this ), reset ); }
 };
 class derived final : public base
 {
 public:
-	derived( ) { println( "{}{}: ctc derived{}", m_blue, static_cast<void*>(this), m_reset ); }
-	~derived( ) override { println( "{}{}: dtc derived{}", m_red, static_cast<void*>(this), m_reset ); }
+	derived( ) { ::std::println( "{}{}: ctc derived{}", blue, static_cast< void* >( this ), reset ); }
+	~derived( ) override { ::std::println( "{}{}: dtc derived{}", red, static_cast< void* >( this ), reset ); }
 };
 
 
 class non_virtual_base
 {
 public:
-	non_virtual_base( ) { println( "{}{}: ctc non_virtual_base{}", m_blue, static_cast<void*>(this), m_reset ); }
-	~non_virtual_base( ) { println( "{}{}: dtc non_virtual_base{}", m_red, static_cast<void*>(this), m_reset ); }
+	non_virtual_base( ) { ::std::println( "{}{}: ctc non_virtual_base{}", blue, static_cast< void* >( this ), reset ); }
+	~non_virtual_base( ) { ::std::println( "{}{}: dtc non_virtual_base{}", red, static_cast< void* >( this ), reset ); }
 };
 class non_virtual_derived : public non_virtual_base
 {
 public:
-	non_virtual_derived( ) { println( "{}{}: ctc non_virtual_derived{}", m_blue, static_cast<void*>(this), m_reset ); }
-	~non_virtual_derived( ) { println( "{}{}: dtc non_virtual_derived{}", m_red, static_cast<void*>(this), m_reset ); }
+	non_virtual_derived( ) { ::std::println( "{}{}: ctc non_virtual_derived{}", blue, static_cast< void* >( this ), reset ); }
+	~non_virtual_derived( ) { ::std::println( "{}{}: dtc non_virtual_derived{}", red, static_cast< void* >( this ), reset ); }
 };
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
+	using	::std::print;
+	using	::std::println;
 	using	::std::string;
 	using	::std::vector;
+	using	::std::unique_ptr;
+	using	::std::make_unique;
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )

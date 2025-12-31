@@ -36,11 +36,7 @@
 
 
 using	::std::println;
-using	::std::print;
 using	::std::atomic_flag;
-using	::std::signal;
-using	::std::jthread;
-using	::std::stop_token;
 using	::sak::ensure;
 
 
@@ -67,22 +63,25 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
 	using	::std::string;
 	using	::std::vector;
+	using	::std::signal;
+	using	::std::jthread;
+	using	::std::stop_token;
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
 		println( "{}", value );
 
-	//	register the action for the sigwinch signal.
+	//	register the action for the sigwinch signal
 	if( signal( SIGWINCH, signal_handler ) == SIG_ERR )
 		return	println( "error registering sigwinch signal handler" ), EXIT_FAILURE;
 	
 	println( "resize the terminal window: press ctrl+c to exit" );
 	print_terminal_size( );
 	
-	jthread worker( []( stop_token stoken ) {
-		::game::fps fps(10);
+	jthread worker( [ ]( stop_token stoken ) {
+		::game::fps fps( 10 );
 
-		while( !stoken.stop_requested( ) )
+		while( not stoken.stop_requested( ) )
 		{
 			if( flg_window_changed.test( ) )
 			{

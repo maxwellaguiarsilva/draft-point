@@ -34,15 +34,10 @@
 
 
 using	::std::println;
-using	::std::print;
-using	::std::jthread;
-using	::std::stop_token;
 using	::sak::ensure;
 
 
-/**
- * @brief Gets and prints the current terminal size (rows and columns).
- */
+//	gets and prints the current terminal size (rows and columns)
 void print_terminal_size( )
 {
 	struct winsize window_size;
@@ -56,6 +51,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
 	using	::std::string;
 	using	::std::vector;
+	using	::std::jthread;
+	using	::std::stop_token;
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )

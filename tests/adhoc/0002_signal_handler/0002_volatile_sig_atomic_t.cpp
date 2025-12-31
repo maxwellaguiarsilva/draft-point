@@ -34,16 +34,14 @@
 
 
 using	::std::println;
-using	::std::print;
 using	::sak::ensure;
 
 
 //	needs to be `volatile` to be `signal_thread_safe`
 volatile sig_atomic_t flg_window_changed = 0;
 
-/**
- * @brief Gets and prints the current terminal size (rows and columns).
- */
+
+//	gets and prints the current terminal size (rows and columns)
 void print_terminal_size( )
 {
 	struct winsize window_size;
@@ -52,32 +50,29 @@ void print_terminal_size( )
 	println( "Terminal size: {} by {}", window_size.ws_col, window_size.ws_row );
 }
 
-/**
- * @brief Signal Handler for SIGWINCH.
- * @param signal_number The received signal number (should be SIGWINCH).
- */
-void signal_window_change_handler( int signal_number ) {
-	if( signal_number == SIGWINCH )
-		flg_window_changed = 1;
-}
 
-/**
- * @brief Configures the handler for the SIGWINCH signal.
- */
+//	signal handler for sigwinch
+void signal_window_change_handler( int signal_number ) { if( signal_number == SIGWINCH ) flg_window_changed = 1; }
+
+
+//	configures the handler for the sigwinch signal
 void setup_signal_handler( )
 {
 	struct sigaction signal_action;
 
 	//	assign the function to be called
 	signal_action.sa_handler = signal_window_change_handler;
+
 	//	resets any flags that may be set
-	sigemptyset(&signal_action.sa_mask);
-	//	flags: sa_restart restarts interrupted system calls.
+	sigemptyset( &signal_action.sa_mask );
+
+	//	flags: sa_restart restarts interrupted system calls
 	signal_action.sa_flags = SA_RESTART;
 
-	//	register the action for the sigwinch signal.
-	ensure( sigaction( SIGWINCH, &signal_action, NULL ) not_eq -1, "error registering sigwinch signal handler" );
+	//	register the action for the sigwinch signal
+	ensure( sigaction( SIGWINCH, &signal_action, nullptr ) not_eq -1, "error registering sigwinch signal handler" );
 }
+
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
@@ -88,14 +83,14 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	for( const auto& value : arguments )
 		println( "{}", value );
 
-	::game::fps fps(10);
+	::game::fps fps( 10 );
 
 	setup_signal_handler( );
 
 	println( "resize the terminal window: press ctrl+c to exit" );
 	print_terminal_size( );
 
-	// main program loop
+	//	main program loop
 	while( true )
 	{
 		if( flg_window_changed )
