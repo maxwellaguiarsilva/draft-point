@@ -44,6 +44,7 @@ void game::terminal_listener::on_resize( const point& a_size )
 	start			=	{ 1, 1 };
 	end				=	a_size - 1;
 	size			=	end - start + 1;
+	//	the screen doesn't scroll because it doesn't have a line break, i've already validated it
 	label_position	=	{ 1, a_size[1] };
 }
 
@@ -63,13 +64,13 @@ auto game::run( ) -> void
 {
 	using enum direction;
 	const point& frame_size	=	m_terminal.size;
-	point&	position	=	m_player.position;
-	//	the screen doesn't scroll because it doesn't have a line break, i've already validated it
+	point&	position		=	m_player.position;
+	
 	const point& label_position	=	m_terminal_listener->label_position;
-
-	const point& bounds_start	=	m_terminal_listener->start;
-	const point& bounds_end		=	m_terminal_listener->end;
-	const point& bounds_size	=	m_terminal_listener->size;
+	const auto& l_listener		=	*m_terminal_listener;
+	const point& bounds_start	=	l_listener.start;
+	const point& bounds_end		=	l_listener.end;
+	const point& bounds_size	=	l_listener.size;
 
 	bool exit_loop = false;
 
