@@ -55,8 +55,8 @@ struct shapes
 		constexpr auto& to( ) noexcept { return m_data[ 1 ]; }
 		constexpr const auto& to( ) const noexcept { return m_data[ 1 ]; }
 
-		constexpr auto& get_points( ) noexcept { return m_data; }
-		constexpr const auto& get_points( ) const noexcept { return m_data; }
+//		constexpr auto& get_points( ) noexcept { return m_data; }
+//		constexpr const auto& get_points( ) const noexcept { return m_data; }
 
 		constexpr auto contains( const point& a_point ) const noexcept -> bool
 		{
