@@ -26,7 +26,6 @@
 #include <sak/sak.hpp>
 #include <sak/pattern/value_or.hpp>
 #include <tui/terminal.hpp>
-#include <format>
 #include <iostream>
 #include <termios.h>
 #include <unistd.h>		//	STDIN_FILENO, read
@@ -45,7 +44,6 @@ __using( ::std::
 	,cerr
 	,endl
 	,flush
-	,format
 )
 
 
@@ -151,7 +149,7 @@ auto terminal::move_cursor( const point& position ) -> result
 		if( not m_bounds.contains( position ) )
 			return	unexpected( out_of_bounds );
 	}
-	print( format( "\033[{};{}H", position[1], position[0] ) ); 
+	m_output << "\033[" << position[1] << ';' << position[0] << 'H';
 	return	{ };
 }
 
@@ -166,7 +164,7 @@ auto terminal::print( const point& position, const string& text ) -> result
 
 auto terminal::refresh( ) -> void { m_output << flush; }
 
-auto terminal::set_color( color color, bool background ) -> void { print( format( "\033[{}m", static_cast<int>( color ) + ( background ? 40 : 30 ) ) ); }
+auto terminal::set_color( color color, bool background ) -> void { m_output << "\033[" << ( static_cast<int>( color ) + ( background ? 40 : 30 ) ) << 'm'; }
 auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }
 
 auto terminal::set_raw_mode( bool enable ) -> result
@@ -188,7 +186,7 @@ auto terminal::set_raw_mode( bool enable ) -> result
 	return { };
 }
 
-auto terminal::set_text_style( text_style style ) -> void { print( format( "\033[{}m", static_cast<int>( style ) ) ); }
+auto terminal::set_text_style( text_style style ) -> void { m_output << "\033[" << static_cast<int>( style ) << 'm'; }
 
 auto terminal::size( ) const noexcept -> point
 {

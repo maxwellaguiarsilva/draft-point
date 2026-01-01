@@ -23,7 +23,7 @@
 
 
 
-#include <print>
+#include <iostream>
 #include <string>
 #include <vector>
 #include <cstdlib>
@@ -32,7 +32,8 @@
 
 auto main( int, char*[ ] ) -> int
 {{
-	using	::std::println;
+	using	::std::cerr;
+	using	::std::endl;
 	using	::std::exception;
 
 	try
@@ -41,11 +42,11 @@ auto main( int, char*[ ] ) -> int
 		game.run( );
 	} catch( const exception& e )
 	{
-		println( "error: {}", e.what( ) );
+		cerr << "error: " << e.what( ) << endl;
 		return	EXIT_FAILURE;
 	} catch( ... )
 	{
-		println( "error: an unknown exception occurred" );
+		cerr << "error: an unknown exception occurred" << endl;
 		return	EXIT_FAILURE;
 	}
 
