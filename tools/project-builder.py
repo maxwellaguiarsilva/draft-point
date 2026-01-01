@@ -275,6 +275,58 @@ class binary_builder:
 
         walk( self.cpp.hierarchy )
 
+    def link( self ):
+        if self.cpp.project._stop_event.is_set( ):
+            return
+
+        line_size = 50
+        strong_line = "=" * line_size
+        weak_line = "-" * line_size
+
+        os.makedirs( os.path.dirname( self.binary_path ), exist_ok=True )
+        
+        object_files = []
+        flg_link = False
+        for c in self.dependencies_list:
+            object_files.append( c.object_path )
+            if c.compiled_at and ( ( not self.modified_at ) or self.modified_at < c.compiled_at ):
+                flg_link = True
+        
+        if flg_link:
+            object_files_str = " ".join( object_files )
+            linker_command = f"{self.cpp.project.config['compiler']['executable']} {object_files_str} {self.cpp.project._get_link_params} -o {self.binary_path}"
+            
+            result = subprocess.run( linker_command, shell=True, capture_output=True, text=True )
+
+            with self.cpp.project._lock:
+                if self.cpp.project._stop_event.is_set( ):
+                    return
+
+                print( "\n" )
+                print( strong_line )
+                print( self.binary_path )
+                print( weak_line )
+                
+                if result.returncode != 0:
+                    self.cpp.project._stop_event.set( )
+                    print( f"    [link]: {os.path.basename( self.binary_path )} (FAILED)" )
+                    if result.stderr:
+                        print( result.stderr, end="" )
+                    if result.stdout:
+                        print( result.stdout, end="" )
+                    print( weak_line )
+                    print( f"linker: {linker_command}" )
+                    print( weak_line )
+                    raise Exception( f"Linking failed for {self.binary_path}" )
+                else:
+                    print( f"    [link]: {os.path.basename( self.binary_path )}" )
+                    if result.stderr:
+                        print( result.stderr, end="" )
+                    if result.stdout:
+                        print( result.stdout, end="" )
+                
+                print( strong_line )
+
     def __repr__( self ):
         modified_at_str = f"\"{self.modified_at.isoformat()}\"" if self.modified_at else "null"
         dependencies_json = [ f"\"{d.hierarchy}\"" for d in self.dependencies_list ]
@@ -553,33 +605,16 @@ class project:
                 self._stop_event.set( )
                 raise e
 
-        # 4. Linking (sequential per binary)
-        for b in self.binary_list:
-            print( "\n" )
-            print( strong_line )
-            print( b.binary_path )
-            print( weak_line )
-            os.makedirs( os.path.dirname( b.binary_path ), exist_ok=True )
-            
-            object_files = []
-            flg_link   =   False
-            for c in b.dependencies_list:
-                object_files.append( c.object_path )
-                if c.compiled_at and ( ( not b.modified_at ) or b.modified_at < c.compiled_at ):
-                    flg_link = True
-            
-            if flg_link:
-                print( f"    [link]: {os.path.basename( b.binary_path )}" )
-                object_files_str = " ".join( object_files )
-                linker_command = f"{self.config['compiler']['executable']} {object_files_str} {self._get_link_params} -o {b.binary_path}"
-                
-                if os.system( linker_command ) != 0:
-                    print( weak_line )
-                    print( f"clang++: {linker_command}" )
-                    print( weak_line )
-                    raise Exception( f"clang++ failed to link binary {b.binary_path}" )
-
-            print( strong_line )
+        # 4. Parallel linking
+        print( f"\nLinking {len(self.binary_list)} binaries using {max_workers} threads..." )
+        with concurrent.futures.ThreadPoolExecutor( max_workers = max_workers ) as executor:
+            futures = [ executor.submit( b.link ) for b in self.binary_list ]
+            try:
+                for future in concurrent.futures.as_completed( futures ):
+                    future.result( )
+            except Exception as e:
+                self._stop_event.set( )
+                raise e
 
         end_time = datetime.datetime.now( )
         elapsed_time = end_time - start_time
