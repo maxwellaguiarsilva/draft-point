@@ -55,8 +55,19 @@ __using( ::std::ranges::
 	,transform
 )
 __using( ::std::views::, zip, repeat )
-__using( ::sak::math::, plus, minus, multiplies, divides, modulus )
-__using( ::sak::math::, sum, square, square_root, equal_to, less_equal, is_arithmetic )
+__using( ::sak::math::
+	,plus
+	,minus
+	,multiplies
+	,divides
+	,modulus
+	,sum
+	,square
+	,square_root
+	,equal_to
+	,less_equal
+	,is_arithmetic
+)
 //	--------------------------------------------------
 
 
@@ -105,8 +116,8 @@ public:
 		,reference
 		,const_reference
 		,iterator
+		,const_iterator
 	)
-	__using( typename super_type::, const_iterator )
 
 	__using( super_type::
 		,begin

@@ -51,8 +51,6 @@ __using( ::std::
 	,expected
 	,unexpected
 	,shared_ptr
-)
-__using( ::std::
 	,jthread
 	,stop_token
 	,mutex

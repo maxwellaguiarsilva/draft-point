@@ -47,18 +47,32 @@ __using( ::std::
 	,convertible_to
 	,invocable
 	,size_t
+	,true_type
+	,false_type
+	,remove_cvref_t
+	,same_as
 )
 __using( ::std::ranges::
 	,all_of
 	,transform
 )
 __using( ::std::views::, zip, repeat )
-__using( ::sak::math::, plus, minus, multiplies, divides, modulus )
-__using( ::sak::math::, sum, square, square_root, equal_to, less_equal, is_arithmetic )
+__using( ::sak::math::
+	,plus
+	,minus
+	,multiplies
+	,divides
+	,modulus
+	,sum
+	,square
+	,square_root
+	,equal_to
+	,less_equal
+	,is_arithmetic
+)
 //	--------------------------------------------------
 
 
-__using( ::std::, true_type, false_type, remove_cvref_t, same_as )
 template< is_arithmetic, size_t > class coordinate;
 template< typename t_coordinate >
 struct __is_coordinate : false_type { };

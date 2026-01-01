@@ -54,8 +54,6 @@ __using( ::std::
 	,expected
 	,unexpected
 	,exception_ptr
-)
-__using( ::std::
 	,current_exception
 	,atomic
 	,memory_order_acquire
