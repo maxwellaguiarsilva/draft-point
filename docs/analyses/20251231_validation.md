@@ -61,10 +61,9 @@ O projeto apresenta uma arquitetura extremamente sólida e moderna, com forte ad
 
 **Recomendações de Melhoria:**
 
-1.  **Refinamento no Main**: Considere validar os argumentos de linha de comando de forma mais rigorosa ou usar uma biblioteca dedicada se a complexidade aumentar.
-2.  **Cintilação no Terminal**: Para projetos futuros de TUI mais complexos, implementar um sistema de *double buffering* ou *diffing* na classe `terminal` pode evitar cintilações perceptíveis durante o `clear_screen()`.
-3.  **Encapsulamento**: Avaliar se a visibilidade pública de `player::position` é realmente necessária ou se poderia ser encapsulada, embora a abordagem atual seja pragmática para a escala do projeto.
-4.  **Macros**: Embora as macros `delete_copy_move_ctc` e de geração de operadores facilitem o desenvolvimento, documentá-las explicitamente em um guia de estilo (como já iniciado) é fundamental para novos colaboradores.
+1.  **Cintilação no Terminal**: Para projetos futuros de TUI mais complexos, implementar um sistema de *double buffering* ou *diffing* na classe `terminal` pode evitar cintilações perceptíveis durante o `clear_screen()`.
+2.  **Encapsulamento**: Avaliar se a visibilidade pública de `player::position` é realmente necessária ou se poderia ser encapsulada, embora a abordagem atual seja pragmática para a escala do projeto.
+3.  **Macros**: Embora as macros `delete_copy_move_ctc` e de geração de operadores facilitem o desenvolvimento, documentá-las explicitamente em um guia de estilo (como já iniciado) é fundamental para novos colaboradores.
 
 O código está em um estado excelente de qualidade e manutenção.
 

@@ -103,6 +103,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
     handle_result( notifier( &button_listener::on_hover, 100 ) );
 
     return	EXIT_SUCCESS;
-}};
+}}
 
 

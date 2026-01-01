@@ -50,6 +50,6 @@ auto main( int, char*[ ] ) -> int
 	}
 
 	return	EXIT_SUCCESS;
-}};
+}}
 
 

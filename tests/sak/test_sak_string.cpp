@@ -82,6 +82,6 @@ try
 	}
 
 	return EXIT_SUCCESS;
-}};
+}}
 
 

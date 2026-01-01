@@ -63,6 +63,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
     println( "array [5, 5] less_equal: {}", less_equal( array{ 5, 5 } ) );
 	
     return	EXIT_SUCCESS;
-}};
+}}
 
 

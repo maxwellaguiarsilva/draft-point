@@ -62,6 +62,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	forwarding_wrapper( 20 );
 
     return	EXIT_SUCCESS;
-}};
+}}
 
 

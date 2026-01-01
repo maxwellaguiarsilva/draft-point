@@ -44,72 +44,82 @@ def get_cpu_count( ):
 DEFAULT_CONFIG = {
     # Compiler information
     "compiler": {
-        "executable": "clang++",       # Options: "g++", "clang++" or full path
-        "standard": "c++23",           # Examples: "c++17", "c++20", "c++23"
-        "use_64_bits": True,           # Abstraction for -m64 (64-bit)
-        "extra_compile_flags": [],
-        "extra_link_flags": [],
-    },
+        "executable": "clang++"        # Options: "g++", "clang++" or full path
+        ,"standard": "c++23"           # Examples: "c++17", "c++20", "c++23"
+        ,"use_64_bits": True           # Abstraction for -m64 (64-bit)
+        ,"extra_compile_flags": [
+            "-ffunction-sections"      # Place each function into its own section
+            ,"-fdata-sections"         # Place each data item into its own section
+            ,"-flto"                   # Enable Link Time Optimization
+        ]
+        ,"extra_link_flags": [
+            "-flto"                    # Enable Link Time Optimization during linking
+        ]
+        ,"linker_direct_options": [
+            "--as-needed"              # Only link libraries that satisfy undefined symbols
+            ,"--gc-sections"           # Remove unused sections (dead code elimination)
+        ]
+    }
 
     # Folder organization
-    "paths": {
-        "source": "source",            # Project source directory containing .cpp files
-        "include": "include",          # Project include directory containing .hpp files
-        "tests": "tests",              # Test source directory containing .cpp files
-        "build": "build",              # Build directory for object files (.o)
-        "output": "dist",              # Output directory for the final binaries
-    },
+    ,"paths": {
+        "source": "source"             # Project source directory containing .cpp files
+        ,"include": "include"          # Project include directory containing .hpp files
+        ,"tests": "tests"              # Test source directory containing .cpp files
+        ,"build": "build"              # Build directory for object files (.o)
+        ,"output": "dist"              # Output directory for the final binaries
+    }
 
     # Build rules (How to compile)
-    "build_behavior": {
+    ,"build_behavior": {
         # Options: "none" (-O0), "balanced" (-O2), "aggressive" (-O3), "debug" (-Og)
-        "optimization": "balanced",    
-        "optimization_levels": {
-            "none": "-O0",
-            "balanced": "-O2",
-            "aggressive": "-O3",
-            "debug": "-Og"
-        },
-        "debug_symbols": False,         # Generates symbols for GDB (-g)
-        "generate_dependencies": False, # Generates .d files (intelligent recompilation)
-        "experimental_library": True,   # Enables -fexperimental-library
-        "max_threads": get_cpu_count( ),
-    },
+        "optimization": "balanced"
+        ,"optimization_levels": {
+            "none": "-O0"
+            ,"balanced": "-O2"
+            ,"aggressive": "-O3"
+            ,"debug": "-Og"
+        }
+        ,"debug_symbols": False         # Generates symbols for GDB (-g)
+        ,"generate_dependencies": False # Generates .d files (intelligent recompilation)
+        ,"experimental_library": True   # Enables -fexperimental-library
+        ,"max_threads": get_cpu_count( )
+    }
 
     # Quality Control (Warning and analysis flags)
-    "quality_control": {
+    ,"quality_control": {
         # Options: "minimal", "high" (-Wall -Wextra), "pedantic"
-        "warning_level": "high",       
-        "warning_levels": {
-            "minimal": ["-Wall"],
-            "high": ["-Wall", "-Wextra"],
-            "pedantic": ["-Wall", "-Wextra", "-Wpedantic"]
-        },
-        "treat_warnings_as_errors": True, # -Werror
-        "stop_on_first_error": True,      # -Wfatal-errors
-        "static_analysis": {
-            "enabled": True,
-            "tool": "cppcheck",
-            "strictness": "exhaustive",    # Options: "normal", "exhaustive"
-            "suppressions": [
-                "missingIncludeSystem",
-                "checkersReport"
+        "warning_level": "high"
+        ,"warning_levels": {
+            "minimal": ["-Wall"]
+            ,"high": ["-Wall", "-Wextra"]
+            ,"pedantic": ["-Wall", "-Wextra", "-Wpedantic"]
+        }
+        ,"treat_warnings_as_errors": True # -Werror
+        ,"stop_on_first_error": True      # -Wfatal-errors
+        ,"static_analysis": {
+            "enabled": True
+            ,"tool": "cppcheck"
+            ,"strictness": "exhaustive"    # Options: "normal", "exhaustive"
+            ,"suppressions": [
+                "missingIncludeSystem"
+                ,"checkersReport"
             ]
         }
-    },
+    }
 
     # External dependencies (No -l or -I prefixes)
-    "dependencies": {
-        "libraries": [],               # Example: ["ncurses", "pthread"]
-        "include_dirs": [],            # Additional paths for header search
-        "library_dirs": []             # Additional paths for library search
-    },
+    ,"dependencies": {
+        "libraries": []                # Example: ["ncurses", "pthread"]
+        ,"include_dirs": []            # Additional paths for header search
+        ,"library_dirs": []             # Additional paths for library search
+    }
 
     # File search patterns
-    "patterns": {
-        "source_extension": "cpp",
-        "header_extension": "hpp",
-        "main_function": r"\b(int|auto)\s+main\s*\("
+    ,"patterns": {
+        "source_extension": "cpp"
+        ,"header_extension": "hpp"
+        ,"main_function": r"\b(int|auto)\s+main\s*\("
     }
 }
 
@@ -410,10 +420,13 @@ class project:
         for d in config['dependencies'].get( 'library_dirs', [ ] ):
             params.append( f"-L{d}" )
 
+        for opt in config['compiler'].get( 'linker_direct_options', [ ] ):
+            params.append( f"-Wl,{opt}" )
+
+        params.extend( config['compiler'].get( 'extra_link_flags', [ ] ) )
+
         for lib in config['dependencies']['libraries']:
             params.append( f"-l{lib}" )
-            
-        params.extend( config['compiler'].get( 'extra_link_flags', [ ] ) )
 
         return " ".join( params )
 

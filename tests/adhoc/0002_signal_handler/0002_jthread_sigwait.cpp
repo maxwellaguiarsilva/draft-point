@@ -106,6 +106,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 	return	EXIT_SUCCESS;
 
-}};
+}}
 
 
