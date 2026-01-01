@@ -96,6 +96,16 @@ class point : private array< t_scalar, num_dimensions >
 public:
 	using	super_type	= 	array< t_scalar, num_dimensions >; 
 
+	using	value_type			=	typename super_type::value_type;
+	using	size_type			=	typename super_type::size_type;
+	using	difference_type		=	typename super_type::difference_type;
+	using	pointer				=	typename super_type::pointer;
+	using	const_pointer		=	typename super_type::const_pointer;
+	using	reference			=	typename super_type::reference;
+	using	const_reference		=	typename super_type::const_reference;
+	using	iterator			=	typename super_type::iterator;
+	using	const_iterator		=	typename super_type::const_iterator;
+
 	using	super_type::begin;
 	using	super_type::end;
 	using	super_type::size;
