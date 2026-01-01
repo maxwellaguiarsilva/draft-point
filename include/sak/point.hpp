@@ -102,7 +102,7 @@ friend constexpr auto operator a_operator ( t_scalar left, const point& right   
 
 
 template< is_arithmetic t_scalar = int, size_t num_dimensions = 2 >
-class point : private array< t_scalar, num_dimensions >
+class point final : private array< t_scalar, num_dimensions >
 {
 public:
 	using	super_type	= 	array< t_scalar, num_dimensions >; 
