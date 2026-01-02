@@ -74,9 +74,8 @@ terminal::terminal( )
 	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) == 0, get_error_message( ioctl_failed ) );
 	{
 		auto lock = lock_guard( m_mutex );
-		m_bounds.from( )	=	{ 1, 1 };
-		m_bounds.to( )		=	{ m_ws.ws_col, m_ws.ws_row };
-		ensure( m_bounds.from( ).encloses( m_bounds.to( ) ), "error: invalid terminal size" );
+		m_bounds	=	{ { 1, 1 }, { m_ws.ws_col, m_ws.ws_row } };
+		ensure( m_bounds.start.encloses( m_bounds.end ), "error: invalid terminal size" );
 	}
 	clear_screen( true );
 	set_raw_mode( true );
@@ -101,7 +100,7 @@ terminal::terminal( )
 				{
 					{
 						auto lock = lock_guard( m_mutex );
-						m_bounds.to( )	=	{ ws.ws_col, ws.ws_row };
+						m_bounds.end	=	{ ws.ws_col, ws.ws_row };
 					}
 					m_dispatcher( &listener::on_resize, size( ) );
 				}
@@ -125,12 +124,12 @@ auto terminal::clear_screen( bool full_reset ) -> void
 		if( auto result = set_raw_mode( false ); not result )
 			print( result.error( ) );
 		
-		point l_from;
+		point l_start;
 		{
 			auto lock = lock_guard( m_mutex );
-			l_from = m_bounds.from( );
+			l_start = m_bounds.start;
 		}
-		move_cursor( l_from );
+		move_cursor( l_start );
 	}
 	print( "\033[2J" );
 }
@@ -183,7 +182,7 @@ auto terminal::set_raw_mode( bool enable ) -> result
 	else if( tcsetattr( STDIN_FILENO, TCSAFLUSH, &m_original_termios ) not_eq 0 )
 		return	unexpected( tcsetattr_failed );
 
-	return { };
+	return	{ };
 }
 
 auto terminal::set_text_style( text_style style ) -> void { m_output << "\033[" << static_cast<int>( style ) << 'm'; }
@@ -191,7 +190,7 @@ auto terminal::set_text_style( text_style style ) -> void { m_output << "\033[" 
 auto terminal::size( ) const noexcept -> point
 {
 	auto lock = lock_guard( m_mutex );
-	return m_bounds.to( );
+	return	m_bounds.end;
 }
 
 auto terminal::get_error_message( const error& error_code ) noexcept -> const string&

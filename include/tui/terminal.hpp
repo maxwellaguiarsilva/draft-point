@@ -57,8 +57,8 @@ __using( ::std::
 	,lock_guard
 )
 using	::sak::pattern::dispatcher;
-using	point	=	::sak::geometry::coordinate< int, 2 >;
-using	rectangle	=	::sak::geometry::shapes< point >::rectangle;
+using	point		=	::sak::point< int, 2 >;
+using	rectangle	=	::sak::geometry< point >::rectangle;
 using	::termios;
 
 

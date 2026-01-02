@@ -28,21 +28,19 @@
 #define header_guard_104340424
 
 #include <sak/sak.hpp>
-#include <sak/geometry/coordinate.hpp>
 #include <sak/geometry/geometry.hpp>
 
 
 
 namespace game {
-namespace geometry {
 
 
-using	point		=	::sak::geometry::coordinate< int, 2 >;
-using	shapes		=	::sak::geometry::shapes< point >;
-using	rectangle	=	shapes::rectangle;
+using	point		=	::sak::point< int, 2 >;
+using	geometry	=	::sak::geometry< point >;
+using	rectangle	=	geometry::rectangle;
 
 
-} } 
+} 
 
 
 #endif

@@ -41,7 +41,7 @@ namespace game {
 using	::tui::terminal;
 using	::game::player;
 using	::game::fps;
-using	::game::geometry::point;
+using	::game::point;
 using	::std::shared_ptr;
 using	::std::make_shared;
 

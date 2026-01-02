@@ -29,45 +29,31 @@
 
 
 #include <sak/sak.hpp>
-#include <sak/geometry/coordinate.hpp>
+#include <sak/geometry/point.hpp>
 
 
 namespace sak {
-namespace geometry {
 
 
-template< is_coordinate t_point = coordinate< int, 2 > >
-struct shapes
+template< is_point t_point = point< int, 2 > >
+struct geometry 
 {
 	
 	using	point	=	t_point;
 
-	class rectangle
+	struct rectangle
 	{
-	private:
-		array< point, 2 > m_data;
-	public:
-		constexpr rectangle( ) : m_data{ } { }
-
-		constexpr auto& from( ) noexcept { return m_data[ 0 ]; }
-		constexpr const auto& from( ) const noexcept { return m_data[ 0 ]; }
-
-		constexpr auto& to( ) noexcept { return m_data[ 1 ]; }
-		constexpr const auto& to( ) const noexcept { return m_data[ 1 ]; }
-
-//		constexpr auto& get_points( ) noexcept { return m_data; }
-//		constexpr const auto& get_points( ) const noexcept { return m_data; }
-
-		constexpr auto contains( const point& a_point ) const noexcept -> bool
+		point start, end;
+		constexpr auto contains( const point& point ) const noexcept -> bool
 		{
-			return	from( ).encloses( a_point ) and a_point.encloses( to( ) );
+			return	start.encloses( point ) and point.encloses( end );
 		}
 	};
 
 };
 
 
-} }
+}
 
 
 #endif
