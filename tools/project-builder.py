@@ -623,16 +623,17 @@ class project:
 
 
 if __name__ == "__main__":
-    current_project = project( { } )
-    if "--check" in sys.argv:
-        try:
+    try:
+        current_project = project( { } )
+        if "--check" in sys.argv:
             current_project.check_code( )
-        except Exception:
-            sys.exit( 1 )
-    elif "--fix-newlines" in sys.argv:
-        current_project.ensure_trailing_newlines( )
-    else:
-        current_project.build( )
+        elif "--fix-newlines" in sys.argv:
+            current_project.ensure_trailing_newlines( )
+        else:
+            current_project.build( )
+    except Exception as e:
+        print( f"\nError: {e}", file=sys.stderr )
+        sys.exit( 1 )
 
 
 
