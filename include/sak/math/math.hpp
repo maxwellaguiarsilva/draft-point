@@ -47,6 +47,7 @@ inline constexpr auto divides		= 	::std::divides{ };
 inline constexpr auto modulus		= 	::std::modulus{ };
 inline constexpr auto equal_to		= 	::std::equal_to{ };
 inline constexpr auto less_equal	= 	::std::less_equal{ };
+inline constexpr auto greater_equal	= 	::std::greater_equal{ };
 
 
 enum class error
