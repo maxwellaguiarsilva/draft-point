@@ -44,9 +44,14 @@ struct geometry
 	struct rectangle
 	{
 		point start, end;
+		constexpr auto get_size( ) const noexcept -> point { return end - start; }
 		constexpr auto contains( const point& point ) const noexcept -> bool
 		{
 			return	point.encloses( start ) and end.encloses( point );
+		}
+		constexpr auto encloses( const rectangle& other ) const noexcept -> bool
+		{
+			return	other.start.encloses( start ) and end.encloses( other.end );
 		}
 	};
 
