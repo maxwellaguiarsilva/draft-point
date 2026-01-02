@@ -1,21 +1,41 @@
-## Gemini Added Memories
-- All content in `.cpp` and `.hpp` files must be exclusively in `en-us`. Any `pt-br` terms or phrases are strictly forbidden in these files.
-- The file `docs/agent/philosophy.md` defines the decision-making process when producing C++ code for the project.
-- This is a C++23 project. Always prefer the most modern version of the code, such as `ranges`, `views` and `Niebloids`.
-- `{{ ... }}` is correct and mandatory only for the `main` function. For all other functions and methods, single braces `{ ... }` must be used.
-- Always prefer `const reference` to avoid the use of `::std::forward` and `::std::move` whenever possible.
-- Prefer creating a `const reference` over repeated use of the `->` operator for pointer member access. Use `->` only when strictly necessary or when the pointer is used a single time, where creating a reference would be redundant for just one line of code.
-- Always use the `using` keyword to avoid the scope resolution operator `::` (fully qualified names). Except for "ADL-sensitive" functions like `::std::move`, `::std::forward`, `::std::addressof`, and `::std::declval`, which must always be fully qualified. In any case, they will be avoided whenever possible as per the previous instruction.
-- Do not modify anything in the project until explicitly requested. Do not test, compile, commit changes on the project until explicitly requested.
-- Use the `compile` tool to compile the project, and never directly invoke g++ or clang.
-- Always prefer `sak::ensure` over `cassert` for tests and runtime checks.
-- Commit messages must be in en-us.
-- All `.cpp` and `.hpp` files must end with exactly two empty lines. To ensure this rule is followed, the `fix_newlines` tool must be used, instead of manual verification or editing of the files.
+## 🛠 Protocolo de Operação (Draft-Point)
 
-## `sak` Library (Swiss Army Knife)
-- **What it is:** A collection of generic, domain-independent utilities.
-- **Scope:** Generic C++ language-level code, free of business logic and independent of system/hardware. It contains tools that complement the standard library according to the project's needs.
-- **What to include:** Math utilities, geometry, design patterns, basic type extensions, and language helpers.
-- **What NOT to include:** Application-specific logic (e.g., game, TUI), hardware dependencies, or implementations tied to business rules.
+Este arquivo é a fonte única de verdade para o comportamento do Agente. As instruções aqui são imperativas e priorizadas sobre qualquer outro documento.
 
+### 1. Diretrizes de Comunicação e Identidade
+- **Idioma:** Conversa em `pt-br`. Código, comentários e mensagens de commit estritamente em `en-us`.
+- **Qualidade:** Erros de gramática ou digitação são proibidos. Se um nome for semanticamente incorreto, aponte-o imediatamente.
+- **Interação:** Siga as solicitações de forma objetiva, realizando exatamente o que foi pedido sem análises de contexto desnecessárias.
 
+### 2. Estilo de Código C++ (Hard Rules)
+- **Modernidade:** Projeto C++23. Prefira `ranges`, `views` e `Niebloids`.
+- **Naming:** Sempre `snake_case`. Membros de classe prefixados com `m_`.
+- **Operadores Lógicos:** Proibido o uso de `&&, ||, !`. Use obrigatoriamente `and, or, not`.
+- **Espaçamento:** Espaço interno obrigatório em `( )` e `[ ]`. Ex: `if( condition )`, `array[ index ]`.
+- **Controle de Fluxo:** Sem chaves `{}` para `if, for, while` de uma única linha.
+- **Incremento:** Prefira sempre pré-incremento (`++i`) e pré-decremento (`--i`).
+- **Main Function:** Único lugar onde chaves duplas são obrigatórias: `int main( ) {{ ... }}`.
+- **Headers:** Namespaces declarados como `namespace n {` na mesma linha. Sem indentação extra para o conteúdo do namespace.
+- **Indireção:** Prefira `const&` (referência constante) para evitar o ruído do operador `->`. Use `using` para evitar o operador de escopo `::` (exceto para funções sensíveis a ADL como `move` ou `forward`).
+- **Métodos:** Marque métodos que não alteram o estado com `const` e `noexcept`.
+- **Comentários Permitidos:** Apenas para explicar comportamentos sutis ou em testes.
+    - Devem começar com `//` seguido de um **TAB** (`	`).
+    - Escritos inteiramente em minúsculas, sem ponto final. Cada frase em uma linha nova.
+
+### 3. Elevação Semântica (Filosofia)
+- **Data over Machinery:** Oculte a "maquinaria" (ponteiros, loops manuais) para deixar o "dado" falar.
+- **Visual Serenity:** Reduza o ruído visual. O código deve ser uma declaração de intenção ("o que"), não um manual de instruções para a CPU ("como").
+- **Composição:** Se uma lógica pode ser nomeada, ela deve ser um utilitário na biblioteca `sak`. Evite lambdas ad-hoc; prefira compor entidades nomeadas.
+
+### 4. Fluxo de Trabalho e Ferramentas (Workflow)
+- **Automação (MCP):** Use sempre `create_class` e `create_test`. O código gerado por essas ferramentas é o **Padrão Ouro**.
+- **Mimetismo:** O Agente deve observar a estrutura, a ordem de includes e os comentários gerados pelos templates e mimetizá-los rigorosamente. Não altere o boilerplate automático.
+- **Testes:** Use sempre `sak::ensure` em vez de `cassert`.
+- **Verificação:** 
+    1.  Não compile até ser solicitado. Use a ferramenta `compile` para build.
+    2.  Use a ferramenta `check` (cppcheck) após alterações e trate todos os avisos.
+    3.  Use a ferramenta `fix_newlines` (obrigatório 2 linhas vazias no fim de arquivos `.cpp` e `.hpp`).
+
+### 5. Biblioteca `sak` (Swiss Army Knife)
+- Utilitários genéricos e independentes de domínio (matemática, geometria, patterns).
+- Não deve conter lógica de negócio ou dependências de hardware.
