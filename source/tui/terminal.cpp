@@ -75,7 +75,7 @@ terminal::terminal( )
 	{
 		auto lock = lock_guard( m_mutex );
 		m_bounds	=	{ { 1, 1 }, { m_ws.ws_col, m_ws.ws_row } };
-		ensure( m_bounds.start.fits( m_bounds.end ), "error: invalid terminal size" );
+		ensure( m_bounds.end.encloses( m_bounds.start ), "error: invalid terminal size" );
 	}
 	clear_screen( true );
 	set_raw_mode( true );

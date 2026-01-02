@@ -66,6 +66,7 @@ __using( ::sak::math::
 	,square_root
 	,equal_to
 	,less_equal
+	,greater_equal
 	,is_arithmetic
 )
 //	--------------------------------------------------
@@ -147,9 +148,9 @@ public:
 	__352612026_operator( % 	,modulus	)
 
 
-	constexpr auto fits( const point& other ) const noexcept -> bool
+	constexpr auto encloses( const point& other ) const noexcept -> bool
 	{
-		return	all_of( zip( *this, other ), tupled( less_equal ) );
+		return	all_of( zip( *this, other ), tupled( greater_equal ) );
 	}
 
 	constexpr auto get_length( ) const noexcept -> t_scalar

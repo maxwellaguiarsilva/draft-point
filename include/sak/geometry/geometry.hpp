@@ -46,7 +46,7 @@ struct geometry
 		point start, end;
 		constexpr auto contains( const point& point ) const noexcept -> bool
 		{
-			return	start.fits( point ) and point.fits( end );
+			return	point.encloses( start ) and end.encloses( point );
 		}
 	};
 
