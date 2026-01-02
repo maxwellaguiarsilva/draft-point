@@ -526,7 +526,8 @@ class project:
         cppcheck_command = f"cppcheck {cppcheck_params} \"{source_dir}\" \"{tests_dir}\""
         
         print( "Running static analysis (cppcheck)..." )
-        if os.system( cppcheck_command ) != 0:
+        result = subprocess.run( cppcheck_command, shell=True )
+        if result.returncode != 0:
             print( f"cppcheck: {cppcheck_command}" )
             raise Exception( "cppcheck failed for the project" )
         print( "Static analysis completed successfully." )
