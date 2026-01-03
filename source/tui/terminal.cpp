@@ -137,6 +137,7 @@ terminal::~terminal( ) noexcept
 	m_resize_thread.request_stop( );
 	pthread_kill( m_resize_thread.native_handle( ), SIGWINCH );
 	clear_screen( true );
+	refresh( );
 }
 
 
