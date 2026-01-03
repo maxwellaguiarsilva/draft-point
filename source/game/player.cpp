@@ -23,15 +23,15 @@
 
 
 #include <game/player.hpp>
-#include <tui/terminal.hpp>
+#include <tui/renderer.hpp>
 
 
 namespace game {
 
 
-using	color	=	::tui::terminal::color;
 using	enum	::game::direction;
 using	::game::use_direction;
+using	::tui::renderer;
 
 player::player( const point& a_position ) noexcept
 	:position{ a_position }
@@ -44,10 +44,10 @@ auto player::set_direction( const direction& a_direction ) noexcept -> void { m_
 
 auto player::step_move( ) noexcept -> void { position += use_direction( m_direction ).value; }
 
-auto player::draw( terminal& terminal ) const noexcept -> void
+auto player::draw( renderer& renderer ) const noexcept -> void
 {
-	terminal.set_color( color::white );
-	terminal.print( position, "█" );
+	renderer.set_color( 15 );
+	renderer.draw( position );
 }
 
 

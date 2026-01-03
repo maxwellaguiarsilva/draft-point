@@ -27,7 +27,7 @@
 #define header_guard_185813530
 
 
-#include <tui/terminal.hpp>
+#include <tui/renderer.hpp>
 #include <sak/sak.hpp>
 #include <game/geometry.hpp>
 #include <game/direction.hpp>
@@ -36,7 +36,7 @@
 namespace game {
 
 
-using	::tui::terminal;
+using	::tui::renderer;
 using	::game::point;
 using	::game::direction;
 using	enum	::game::direction;
@@ -52,7 +52,7 @@ public:
 
 	auto step_move( ) noexcept -> void;
 
-	auto draw( terminal& terminal ) const noexcept -> void;
+	auto draw( renderer& renderer ) const noexcept -> void;
 	
 	point position;
 private:
