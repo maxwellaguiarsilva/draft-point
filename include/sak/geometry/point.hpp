@@ -31,6 +31,7 @@
 #include <array>
 #include <ranges>
 #include <cstddef>
+#include <concepts>
 #include <sak/math/math.hpp>
 #include <sak/pattern/tupled.hpp>
 #include <sak/using.hpp>
@@ -45,6 +46,7 @@ using	::sak::pattern::tupled;
 __using( ::std::
 	,array
 	,convertible_to
+	,invocable
 	,size_t
 	,true_type
 	,false_type
@@ -146,12 +148,14 @@ public:
 	__352612026_operator( * 	,multiplies	)
 	__352612026_operator( / 	,divides	)
 	__352612026_operator( % 	,modulus	)
-
-
-	constexpr auto encloses( const point& other ) const noexcept -> bool
+	
+	template< invocable< t_scalar, t_scalar > t_operation >
+	constexpr auto is_all( const point& other, const t_operation& operation ) const noexcept -> bool
 	{
-		return	all_of( zip( *this, other ), tupled( greater_equal ) );
+		return	all_of( zip( *this, other ), tupled( operation ) );
 	}
+	constexpr auto operator == ( const point& other ) const noexcept -> bool { return is_all( other, equal_to ); }
+	constexpr auto encloses( const point& other ) const noexcept -> bool { return is_all( other, greater_equal ); }
 
 	constexpr auto get_length( ) const noexcept -> t_scalar
 	{
