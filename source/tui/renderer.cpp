@@ -41,10 +41,23 @@ using	::std::unique_lock;
 using	::std::try_to_lock;
 
 
+using	::std::make_shared;
+
+
+renderer::terminal_listener::terminal_listener( renderer& a_parent )
+	:m_parent( a_parent )
+{ }
+
+
+void renderer::terminal_listener::on_resize( const point& a_size )
+{ m_parent.on_resize( a_size ); }
+
+
 renderer::renderer( terminal& parent )
 	:m_parent( parent )
 	,m_color( 15 )
 	,m_is_resizing( false )
+	,m_terminal_listener( make_shared< terminal_listener >( *this ) )
 {
 	point size = m_parent.size( );
 	m_front.resize( size[ 0 ] * size[ 1 ] );

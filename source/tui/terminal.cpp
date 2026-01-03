@@ -83,7 +83,7 @@ terminal::terminal( )
 	set_raw_mode( true );
 
 	m_renderer	=	make_shared< renderer >( *this );
-	*this += m_renderer;
+	*this += m_renderer->m_terminal_listener;
 
 	sigset_t set;
 	sigemptyset( &set );

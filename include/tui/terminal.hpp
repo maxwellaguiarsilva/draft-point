@@ -149,7 +149,6 @@ private:
 	jthread		m_resize_thread;
 	dispatcher< listener >	m_dispatcher;
 	shared_ptr< renderer >	m_renderer;
-
 };
 
 

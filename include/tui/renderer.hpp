@@ -46,8 +46,9 @@ using	::std::mutex;
 using	::std::lock_guard;
 
 
-class renderer : public terminal::listener
+class renderer
 {
+	friend class terminal;
 public:
 	struct cell
 	{
@@ -60,7 +61,7 @@ public:
 	using	buffer	=	vector< cell >;
 
 	explicit renderer( terminal& parent );
-	virtual ~renderer( ) noexcept override = default;
+	~renderer( ) noexcept = default;
 
 	void clear( ) noexcept;
 	void refresh( );
@@ -69,15 +70,24 @@ public:
 	void draw( const line& data );
 	void draw( const rectangle& data, bool fill = true );
 
-	void on_resize( const point& size ) override;
-
 private:
+	struct terminal_listener final : public terminal::listener
+	{
+		explicit terminal_listener( renderer& a_parent );
+		void on_resize( const point& a_size ) override;
+
+		renderer& m_parent;
+	};
+
+	void on_resize( const point& size );
+
 	terminal&	m_parent;
 	buffer		m_front;
 	buffer		m_back;
 	uint8_t		m_color;
 	atomic<bool>	m_is_resizing;
 	mutable mutex	m_mutex;
+	shared_ptr< terminal_listener > m_terminal_listener;
 };
 
 
