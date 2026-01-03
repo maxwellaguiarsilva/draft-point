@@ -70,6 +70,7 @@ const string terminal::m_unknown_error_message	=	"terminal: unknown error";
 terminal::terminal( )
 	:	m_output( cout )
 	,	m_error_output( cerr )
+	,	m_renderer( *this )
 {
 	winsize m_ws;
 	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, get_error_message( tcgetattr_failed ) );
@@ -81,9 +82,6 @@ terminal::terminal( )
 	}
 	clear_screen( true );
 	set_raw_mode( true );
-
-	m_renderer	=	make_shared< renderer >( *this );
-	*this += m_renderer->m_terminal_listener;
 
 	sigset_t set;
 	sigemptyset( &set );
@@ -198,7 +196,7 @@ auto terminal::size( ) const noexcept -> point
 	return	m_bounds.end;
 }
 
-auto terminal::get_renderer( ) noexcept -> renderer& { return *m_renderer; }
+auto terminal::get_renderer( ) noexcept -> renderer& { return m_renderer; }
 
 auto terminal::get_error_message( const error& error_code ) noexcept -> const string&
 

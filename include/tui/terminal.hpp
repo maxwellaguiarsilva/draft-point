@@ -30,6 +30,7 @@
 #include <sak/sak.hpp>
 #include <sak/pattern/dispatcher.hpp>
 #include <tui/geometry.hpp>
+#include <tui/renderer.hpp>
 #include <termios.h>
 #include <string>
 #include <unordered_map>
@@ -59,9 +60,6 @@ __using( ::std::
 )
 using	::sak::pattern::dispatcher;
 using	::termios;
-
-
-class renderer;
 
 
 class terminal final
@@ -148,7 +146,7 @@ private:
 	rectangle	m_bounds;
 	jthread		m_resize_thread;
 	dispatcher< listener >	m_dispatcher;
-	shared_ptr< renderer >	m_renderer;
+	renderer	m_renderer;
 };
 
 

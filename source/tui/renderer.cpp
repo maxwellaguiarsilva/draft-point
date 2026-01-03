@@ -44,13 +44,13 @@ using	::std::try_to_lock;
 using	::std::make_shared;
 
 
-renderer::terminal_listener::terminal_listener( renderer& a_parent )
-	:m_parent( a_parent )
-{ }
+struct renderer::terminal_listener final : public terminal::listener
+{
+	explicit terminal_listener( renderer& a_parent ) : m_parent( a_parent ) { }
+	void on_resize( const point& a_size ) override { m_parent.on_resize( a_size ); }
 
-
-void renderer::terminal_listener::on_resize( const point& a_size )
-{ m_parent.on_resize( a_size ); }
+	renderer& m_parent;
+};
 
 
 renderer::renderer( terminal& parent )
@@ -59,6 +59,7 @@ renderer::renderer( terminal& parent )
 	,m_is_resizing( false )
 	,m_terminal_listener( make_shared< terminal_listener >( *this ) )
 {
+	m_parent += m_terminal_listener;
 	point size = m_parent.size( );
 	m_front.resize( size[ 0 ] * size[ 1 ] );
 	m_back.resize( size[ 0 ] * size[ 1 ] );

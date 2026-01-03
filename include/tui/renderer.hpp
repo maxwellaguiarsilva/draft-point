@@ -29,7 +29,6 @@
 
 #include <sak/sak.hpp>
 #include <tui/geometry.hpp>
-#include <tui/terminal.hpp>
 #include <vector>
 #include <cstdint>
 #include <atomic>
@@ -44,6 +43,10 @@ using	::std::uint8_t;
 using	::std::atomic;
 using	::std::mutex;
 using	::std::lock_guard;
+using	::std::shared_ptr;
+
+
+class terminal;
 
 
 class renderer
@@ -71,13 +74,7 @@ public:
 	void draw( const rectangle& data, bool fill = true );
 
 private:
-	struct terminal_listener final : public terminal::listener
-	{
-		explicit terminal_listener( renderer& a_parent );
-		void on_resize( const point& a_size ) override;
-
-		renderer& m_parent;
-	};
+	struct terminal_listener;
 
 	void on_resize( const point& size );
 
