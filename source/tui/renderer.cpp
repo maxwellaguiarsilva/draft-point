@@ -25,6 +25,7 @@
 #include <tui/renderer.hpp>
 #include <tui/terminal.hpp>
 #include <cmath>
+#include <ranges>
 
 
 namespace tui {
@@ -39,6 +40,7 @@ using	::tui::rectangle;
 using	::std::lock_guard;
 using	::std::unique_lock;
 using	::std::try_to_lock;
+using	::std::views::zip;
 
 
 using	::std::make_shared;
@@ -97,33 +99,39 @@ void renderer::refresh( )
 	bool force_update = true;
 	point current_position = { 0, 0 };
 
-	for( int row = 1; row <= height; ++row )
-		for( int column = 1; column <= width; ++column )
+	int row = 1;
+	int column = 1;
+
+	for( auto&& [ back, front ] : zip( m_back, m_front ) )
+	{
+		if( back not_eq front )
 		{
-			int index = ( row - 1 ) * width + ( column - 1 );
-			if( m_back[ index ] not_eq m_front[ index ] )
+			if( current_position[ 0 ] not_eq column or current_position[ 1 ] not_eq row )
+				m_parent.move_cursor( { column, row } );
+
+			if( back.up not_eq current_foreground or force_update )
 			{
-				if( current_position[ 0 ] not_eq column or current_position[ 1 ] not_eq row )
-					m_parent.move_cursor( { column, row } );
-
-				if( m_back[ index ].up not_eq current_foreground or force_update )
-				{
-					current_foreground = m_back[ index ].up;
-					m_parent.m_output << "\033[38;5;" << static_cast< int >( current_foreground ) << "m";
-				}
-				if( m_back[ index ].down not_eq current_background or force_update )
-				{
-					current_background = m_back[ index ].down;
-					m_parent.m_output << "\033[48;5;" << static_cast< int >( current_background ) << "m";
-				}
-
-				m_parent.m_output << "\xe2\x96\x80";
-				m_front[ index ] = m_back[ index ];
-				current_position = { column + 1, row };
-				force_update = false;
+				current_foreground = back.up;
+				m_parent.set_color( current_foreground, false );
 			}
+			if( back.down not_eq current_background or force_update )
+			{
+				current_background = back.down;
+				m_parent.set_color( current_background, true );
+			}
+
+			m_parent.print( "\xe2\x96\x80" );
+			front = back;
+			current_position = { column + 1, row };
+			force_update = false;
 		}
 
+		if( ++column > width )
+		{
+			column = 1;
+			++row;
+		}
+	}
 }
 
 void renderer::set_color( const uint8_t color ) noexcept { m_color = color; }

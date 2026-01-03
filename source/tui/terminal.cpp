@@ -152,12 +152,17 @@ auto terminal::move_cursor( const point& position ) -> result
 		auto lock = lock_guard( m_mutex );
 		if( not m_bounds.contains( position ) )
 			return	unexpected( out_of_bounds );
+		m_buffer << "\033[" << position[1] << ';' << position[0] << 'H';
 	}
-	m_output << "\033[" << position[1] << ';' << position[0] << 'H';
 	return	{ };
 }
 
-auto terminal::print( const string& text ) -> void { m_output << text; }
+auto terminal::print( const string& text ) -> void
+{
+	auto lock = lock_guard( m_mutex );
+	m_buffer << text;
+}
+
 auto terminal::print( const point& position, const string& text ) -> result
 {
 	if( auto status = move_cursor( position ); not status )
@@ -166,9 +171,26 @@ auto terminal::print( const point& position, const string& text ) -> result
 	return	{ };
 }
 
-auto terminal::refresh( ) -> void { m_output << flush; }
+auto terminal::refresh( ) -> void
+{
+	auto lock = lock_guard( m_mutex );
+	m_output << m_buffer.str( ) << flush;
+	m_buffer.str( "" );
+	m_buffer.clear( );
+}
 
-auto terminal::set_color( color color, bool background ) -> void { m_output << "\033[" << ( static_cast<int>( color ) + ( background ? 40 : 30 ) ) << 'm'; }
+auto terminal::set_color( color color_code, bool background ) -> void
+{
+	auto lock = lock_guard( m_mutex );
+	m_buffer << "\033[" << ( static_cast<int>( color_code ) + ( background ? 40 : 30 ) ) << 'm';
+}
+
+auto terminal::set_color( uint8_t color_code, bool background ) -> void
+{
+	auto lock = lock_guard( m_mutex );
+	m_buffer << "\033[" << ( background ? 48 : 38 ) << ";5;" << static_cast< int >( color_code ) << "m";
+}
+
 auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }
 
 auto terminal::set_raw_mode( bool enable ) -> result
@@ -190,7 +212,11 @@ auto terminal::set_raw_mode( bool enable ) -> result
 	return	{ };
 }
 
-auto terminal::set_text_style( text_style style ) -> void { m_output << "\033[" << static_cast<int>( style ) << 'm'; }
+auto terminal::set_text_style( text_style style ) -> void
+{
+	auto lock = lock_guard( m_mutex );
+	m_buffer << "\033[" << static_cast<int>( style ) << 'm';
+}
 
 auto terminal::query_size( ) -> point
 {

@@ -36,6 +36,7 @@
 #include <unordered_map>
 #include <expected>
 #include <ostream>
+#include <sstream>
 #include <memory>
 #include <thread>
 #include <csignal>
@@ -49,6 +50,7 @@ namespace tui {
 __using( ::std::
 	,string
 	,ostream
+	,ostringstream
 	,expected
 	,unexpected
 	,shared_ptr
@@ -117,6 +119,7 @@ public:
 	auto print( const point& position, const string& text ) -> result;
 	auto refresh( ) -> void;
 	auto set_color( color color_code, bool flg_background = false ) -> void;
+	auto set_color( uint8_t color_code, bool flg_background = false ) -> void;
 	auto set_cursor( bool enable ) -> void;
 	auto set_raw_mode( bool enable ) -> result;
 	auto set_text_style( text_style style ) -> void;
@@ -143,6 +146,7 @@ private:
 
 	ostream&	m_output;
 	ostream&	m_error_output;
+	ostringstream	m_buffer;
 	termios		m_original_termios;
 	mutable mutex	m_mutex;
 	rectangle	m_bounds;
