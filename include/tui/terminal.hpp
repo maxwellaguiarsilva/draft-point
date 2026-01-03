@@ -29,8 +29,8 @@
 
 
 #include <sak/sak.hpp>
-#include <sak/geometry/geometry.hpp>
 #include <sak/pattern/dispatcher.hpp>
+#include <tui/renderer.hpp>
 #include <termios.h>
 #include <string>
 #include <unordered_map>
@@ -57,13 +57,12 @@ __using( ::std::
 	,lock_guard
 )
 using	::sak::pattern::dispatcher;
-using	point		=	::sak::point< int, 2 >;
-using	rectangle	=	::sak::geometry< point >::rectangle;
 using	::termios;
 
 
 class terminal final
 {
+	friend class renderer;
 public:
 	enum class color
 	{
