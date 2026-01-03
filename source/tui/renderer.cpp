@@ -70,35 +70,35 @@ void renderer::refresh( )
 		m_front.resize( count );
 	}
 
-	uint8_t current_fg = 255;
-	uint8_t current_bg = 255;
+	uint8_t current_foreground = 255;
+	uint8_t current_background = 255;
 	bool force_update = true;
-	point current_pos = { 0, 0 };
+	point current_position = { 0, 0 };
 
 	for( size_t row = 1; row <= height; ++row )
 	{
-		for( size_t col = 1; col <= width; ++col )
+		for( size_t column = 1; column <= width; ++column )
 		{
-			size_t idx = ( row - 1 ) * width + ( col - 1 );
-			if( m_back[ idx ] not_eq m_front[ idx ] )
+			size_t index = ( row - 1 ) * width + ( column - 1 );
+			if( m_back[ index ] not_eq m_front[ index ] )
 			{
-				if( current_pos[ 0 ] not_eq static_cast< int >( col ) or current_pos[ 1 ] not_eq static_cast< int >( row ) )
-					m_parent.move_cursor( { static_cast< int >( col ), static_cast< int >( row ) } );
+				if( current_position[ 0 ] not_eq static_cast< int >( column ) or current_position[ 1 ] not_eq static_cast< int >( row ) )
+					m_parent.move_cursor( { static_cast< int >( column ), static_cast< int >( row ) } );
 
-				if( m_back[ idx ].up not_eq current_fg or force_update )
+				if( m_back[ index ].up not_eq current_foreground or force_update )
 				{
-					current_fg = m_back[ idx ].up;
-					m_parent.m_output << "\033[38;5;" << static_cast< int >( current_fg ) << "m";
+					current_foreground = m_back[ index ].up;
+					m_parent.m_output << "\033[38;5;" << static_cast< int >( current_foreground ) << "m";
 				}
-				if( m_back[ idx ].down not_eq current_bg or force_update )
+				if( m_back[ index ].down not_eq current_background or force_update )
 				{
-					current_bg = m_back[ idx ].down;
-					m_parent.m_output << "\033[48;5;" << static_cast< int >( current_bg ) << "m";
+					current_background = m_back[ index ].down;
+					m_parent.m_output << "\033[48;5;" << static_cast< int >( current_background ) << "m";
 				}
 
 				m_parent.m_output << "\xe2\x96\x80";
-				m_front[ idx ] = m_back[ idx ];
-				current_pos = { static_cast< int >( col + 1 ), static_cast< int >( row ) };
+				m_front[ index ] = m_back[ index ];
+				current_position = { static_cast< int >( column + 1 ), static_cast< int >( row ) };
 				force_update = false;
 			}
 		}
@@ -114,26 +114,26 @@ void renderer::draw( const line& data )
 	int x2 = data.end[ 0 ];
 	int y2 = data.end[ 1 ];
 
-	int dx = abs( x2 - x1 );
-	int dy = -abs( y2 - y1 );
-	int sx = x1 < x2 ? 1 : -1;
-	int sy = y1 < y2 ? 1 : -1;
-	int err = dx + dy;
+	int delta_x = abs( x2 - x1 );
+	int delta_y = -abs( y2 - y1 );
+	int step_x = x1 < x2 ? 1 : -1;
+	int step_y = y1 < y2 ? 1 : -1;
+	int error = delta_x + delta_y;
 
 	while( true )
 	{
 		draw_point( x1, y1 );
 		if( x1 == x2 and y1 == y2 ) break;
-		int e2 = 2 * err;
-		if( e2 >= dy )
+		int error_doubled = 2 * error;
+		if( error_doubled >= delta_y )
 		{
-			err += dy;
-			x1 += sx;
+			error += delta_y;
+			x1 += step_x;
 		}
-		if( e2 <= dx )
+		if( error_doubled <= delta_x )
 		{
-			err += dx;
-			y1 += sy;
+			error += delta_x;
+			y1 += step_y;
 		}
 	}
 }
@@ -169,14 +169,14 @@ void renderer::draw_point( int x, int y ) noexcept
 
 	if( x < 1 or x > width or y < 1 or y > 2 * height ) return;
 
-	int r = ( y + 1 ) / 2;
-	int c = x;
-	size_t idx = static_cast< size_t >( ( r - 1 ) * width + ( c - 1 ) );
+	int row = ( y + 1 ) / 2;
+	int column = x;
+	size_t index = static_cast< size_t >( ( row - 1 ) * width + ( column - 1 ) );
 
 	if( y % 2 not_eq 0 )
-		m_back[ idx ].up = m_color;
+		m_back[ index ].up = m_color;
 	else
-		m_back[ idx ].down = m_color;
+		m_back[ index ].down = m_color;
 }
 
 }
