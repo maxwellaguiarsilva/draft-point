@@ -47,14 +47,14 @@ struct __to_lower_case
 {
 	constexpr auto operator ( ) ( char code ) const noexcept -> char
 	{
-		return ( between( code, 'A', 'Z' ) ? static_cast< char >( code + delta_case ) : code );
+		return	( between( code, 'A', 'Z' ) ? static_cast< char >( code + delta_case ) : code );
 	}
 
 	auto operator ( ) ( const string& text ) const -> string
 	{
 		string result = text;
 		::std::ranges::transform( result, result.begin( ), *this );
-		return result;
+		return	result;
 	}
 };
 inline constexpr auto to_lower_case = __to_lower_case{ };
@@ -64,14 +64,14 @@ struct __to_upper_case
 {
 	constexpr auto operator ( ) ( char code ) const noexcept -> char
 	{
-		return ( between( code, 'a', 'z' ) ? static_cast< char >( code - delta_case ) : code );
+		return	( between( code, 'a', 'z' ) ? static_cast< char >( code - delta_case ) : code );
 	}
 
 	auto operator ( ) ( const string& text ) const -> string
 	{
 		string result = text;
 		::std::ranges::transform( result, result.begin( ), *this );
-		return result;
+		return	result;
 	}
 };
 inline constexpr auto to_upper_case = __to_upper_case{ };

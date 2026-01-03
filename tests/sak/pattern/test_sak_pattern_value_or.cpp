@@ -73,7 +73,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 	println( "All tests for sak/pattern/value_or passed!" );
 
-    return	EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }}
 
 

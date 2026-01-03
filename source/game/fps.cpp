@@ -65,7 +65,7 @@ auto fps::compute( ) -> int
 
 	m_start_time		=	high_resolution_clock::now( );
 
-	return ( frame_time.count( ) > 0 ) ? ( 1000000 / frame_time.count( ) ) : m_limit;
+	return	( frame_time.count( ) > 0 ) ? ( 1000000 / frame_time.count( ) ) : m_limit;
 }
 
 

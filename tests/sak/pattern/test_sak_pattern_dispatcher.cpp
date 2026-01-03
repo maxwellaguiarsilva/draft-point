@@ -186,10 +186,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	catch( const exception& error )
 	{
 		println( "test failed: {}", error.what( ) );
-		return EXIT_FAILURE;
+		return	EXIT_FAILURE;
 	}
 
-	return EXIT_SUCCESS;
+	return	EXIT_SUCCESS;
 }}
 
 

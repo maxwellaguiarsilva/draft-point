@@ -66,7 +66,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		println( "Frame {}: {} FPS", i, current_fps );
 	}
 
-    return	EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }}
 
 

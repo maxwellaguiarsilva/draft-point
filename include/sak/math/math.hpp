@@ -70,7 +70,7 @@ struct exception : ::std::exception
 			case error::arithmetic_overflow: return "math: arithmetic overflow";
 			case error::square_root_of_negative: return "math: square root of negative number";
 		}
-		return "math: unknown error";
+		return	"math: unknown error";
 	}
 };
 

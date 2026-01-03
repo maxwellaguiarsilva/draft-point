@@ -37,7 +37,7 @@ struct __value_or
 	constexpr auto operator ( ) ( const t_container& container, const typename t_container::key_type& key, const typename t_container::mapped_type& default_value ) const noexcept -> const typename t_container::mapped_type&
 	{
 		const auto iterator = container.find( key );
-		return iterator not_eq container.end( ) ? iterator->second : default_value;
+		return	iterator not_eq container.end( ) ? iterator->second : default_value;
 	}
 };
 inline constexpr auto value_or = __value_or{ };
