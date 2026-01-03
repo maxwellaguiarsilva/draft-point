@@ -55,14 +55,14 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		//	test 1: get_size
 		{
-			const rectangle r{ { { 1, 1 }, { 10, 10 } } };
+			const rectangle r{ { 1, 1 }, { 10, 10 } };
 			const auto size = r.get_size( );
 			ensure( size[ 0 ] == 9 and size[ 1 ] == 9, "get_size failed" );
 		}
 
 		//	test 2: contains point
 		{
-			const rectangle r{ { { 1, 1 }, { 10, 10 } } };
+			const rectangle r{ { 1, 1 }, { 10, 10 } };
 			ensure( r.contains( { 1, 1 } ), "should contain start point" );
 			ensure( r.contains( { 10, 10 } ), "should contain end point" );
 			ensure( r.contains( { 5, 5 } ), "should contain middle point" );
@@ -71,10 +71,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		//	test 3: encloses rectangle
 		{
-			const rectangle outer{ { { 1, 1 }, { 10, 10 } } };
-			const rectangle inner{ { { 2, 2 }, { 9, 9 } } };
-			const rectangle edge{ { { 1, 1 }, { 5, 5 } } };
-			const rectangle outside{ { { 0, 0 }, { 5, 5 } } };
+			const rectangle outer{ { 1, 1 }, { 10, 10 } };
+			const rectangle inner{ { 2, 2 }, { 9, 9 } };
+			const rectangle edge{ { 1, 1 }, { 5, 5 } };
+			const rectangle outside{ { 0, 0 }, { 5, 5 } };
 
 			ensure( outer.encloses( inner ), "outer should enclose inner" );
 			ensure( outer.encloses( edge ), "outer should enclose edge" );
