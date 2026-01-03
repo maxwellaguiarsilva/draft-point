@@ -74,7 +74,7 @@ terminal::terminal( )
 	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) == 0, get_error_message( ioctl_failed ) );
 	{
 		auto lock = lock_guard( m_mutex );
-		m_bounds	=	{ { 1, 1 }, { m_ws.ws_col, m_ws.ws_row } };
+		m_bounds	=	{ { { 1, 1 }, { m_ws.ws_col, m_ws.ws_row } } };
 		ensure( m_bounds.end.encloses( m_bounds.start ), "error: invalid terminal size" );
 	}
 	clear_screen( true );

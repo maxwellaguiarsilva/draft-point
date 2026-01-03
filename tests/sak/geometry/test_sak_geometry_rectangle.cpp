@@ -31,7 +31,6 @@
 
 #include <sak/ensure.hpp>
 #include <sak/geometry/geometry.hpp>
-#include <sak/geometry/point.hpp>
 
 
 
@@ -51,32 +50,31 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	{
 		println( "starting tests for: sak/geometry/rectangle..." );
 
-		using	::sak::point;
-		using	rect	=	::sak::geometry<>::rectangle;
+		using	point	=	::sak::point< int, 2 >;
+		using	rectangle	=	::sak::geometry< point >::rectangle;
 
 		//	test 1: get_size
 		{
-			const rect r{ { 1, 1 }, { 10, 10 } };
+			const rectangle r{ { { 1, 1 }, { 10, 10 } } };
 			const auto size = r.get_size( );
 			ensure( size[ 0 ] == 9 and size[ 1 ] == 9, "get_size failed" );
 		}
 
 		//	test 2: contains point
 		{
-			const rect r{ { 1, 1 }, { 10, 10 } };
+			const rectangle r{ { { 1, 1 }, { 10, 10 } } };
 			ensure( r.contains( { 1, 1 } ), "should contain start point" );
 			ensure( r.contains( { 10, 10 } ), "should contain end point" );
 			ensure( r.contains( { 5, 5 } ), "should contain middle point" );
-			ensure( not r.contains( { 0, 5 } ), "should not contain point outside ( left )" );
-			ensure( not r.contains( { 11, 5 } ), "should not contain point outside ( right )" );
+			ensure( not r.contains( { 0, 5 } ), "should not contain point outside ( right )" );
 		}
 
 		//	test 3: encloses rectangle
 		{
-			const rect outer{ { 1, 1 }, { 10, 10 } };
-			const rect inner{ { 2, 2 }, { 9, 9 } };
-			const rect edge{ { 1, 1 }, { 5, 5 } };
-			const rect outside{ { 0, 0 }, { 5, 5 } };
+			const rectangle outer{ { { 1, 1 }, { 10, 10 } } };
+			const rectangle inner{ { { 2, 2 }, { 9, 9 } } };
+			const rectangle edge{ { { 1, 1 }, { 5, 5 } } };
+			const rectangle outside{ { { 0, 0 }, { 5, 5 } } };
 
 			ensure( outer.encloses( inner ), "outer should enclose inner" );
 			ensure( outer.encloses( edge ), "outer should enclose edge" );

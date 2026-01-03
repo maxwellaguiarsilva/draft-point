@@ -41,16 +41,24 @@ struct geometry
 	
 	using	point	=	t_point;
 
-	struct rectangle
+	struct has_size
 	{
 		point start, end;
 		constexpr auto get_size( ) const noexcept -> point { return end - start; }
+	};
+
+	struct line : public has_size { };
+
+	struct rectangle : public has_size
+	{
 		constexpr auto contains( const point& point ) const noexcept -> bool
 		{
+			auto& [ start, end ]	=	*this;
 			return	point.encloses( start ) and end.encloses( point );
 		}
 		constexpr auto encloses( const rectangle& other ) const noexcept -> bool
 		{
+			auto& [ start, end ]	=	*this;
 			return	other.start.encloses( start ) and end.encloses( other.end );
 		}
 	};
