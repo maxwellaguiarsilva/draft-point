@@ -50,7 +50,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	// Test 1: Initial limit
 	println( "Test 1: Verifying FPS stabilization..." );
 	monitor.compute( ); // First call to reset m_start_time
-	for( int i = 0; i < 5; ++i )
+	for( int i = 0; i < 20; ++i )
 	{
 		int current_fps = monitor.compute( );
 		println( "Frame {}: {} FPS", i, current_fps );
@@ -60,7 +60,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	println( "Test 2: Changing limit to 30 FPS..." );
 	monitor.set_limit( 30 );
 	monitor.compute( );
-	for( int i = 0; i < 5; ++i )
+	for( int i = 0; i < 20; ++i )
 	{
 		int current_fps = monitor.compute( );
 		println( "Frame {}: {} FPS", i, current_fps );
