@@ -38,7 +38,7 @@ auto main( ) -> int
 		::game::fps fps( 30 );
 
 		terminal term;
-		renderer rend( term );
+		renderer& rend = term.get_renderer( );
 
 		rectangle border{ { 5, 5 }, { 40, 20 } };
 		rectangle rect{ { 10, 8 }, { 20, 15 } };

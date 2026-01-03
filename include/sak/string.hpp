@@ -22,7 +22,6 @@
  */
 
 
-
 #pragma once
 #ifndef header_guard_501228163
 #define header_guard_501228163

@@ -555,16 +555,19 @@ class project:
         for path in search_paths:
             files_to_check.extend( glob.glob( path, recursive=True ) )
             
-        print( f"Checking trailing newlines for {len(files_to_check)} files..." )
+        print( f"Checking trailing newlines and newline density for {len(files_to_check)} files..." )
         modified_count = 0
         
         for file_path in files_to_check:
             with open( file_path, 'r', encoding='utf-8' ) as f:
                 content = f.read( )
             
+            # Ensure no more than three consecutive newlines anywhere
+            new_content = re.sub( r'\n{4,}', '\n\n\n', content )
+            
             # Remove all trailing whitespace and newlines, then add exactly three
             # (one to end the content line, and two more for the empty lines)
-            new_content = content.rstrip( ) + "\n\n\n"
+            new_content = new_content.rstrip( ) + "\n\n\n"
             
             if content != new_content:
                 with open( file_path, 'w', encoding='utf-8' ) as f:

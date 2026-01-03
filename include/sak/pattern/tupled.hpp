@@ -22,7 +22,6 @@
  */
 
 
-
 #pragma once
 #ifndef header_guard_360999933
 #define header_guard_360999933
@@ -63,7 +62,6 @@ struct __tupled
 	}
 };
 inline constexpr auto tupled = __tupled{ };
-
 
 
 } }

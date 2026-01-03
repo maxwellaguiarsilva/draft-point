@@ -22,7 +22,6 @@
  */
 
 
-
 #pragma once
 #ifndef header_guard_794521060
 #define header_guard_794521060
@@ -30,8 +29,11 @@
 
 #include <sak/sak.hpp>
 #include <tui/geometry.hpp>
+#include <tui/terminal.hpp>
 #include <vector>
 #include <cstdint>
+#include <atomic>
+#include <mutex>
 
 
 namespace tui {
@@ -39,12 +41,12 @@ namespace tui {
 
 using	::std::vector;
 using	::std::uint8_t;
+using	::std::atomic;
+using	::std::mutex;
+using	::std::lock_guard;
 
 
-class terminal;
-
-
-class renderer
+class renderer : public terminal::listener
 {
 public:
 	struct cell
@@ -58,6 +60,7 @@ public:
 	using	buffer	=	vector< cell >;
 
 	explicit renderer( terminal& parent );
+	virtual ~renderer( ) noexcept override = default;
 
 	void clear( ) noexcept;
 	void refresh( );
@@ -66,11 +69,15 @@ public:
 	void draw( const line& data );
 	void draw( const rectangle& data, bool fill = true );
 
+	void on_resize( const point& size ) override;
+
 private:
 	terminal&	m_parent;
 	buffer		m_front;
 	buffer		m_back;
 	uint8_t		m_color;
+	atomic<bool>	m_is_resizing;
+	mutable mutex	m_mutex;
 };
 
 

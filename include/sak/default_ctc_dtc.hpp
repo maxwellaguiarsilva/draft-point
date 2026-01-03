@@ -22,11 +22,9 @@
  */
 
 
-
 #pragma once
 #ifndef header_guard_065083550
 #define header_guard_065083550
-
 
 
 #define use_default_copy_ctc( class_name ) \
@@ -63,8 +61,6 @@
 	virtual ~class_name( ) = default;
 #define use_non_default_dtc( class_name ) \
 	virtual ~class_name( );
-
-
 
 
 #endif

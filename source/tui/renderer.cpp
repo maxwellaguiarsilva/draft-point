@@ -22,7 +22,6 @@
  */
 
 
-
 #include <tui/renderer.hpp>
 #include <tui/terminal.hpp>
 #include <cmath>
@@ -37,11 +36,15 @@ using	::std::abs;
 using	::tui::point;
 using	::tui::line;
 using	::tui::rectangle;
+using	::std::lock_guard;
+using	::std::unique_lock;
+using	::std::try_to_lock;
 
 
 renderer::renderer( terminal& parent )
-	:	m_parent( parent )
-	,	m_color( 15 )
+	:m_parent( parent )
+	,m_color( 15 )
+	,m_is_resizing( false )
 {
 	point size = m_parent.size( );
 	m_front.resize( size[ 0 ] * size[ 1 ] );
@@ -50,6 +53,7 @@ renderer::renderer( terminal& parent )
 
 void renderer::clear( ) noexcept
 {
+	auto lock = lock_guard( m_mutex );
 	for( auto& cell : m_back )
 	{
 		cell.up = 0;
@@ -59,6 +63,10 @@ void renderer::clear( ) noexcept
 
 void renderer::refresh( )
 {
+	if( m_is_resizing.load( ) ) return;
+	unique_lock lock( m_mutex, try_to_lock );
+	if( not lock.owns_lock( ) ) return;
+
 	point size = m_parent.size( );
 	int width = size[ 0 ];
 	int height = size[ 1 ];
@@ -175,11 +183,24 @@ void renderer::draw( const point& data ) noexcept
 	int column = x;
 	int index = ( row - 1 ) * width + ( column - 1 );
 
+	auto lock = lock_guard( m_mutex );
 	if( y % 2 not_eq 0 )
 		m_back[ index ].up = m_color;
 	else
 		m_back[ index ].down = m_color;
 }
+
+void renderer::on_resize( const point& size )
+{
+	m_is_resizing.store( true );
+	{
+		auto lock = lock_guard( m_mutex );
+		m_front.assign( size[ 0 ] * size[ 1 ], { 0, 0 } );
+		m_back.assign( size[ 0 ] * size[ 1 ], { 0, 0 } );
+	}
+	m_is_resizing.store( false );
+}
+
 
 }
 

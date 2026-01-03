@@ -26,6 +26,7 @@
 #include <sak/sak.hpp>
 #include <sak/pattern/value_or.hpp>
 #include <tui/terminal.hpp>
+#include <tui/renderer.hpp>
 #include <iostream>
 #include <termios.h>
 #include <unistd.h>		//	STDIN_FILENO, read
@@ -44,6 +45,7 @@ __using( ::std::
 	,cerr
 	,endl
 	,flush
+	,make_shared
 )
 
 
@@ -79,6 +81,9 @@ terminal::terminal( )
 	}
 	clear_screen( true );
 	set_raw_mode( true );
+
+	m_renderer	=	make_shared< renderer >( *this );
+	*this += m_renderer;
 
 	sigset_t set;
 	sigemptyset( &set );
@@ -193,7 +198,11 @@ auto terminal::size( ) const noexcept -> point
 	return	m_bounds.end;
 }
 
+auto terminal::get_renderer( ) noexcept -> renderer& { return *m_renderer; }
+
 auto terminal::get_error_message( const error& error_code ) noexcept -> const string&
+
+
 {
 	return	value_or( m_error_messages, error_code, m_unknown_error_message ); //	"terminal: unknown error"
 }

@@ -22,7 +22,6 @@
  */
 
 
-
 #include <print>
 #include <string>
 #include <vector>
@@ -31,7 +30,6 @@
 
 #include <sak/ensure.hpp>
 #include <sak/geometry/geometry.hpp>
-
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int

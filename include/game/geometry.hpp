@@ -22,14 +22,12 @@
  */
 
 
-
 #pragma once
 #ifndef header_guard_104340424
 #define header_guard_104340424
 
 #include <sak/sak.hpp>
 #include <sak/geometry/geometry.hpp>
-
 
 
 namespace game {

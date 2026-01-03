@@ -22,7 +22,6 @@
  */
 
 
-
 #include <game/player.hpp>
 #include <tui/terminal.hpp>
 

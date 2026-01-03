@@ -22,7 +22,6 @@
  */
 
 
-
 #pragma once
 #ifndef header_guard_278153203
 #define header_guard_278153203
@@ -30,7 +29,7 @@
 
 #include <sak/sak.hpp>
 #include <sak/pattern/dispatcher.hpp>
-#include <tui/renderer.hpp>
+#include <tui/geometry.hpp>
 #include <termios.h>
 #include <string>
 #include <unordered_map>
@@ -40,6 +39,7 @@
 #include <thread>
 #include <csignal>
 #include <mutex>
+#include <atomic>
 
 
 namespace tui {
@@ -55,9 +55,13 @@ __using( ::std::
 	,stop_token
 	,mutex
 	,lock_guard
+	,atomic
 )
 using	::sak::pattern::dispatcher;
 using	::termios;
+
+
+class renderer;
 
 
 class terminal final
@@ -120,6 +124,8 @@ public:
 	auto set_text_style( text_style style ) -> void;
 	auto size( ) const noexcept -> point;
 
+	auto get_renderer( ) noexcept -> renderer&;
+
 	static auto get_error_message( const error& error_code ) noexcept -> const string&;
 
 	class listener
@@ -142,6 +148,7 @@ private:
 	rectangle	m_bounds;
 	jthread		m_resize_thread;
 	dispatcher< listener >	m_dispatcher;
+	shared_ptr< renderer >	m_renderer;
 
 };
 

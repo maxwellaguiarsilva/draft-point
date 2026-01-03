@@ -22,7 +22,6 @@
  */
 
 
-
 #include <game/fps.hpp>
 #include <sak/math/math.hpp>
 

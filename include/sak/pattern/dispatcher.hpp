@@ -22,11 +22,9 @@
  */
 
 
-
 #pragma once
 #ifndef header_guard_148476052
 #define header_guard_148476052
-
 
 
 #include <sak/sak.hpp>

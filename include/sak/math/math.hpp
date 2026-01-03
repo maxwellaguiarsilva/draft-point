@@ -22,7 +22,6 @@
  */
 
 
-
 #pragma once
 #ifndef header_guard_935812590
 #define header_guard_935812590
@@ -114,7 +113,6 @@ struct __square_root
 	constexpr auto operator ( ) ( const auto& value ) const noexcept { return sqrt( value ); }
 };
 inline constexpr auto square_root = __square_root{ };
-
 
 
 } }

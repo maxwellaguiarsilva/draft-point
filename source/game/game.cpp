@@ -22,7 +22,6 @@
  */
 
 
-
 #include <game/game.hpp>
 #include <sak/string.hpp>
 

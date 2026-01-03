@@ -22,7 +22,6 @@
  */
 
 
-
 #pragma once
 #ifndef header_guard_048673562
 #define header_guard_048673562
@@ -31,9 +30,7 @@
 #include <sak/geometry/geometry.hpp>
 
 
-
 namespace tui {
-
 
 
 using	point     =   ::sak::point< int, 2 >;
