@@ -33,6 +33,7 @@
 #include <tui/renderer.hpp>
 #include <termios.h>
 #include <string>
+#include <array>
 #include <unordered_map>
 #include <expected>
 #include <ostream>
@@ -49,6 +50,7 @@ namespace tui {
 
 __using( ::std::
 	,string
+	,array
 	,ostream
 	,ostringstream
 	,expected
@@ -142,6 +144,9 @@ public:
 private:
 	static const error_messages m_error_messages;
 	static const string			m_unknown_error_message;
+	static const array< string, 256 >	m_foreground_colors;
+	static const array< string, 256 >	m_background_colors;
+
 	auto print( const error& error_code ) const noexcept -> void;
 
 	ostream&	m_output;

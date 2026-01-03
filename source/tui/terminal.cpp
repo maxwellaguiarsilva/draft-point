@@ -46,6 +46,7 @@ __using( ::std::
 	,endl
 	,flush
 	,make_shared
+	,to_string
 )
 
 
@@ -65,6 +66,24 @@ const terminal::error_messages terminal::m_error_messages	=
 	,{ ioctl_failed		,"terminal: ioctl error" }
 };
 const string terminal::m_unknown_error_message	=	"terminal: unknown error";
+
+
+const array< string, 256 > terminal::m_foreground_colors	=	[ ]( )
+{
+	array< string, 256 > l_colors;
+	for( uint16_t i = 0; i < 256; ++i )
+		l_colors[ i ]	=	"\033[38;5;" + to_string( i ) + "m";
+	return	l_colors;
+}( );
+
+
+const array< string, 256 > terminal::m_background_colors	=	[ ]( )
+{
+	array< string, 256 > l_colors;
+	for( uint16_t i = 0; i < 256; ++i )
+		l_colors[ i ]	=	"\033[48;5;" + to_string( i ) + "m";
+	return	l_colors;
+}( );
 
 
 terminal::terminal( )
@@ -179,16 +198,12 @@ auto terminal::refresh( ) -> void
 	m_buffer.clear( );
 }
 
-auto terminal::set_color( color color_code, bool background ) -> void
-{
-	auto lock = lock_guard( m_mutex );
-	m_buffer << "\033[" << ( static_cast<int>( color_code ) + ( background ? 40 : 30 ) ) << 'm';
-}
+auto terminal::set_color( color color_code, bool background ) -> void { set_color( static_cast< uint8_t >( color_code ), background ); }
 
 auto terminal::set_color( uint8_t color_code, bool background ) -> void
 {
 	auto lock = lock_guard( m_mutex );
-	m_buffer << "\033[" << ( background ? 48 : 38 ) << ";5;" << static_cast< int >( color_code ) << "m";
+	m_buffer << ( background ? m_background_colors[ color_code ] : m_foreground_colors[ color_code ] );
 }
 
 auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }
