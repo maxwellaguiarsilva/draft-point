@@ -27,20 +27,18 @@
 #ifndef header_guard_794521060
 #define header_guard_794521060
 
+
 #include <sak/sak.hpp>
 #include <tui/geometry.hpp>
 #include <vector>
 #include <cstdint>
 
 
-
 namespace tui {
-
 
 
 using	::std::vector;
 using	::std::uint8_t;
-
 
 
 class terminal;
@@ -59,28 +57,24 @@ public:
 
 	using	buffer	=	vector< cell >;
 
-
 	explicit renderer( terminal& parent );
 
 	void clear( ) noexcept;
 	void refresh( );
 	void set_color( const uint8_t color ) noexcept;
+	void draw( const point& data ) noexcept;
 	void draw( const line& data );
 	void draw( const rectangle& data, bool fill = true );
 
-
 private:
-	void draw_point( int x, int y ) noexcept;
-
 	terminal&	m_parent;
 	buffer		m_front;
 	buffer		m_back;
 	uint8_t		m_color;
-
 };
 
 
-} 
+}
 
 
 #endif

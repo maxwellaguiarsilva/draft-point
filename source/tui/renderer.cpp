@@ -60,14 +60,14 @@ void renderer::clear( ) noexcept
 void renderer::refresh( )
 {
 	point size = m_parent.size( );
-	size_t width = static_cast< size_t >( size[ 0 ] );
-	size_t height = static_cast< size_t >( size[ 1 ] );
-	size_t count = width * height;
+	int width = size[ 0 ];
+	int height = size[ 1 ];
+	int count = width * height;
 
-	if( m_back.size( ) not_eq count )
+	if( m_back.size( ) not_eq static_cast< size_t >( count ) )
 	{
-		m_back.resize( count );
-		m_front.resize( count );
+		m_back.resize( static_cast< size_t >( count ) );
+		m_front.resize( static_cast< size_t >( count ) );
 	}
 
 	uint8_t current_foreground = 255;
@@ -75,15 +75,14 @@ void renderer::refresh( )
 	bool force_update = true;
 	point current_position = { 0, 0 };
 
-	for( size_t row = 1; row <= height; ++row )
-	{
-		for( size_t column = 1; column <= width; ++column )
+	for( int row = 1; row <= height; ++row )
+		for( int column = 1; column <= width; ++column )
 		{
-			size_t index = ( row - 1 ) * width + ( column - 1 );
+			int index = ( row - 1 ) * width + ( column - 1 );
 			if( m_back[ index ] not_eq m_front[ index ] )
 			{
-				if( current_position[ 0 ] not_eq static_cast< int >( column ) or current_position[ 1 ] not_eq static_cast< int >( row ) )
-					m_parent.move_cursor( { static_cast< int >( column ), static_cast< int >( row ) } );
+				if( current_position[ 0 ] not_eq column or current_position[ 1 ] not_eq row )
+					m_parent.move_cursor( { column, row } );
 
 				if( m_back[ index ].up not_eq current_foreground or force_update )
 				{
@@ -98,11 +97,11 @@ void renderer::refresh( )
 
 				m_parent.m_output << "\xe2\x96\x80";
 				m_front[ index ] = m_back[ index ];
-				current_position = { static_cast< int >( column + 1 ), static_cast< int >( row ) };
+				current_position = { column + 1, row };
 				force_update = false;
 			}
 		}
-	}
+
 }
 
 void renderer::set_color( const uint8_t color ) noexcept { m_color = color; }
@@ -122,7 +121,7 @@ void renderer::draw( const line& data )
 
 	while( true )
 	{
-		draw_point( x1, y1 );
+		draw( { x1, y1 } );
 		if( x1 == x2 and y1 == y2 ) break;
 		int error_doubled = 2 * error;
 		if( error_doubled >= delta_y )
@@ -144,25 +143,28 @@ void renderer::draw( const rectangle& data, bool fill )
 	{
 		for( int y = data.start[ 1 ]; y <= data.end[ 1 ]; ++y )
 			for( int x = data.start[ 0 ]; x <= data.end[ 0 ]; ++x )
-				draw_point( x, y );
+				draw( { x, y } );
 	}
 	else
 	{
 		for( int x = data.start[ 0 ]; x <= data.end[ 0 ]; ++x )
 		{
-			draw_point( x, data.start[ 1 ] );
-			draw_point( x, data.end[ 1 ] );
+			draw( { x, data.start[ 1 ] } );
+			draw( { x, data.end[ 1 ] } );
 		}
 		for( int y = data.start[ 1 ]; y <= data.end[ 1 ]; ++y )
 		{
-			draw_point( data.start[ 0 ], y );
-			draw_point( data.end[ 0 ], y );
+			draw( { data.start[ 0 ], y } );
+			draw( { data.end[ 0 ], y } );
 		}
 	}
 }
 
-void renderer::draw_point( int x, int y ) noexcept
+void renderer::draw( const point& data ) noexcept
 {
+	int x = data[ 0 ];
+	int y = data[ 1 ];
+
 	point size = m_parent.size( );
 	int width = size[ 0 ];
 	int height = size[ 1 ];
@@ -171,7 +173,7 @@ void renderer::draw_point( int x, int y ) noexcept
 
 	int row = ( y + 1 ) / 2;
 	int column = x;
-	size_t index = static_cast< size_t >( ( row - 1 ) * width + ( column - 1 ) );
+	int index = ( row - 1 ) * width + ( column - 1 );
 
 	if( y % 2 not_eq 0 )
 		m_back[ index ].up = m_color;
