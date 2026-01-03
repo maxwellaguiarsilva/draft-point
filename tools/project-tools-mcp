@@ -159,16 +159,16 @@ def check( ) -> str:
 
 
 @mcp.tool( )
-def fix_newlines( ) -> str:
-    """Ensures that all .cpp and .hpp files end with exactly two empty lines. This command takes no arguments."""
+def fix_format( ) -> str:
+    """Ensures that all .cpp and .hpp files follow the project's code formatting rules. This command takes no arguments."""
     try:
-        process = subprocess.run( [ "python3", "tools/project-builder.py", "--fix-newlines" ], capture_output=True, text=True )
+        process = subprocess.run( [ "python3", "tools/project-builder.py", "--fix-format" ], capture_output=True, text=True )
         if process.returncode == 0:
-            return  f"Newline fix successful:\n{process.stdout}"
+            return  f"Formatting successful:\n{process.stdout}"
         else:
-            return  f"Newline fix failed:\n{process.stdout}\n{process.stderr}"
+            return  f"Formatting failed:\n{process.stdout}\n{process.stderr}"
     except Exception as e:
-        return  f"An error occurred during newline fix: {str( e )}"
+        return  f"An error occurred during formatting: {str( e )}"
 
 
 if __name__ == "__main__":

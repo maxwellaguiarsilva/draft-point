@@ -32,6 +32,7 @@ import re
 import sys
 import threading
 import subprocess
+from ensure_code_formatting import ensure_code_formatting
 
 
 def get_cpu_count( ):
@@ -541,7 +542,7 @@ class project:
             raise Exception( "cppcheck failed for the project" )
         print( "Static analysis completed successfully." )
 
-    def ensure_trailing_newlines( self ):
+    def fix_format( self ):
         include_ext = self.config["patterns"]["header_extension"]
         source_ext  = self.config["patterns"]["source_extension"]
         
@@ -555,19 +556,14 @@ class project:
         for path in search_paths:
             files_to_check.extend( glob.glob( path, recursive=True ) )
             
-        print( f"Checking trailing newlines and newline density for {len(files_to_check)} files..." )
+        print( f"Checking code formatting for {len(files_to_check)} files..." )
         modified_count = 0
         
         for file_path in files_to_check:
             with open( file_path, 'r', encoding='utf-8' ) as f:
                 content = f.read( )
             
-            # Ensure no more than three consecutive newlines anywhere
-            new_content = re.sub( r'\n{4,}', '\n\n\n', content )
-            
-            # Remove all trailing whitespace and newlines, then add exactly three
-            # (one to end the content line, and two more for the empty lines)
-            new_content = new_content.rstrip( ) + "\n\n\n"
+            new_content = ensure_code_formatting( content )
             
             if content != new_content:
                 with open( file_path, 'w', encoding='utf-8' ) as f:
@@ -640,8 +636,8 @@ if __name__ == "__main__":
         current_project = project( { } )
         if "--check" in sys.argv:
             current_project.check_code( )
-        elif "--fix-newlines" in sys.argv:
-            current_project.ensure_trailing_newlines( )
+        elif "--fix-format" in sys.argv:
+            current_project.fix_format( )
         else:
             current_project.build( )
     except Exception as e:
