@@ -70,16 +70,13 @@ const string terminal::m_unknown_error_message	=	"terminal: unknown error";
 terminal::terminal( )
 	:	m_output( cout )
 	,	m_error_output( cerr )
+	,	m_bounds( { 1, 1 }, query_size( ) )
 	,	m_renderer( *this )
 {
-	winsize m_ws;
 	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, get_error_message( tcgetattr_failed ) );
-	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &m_ws ) == 0, get_error_message( ioctl_failed ) );
-	{
-		auto lock = lock_guard( m_mutex );
-		m_bounds	=	{ { 1, 1 }, { m_ws.ws_col, m_ws.ws_row } };
-		ensure( m_bounds.end.encloses( m_bounds.start ), "error: invalid terminal size" );
-	}
+	ensure( m_bounds.end not_eq point{ 0, 0 }, get_error_message( ioctl_failed ) );
+	ensure( m_bounds.end.encloses( m_bounds.start ), "error: invalid terminal size" );
+
 	clear_screen( true );
 	set_raw_mode( true );
 
@@ -90,7 +87,6 @@ terminal::terminal( )
 
 	m_resize_thread	=	jthread( [ this, set ]( stop_token token )
 	{
-		winsize ws;
 		int sig = 0;
 		while( not token.stop_requested( ) )
 		{
@@ -99,18 +95,24 @@ terminal::terminal( )
 				if( token.stop_requested( ) )
 					break;
 
-				if( sig == SIGWINCH and ioctl( STDOUT_FILENO, TIOCGWINSZ, &ws ) == 0 )
+				if( sig == SIGWINCH )
 				{
+					point l_size = query_size( );
+					if( l_size not_eq point{ 0, 0 } )
 					{
-						auto lock = lock_guard( m_mutex );
-						m_bounds.end	=	{ ws.ws_col, ws.ws_row };
+						{
+							auto lock = lock_guard( m_mutex );
+							m_bounds.end	=	l_size;
+						}
+						m_dispatcher( &listener::on_resize, size( ) );
 					}
-					m_dispatcher( &listener::on_resize, size( ) );
 				}
 			}
 		}
 	} );
 }
+
+
 terminal::~terminal( ) noexcept
 {
 	m_resize_thread.request_stop( );
@@ -190,6 +192,14 @@ auto terminal::set_raw_mode( bool enable ) -> result
 
 auto terminal::set_text_style( text_style style ) -> void { m_output << "\033[" << static_cast<int>( style ) << 'm'; }
 
+auto terminal::query_size( ) -> point
+{
+	winsize ws;
+	if( ioctl( STDOUT_FILENO, TIOCGWINSZ, &ws ) not_eq 0 )
+		return	{ 0, 0 };
+	return	{ ws.ws_col, ws.ws_row };
+}
+
 auto terminal::size( ) const noexcept -> point
 {
 	auto lock = lock_guard( m_mutex );
@@ -199,8 +209,6 @@ auto terminal::size( ) const noexcept -> point
 auto terminal::get_renderer( ) noexcept -> renderer& { return m_renderer; }
 
 auto terminal::get_error_message( const error& error_code ) noexcept -> const string&
-
-
 {
 	return	value_or( m_error_messages, error_code, m_unknown_error_message ); //	"terminal: unknown error"
 }

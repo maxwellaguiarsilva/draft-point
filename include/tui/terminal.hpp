@@ -122,6 +122,8 @@ public:
 	auto set_text_style( text_style style ) -> void;
 	auto size( ) const noexcept -> point;
 
+	static auto query_size( ) -> point;
+
 	auto get_renderer( ) noexcept -> renderer&;
 
 	static auto get_error_message( const error& error_code ) noexcept -> const string&;

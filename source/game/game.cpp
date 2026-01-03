@@ -43,8 +43,7 @@ void game::terminal_listener::on_resize( const point& a_size )
 	start			=	{ 1, 1 };
 	end				=	{ a_size[0] - 1, 2 * ( a_size[1] - 1 ) };
 	size			=	end - start + 1;
-	//	the screen doesn't scroll because it doesn't have a line break, i've already validated it
-	label_position	=	{ 1, a_size[1] };
+	label_position	=	{ 1, a_size[1] - 1 };
 }
 
 
@@ -54,7 +53,7 @@ game::game( )
 	,m_fps{ }
 	,m_terminal_listener{ make_shared< terminal_listener >( m_terminal.size( ) ) }
 {
-	m_fps.set_limit( 30 );
+	m_fps.set_limit( 60 );
 	m_terminal += m_terminal_listener;
 }
 
@@ -63,6 +62,7 @@ auto game::run( ) -> void
 {
 	using enum direction;
 	const point& frame_size	=	m_terminal.size( );
+	auto& l_renderer		=	m_terminal.get_renderer( );
 	point&	position		=	m_player.position;
 	
 	const point& label_position	=	m_terminal_listener->label_position;
@@ -97,10 +97,6 @@ auto game::run( ) -> void
 		if( not bounds_end.encloses( position ) )
 			position = ( position - bounds_start ) % bounds_size + bounds_start;
 
-		m_terminal.get_renderer( ).clear( );
-		m_player.draw( m_terminal.get_renderer( ) );
-		m_terminal.get_renderer( ).refresh( );
-
 		m_terminal.print( label_position,
 				" | fps: " + to_string( m_fps.compute( ) )
 			+ 	" | size: " + to_string( frame_size[0] ) + " x " + to_string( frame_size[1] )
@@ -109,6 +105,9 @@ auto game::run( ) -> void
 			+ 	" | length: " + to_string( position.get_length( ) )
 			+ 	" | "
 		);
+		l_renderer.clear( );
+		m_player.draw( l_renderer );
+		l_renderer.refresh( );
 		m_terminal.refresh( );
 	}
 
