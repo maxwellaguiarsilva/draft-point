@@ -29,6 +29,7 @@
 
 #include <type_traits>
 #include <exception>
+#include <ranges>
 #include <functional>
 #include <algorithm>
 #include <utility>
@@ -93,9 +94,6 @@ inline constexpr auto between = __between{ };
 using	::std::ranges::fold_left;
 struct __sum
 {
-	//	note: 'fold_left' with '0' (int) correctly promotes to the range's value_type (e.g. double)
-	//	during accumulation, avoiding truncation even for empty ranges of floating-point types
-	//	this behavior has been duly validated by tests
 	constexpr auto operator ( ) ( const auto& list ) const noexcept { return fold_left( list, 0, plus ); }
 };
 inline constexpr auto sum = __sum{ };
