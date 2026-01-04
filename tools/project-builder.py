@@ -32,7 +32,7 @@ import re
 import sys
 import threading
 import subprocess
-from ensure_code_formatting import ensure_code_formatting
+from ensure_code_formatting import formatter
 
 
 def get_cpu_count( ):
@@ -568,7 +568,8 @@ class project:
             with open( file_path, 'r', encoding='utf-8' ) as f:
                 content = f.read( )
             
-            new_content, messages = ensure_code_formatting( content )
+            fmt = formatter( content )
+            new_content = fmt.run( )
             
             if content != new_content:
                 with open( file_path, 'w', encoding='utf-8' ) as f:
@@ -576,7 +577,7 @@ class project:
                 modified_count += 1
                 print( weak_line )
                 print( f"    [fixed]: {file_path}" )
-                for msg in messages:
+                for msg in fmt.messages:
                     print( f"        {msg}" )
         
         print( f"Done. Modified {modified_count} files." )
