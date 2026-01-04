@@ -199,12 +199,12 @@ auto terminal::refresh( ) -> void
 	m_buffer.clear( );
 }
 
-auto terminal::set_color( color color_code, bool background ) -> void { set_color( static_cast< uint8_t >( color_code ), background ); }
+auto terminal::set_color( color code, bool background ) -> void { set_color( static_cast< uint8_t >( code ), background ); }
 
-auto terminal::set_color( uint8_t color_code, bool background ) -> void
+auto terminal::set_color( uint8_t code, bool background ) -> void
 {
 	auto lock = lock_guard( m_mutex );
-	m_buffer << ( background ? m_background_colors[ color_code ] : m_foreground_colors[ color_code ] );
+	m_buffer << ( background ? m_background_colors[ code ] : m_foreground_colors[ code ] );
 }
 
 auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }

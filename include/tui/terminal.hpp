@@ -120,8 +120,8 @@ public:
 	auto print( const string& text ) -> void;
 	auto print( const point& position, const string& text ) -> result;
 	auto refresh( ) -> void;
-	auto set_color( color color_code, bool flg_background = false ) -> void;
-	auto set_color( uint8_t color_code, bool flg_background = false ) -> void;
+	auto set_color( color code, bool flg_background = false ) -> void;
+	auto set_color( uint8_t code, bool flg_background = false ) -> void;
 	auto set_cursor( bool enable ) -> void;
 	auto set_raw_mode( bool enable ) -> result;
 	auto set_text_style( text_style style ) -> void;

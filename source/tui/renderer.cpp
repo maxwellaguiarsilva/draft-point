@@ -24,6 +24,7 @@
 
 #include <tui/renderer.hpp>
 #include <tui/terminal.hpp>
+#include <sak/using.hpp>
 #include <cmath>
 #include <ranges>
 
@@ -31,19 +32,8 @@
 namespace tui {
 
 
-using	::std::vector;
-using	::std::uint8_t;
-using	::std::abs;
-using	::tui::point;
-using	::tui::line;
-using	::tui::rectangle;
-using	::std::lock_guard;
-using	::std::unique_lock;
-using	::std::try_to_lock;
-using	::std::views::zip;
-
-
-using	::std::make_shared;
+__using( ::std::, abs, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, views::zip )
+__using( ::tui::, line, point, rectangle )
 
 
 struct renderer::terminal_listener final : public terminal::listener
