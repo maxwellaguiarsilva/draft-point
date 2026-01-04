@@ -44,5 +44,4 @@ Para viabilizar as transformações acima sem vazar lógica de domínio, `sak::m
 ### 5. Conclusão: Visual Serenity via Álgebra
 Ao adotar estas fórmulas, o arquivo `renderer.cpp` deixa de ser uma sequência de instruções de "como manipular o cursor e o buffer" para se tornar uma declaração de "como os espaços geométricos se relacionam com a superfície de exibição". A maquinaria é substituída por relações matemáticas.
 
----
-*Este documento consolida o entendimento atual sobre a modelagem algébrica, servindo como base para as próximas camadas de análise e refinamentos teóricos que precedem a fase de execução.*
+

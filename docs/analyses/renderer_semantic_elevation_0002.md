@@ -27,5 +27,4 @@ Para suportar esta camada de abstração, a infraestrutura deve evoluir em:
 - **`sak::math`:** Adição de `sign( )` e compatibilidade total de `sum( )` com expressões de pontos.
 - **`sak::point`:** Implementação de `is_between( )` e suporte a transformações via `map( )`.
 
----
-*Este estágio da análise consolida a separação entre álgebra e memória, preparando o terreno para definições mais granulares de mapeamento espacial.*
+

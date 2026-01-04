@@ -6,10 +6,13 @@ Este documento estabelece a fundação filosófica e o método de trabalho para 
 A Elevação Semântica não é um destino, mas um processo de refinamento contínuo. O objetivo não é chegar rapidamente a uma implementação, mas amadurecer o entendimento sobre a relação entre os dados e a maquinaria do sistema.
 
 ### 2. Natureza Incremental
-Cada documento desta série ( 0001, 0002, 0003... n ) representa uma camada adicional de abstração e clareza. Não existe um "fim" pré-definido para a fase de análise. Mudanças no código só devem ser consideradas quando o design atingir um estado de serenidade tal que a implementação se torne uma consequência trivial e com isso o programador solicite explictamente para que esse avanço prático aconteça.
+Cada documento desta série ( 0001, 0002, 0003... n ) representa uma evolução no raciocínio sobre o assunto.
+Não existe um "fim" pré-definido para a fase de análise. Nenhuma análise individual, por mais completa que pareça, deve ser interpretada como um sinal verde para a execução. Quando o design atingir um estado de serenidade tal que a implementação se torne uma consequência trivial o programador solicitará explictamente para que esse avanço prático aconteça. Antes disso esse assunto nem entra em pauta
+Cada arquivo não deve ter nenhuma informação que já estava disponível no anterior, ele deve agregar valor com algo novo.
 
-### 3. Alinhamento de Expectativas
-Por isso, nenhuma análise individual, por mais completa que pareça, deve ser interpretada como um sinal verde imediato para a execução. O foco está na **Visual Serenity** ( Serenidade Visual ) e no **Data over Machinery** ( Dados sobre Maquinaria ).
+### 3. Congruência
+Se for identificado durante a leitura que algum raciocínio no arquivo `.md` invalida ou é contraditório ao que fala em outro arquivo, então pare imediatamente a análise, avise o programador com os detalhes sobre isso para que os arquivos `.md` sejam refatorados a fim serem concisos, objetivos e uníssonos.
+O mesma regra se aplica caso seja encontrado algum erro de digitação, gramática ou qualquer tipo de equivoco.
+Mais vale uma frase certa do que um livro errado.
 
----
-*Este é o ponto de partida para todos os diálogos técnicos sobre a arquitetura do sistema.*
+
