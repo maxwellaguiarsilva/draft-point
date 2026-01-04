@@ -25,7 +25,9 @@
 #include <print>		//	print
 #include <string>
 #include <vector>
-#include <cstdlib>
+#include <exception>
+#include <sak/ensure.hpp>
+#include <sak/using.hpp>
 #include <sak/sak.hpp>	//	ensure
 #include <unistd.h>		//	stdout_fileno
 #include <sys/ioctl.h>	//	ioctl
@@ -49,63 +51,81 @@ void print_terminal_size( )
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
-	using	::std::string;
-	using	::std::vector;
-	using	::std::jthread;
-	using	::std::stop_token;
+	__using( ::sak::
+		,exit_success
+		,exit_failure
+		,ensure
+	)
+	__using( ::std::
+		,string
+		,vector
+		,println
+		,exception
+		,jthread
+		,stop_token
+	)
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
 		println( "{}", value );
 
-	//	signals to block and wait for
-	sigset_t signal_set;
-	sigemptyset( &signal_set );
-	sigaddset( &signal_set, SIGWINCH );
-	sigaddset( &signal_set, SIGINT );
-	sigaddset( &signal_set, SIGTERM );
-
-	//	block signals in the main thread (they will be blocked in child threads too)
-	ensure( pthread_sigmask( SIG_BLOCK, &signal_set, nullptr ) == 0, "error blocking signals" );
-
-	println( "resize the terminal window: press ctrl+c to exit" );
-	print_terminal_size( );
-
-	//	dedicated thread for signal handling
-	jthread signal_handler( [ signal_set ]( stop_token token )
+	try
 	{
-		int received_signal = 0;
-		while( not token.stop_requested( ) )
+		//	signals to block and wait for
+		sigset_t signal_set;
+		sigemptyset( &signal_set );
+		sigaddset( &signal_set, SIGWINCH );
+		sigaddset( &signal_set, SIGINT );
+		sigaddset( &signal_set, SIGTERM );
+
+		//	block signals in the main thread (they will be blocked in child threads too)
+		ensure( pthread_sigmask( SIG_BLOCK, &signal_set, nullptr ) == 0, "error blocking signals" );
+
+		println( "resize the terminal window: press ctrl+c to exit" );
+		print_terminal_size( );
+
+		//	dedicated thread for signal handling
+		jthread signal_handler( [ signal_set ]( stop_token token )
 		{
-			//	synchronously wait for signals in the set
-			if( sigwait( &signal_set, &received_signal ) == 0 )
+			int received_signal = 0;
+			while( not token.stop_requested( ) )
 			{
-				if( token.stop_requested( ) )
-					break;
-
-				switch( received_signal )
+				//	synchronously wait for signals in the set
+				if( sigwait( &signal_set, &received_signal ) == 0 )
 				{
-					case SIGWINCH:
-						print_terminal_size( );
+					if( token.stop_requested( ) )
 						break;
 
-					case SIGINT:
-					case SIGTERM:
-						println( "\nSignal {} received. Exiting...", received_signal );
-						return;
+					switch( received_signal )
+					{
+						case SIGWINCH:
+							print_terminal_size( );
+							break;
 
-					default:
-						break;
+						case SIGINT:
+						case SIGTERM:
+							println( "\nSignal {} received. Exiting...", received_signal );
+							return;
+
+						default:
+							break;
+					}
 				}
 			}
-		}
-	} );
+		} );
 
-	//	the main thread just waits for the signal handler thread to finish
-	signal_handler.join( );
+		//	the main thread just waits for the signal handler thread to finish
+		signal_handler.join( );
 
-	return	EXIT_SUCCESS;
+		println( "all tests passed!" );
+	}
+	catch( const exception& error )
+	{
+		println( "test failed: {}", error.what( ) );
+		return	exit_failure;
+	}
 
+	return	exit_success;
 }}
 
 

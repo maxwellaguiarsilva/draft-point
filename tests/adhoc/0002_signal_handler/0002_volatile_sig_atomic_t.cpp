@@ -25,7 +25,9 @@
 #include <print>		//	print
 #include <string>
 #include <vector>
-#include <cstdlib>
+#include <exception>
+#include <sak/ensure.hpp>
+#include <sak/using.hpp>
 #include <sak/sak.hpp>	//	ensure
 #include <unistd.h>		//	stdout_fileno
 #include <sys/ioctl.h>	//	ioctl
@@ -76,33 +78,52 @@ void setup_signal_handler( )
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
-	using	::std::string;
-	using	::std::vector;
+	__using( ::sak::
+		,exit_success
+		,exit_failure
+		,ensure
+	)
+	__using( ::std::
+		,string
+		,vector
+		,println
+		,exception
+	)
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
 		println( "{}", value );
 
-	::game::fps fps( 10 );
-
-	setup_signal_handler( );
-
-	println( "resize the terminal window: press ctrl+c to exit" );
-	print_terminal_size( );
-
-	//	main program loop
-	while( true )
+	try
 	{
-		if( flg_window_changed )
+		::game::fps fps( 10 );
+
+		setup_signal_handler( );
+
+		println( "resize the terminal window: press ctrl+c to exit" );
+		print_terminal_size( );
+
+		//	main program loop
+		while( true )
 		{
-			flg_window_changed = 0;
-			print_terminal_size( );
+			if( flg_window_changed )
+			{
+				flg_window_changed = 0;
+				print_terminal_size( );
+			}
+
+			fps.compute( );
 		}
 
-		fps.compute( );
+		println( "all tests passed!" );
+	}
+	catch( const exception& error )
+	{
+		println( "test failed: {}", error.what( ) );
+		return	exit_failure;
 	}
 
-	return	EXIT_SUCCESS;
+	return	exit_success;
 }}
 
 

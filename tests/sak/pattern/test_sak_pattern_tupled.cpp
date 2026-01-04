@@ -26,61 +26,76 @@
 #include <print>
 #include <string>
 #include <vector>
-#include <cstdlib>
-
-#include <sak/pattern/tupled.hpp>
-#include <sak/ensure.hpp>
+#include <exception>
 #include <array>
 #include <ranges>
 #include <algorithm>
 #include <functional>
 #include <utility>
 
+#include <sak/pattern/tupled.hpp>
+#include <sak/ensure.hpp>
+#include <sak/using.hpp>
+
 //	--------------------------------------------------
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
-	using	::std::string;
-	using	::std::vector;
-	using	::std::println;
+	__using( ::sak::
+		,exit_success
+		,exit_failure
+		,ensure
+	)
+	__using( ::std::
+		,string
+		,vector
+		,println
+		,exception
+		,array
+		,make_pair
+		,less_equal
+	)
+	__using( ::std::ranges::, all_of )
+	__using( ::std::views::, zip )
+	using	::sak::pattern::tupled;
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
 		println( "{}", value );
 	
-	println( "Starting tests for: sak/pattern/tupled..." );
-
-	using	::sak::pattern::tupled;
-	using	::sak::ensure;
-	using	::std::array;
-	using	::std::make_pair;
-	using	::std::ranges::all_of;
-	using	::std::views::zip;
-	using	::std::less_equal;
-
-	const auto tupled_less_equal = tupled( less_equal{} );
-
+	try
 	{
-		const array left	=	{ 1, 2, 3, 4, 5 };
-		const array right	=	{ 2, 3, 4, 5, 6 };
-		
-		ensure( all_of( zip( left, right ), tupled_less_equal ), "all_of zip(left, right) with tupled less_equal should be true" );
+		println( "Starting tests for: sak/pattern/tupled..." );
+
+		const auto tupled_less_equal = tupled( less_equal{} );
+
+		{
+			const array left	=	{ 1, 2, 3, 4, 5 };
+			const array right	=	{ 2, 3, 4, 5, 6 };
+			
+			ensure( all_of( zip( left, right ), tupled_less_equal ), "all_of zip(left, right) with tupled less_equal should be true" );
+		}
+
+		{
+			ensure( tupled_less_equal( make_pair( 1, 2 ) ), "tupled less_equal(pair(1, 2)) should be true" );
+			ensure( not tupled_less_equal( make_pair( 2, 1 ) ), "tupled less_equal(pair(2, 1)) should be false" );
+		}
+
+		{
+			ensure( tupled_less_equal( array{ 5, 5 } ), "tupled less_equal(array{5, 5}) should be true" );
+			ensure( not tupled_less_equal( array{ 6, 5 } ), "tupled less_equal(array{6, 5}) should be false" );
+		}
+
+		println( "All tests for sak/pattern/tupled passed!" );
+	}
+	catch( const exception& error )
+	{
+		println( "test failed: {}", error.what( ) );
+		return	exit_failure;
 	}
 
-	{
-		ensure( tupled_less_equal( make_pair( 1, 2 ) ), "tupled less_equal(pair(1, 2)) should be true" );
-		ensure( !tupled_less_equal( make_pair( 2, 1 ) ), "tupled less_equal(pair(2, 1)) should be false" );
-	}
-
-	{
-		ensure( tupled_less_equal( array{ 5, 5 } ), "tupled less_equal(array{5, 5}) should be true" );
-		ensure( !tupled_less_equal( array{ 6, 5 } ), "tupled less_equal(array{6, 5}) should be false" );
-	}
-
-	println( "All tests for sak/pattern/tupled passed!" );
-
-    return EXIT_SUCCESS;
+    return exit_success;
 }}
 
 

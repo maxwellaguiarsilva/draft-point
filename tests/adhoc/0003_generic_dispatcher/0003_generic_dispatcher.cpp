@@ -26,7 +26,9 @@
 #include <string>
 #include <vector>
 #include <format>
-#include <cstdlib>
+
+#include <sak/ensure.hpp>
+#include <sak/using.hpp>
 #include <sak/pattern/dispatcher.hpp>
 
 
@@ -84,8 +86,17 @@ void handle_result( const button_result& result ) {
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
-	using	::std::string;
-	using	::std::vector;
+	__using( ::sak::
+		,exit_success
+		,exit_failure
+		,ensure
+	)
+	__using( ::std::
+		,string
+		,vector
+		,println
+		,exception
+	)
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
@@ -101,7 +112,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	handle_result( notifier( &button_listener::on_clicked, "btn_start" ) );
 	handle_result( notifier( &button_listener::on_hover, 100 ) );
 
-	return	EXIT_SUCCESS;
+	return	exit_success;
 }}
 
 

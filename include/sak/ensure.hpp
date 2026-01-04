@@ -28,6 +28,7 @@
 
 #include <string>
 #include <stdexcept>
+#include <cstdlib>
 
 
 namespace sak {
@@ -35,6 +36,10 @@ namespace sak {
 
 using	::std::string;
 using	::std::runtime_error;
+
+
+inline const int exit_success = EXIT_SUCCESS;
+inline const int exit_failure = EXIT_FAILURE;
 
 
 struct __ensure

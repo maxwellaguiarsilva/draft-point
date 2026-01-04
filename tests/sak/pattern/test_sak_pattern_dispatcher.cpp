@@ -26,13 +26,13 @@
 #include <print>
 #include <string>
 #include <vector>
-#include <cstdlib>
 #include <memory>
 #include <format>
 #include <exception>
 #include <stdexcept>
 
 #include <sak/ensure.hpp>
+#include <sak/using.hpp>
 #include <sak/pattern/dispatcher.hpp>
 //	--------------------------------------------------
 
@@ -164,10 +164,17 @@ void test_dispatcher_cleanup( )
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
-	using	::std::string;
-	using	::std::vector;
-	using	::std::println;
-	using	::std::exception;
+	__using( ::sak::
+		,exit_success
+		,exit_failure
+		,ensure
+	)
+	__using( ::std::
+		,string
+		,vector
+		,println
+		,exception
+	)
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
@@ -186,10 +193,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	catch( const exception& error )
 	{
 		println( "test failed: {}", error.what( ) );
-		return	EXIT_FAILURE;
+		return	exit_failure;
 	}
 
-	return	EXIT_SUCCESS;
+	return	exit_success;
 }}
 
 

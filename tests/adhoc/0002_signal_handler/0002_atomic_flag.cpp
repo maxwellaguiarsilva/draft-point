@@ -25,7 +25,9 @@
 #include <print>		//	print
 #include <string>
 #include <vector>
-#include <cstdlib>
+#include <exception>
+#include <sak/ensure.hpp>
+#include <sak/using.hpp>
 #include <sak/sak.hpp>	//	ensure
 #include <unistd.h>		//	stdout_fileno, pause
 #include <sys/ioctl.h>	//	ioctl
@@ -61,40 +63,62 @@ void signal_handler( int signal_number )
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
-	using	::std::string;
-	using	::std::vector;
-	using	::std::signal;
-	using	::std::jthread;
-	using	::std::stop_token;
+	__using( ::sak::
+		,exit_success
+		,exit_failure
+		,ensure
+	)
+	__using( ::std::
+		,string
+		,vector
+		,println
+		,exception
+		,signal
+		,jthread
+		,stop_token
+	)
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
 		println( "{}", value );
 
-	//	register the action for the sigwinch signal
-	if( signal( SIGWINCH, signal_handler ) == SIG_ERR )
-		return	println( "error registering sigwinch signal handler" ), EXIT_FAILURE;
-	
-	println( "resize the terminal window: press ctrl+c to exit" );
-	print_terminal_size( );
-	
-	jthread worker( [ ]( stop_token stoken ) {
-		::game::fps fps( 10 );
-
-		while( not stoken.stop_requested( ) )
+	try
+	{
+		//	register the action for the sigwinch signal
+		if( signal( SIGWINCH, signal_handler ) == SIG_ERR )
 		{
-			if( flg_window_changed.test( ) )
-			{
-				flg_window_changed.clear( );
-				print_terminal_size( );
-			}
-
-			fps.compute( );
+			println( "error registering sigwinch signal handler" );
+			return	exit_failure;
 		}
-	} );
-	worker.join( );
+		
+		println( "resize the terminal window: press ctrl+c to exit" );
+		print_terminal_size( );
+		
+		jthread worker( [ ]( stop_token stoken ) {
+			::game::fps fps( 10 );
 
-	return	EXIT_SUCCESS;
+			while( not stoken.stop_requested( ) )
+			{
+				if( flg_window_changed.test( ) )
+				{
+					flg_window_changed.clear( );
+					print_terminal_size( );
+				}
+
+				fps.compute( );
+			}
+		} );
+		worker.join( );
+
+		println( "all tests passed!" );
+	}
+	catch( const exception& error )
+	{
+		println( "test failed: {}", error.what( ) );
+		return	exit_failure;
+	}
+
+	return	exit_success;
 
 }}
 

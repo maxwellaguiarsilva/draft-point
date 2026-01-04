@@ -26,32 +26,37 @@
 #include <print>
 #include <string>
 #include <vector>
-#include <cstdlib>
 #include <exception>
 
 #include <sak/string.hpp>
 #include <sak/ensure.hpp>
+#include <sak/using.hpp>
 //	--------------------------------------------------
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
-	using	::std::string;
-	using	::std::vector;
-	using	::std::println;
-	using	::std::exception;
+	__using( ::sak::
+		,exit_success
+		,exit_failure
+		,ensure
+		,to_lower_case
+		,to_upper_case
+	)
+	__using( ::std::
+		,string
+		,vector
+		,println
+		,exception
+	)
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
 		println( "{}", value );
 	
-try
+	try
 	{
 		println( "starting tests for: sak/string..." );
-
-		using	::sak::to_lower_case;
-		using	::sak::to_upper_case;
-		using	::sak::ensure;
 
 		//	test char to_lower_case
 		ensure( to_lower_case( 'A' ) == 'a', "to_lower_case('a') failed" );
@@ -78,10 +83,10 @@ try
 	catch( const exception& error )
 	{
 		println( "test failed: {}", error.what( ) );
-		return	EXIT_FAILURE;
+		return	exit_failure;
 	}
 
-	return	EXIT_SUCCESS;
+	return	exit_success;
 }}
 
 

@@ -22,12 +22,15 @@
  */
 
 
-//	#include <sak/sak.hpp>
 #include <string>
 #include <print>
 #include <vector>
 #include <memory>
-#include <cstdlib>
+#include <exception>
+
+#include <sak/ensure.hpp>
+#include <sak/using.hpp>
+//	--------------------------------------------------
 
 
 const auto red	=	"\033[41;5m";
@@ -64,34 +67,53 @@ public:
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
-	using	::std::print;
-	using	::std::println;
-	using	::std::string;
-	using	::std::vector;
-	using	::std::unique_ptr;
-	using	::std::make_unique;
+	__using( ::sak::
+		,exit_success
+		,exit_failure
+		,ensure
+	)
+	__using( ::std::
+		,print
+		,println
+		,string
+		,vector
+		,unique_ptr
+		,make_unique
+		,exception
+	)
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
 		println( "{}", value );
 
-	const string line( 50, '-' );
-	println( "{}\n", line );
+	try
 	{
-		vector< unique_ptr< base > > list;
-		list.emplace_back( make_unique< derived >( ) );
-		list.emplace_back( make_unique< derived >( ) );
-		list.pop_back( );
+		const string line( 50, '-' );
+		println( "{}\n", line );
+		{
+			vector< unique_ptr< base > > list;
+			list.emplace_back( make_unique< derived >( ) );
+			list.emplace_back( make_unique< derived >( ) );
+			list.pop_back( );
+		}
+		println( "{}\n", line );
+		{
+			vector< unique_ptr< non_virtual_base > > list;
+			list.emplace_back( make_unique< non_virtual_derived >( ) );
+			list.emplace_back( make_unique< non_virtual_derived >( ) );
+			list.pop_back( );
+		}
+		println( "{}\n", line );
+
+		println( "all tests for 0001_vector_copy passed!" );
 	}
-	println( "{}\n", line );
+	catch( const exception& error )
 	{
-		vector< unique_ptr< non_virtual_base > > list;
-		list.emplace_back( make_unique< non_virtual_derived >( ) );
-		list.emplace_back( make_unique< non_virtual_derived >( ) );
-		list.pop_back( );
+		println( "test failed: {}", error.what( ) );
+		return	exit_failure;
 	}
-	println( "{}\n", line );
-	return	EXIT_SUCCESS;
+
+	return	exit_success;
 }}
 
 

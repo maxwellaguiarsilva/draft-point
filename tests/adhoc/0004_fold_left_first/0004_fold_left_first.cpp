@@ -23,19 +23,40 @@
 
 
 #include <algorithm>
-#include <cstdlib>
+
+
 #include <exception>
+
+
 #include <functional>
+
+
 #include <iterator>
+
+
 #include <optional>
+
+
 #include <print>
+
+
 #include <ranges>
+
+
 #include <string>
+
+
 #include <utility>
+
+
 #include <vector>
 
+
 #include <sak/ensure.hpp>
+
+
 #include <sak/using.hpp>
+
 
 namespace {
 
@@ -68,7 +89,7 @@ concept indirectly_binary_left_foldable = (
 	and convertible_to< invoke_result_t< t_function&, t_type, iter_reference_t< t_iterator > >, t_type >
 );
 
-struct fold_left_first_implementation
+struct __fold_left_first
 {
 	template<
 		 input_iterator t_iterator
@@ -86,7 +107,7 @@ struct fold_left_first_implementation
 		optional< value_type > init( in_place, *first );
 
 		for( ++first; first not_eq last; ++first )
-			*init = invoke( function, move( *init ), *first );
+			*init = invoke( function, ::std::move( *init ), *first );
 		
 		return	init;
 	}
@@ -102,14 +123,24 @@ struct fold_left_first_implementation
 	}
 };
 
-inline constexpr auto fold_left_first = fold_left_first_implementation{ };
+inline constexpr auto fold_left_first = __fold_left_first{ };
 
 } // namespace
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
-	__using( ::std::, string, vector, println, exception, plus )
-	using	::sak::ensure;
+	__using( ::sak::
+		,exit_success
+		,exit_failure
+		,ensure
+	)
+	__using( ::std::
+		,string
+		,vector
+		,println
+		,exception
+		,plus
+	)
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 
@@ -156,10 +187,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	catch( const exception& error )
 	{
 		println( "test failed: {}", error.what( ) );
-		return	EXIT_FAILURE;
+		return	exit_failure;
 	}
 
-	return	EXIT_SUCCESS;
+	return	exit_success;
 }}
 
 
