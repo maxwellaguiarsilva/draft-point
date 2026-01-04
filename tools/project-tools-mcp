@@ -8,6 +8,7 @@ import datetime
 import time
 import re
 from template import template
+from ensure_code_formatting import verify_spacing as get_spacing_violations
 from fastmcp import FastMCP
 
 
@@ -158,6 +159,30 @@ def check( ) -> str:
             return  f"Static analysis failed:\n{process.stdout}\n{process.stderr}"
     except Exception as e:
         return  f"An error occurred during static analysis: {str( e )}"
+
+
+@mcp.tool( )
+def verify_spacing( file_path: str ) -> str:
+    """Verifies if a file follows the ( space ) and [ space ] rules.
+    Returns a list of violations with line numbers.
+    Useful for distinguishing between real violations and LLM false positives.
+    """
+    if not os.path.exists( file_path ):
+        return f"Error: File {file_path} not found."
+    
+    with open( file_path, 'r' ) as f:
+        content = f.read( )
+    
+    violations = get_spacing_violations( content )
+    
+    if not violations:
+        return "No spacing violations found."
+    
+    message = "Spacing violations found:\n"
+    for line_number, line_content in violations:
+        message += f"Line {line_number}: {line_content}\n"
+    
+    return message.strip( )
 
 
 if __name__ == "__main__":

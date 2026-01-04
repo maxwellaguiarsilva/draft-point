@@ -38,3 +38,19 @@ class formatter:
             flags = re.MULTILINE 
         )
 
+
+def verify_spacing( content: str ) -> list[ tuple[ int, str ] ]:
+    violations = [ ]
+    lines = content.splitlines( )
+    
+    p1 = re.compile( r'\((?![ \t\n\)])' )
+    p2 = re.compile( r'(?<![ \t\n\(])\)' )
+    p3 = re.compile( r'\[(?![ \t\n\]])' )
+    p4 = re.compile( r'(?<![ \t\n\[])\]' )
+    
+    for i, line in enumerate( lines, 1 ):
+        if p1.search( line ) or p2.search( line ) or p3.search( line ) or p4.search( line ):
+            violations.append( ( i, line.strip( ) ) )
+    
+    return violations
+

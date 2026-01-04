@@ -1,4 +1,4 @@
-## Elevação Semântica v3: Modelagem Algébrica e Abstração Funcional
+## Elevação Semântica 0003: Modelagem Algébrica e Abstração Funcional
 
 Este documento detalha a implementação técnica das abstrações discutidas para o `renderer.cpp`, movendo a lógica de "rastreamento de estado" para "funções de posição".
 

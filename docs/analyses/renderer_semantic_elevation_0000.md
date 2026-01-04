@@ -7,12 +7,12 @@ A Elevação Semântica não é um destino, mas um processo de refinamento cont�
 
 ### 2. Natureza Incremental
 Cada documento desta série ( 0001, 0002, 0003... n ) representa uma evolução no raciocínio sobre o assunto.
-Não existe um "fim" pré-definido para a fase de análise. Nenhuma análise individual, por mais completa que pareça, deve ser interpretada como um sinal verde para a execução. Quando o design atingir um estado de serenidade tal que a implementação se torne uma consequência trivial o programador solicitará explictamente para que esse avanço prático aconteça. Antes disso esse assunto nem entra em pauta
+Não existe um "fim" pré-definido para a fase de análise. Nenhuma análise individual, por mais completa que pareça, deve ser interpretada como um sinal verde para a execução. Quando o design atingir um estado de serenidade tal que a implementação se torne uma consequência trivial o programador solicitará explicitamente para que esse avanço prático aconteça. Antes disso esse assunto nem entra em pauta
 Cada arquivo não deve ter nenhuma informação que já estava disponível no anterior, ele deve agregar valor com algo novo.
 
 ### 3. Congruência
-Se for identificado durante a leitura que algum raciocínio no arquivo `.md` invalida ou é contraditório ao que fala em outro arquivo, então pare imediatamente a análise, avise o programador com os detalhes sobre isso para que os arquivos `.md` sejam refatorados a fim serem concisos, objetivos e uníssonos.
-O mesma regra se aplica caso seja encontrado algum erro de digitação, gramática ou qualquer tipo de equivoco.
+Se for identificado durante a leitura que algum raciocínio no arquivo `.md` invalida ou é contraditório ao que fala em outro arquivo, então pare imediatamente a análise, avise o programador com os detalhes sobre isso para que os arquivos `.md` sejam refatorados a fim de serem concisos, objetivos e uníssonos.
+A mesma regra se aplica caso seja encontrado algum erro de digitação, gramática ou qualquer tipo de equivoco.
 Mais vale uma frase certa do que um livro errado.
 
 

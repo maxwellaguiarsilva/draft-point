@@ -25,6 +25,7 @@
 - **Verification:** 
     1.  Do not compile until requested. Use the `compile` tool for building.
     2.  Use the `check` (cppcheck) tool after changes and address all warnings.
+    3.  **False Positives:** LLMs frequently generate false positives regarding the spacing of `( )` and `[ ]`. Never trust your visual intuition. If you suspect a violation, verify **strictly** using the `verify_spacing` MCP tool or `run_shell_command` (with `grep` or Python scripts) before reporting or changing the code.
 
 ### 5. `sak` Library (Swiss Army Knife)
 - Generic and domain-independent utilities (math, geometry, patterns).
