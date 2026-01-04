@@ -28,7 +28,6 @@
 #include <vector>
 #include <exception>
 #include <typeinfo>
-
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
 #include <sak/math/math.hpp>

@@ -29,7 +29,6 @@
 #include <exception>
 #include <map>
 #include <unordered_map>
-
 #include <sak/pattern/value_or.hpp>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>

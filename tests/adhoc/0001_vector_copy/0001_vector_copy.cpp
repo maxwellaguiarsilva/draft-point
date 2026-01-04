@@ -27,7 +27,6 @@
 #include <vector>
 #include <memory>
 #include <exception>
-
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
 //	--------------------------------------------------

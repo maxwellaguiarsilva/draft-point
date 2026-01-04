@@ -26,7 +26,6 @@
 #include <string>
 #include <vector>
 #include <exception>
-
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
 #include <sak/geometry/point.hpp>

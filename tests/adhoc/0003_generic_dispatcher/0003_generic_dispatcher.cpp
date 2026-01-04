@@ -26,7 +26,6 @@
 #include <string>
 #include <vector>
 #include <format>
-
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
 #include <sak/pattern/dispatcher.hpp>

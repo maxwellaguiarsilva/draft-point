@@ -30,7 +30,6 @@
 #include <format>
 #include <exception>
 #include <stdexcept>
-
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
 #include <sak/pattern/dispatcher.hpp>

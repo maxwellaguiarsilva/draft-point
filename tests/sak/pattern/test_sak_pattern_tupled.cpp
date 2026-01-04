@@ -32,7 +32,6 @@
 #include <algorithm>
 #include <functional>
 #include <utility>
-
 #include <sak/pattern/tupled.hpp>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>

@@ -27,7 +27,6 @@
 #include <string>
 #include <vector>
 #include <exception>
-
 #include <sak/string.hpp>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
