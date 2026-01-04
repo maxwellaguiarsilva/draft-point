@@ -38,21 +38,20 @@ __using( ::tui::, line, point, rectangle )
 
 struct renderer::terminal_listener final : public terminal::listener
 {
-	explicit terminal_listener( renderer& a_parent ) : m_parent( a_parent ) { }
-	void on_resize( const point& a_size ) override { m_parent.on_resize( a_size ); }
-
-	renderer& m_parent;
+	explicit terminal_listener( renderer& parent ) : m_renderer( parent ) { }
+	void on_resize( const point& size ) override { m_renderer.on_resize( size ); }
+	renderer& m_renderer;
 };
 
 
-renderer::renderer( terminal& parent )
-	:m_parent( parent )
+renderer::renderer( terminal& terminal )
+	:m_terminal( terminal )
 	,m_color( 15 )
 	,m_is_resizing( false )
 	,m_terminal_listener( make_shared< terminal_listener >( *this ) )
 {
-	m_parent += m_terminal_listener;
-	point size = m_parent.size( );
+	m_terminal += m_terminal_listener;
+	point size = m_terminal.size( );
 	m_front.resize( size[ 0 ] * size[ 1 ] );
 	m_back.resize( size[ 0 ] * size[ 1 ] );
 }
@@ -73,7 +72,7 @@ void renderer::refresh( )
 	unique_lock lock( m_mutex, try_to_lock );
 	if( not lock.owns_lock( ) ) return;
 
-	point size = m_parent.size( );
+	point size = m_terminal.size( );
 	int width = size[ 0 ];
 	int height = size[ 1 ];
 	int count = width * height;
@@ -97,20 +96,20 @@ void renderer::refresh( )
 		if( back not_eq front )
 		{
 			if( current_position[ 0 ] not_eq column or current_position[ 1 ] not_eq row )
-				m_parent.move_cursor( { column, row } );
+				m_terminal.move_cursor( { column, row } );
 
 			if( back.up not_eq current_foreground or force_update )
 			{
 				current_foreground = back.up;
-				m_parent.set_color( current_foreground, false );
+				m_terminal.set_color( current_foreground, false );
 			}
 			if( back.down not_eq current_background or force_update )
 			{
 				current_background = back.down;
-				m_parent.set_color( current_background, true );
+				m_terminal.set_color( current_background, true );
 			}
 
-			m_parent.print( "\xe2\x96\x80" );
+			m_terminal.print( "\xe2\x96\x80" );
 			front = back;
 			current_position = { column + 1, row };
 			force_update = false;
@@ -185,7 +184,7 @@ void renderer::draw( const point& data ) noexcept
 	int x = data[ 0 ];
 	int y = data[ 1 ];
 
-	point size = m_parent.size( );
+	point size = m_terminal.size( );
 	int width = size[ 0 ];
 	int height = size[ 1 ];
 

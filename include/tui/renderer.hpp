@@ -51,7 +51,6 @@ class terminal;
 
 class renderer
 {
-	friend class terminal;
 public:
 	struct cell
 	{
@@ -78,7 +77,7 @@ private:
 
 	void on_resize( const point& size );
 
-	terminal&	m_parent;
+	terminal&	m_terminal;
 	buffer		m_front;
 	buffer		m_back;
 	uint8_t		m_color;

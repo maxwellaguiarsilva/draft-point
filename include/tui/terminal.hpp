@@ -68,7 +68,6 @@ using	::termios;
 
 class terminal final
 {
-	friend class renderer;
 public:
 	enum class color
 	{
