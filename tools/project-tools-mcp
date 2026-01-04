@@ -4,31 +4,12 @@
 import sys
 import os
 import subprocess
-import datetime
-import time
-import re
-from template import template
-from ensure_code_formatting import verify_spacing as get_spacing_violations
+import json
 from fastmcp import FastMCP
 
 
 #   create an mcp server instance
 mcp = FastMCP( name="project-tools-mcp" )
-
-
-def get_git_config_value( configuration_name ):
-    try:
-        command = [ "git", "config", "--global", configuration_name ]
-        process = subprocess.run( command, capture_output=True, text=True, check=True )
-        return  process.stdout.strip( )
-    except subprocess.CalledProcessError:
-        return  "value not found"
-
-def write_template_file( file_path, template_name, data ):
-    subprocess.run( [ "mkdir", "-p", "/".join( file_path.split( "/" )[:-1] ) ] )
-    with open( file_path, "w" ) as f:
-        f.write( template( template_name ).run( data ) )
-    return  f"created file: {file_path}\n"
 
 
 @mcp.tool( )
@@ -44,37 +25,20 @@ def	create_class(
     Good Example: include_list=["string", "vector"], using_list=["::std::string", "::std::vector", "item_list   =   vector< string >"]
     Bad Example: include_list="<string>", using_list="using std::string;"
     """
-    message=""
-    hierarchy_list=re.split( r"[/:\\.]+", class_hierarchy )
-
-    data = {
-         "num_year": datetime.datetime.now( ).strftime( "%Y" )
-        ,"des_full_name": get_git_config_value( "user.name" )
-        ,"des_email": get_git_config_value( "user.email" )
-        ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
-        ,"des_file_path": "/".join( hierarchy_list ) + ".hpp"
-        ,"class_name": hierarchy_list[-1]
-        ,"namespace_list": hierarchy_list[:-1]
-        ,"include_list": include_list
-        ,"using_list": using_list
-        ,"header_guard": f"header_guard_{ str( time.time_ns( ) )[-9:] }"
+    args = {
+        "class_hierarchy": class_hierarchy,
+        "include_list": include_list,
+        "using_list": using_list,
+        "create_header_only": create_header_only
     }
-
-    file_path = f"include/{'/'.join( hierarchy_list )}.hpp"
-    message += write_template_file( file_path, "class-hpp", data )
-
-    if create_header_only:
-        return  message
-
-    data.update( {
-         "include_list": [ data[ "des_file_path" ] ]
-        ,"des_file_path": "/".join( hierarchy_list ) + ".cpp"
-    } )
-
-    file_path = f"source/{'/'.join( hierarchy_list )}.cpp"
-    message += write_template_file( file_path, "class-cpp", data )
-
-    return  message
+    try:
+        process = subprocess.run( 
+            [ "python3", "tools/file_generator.py", "create_class", json.dumps( args ) ], 
+            capture_output=True, text=True, check=True 
+        )
+        return process.stdout
+    except subprocess.CalledProcessError as e:
+        return f"Error creating class: {e.stderr}"
 
 
 @mcp.tool( )
@@ -87,50 +51,19 @@ def create_test(
     If flg_adhoc is True, creates an adhoc test in tests/adhoc/NNNN_hierarchy/.
     If flg_adhoc is False, creates a structured test in tests/path/test_path_hierarchy.cpp.
     """
-    message = ""
-    
-    if flg_adhoc:
-        adhoc_dir = "tests/adhoc"
-        if not os.path.exists( adhoc_dir ):
-            os.makedirs( adhoc_dir, exist_ok=True )
-        
-        existing_adhocs = [ d for d in os.listdir( adhoc_dir ) if os.path.isdir( os.path.join( adhoc_dir, d ) ) ]
-        max_counter = 0
-        for d in existing_adhocs:
-            match = re.match( r"(\d+)_", d )
-            if match:
-                counter = int( match.group( 1 ) )
-                if counter > max_counter:
-                    max_counter = counter
-        
-        next_counter = max_counter + 1
-        prefix = f"{next_counter:04d}"
-        test_folder = f"{prefix}_{hierarchy}"
-        file_path = f"{adhoc_dir}/{test_folder}/{prefix}_{hierarchy}.cpp"
-        display_hierarchy = hierarchy
-    else:
-        hierarchy_list = re.split( r"[/:\\.]+", hierarchy )
-        path = "/".join( hierarchy_list[:-1] )
-        filename = "test_" + "_".join( hierarchy_list ) + ".cpp"
-        
-        if path:
-            file_path = f"tests/{path}/{filename}"
-        else:
-            file_path = f"tests/{filename}"
-        display_hierarchy = hierarchy
-
-    data = {
-         "num_year": datetime.datetime.now( ).strftime( "%Y" )
-        ,"des_full_name": get_git_config_value( "user.name" )
-        ,"des_email": get_git_config_value( "user.email" )
-        ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
-        ,"des_file_path": file_path
-        ,"hierarchy": display_hierarchy
-        ,"include_list": include_list
+    args = {
+        "hierarchy": hierarchy,
+        "flg_adhoc": flg_adhoc,
+        "include_list": include_list
     }
-
-    message += write_template_file( file_path, "test-cpp", data )
-    return message
+    try:
+        process = subprocess.run( 
+            [ "python3", "tools/file_generator.py", "create_test", json.dumps( args ) ], 
+            capture_output=True, text=True, check=True 
+        )
+        return process.stdout
+    except subprocess.CalledProcessError as e:
+        return f"Error creating test: {e.stderr}"
 
 
 @mcp.tool( )
@@ -167,26 +100,26 @@ def verify_spacing( file_path: str ) -> str:
     Returns a list of violations with line numbers.
     Useful for distinguishing between real violations and LLM false positives.
     """
-    if not os.path.exists( file_path ):
-        return f"Error: File {file_path} not found."
-    
-    with open( file_path, 'r' ) as f:
-        content = f.read( )
-    
-    violations = get_spacing_violations( content )
-    
-    if not violations:
-        return "No spacing violations found."
-    
-    message = "Spacing violations found:\n"
-    for line_number, line_content in violations:
-        message += f"Line {line_number}: {line_content}\n"
-    
-    return message.strip( )
+    try:
+        process = subprocess.run( 
+            [ "python3", "tools/ensure_code_formatting.py", "--verify", file_path ], 
+            capture_output=True, text=True, check=True 
+        )
+        violations = json.loads( process.stdout )
+        
+        if not violations:
+            return "No spacing violations found."
+        
+        message = "Spacing violations found:\n"
+        for line_number, line_content in violations:
+            message += f"Line {line_number}: {line_content}\n"
+        
+        return message.strip( )
+    except subprocess.CalledProcessError as e:
+        return f"Error verifying spacing: {e.stderr}"
+    except Exception as e:
+        return f"An error occurred: {str(e)}"
 
 
 if __name__ == "__main__":
     mcp.run()
-
-
-

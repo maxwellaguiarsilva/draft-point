@@ -1,4 +1,6 @@
 import re
+import sys
+import json
 
 class formatter:
     def __init__( self, content: str ):
@@ -53,4 +55,29 @@ def verify_spacing( content: str ) -> list[ tuple[ int, str ] ]:
             violations.append( ( i, line.strip( ) ) )
     
     return violations
+
+
+if __name__ == "__main__":
+    if len( sys.argv ) > 2:
+        command = sys.argv[ 1 ]
+        file_path = sys.argv[ 2 ]
+        try:
+            with open( file_path, 'r' ) as f:
+                content = f.read( )
+            
+            if command == "--verify":
+                violations = verify_spacing( content )
+                print( json.dumps( violations ) )
+            elif command == "--fix":
+                fmt = formatter( content )
+                new_content = fmt.run( )
+                result = {
+                    "content": new_content,
+                    "messages": fmt.messages,
+                    "changed": content != new_content
+                }
+                print( json.dumps( result ) )
+        except Exception as e:
+            print( f"Error: {e}", file=sys.stderr )
+            sys.exit( 1 )
 

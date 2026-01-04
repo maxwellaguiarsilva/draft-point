@@ -32,7 +32,7 @@ import re
 import sys
 import threading
 import subprocess
-from ensure_code_formatting import formatter
+import json
 
 
 def get_cpu_count( ):
@@ -565,20 +565,23 @@ class project:
         modified_count = 0
         
         for file_path in files_to_check:
-            with open( file_path, 'r', encoding='utf-8' ) as f:
-                content = f.read( )
-            
-            fmt = formatter( content )
-            new_content = fmt.run( )
-            
-            if content != new_content:
-                with open( file_path, 'w', encoding='utf-8' ) as f:
-                    f.write( new_content )
-                modified_count += 1
-                print( weak_line )
-                print( f"    [fixed]: {file_path}" )
-                for msg in fmt.messages:
-                    print( f"        {msg}" )
+            try:
+                result_process = subprocess.run(
+                    [ "python3", "tools/ensure_code_formatting.py", "--fix", file_path ],
+                    capture_output=True, text=True, check=True
+                )
+                fmt_result = json.loads( result_process.stdout )
+                
+                if fmt_result[ "changed" ]:
+                    with open( file_path, 'w', encoding='utf-8' ) as f:
+                        f.write( fmt_result[ "content" ] )
+                    modified_count += 1
+                    print( weak_line )
+                    print( f"    [fixed]: {file_path}" )
+                    for msg in fmt_result[ "messages" ]:
+                        print( f"        {msg}" )
+            except Exception as e:
+                print( f"    [error]: Failed to format {file_path}: {e}" )
         
         print( f"Done. Modified {modified_count} files." )
         print( strong_line )

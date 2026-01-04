@@ -2,6 +2,8 @@
 
 
 import re
+import sys
+import json
 
 r_import        =   r"\{\{import\s+([a-zA-Z0-9_-]+)\}\}"
 r_list_open     =   r"\{\{list_open\s+([a-zA-Z0-9_-]+)\}\}"
@@ -10,7 +12,7 @@ r_list_item     =   r"\{\{list_item\s+([a-zA-Z0-9_-]+)\}\}"
 
 class template:
     def __init__( self, name, path = "docs/templates" ):
-        assert( self != "" )
+        assert( name != "" )
         self.path = path
         self.text = self.load( name )
     
@@ -40,11 +42,23 @@ class template:
                 )
                 text = re.sub(
                      r_key
-                    ,lambda match: "".join( [ re.sub( r_item, item, match.group( 1 ) ) for item in value ] )
+                    ,lambda match: "".join( [ re.sub( r_item, str( item ), match.group( 1 ) ) for item in value ] )
                     ,text
                     ,flags = re.DOTALL
                 )
         return  text
+
+
+if __name__ == "__main__":
+    if len( sys.argv ) > 2:
+        template_name = sys.argv[ 1 ]
+        try:
+            data = json.loads( sys.argv[ 2 ] )
+            t = template( template_name )
+            print( t.run( data ), end="" )
+        except Exception as e:
+            print( f"Error: {e}", file=sys.stderr )
+            sys.exit( 1 )
     
 
 
