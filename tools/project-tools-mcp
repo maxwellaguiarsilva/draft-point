@@ -147,7 +147,9 @@ def compile( ) -> str:
 
 @mcp.tool( )
 def check( ) -> str:
-    """Runs static analysis (cppcheck) on the project. This command takes no arguments."""
+    """Runs static analysis (cppcheck) on the project.
+    Ensures that all .cpp and .hpp files follow the project's code formatting rules.
+    This command takes no arguments."""
     try:
         process = subprocess.run( [ "python3", "tools/project-builder.py", "--check" ], capture_output=True, text=True )
         if process.returncode == 0:
@@ -156,19 +158,6 @@ def check( ) -> str:
             return  f"Static analysis failed:\n{process.stdout}\n{process.stderr}"
     except Exception as e:
         return  f"An error occurred during static analysis: {str( e )}"
-
-
-@mcp.tool( )
-def fix_format( ) -> str:
-    """Ensures that all .cpp and .hpp files follow the project's code formatting rules. This command takes no arguments."""
-    try:
-        process = subprocess.run( [ "python3", "tools/project-builder.py", "--fix-format" ], capture_output=True, text=True )
-        if process.returncode == 0:
-            return  f"Formatting successful:\n{process.stdout}"
-        else:
-            return  f"Formatting failed:\n{process.stdout}\n{process.stderr}"
-    except Exception as e:
-        return  f"An error occurred during formatting: {str( e )}"
 
 
 if __name__ == "__main__":

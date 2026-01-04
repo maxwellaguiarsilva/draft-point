@@ -635,9 +635,8 @@ if __name__ == "__main__":
     try:
         current_project = project( { } )
         if "--check" in sys.argv:
-            current_project.check_code( )
-        elif "--fix-format" in sys.argv:
             current_project.fix_format( )
+            current_project.check_code( )
         else:
             current_project.build( )
     except Exception as e:
