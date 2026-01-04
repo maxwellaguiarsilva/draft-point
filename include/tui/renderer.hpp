@@ -80,6 +80,7 @@ private:
 	terminal&	m_terminal;
 	buffer		m_front;
 	buffer		m_back;
+	point		m_terminal_size;
 	uint8_t		m_color;
 	atomic<bool>	m_is_resizing;
 	mutable mutex	m_mutex;

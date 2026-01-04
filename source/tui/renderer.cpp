@@ -51,9 +51,9 @@ renderer::renderer( terminal& terminal )
 	,m_terminal_listener( make_shared< terminal_listener >( *this ) )
 {
 	m_terminal += m_terminal_listener;
-	point size = m_terminal.size( );
-	m_front.resize( size[ 0 ] * size[ 1 ] );
-	m_back.resize( size[ 0 ] * size[ 1 ] );
+	m_terminal_size = m_terminal.size( );
+	m_front.resize( m_terminal_size[ 0 ] * m_terminal_size[ 1 ] );
+	m_back.resize( m_terminal_size[ 0 ] * m_terminal_size[ 1 ] );
 }
 
 void renderer::clear( ) noexcept
@@ -72,9 +72,8 @@ void renderer::refresh( )
 	unique_lock lock( m_mutex, try_to_lock );
 	if( not lock.owns_lock( ) ) return;
 
-	point size = m_terminal.size( );
-	int width = size[ 0 ];
-	int height = size[ 1 ];
+	int width = m_terminal_size[ 0 ];
+	int height = m_terminal_size[ 1 ];
 	int count = width * height;
 
 	if( m_back.size( ) not_eq static_cast< size_t >( count ) )
@@ -179,14 +178,15 @@ void renderer::draw( const rectangle& data, bool fill )
 	}
 }
 
-void renderer::draw( const point& data ) noexcept
+void renderer::draw( const point& pixel ) noexcept
 {
-	int x = data[ 0 ];
-	int y = data[ 1 ];
+	int x = pixel[ 0 ];
+	int y = pixel[ 1 ];
 
-	point size = m_terminal.size( );
-	int width = size[ 0 ];
-	int height = size[ 1 ];
+	auto lock = lock_guard( m_mutex );
+
+	int width = m_terminal_size[ 0 ];
+	int height = m_terminal_size[ 1 ];
 
 	if( x < 1 or x > width or y < 1 or y > 2 * height ) return;
 
@@ -194,7 +194,6 @@ void renderer::draw( const point& data ) noexcept
 	int column = x;
 	int index = ( row - 1 ) * width + ( column - 1 );
 
-	auto lock = lock_guard( m_mutex );
 	if( y % 2 not_eq 0 )
 		m_back[ index ].up = m_color;
 	else
@@ -206,6 +205,7 @@ void renderer::on_resize( const point& size )
 	m_is_resizing.store( true );
 	{
 		auto lock = lock_guard( m_mutex );
+		m_terminal_size = size;
 		m_front.assign( size[ 0 ] * size[ 1 ], { 0, 0 } );
 		m_back.assign( size[ 0 ] * size[ 1 ], { 0, 0 } );
 	}
