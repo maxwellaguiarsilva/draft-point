@@ -543,6 +543,10 @@ class project:
         print( "Static analysis completed successfully." )
 
     def fix_format( self ):
+        line_size = 50
+        strong_line = "=" * line_size
+        weak_line = "-" * line_size
+
         include_ext = self.config["patterns"]["header_extension"]
         source_ext  = self.config["patterns"]["source_extension"]
         
@@ -556,6 +560,7 @@ class project:
         for path in search_paths:
             files_to_check.extend( glob.glob( path, recursive=True ) )
             
+        print( strong_line )
         print( f"Checking code formatting for {len(files_to_check)} files..." )
         modified_count = 0
         
@@ -563,15 +568,19 @@ class project:
             with open( file_path, 'r', encoding='utf-8' ) as f:
                 content = f.read( )
             
-            new_content = ensure_code_formatting( content )
+            new_content, messages = ensure_code_formatting( content )
             
             if content != new_content:
                 with open( file_path, 'w', encoding='utf-8' ) as f:
                     f.write( new_content )
                 modified_count += 1
+                print( weak_line )
                 print( f"    [fixed]: {file_path}" )
+                for msg in messages:
+                    print( f"        {msg}" )
         
         print( f"Done. Modified {modified_count} files." )
+        print( strong_line )
 
     def __repr__( self ):
         items = [ ]
