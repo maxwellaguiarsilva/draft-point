@@ -7,7 +7,7 @@
 - **Increment:** Always prefer pre-increment (`++i`) and pre-decrement (`--i`).
 - **Main Function:** Only place where double braces are mandatory: `{{ ... }}`.
 - **Headers:** Namespaces declared as `namespace n {` on the same line. No extra indentation for namespace content.
-- **Indirection:** Prefer `const&` (constant reference) to avoid `->` operator noise. Use `using` to avoid the scope operator `::` (except for ADL-sensitive functions like `move` or `forward`).
+- **Indirection:** Prefer `const&` (constant reference) to avoid `->` operator noise. Use `using` or `__using` macro from `sak/using.hpp` (for multiple symbols) to avoid the scope operator `::`. No `using namespace`.
 - **Methods:** Mark methods that do not change state with `const` and `noexcept`.
 - **Allowed Comments:** Only to explain subtle behaviors or in tests.
     - Must start with `//` followed by a **TAB** (`	`).
@@ -25,7 +25,6 @@
 - **Verification:** 
     1.  Do not compile until requested. Use the `compile` tool for building.
     2.  Use the `check` (cppcheck) tool after changes and address all warnings.
-    3.  Use the `fix_format` tool (mandatory to maintain code consistency).
 
 ### 5. `sak` Library (Swiss Army Knife)
 - Generic and domain-independent utilities (math, geometry, patterns).
