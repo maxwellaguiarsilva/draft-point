@@ -95,30 +95,66 @@ def check( ) -> str:
 
 
 @mcp.tool( )
-def verify_spacing( file_path: str ) -> str:
-    """Verifies if a file follows the ( space ) and [ space ] rules.
-    Returns a list of violations with line numbers.
+def verify_spacing( files: list[ str ] ) -> str:
+    """Verifies if a list of files follows the ( space ) and [ space ] rules.
+    Returns a consolidated list of violations with line numbers.
     Useful for distinguishing between real violations and LLM false positives.
     """
-    try:
-        process = subprocess.run( 
-            [ "python3", "tools/ensure_code_formatting.py", "--verify", file_path ], 
-            capture_output=True, text=True, check=True 
-        )
-        violations = json.loads( process.stdout )
-        
-        if not violations:
-            return "No spacing violations found."
-        
-        message = "Spacing violations found:\n"
-        for line_number, line_content in violations:
-            message += f"Line {line_number}: {line_content}\n"
-        
-        return message.strip( )
-    except subprocess.CalledProcessError as e:
-        return f"Error verifying spacing: {e.stderr}"
-    except Exception as e:
-        return f"An error occurred: {str(e)}"
+    if isinstance( files, str ):
+        files = [ files ]
+
+    results = [ ]
+    for file_path in files:
+        try:
+            process = subprocess.run( 
+                [ "python3", "tools/ensure_code_formatting.py", "--verify", file_path ], 
+                capture_output=True, text=True, check=True 
+            )
+            violations = json.loads( process.stdout )
+            
+            if violations:
+                message = f"File: {file_path}\n"
+                for line_number, line_content in violations:
+                    message += f"  Line {line_number}: {line_content}\n"
+                results.append( message )
+        except Exception as e:
+            results.append( f"Error verifying {file_path}: {str(e)}" )
+    
+    if not results:
+        return "No spacing violations found in the provided files."
+    
+    return "\n".join( results ).strip( )
+    
+
+@mcp.tool( )
+def verify_rules( files: list[ str ] ) -> str:
+    """Verifies if a list of files follows the project's formatting rules (newlines, return spacing, etc.).
+    Returns a consolidated list of violations.
+    """
+    if isinstance( files, str ):
+        files = [ files ]
+
+    results = [ ]
+    for file_path in files:
+        try:
+            process = subprocess.run( 
+                [ "python3", "tools/ensure_code_formatting.py", "--verify-rules", file_path ], 
+                capture_output=True, text=True, check=True 
+            )
+            violations = json.loads( process.stdout )
+            
+            if violations:
+                message = f"File: {file_path}\n"
+                for violation in violations:
+                    message += f"  - {violation}\n"
+                results.append( message )
+        except Exception as e:
+            results.append( f"Error verifying {file_path}: {str(e)}" )
+    
+    if not results:
+        return "No rule violations found in the provided files."
+    
+    return "\n".join( results ).strip( )
     
 
 @mcp.tool( )

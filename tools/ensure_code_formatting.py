@@ -3,9 +3,10 @@ import sys
 import json
 
 class formatter:
-    def __init__( self, content: str ):
+    def __init__( self, content: str, mode: str = "fix" ):
         self.content = content
         self.messages = []
+        self.mode = mode
 
     def run( self ):
         self._consecutive_newlines( )
@@ -14,29 +15,40 @@ class formatter:
         self._include_spacing( )
         return self.content
 
+    def verify( self ):
+        self.mode = "verify"
+        self.run( )
+        return self.messages
+
     def _apply( self, pattern: str, replacement: str, message: str, flags: int = 0 ):
-        new_content = re.sub( pattern, replacement, self.content, flags = flags )
-        if new_content != self.content:
-            self.content = new_content
-            self.messages.append( message )
+        if self.mode == "fix":
+            new_content = re.sub( pattern, replacement, self.content, flags = flags )
+            if new_content != self.content:
+                self.content = new_content
+                self.messages.append( message )
+        else:
+            for match in re.finditer( pattern, self.content, flags = flags ):
+                line_no = self.content.count( '\n', 0, match.start( ) ) + 1
+                self.messages.append( f"Line {line_no}: Violation: {message}" )
 
     def _consecutive_newlines( self ):
-        self._apply( r'\n{4,}', '\n\n\n', "adjusted consecutive newlines" )
+        self._apply( r'\n{4,}', '\n\n\n', "consecutive newlines" )
 
     def _return_spacing( self ):
-        self._apply( r'([ \t])return\b(?![ \t]*;)[ \t]*', r'\1return\1', "adjusted return spacing" )
+        self._apply( r'([ \t])return\b(?![ \t]*;)[ \t]*', r'\1return\1', "return spacing" )
 
     def _trailing_newlines( self ):
         new_content = self.content.rstrip( ) + "\n\n\n"
         if new_content != self.content:
-            self.content = new_content
-            self.messages.append( "adjusted trailing whitespace and newlines" )
+            if self.mode == "fix":
+                self.content = new_content
+            self.messages.append( "trailing whitespace and newlines" )
 
     def _include_spacing( self ):
         self._apply( 
             r'(^#include\s+.*)\n(?:[ \t]*\n)+(?=#include\s+.*)', 
             r'\1\n', 
-            "adjusted include directives spacing", 
+            "include directives spacing", 
             flags = re.MULTILINE 
         )
 
@@ -67,6 +79,10 @@ if __name__ == "__main__":
             
             if command == "--verify":
                 violations = verify_spacing( content )
+                print( json.dumps( violations ) )
+            elif command == "--verify-rules":
+                fmt = formatter( content )
+                violations = fmt.verify( )
                 print( json.dumps( violations ) )
             elif command == "--fix":
                 fmt = formatter( content )

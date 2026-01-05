@@ -15,6 +15,15 @@ The system uses **FastMCP** as the communication interface, but adopts a decoupl
 -   **Isolation:** Errors in a tool do not bring down the main server.
 -   **Simplicity:** Tool logic is pure Python, making development and debugging easier.
 
+## Philosophy: The MCP-First Mindset
+
+The goal of this architecture is to minimize friction and maximize the agent's high-level autonomy.
+
+1.  **Prefer Abstractions over Manual Labor:** If a task involves repetitive steps, complex logic, or orchestrating multiple entities, do not default to manual terminal commands. Instead, think: "Can this be an MCP tool?".
+2.  **Avoid the "Bash Loop" Anti-pattern:** Using the terminal to iterate over files (e.g., `for f in ...; do tool $f; done`) is a sign that the tool's interface is too low-level. While the batching example (`list[str]` instead of `str`) is a common fix, the principle applies to any orchestration: the tool should handle the complexity, not the user/agent via terminal.
+3.  **The Agent as a Tool-Builder:** When you encounter a limitation in existing tools, use `adhoc_tool` to prototype a better interface. You are responsible for evolving the project's capabilities to be more robust and less error-prone.
+4.  **Hot-Reloading for Rapid Iteration:** Leverage the decoupling between the MCP server and Python scripts. You can refine logic in real-time. Use this to arrive at robust, production-quality tools without constant server restarts.
+
 ## Prototyping with `adhoc_tool`
 
 The `adhoc_tool` is a special tool designed to allow the LLM to write and test experimental logic in real-time.
