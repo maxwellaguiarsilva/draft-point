@@ -2,7 +2,7 @@
 
 Este documento registra falhas deliberadas no comportamento do agente em relação aos protocolos estabelecidos no projeto, especificamente no que tange à Elevação Semântica e à Dicotomia de Agentes.
 
-### Registro 0001: 2026-01-05
+### Registro 0001: 2026-01-05 14:15:20
 **Natureza do Erro:** Falha na priorização da maturidade da análise sobre a execução.
 
 **Descrição:**
@@ -21,7 +21,7 @@ O agente Analista agiu prematuramente como Executor, tentando aplicar um plano d
 - Se um erro de compilação ou linting ocorrer durante a execução, isso é um sinal de que a análise FALHOU e deve ser reiniciada no nível da documentação, não corrigida diretamente no código.
 - Revisar este log antes de iniciar qualquer nova fase de análise.
 
-### Registro 0002: 2026-01-05
+### Registro 0002: 2026-01-05 14:33:42
 **Natureza do Erro:** Negligência no uso de ferramentas MCP de verificação.
 
 **Descrição:**
