@@ -1,9 +1,10 @@
 ### 1. C++ Coding Style (Hard Rules)
 - **Modernity:** C++23 project. Prefer `ranges`, `views`, and `Niebloids`.
-- **Naming:** Always `snake_case`. Class members prefixed with `m_`.
-- **Logical Operators:** Use of `&&, ||, !` is forbidden. Mandatory use of `and, or, not`.
+- **Naming:** Always `snake_case`. Class members prefixed with `m_`, template parameters with `t_`. Use descriptive and extensive names; abbreviations such as `i`, `w`, `h` are forbidden. STL, external libraries, and macros with numeric prefixes are exempt.
+- **Operators:** Use of `&&, ||, !, !=` and symbolic bitwise/assignment operators is forbidden. Mandatory use of keywords: `and, or, not, not_eq, bitand, bitor, xor, compl, and_eq, or_eq, xor_eq`.
 - **Spacing:** Mandatory internal spacing in `( )` and `[ ]`. E.g.: `if( condition )`, `array[ index ]`.
 - **Flow Control:** No braces `{}` for single-line `if, for, while`.
+- **Definitions:** In `.cpp` files, single-statement methods must be on the same line as the signature (except constructors with initializer lists).
 - **Increment:** Always prefer pre-increment (`++i`) and pre-decrement (`--i`).
 - **Main Function:** Only place where double braces are mandatory: `{{ ... }}`.
 - **Headers:** Namespaces declared as `namespace n {` on the same line. No extra indentation for namespace content.

@@ -27,12 +27,7 @@ Uma análise só é considerada completa quando o documento de instruções é t
 - Continue até o documento especificar o "onde" ( caminho do arquivo e classe ), o "o quê" ( assinatura exata ) e o "como" ( lógica interna ). O detalhamento deve ser tal que um executor possa realizar a implementação de forma mecânica, sem novas decisões.
 - A proposta precisa estar congruente com o estado atual do projeto. Analise os arquivos envolvidos na discussão para confirmar que não haverá surpresas quando o executor for realizar o plano de ação.
 
-### 5. Assinatura Visual ( Estilo Semântico )
-Para manter a coerência com a `sak`, todos os trechos de código e descrições técnicas devem seguir:
-- **Operadores:** Uso obrigatório de `and`, `or`, `not`, `not_eq` ( proibido `&&`, `||`, `!`, `!=` ).
-- **Espaçamento:** Espaço interno obrigatório em `( )` e `[ ]`. Ex: `if( valid )`, `array[ index ]`.
-- **Controle:** Omitir chaves `{}` para `if`, `for` e `while` de apenas uma linha.
-- **Nomenclatura:** Estritamente `snake_case`. Membros de classe prefixados com `m_`. Uso de nomes descritivos e extensos ( proibido abreviações como `i`, `w`, `h` ).
-- **Comentários:** Totalmente em lowercase, sem ponto final, e precedidos por `//` seguido de TAB.
+### 5. Assinatura Visual
+Para garantir a consistência técnica e estética, todos os trechos de código e descrições devem seguir rigorosamente as diretrizes de estilo e formatação definidas no arquivo `GEMINI.md`.
 
 
