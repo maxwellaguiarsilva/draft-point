@@ -34,18 +34,18 @@ private:
 ### 3. Implementação dos Métodos de Desenho Elevados
 **Arquivo:** `source/tui/renderer.cpp`
 
-**draw( pixel_line const& data )**
+**draw( ::sak::geometry< pixel >::line const& data )**
 ```cpp
-void renderer::draw( pixel_line const& data )
+void renderer::draw( ::sak::geometry< pixel >::line const& data )
 {
 	for( pixel const& position : trace_line( data.start, data.end ) )
 		draw( position );
 }
 ```
 
-**draw( pixel_rectangle const& data, bool fill )**
+**draw( ::sak::geometry< pixel >::rectangle const& data, bool fill )**
 ```cpp
-void renderer::draw( pixel_rectangle const& data, bool fill )
+void renderer::draw( ::sak::geometry< pixel >::rectangle const& data, bool fill )
 {
 	//	utilizar a lógica de iteração sobre pixels do retângulo,
 	//	chamando draw( pixel{ horizontal, vertical } ) para cada ponto.

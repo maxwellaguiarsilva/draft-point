@@ -52,13 +52,6 @@ namespace tui {
 using	pixel		=	::sak::point< int, 2, struct pixel_tag >;
 using	cell_point	=	::sak::point< int, 2, struct cell_tag >;
 
-using	pixel_geometry	=	::sak::geometry< pixel >;
-using	pixel_line		=	pixel_geometry::line;
-using	pixel_rectangle	=	pixel_geometry::rectangle;
-
-using	cell_geometry	=	::sak::geometry< cell_point >;
-using	cell_rectangle	=	cell_geometry::rectangle;
-
 //	transformadores de domínio
 inline constexpr auto to_cell( pixel const& position ) noexcept -> cell_point
 {
@@ -131,6 +124,6 @@ Eliminar contadores `row`/`column`. Utilizar um iterador espacial ( a ser implem
 **Arquivo:** `include/tui/geometry.hpp`
 
 Adicionar o gerador `trace_line` utilizando o algoritmo de Bresenham, retornando um `std::ranges::view` de `pixel`.
-O executor deve mover a lógica atual de `renderer::draw( line )` para esta função.
+O executor deve mover a lógica atual de `renderer::draw( ::sak::geometry< pixel >::line )` para esta função.
 
 

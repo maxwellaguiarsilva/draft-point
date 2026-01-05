@@ -35,7 +35,7 @@ Algoritmos complexos como o Bresenham são removidos do corpo do renderizador e 
 ```cpp
 __using( ::geometry, ::trace_line );
 
-void renderer::draw( line const& data )
+void renderer::draw( ::sak::geometry< pixel >::line const& data )
 {
     for( pixel pixel : trace_line( data.start, data.end ) )
         draw( pixel );

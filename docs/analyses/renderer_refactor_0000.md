@@ -38,6 +38,7 @@ Uma análise só é considerada completa quando o documento de instruções é t
 Sempre que o programador fizer um pedido, sinalizar um ponto ou trouxer um novo entendimento, **todos os arquivos markdown da série ( 0000..000N ) devem ser obrigatoriamente refatorados**.
 - **Objetivo:** Eliminar qualquer informação, status ou blueprint que tenha se tornado inválido, desatualizado ou inútil.
 - **Integridade:** O contexto documental deve ser tratado como um organismo vivo e uníssono; não deve haver contradições entre os arquivos. A análise "atual" é a soma de todos os arquivos em seu estado mais recente.
+- **Histórico de Amadurecimento:** Sempre que o programador fizer uma sinalização que gere refatoração nos arquivos markdown, essa intervenção deve ser obrigatoriamente registrada no `renderer_refactor_history.md`. Isso garante que o entendimento evolutivo do programador seja preservado para futuras análises.
 
 ### 7. Documentação Auxiliar
 - **`renderer_refactor_history.md`:** Histórico cronológico de decisões e amadurecimento.
