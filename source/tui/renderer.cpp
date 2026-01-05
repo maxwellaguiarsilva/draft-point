@@ -49,13 +49,10 @@ struct renderer::terminal_listener final : public terminal::listener
 renderer::renderer( terminal& terminal )
 	:m_terminal( terminal )
 	,m_color( 15 )
-	,m_is_resizing( false )
 	,m_terminal_listener( make_shared< terminal_listener >( *this ) )
 {
 	m_terminal += m_terminal_listener;
-	m_terminal_size = m_terminal.size( );
-	m_front.resize( m_terminal_size[ 0 ] * m_terminal_size[ 1 ] );
-	m_back.resize( m_terminal_size[ 0 ] * m_terminal_size[ 1 ] );
+	on_resize( m_terminal.size( ) );
 }
 
 void renderer::clear( ) noexcept
@@ -70,17 +67,8 @@ void renderer::clear( ) noexcept
 
 void renderer::refresh( )
 {
-	if( m_is_resizing.load( ) ) return;
 	unique_lock lock( m_mutex, try_to_lock );
 	if( not lock.owns_lock( ) ) return;
-
-	int count = m_terminal_size[ 0 ] * m_terminal_size[ 1 ];
-
-	if( m_back.size( ) not_eq static_cast< size_t >( count ) )
-	{
-		m_back.resize( static_cast< size_t >( count ) );
-		m_front.resize( static_cast< size_t >( count ) );
-	}
 
 	uint8_t current_foreground = 255;
 	uint8_t current_background = 255;
@@ -189,14 +177,19 @@ void renderer::draw( const point& pixel ) noexcept
 
 void renderer::on_resize( const point& size )
 {
-	m_is_resizing.store( true );
 	{
 		auto lock = lock_guard( m_mutex );
 		m_terminal_size = size;
-		m_front.assign( size[ 0 ] * size[ 1 ], { 0, 0 } );
-		m_back.assign( size[ 0 ] * size[ 1 ], { 0, 0 } );
+		size_t count = m_terminal_size[ 0 ] * m_terminal_size[ 1 ];
+		if( m_back.size( ) not_eq count )
+		{
+			m_back.resize( count );
+			m_front.resize( count );
+		}
 	}
-	m_is_resizing.store( false );
+	clear( );
+	refresh( );
+	m_terminal.refresh( );
 }
 
 

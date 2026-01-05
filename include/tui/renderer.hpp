@@ -31,7 +31,6 @@
 #include <tui/geometry.hpp>
 #include <vector>
 #include <cstdint>
-#include <atomic>
 #include <mutex>
 
 
@@ -40,7 +39,6 @@ namespace tui {
 
 using	::std::vector;
 using	::std::uint8_t;
-using	::std::atomic;
 using	::std::mutex;
 using	::std::lock_guard;
 using	::std::shared_ptr;
@@ -82,7 +80,6 @@ private:
 	buffer		m_back;
 	point		m_terminal_size;
 	uint8_t		m_color;
-	atomic<bool>	m_is_resizing;
 	mutable mutex	m_mutex;
 	shared_ptr< terminal_listener > m_terminal_listener;
 };
