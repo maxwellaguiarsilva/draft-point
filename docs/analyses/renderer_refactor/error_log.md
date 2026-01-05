@@ -21,4 +21,22 @@ O agente Analista agiu prematuramente como Executor, tentando aplicar um plano d
 - Se um erro de compilação ou linting ocorrer durante a execução, isso é um sinal de que a análise FALHOU e deve ser reiniciada no nível da documentação, não corrigida diretamente no código.
 - Revisar este log antes de iniciar qualquer nova fase de análise.
 
+### Registro 0002: 2026-01-05
+**Natureza do Erro:** Negligência no uso de ferramentas MCP de verificação.
+
+**Descrição:**
+O agente tentou realizar correções de espaçamento ( regras de `( )` e `[ ]` ) baseando-se em intuição visual e `replace` manual, ignorando a instrução explícita do `GEMINI.md` que obriga o uso do MCP `verify_spacing` para evitar falsos positivos e garantir a conformidade técnica.
+
+**Causa Raiz:**
+Excesso de confiança na percepção visual e falha em consultar o arsenal de ferramentas de automação ( MCP ) antes de agir sobre o estilo do código.
+
+**Impacto:**
+- Risco de introdução de inconsistências de estilo.
+- Violação do protocolo de automação do projeto.
+- Tentativas de substituição redundantes ( strings idênticas ).
+
+**Prevenção:**
+- Tornar o uso de `verify_spacing` e `verify_rules` um passo obrigatório e automatizado antes de qualquer edição que envolva formatação.
+- Desconfiar sempre da intuição visual em relação a espaços em branco.
+
 

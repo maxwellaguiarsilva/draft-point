@@ -14,3 +14,7 @@ Este documento registra a evolução do entendimento e as decisões tomadas dura
 - **2026-01-05:** Refinamento técnico inicial dos arquivos `0001.md` a `0006.md`.
     - Tentativa inicial de resolução de conflitos via tipagem forte e nomes específicos.
     - Alinhamento terminológico em toda a série de documentos.
+- **2026-01-05:** Maturação da análise para resolução de falhas técnicas.
+    - Endereçamento das ambiguidades de `operator ==` e redefinição de símbolos.
+    - Expansão do escopo de refatoração para incluir `terminal.hpp` ( alinhamento de domínio ).
+    - Refinamento das visões de superfície para eliminar completamente a "maquinaria" de índices manuais.
