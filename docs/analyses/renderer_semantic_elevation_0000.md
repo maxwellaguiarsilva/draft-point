@@ -7,7 +7,8 @@ A Elevação Semântica não é um destino, mas um processo de refinamento cont�
 
 ### 2. Natureza Incremental
 Cada documento desta série ( 0001, 0002, 0003... n ) representa uma evolução no raciocínio sobre o assunto.
-Não existe um "fim" pré-definido para a fase de análise. Nenhuma análise individual, por mais completa que pareça, deve ser interpretada como um sinal verde para a execução. Quando o design atingir um estado de serenidade tal que a implementação se torne uma consequência trivial o programador solicitará explicitamente para que esse avanço prático aconteça. Antes disso esse assunto nem entra em pauta
+Não existe um "fim" pré-definido para a fase de análise. Nenhuma análise individual, por mais completa que pareça, deve ser interpretada como um sinal verde para a execução. Quando o design atingir um estado de serenidade tal que a implementação se torne uma consequência trivial o programador solicitará explicitamente para que esse avanço prático aconteça ( através do uso de ferramentas de escrita e modificação de arquivos ). Antes disso esse assunto nem entra em pauta.
+O detalhamento técnico e o planejamento da implementação nos documentos de análise são encorajados, pois amadurecem o design antes da execução.
 Cada arquivo não deve ter nenhuma informação que já estava disponível no anterior, ele deve agregar valor com algo novo.
 
 ### 3. Congruência

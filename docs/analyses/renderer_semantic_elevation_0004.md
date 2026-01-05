@@ -26,8 +26,8 @@ else
     cell.down = m_color;
 ```
 
-### 3. O Fim do Rastreamento de Cursor no `refresh( )`
-A sincronização do estado do terminal com o buffer evolui para que a posição seja uma propriedade intrínseca do índice, removendo incrementos manuais de linha e coluna.
+### 3. Sincronização de Superfície
+A sincronização do estado do terminal com o buffer utiliza a nova abstração de espaço para derivar a posição de cada índice.
 
 ```cpp
 for( auto index : ::std::ranges::views::iota( 0, count ) )
@@ -40,15 +40,9 @@ for( auto index : ::std::ranges::views::iota( 0, count ) )
     }
 }
 ```
-Isso garante imunidade a mudanças na ordem de iteração e elimina erros de borda ( off-by-one ).
+O uso de `space::from_index` garante que a ordem de iteração do buffer possa ser alterada sem impactar a correção do posicionamento do cursor.
 
-### 4. Requisitos para `sak::point` e `sak::math`
-Para suportar Bresenham e transformações sem ruído:
-- **`sak::point::map( mapping_function )`**: Essencial para `delta = ( end_point - start_point ).map( math::abs )`.
-- **`sak::math::sign` e `sak::math::abs`**: Implementados como Niebloids para composição via `map`.
-- **`sak::point::is_between( minimum, maximum )`**: Para validações de domínio simplificadas.
-
-### 5. Conclusão: O Renderer como Orquestrador
+### 4. Conclusão: O Renderer como Orquestrador
 Com estas mudanças, o `renderer.cpp` consolida-se como um executor de "políticas de exibição". A complexidade matemática reside na `sak` e a complexidade de acesso na abstração de `surface`, permitindo que o sistema escale em funcionalidades e robustez, mantendo a clareza e a previsibilidade técnica em cada nova camada de implementação.
 
 

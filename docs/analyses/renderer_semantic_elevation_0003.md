@@ -35,11 +35,9 @@ O algoritmo de Bresenham pode ser totalmente despojado de sua "maquinaria" de es
 O loop de desenho passa a operar sobre um único objeto `point current_position`, cujos incrementos são decididos pela álgebra vetorial dos erros, mantendo o código imune à quantidade de dimensões e focado na intenção de "caminhar no espaço".
 
 ### 4. Requisitos de Infraestrutura em `sak::math`
-Para viabilizar as transformações acima sem vazar lógica de domínio, `sak::math` deve fornecer funções puras ( Niebloids ) compatíveis com `sak::point::map`:
+Para viabilizar as transformações acima sem vazar lógica de domínio, `sak::math` deve ser complementada com:
 
-- **`sak::math::sign( )`:** Retorna -1, 0 ou 1.
-- **`sak::math::abs( )`:** Retorna o valor absoluto.
-- **`sak::math::projection( )`:** Especialização de `sum( a * b )` para clareza em linearização de buffers.
+- **`sak::math::abs( )`:** Retorna o valor absoluto, implementado como Niebloid para compatibilidade com `sak::point::map`.
 
 ### 5. Conclusão: Visual Serenity via Álgebra
 Ao adotar estas fórmulas, o arquivo `renderer.cpp` deixa de ser uma sequência de instruções de "como manipular o cursor e o buffer" para se tornar uma declaração de "como os espaços geométricos se relacionam com a superfície de exibição". A maquinaria é substituída por relações matemáticas.

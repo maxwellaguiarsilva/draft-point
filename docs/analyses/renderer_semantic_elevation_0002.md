@@ -22,9 +22,8 @@ Identificamos a oportunidade de criar uma abstração de "Superfície" ou "Grid"
 - **Papel:** Atuar como o tradutor final entre o espaço geométrico e o espaço de memória.
 - **Interface:** Oferecer acesso via `operator [ ]( point )`, permitindo que o renderizador ignore completamente a aritmética de ponteiros.
 
-### 4. Requisitos Refinados
+### 4. Requisitos de Infraestrutura Adicionais
 Para suportar esta camada de abstração, a infraestrutura deve evoluir em:
 - **`sak::math`:** Adição de `sign( )` e compatibilidade total de `sum( )` com expressões de pontos.
-- **`sak::point`:** Implementação de `is_between( )` e suporte a transformações via `map( )`.
 
 
