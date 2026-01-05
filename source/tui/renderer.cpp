@@ -23,11 +23,12 @@
 
 
 #include <tui/renderer.hpp>
+#include <cmath>
+#include <ranges>
 #include <tui/terminal.hpp>
 #include <sak/using.hpp>
 #include <sak/math/math.hpp>
-#include <cmath>
-#include <ranges>
+#include <sak/ranges/chunk.hpp>
 
 
 namespace tui {
@@ -35,13 +36,14 @@ namespace tui {
 
 __using( ::std::, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, ranges::fill )
 __using( ::sak::math, ::abs, ::sign )
+__using( ::sak::ranges::, chunk )
 __using( ::tui::, line, point, rectangle )
 
 
 struct renderer::terminal_listener final : public terminal::listener
 {
 	explicit terminal_listener( renderer& parent ) : m_renderer( parent ) { }
-	void on_resize( const point& size ) override { m_renderer.on_resize( size ); }
+	auto on_resize( const point& size ) -> void override { m_renderer.on_resize( size ); }
 	renderer& m_renderer;
 };
 
@@ -55,13 +57,13 @@ renderer::renderer( terminal& terminal )
 	on_resize( m_terminal.size( ) );
 }
 
-void renderer::clear( ) noexcept
+auto renderer::clear( ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	fill( m_back, 0 );
 }
 
-void renderer::refresh( )
+auto renderer::refresh( ) -> void
 {
 	unique_lock lock( m_mutex, try_to_lock );
 	if( not lock.owns_lock( ) ) return;
@@ -71,41 +73,46 @@ void renderer::refresh( )
 	bool force_update = true;
 	point cursor_position = { 0, 0 };
 
-	const int width = m_terminal_size[ 0 ];
-	const int height = m_terminal_size[ 1 ];
+	const int terminal_width = m_terminal_size[ 0 ];
+	const int terminal_height = m_terminal_size[ 1 ];
 
-	for( int y = 0; y < height; ++y )
+	auto back_rows = chunk( m_back, terminal_width );
+	auto front_rows = chunk( m_front, terminal_width );
+
+	for( int row = 0; row < terminal_height; ++row )
 	{
-		const int up_offset = ( 2 * y ) * width;
-		const int down_offset = ( 2 * y + 1 ) * width;
+		auto back_upper_row = back_rows[ 2 * row ];
+		auto back_lower_row = back_rows[ 2 * row + 1 ];
+		auto front_upper_row = front_rows[ 2 * row ];
+		auto front_lower_row = front_rows[ 2 * row + 1 ];
 
-		for( int x = 0; x < width; ++x )
+		for( int column = 0; column < terminal_width; ++column )
 		{
-			const uint8_t b_up = m_back[ up_offset + x ];
-			const uint8_t b_down = m_back[ down_offset + x ];
-			uint8_t& f_up = m_front[ up_offset + x ];
-			uint8_t& f_down = m_front[ down_offset + x ];
+			const uint8_t back_upper = back_upper_row[ column ];
+			const uint8_t back_lower = back_lower_row[ column ];
+			uint8_t& front_upper = front_upper_row[ column ];
+			uint8_t& front_lower = front_lower_row[ column ];
 
-			if( b_up not_eq f_up or b_down not_eq f_down )
+			if( back_upper not_eq front_upper or back_lower not_eq front_lower )
 			{
-				const point current = { x + 1, y + 1 };
+				const point current = { column + 1, row + 1 };
 				if( cursor_position not_eq current )
 					m_terminal.move_cursor( current );
 
-				if( b_up not_eq current_foreground or force_update )
+				if( back_upper not_eq current_foreground or force_update )
 				{
-					current_foreground = b_up;
+					current_foreground = back_upper;
 					m_terminal.set_color( current_foreground, false );
 				}
-				if( b_down not_eq current_background or force_update )
+				if( back_lower not_eq current_background or force_update )
 				{
-					current_background = b_down;
+					current_background = back_lower;
 					m_terminal.set_color( current_background, true );
 				}
 
 				m_terminal.print( "\xe2\x96\x80" );
-				f_up = b_up;
-				f_down = b_down;
+				front_upper = back_upper;
+				front_lower = back_lower;
 				cursor_position = { current[ 0 ] + 1, current[ 1 ] };
 				force_update = false;
 			}
@@ -113,20 +120,20 @@ void renderer::refresh( )
 	}
 }
 
-void renderer::set_color( const uint8_t color ) noexcept { m_color = color; }
+auto renderer::set_color( const uint8_t color ) noexcept -> void { m_color = color; }
 
-void renderer::draw( const line& data )
+auto renderer::draw( const line& a_line ) -> void
 {
-	point difference = ( data.end - data.start ).map( abs );
-	point step = ( data.end - data.start ).map( sign );
+	point difference = ( a_line.end - a_line.start ).map( abs );
+	point step = ( a_line.end - a_line.start ).map( sign );
 
 	int error = difference[ 0 ] - difference[ 1 ];
-	point current = data.start;
+	point current = a_line.start;
 
 	while( true )
 	{
 		draw( current );
-		if( current == data.end ) break;
+		if( current == a_line.end ) break;
 
 		int error_doubled = 2 * error;
 		if( error_doubled > -difference[ 1 ] )
@@ -142,30 +149,28 @@ void renderer::draw( const line& data )
 	}
 }
 
-void renderer::draw( const rectangle& data, bool fill )
+auto renderer::draw( const rectangle& a_rectangle, bool fill ) -> void
 {
 	if( fill )
-	{
-		for( int y = data.start[ 1 ]; y <= data.end[ 1 ]; ++y )
-			for( int x = data.start[ 0 ]; x <= data.end[ 0 ]; ++x )
-				draw( point{ x, y } );
-	}
+		for( int row = a_rectangle.start[ 1 ]; row <= a_rectangle.end[ 1 ]; ++row )
+			for( int column = a_rectangle.start[ 0 ]; column <= a_rectangle.end[ 0 ]; ++column )
+				draw( point{ column, row } );
 	else
 	{
-		for( int x = data.start[ 0 ]; x <= data.end[ 0 ]; ++x )
+		for( int column = a_rectangle.start[ 0 ]; column <= a_rectangle.end[ 0 ]; ++column )
 		{
-			draw( point{ x, data.start[ 1 ] } );
-			draw( point{ x, data.end[ 1 ] } );
+			draw( point{ column, a_rectangle.start[ 1 ] } );
+			draw( point{ column, a_rectangle.end[ 1 ] } );
 		}
-		for( int y = data.start[ 1 ]; y <= data.end[ 1 ]; ++y )
+		for( int row = a_rectangle.start[ 1 ]; row <= a_rectangle.end[ 1 ]; ++row )
 		{
-			draw( point{ data.start[ 0 ], y } );
-			draw( point{ data.end[ 0 ], y } );
+			draw( point{ a_rectangle.start[ 0 ], row } );
+			draw( point{ a_rectangle.end[ 0 ], row } );
 		}
 	}
 }
 
-void renderer::draw( const point& pixel ) noexcept
+auto renderer::draw( const point& pixel ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 
@@ -174,18 +179,18 @@ void renderer::draw( const point& pixel ) noexcept
 	m_back[ ( pixel[ 1 ] - 1 ) * m_screen_size[ 0 ] + ( pixel[ 0 ] - 1 ) ] = m_color;
 }
 
-void renderer::on_resize( const point& size )
+auto renderer::on_resize( const point& size ) -> void
 {
 	{
 		auto lock = lock_guard( m_mutex );
 		m_terminal_size = size;
 		m_screen_size = { m_terminal_size[ 0 ], 2 * m_terminal_size[ 1 ] };
 		m_screen_bounds = { { 1, 1 }, m_screen_size };
-		size_t count = m_screen_size[ 0 ] * m_screen_size[ 1 ];
-		if( m_back.size( ) not_eq count )
+		size_t total_pixel_count = m_screen_size[ 0 ] * m_screen_size[ 1 ];
+		if( m_back.size( ) not_eq total_pixel_count )
 		{
-			m_back.resize( count );
-			m_front.resize( count );
+			m_back.resize( total_pixel_count );
+			m_front.resize( total_pixel_count );
 		}
 	}
 	clear( );
