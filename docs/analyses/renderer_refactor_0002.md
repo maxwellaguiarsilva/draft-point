@@ -23,5 +23,7 @@ O movimento do cursor durante o `refresh( )` deixa de ser controlado por increme
 - **Derivação Espacial:** A posição no terminal é derivada diretamente do índice do buffer ou de funções de espaço ( `space::from_index` ).
 - **Impacto:** Eliminação de erros *off-by-one* e garantia de que a lógica de desenho é imune a mudanças na ordem de iteração do buffer.
 
-### 4. Conclusão Parcial: O Fim da Maquinaria de Buffer
+### 4. Estado da Abstração de Acesso
 Com a `surface_view` e os transformadores de domínio, o `renderer.cpp` deixa de ser um "calculador de endereços" para se tornar um gestor de relações espaciais.
+
+O design apresenta alta maturidade na abstração de superfícies e mapeamento de espaços; está aguardando avaliação do programador para aprovação.
