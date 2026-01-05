@@ -124,6 +124,20 @@ struct __is_odd
 inline constexpr auto is_odd = __is_odd{ };
 
 
+struct __abs
+{
+	constexpr auto operator ( ) ( auto value ) const noexcept { return value < 0 ? -value : value; }
+};
+inline constexpr auto abs = __abs{ };
+
+
+struct __sign
+{
+	constexpr auto operator ( ) ( auto value ) const noexcept { return ( value > 0 ) - ( value < 0 ); }
+};
+inline constexpr auto sign = __sign{ };
+
+
 } }
 
 

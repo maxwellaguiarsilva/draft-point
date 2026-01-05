@@ -25,6 +25,7 @@
 #include <tui/renderer.hpp>
 #include <tui/terminal.hpp>
 #include <sak/using.hpp>
+#include <sak/math/math.hpp>
 #include <cmath>
 #include <ranges>
 
@@ -32,7 +33,8 @@
 namespace tui {
 
 
-__using( ::std::, abs, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, views::zip )
+__using( ::std::, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, views::zip )
+__using( ::sak::math, ::abs, ::sign, ::is_odd )
 __using( ::tui::, line, point, rectangle )
 
 
@@ -72,9 +74,7 @@ void renderer::refresh( )
 	unique_lock lock( m_mutex, try_to_lock );
 	if( not lock.owns_lock( ) ) return;
 
-	int width = m_terminal_size[ 0 ];
-	int height = m_terminal_size[ 1 ];
-	int count = width * height;
+	int count = m_terminal_size[ 0 ] * m_terminal_size[ 1 ];
 
 	if( m_back.size( ) not_eq static_cast< size_t >( count ) )
 	{
@@ -85,17 +85,15 @@ void renderer::refresh( )
 	uint8_t current_foreground = 255;
 	uint8_t current_background = 255;
 	bool force_update = true;
-	point current_position = { 0, 0 };
-
-	int row = 1;
-	int column = 1;
+	point cursor_position = { 0, 0 };
+	point current = { 1, 1 };
 
 	for( auto&& [ back, front ] : zip( m_back, m_front ) )
 	{
 		if( back not_eq front )
 		{
-			if( current_position[ 0 ] not_eq column or current_position[ 1 ] not_eq row )
-				m_terminal.move_cursor( { column, row } );
+			if( cursor_position not_eq current )
+				m_terminal.move_cursor( current );
 
 			if( back.up not_eq current_foreground or force_update )
 			{
@@ -110,14 +108,14 @@ void renderer::refresh( )
 
 			m_terminal.print( "\xe2\x96\x80" );
 			front = back;
-			current_position = { column + 1, row };
+			cursor_position = current + point{ 1, 0 };
 			force_update = false;
 		}
 
-		if( ++column > width )
+		if( ++current[ 0 ] > m_terminal_size[ 0 ] )
 		{
-			column = 1;
-			++row;
+			current[ 0 ] = 1;
+			++current[ 1 ];
 		}
 	}
 }
@@ -126,31 +124,27 @@ void renderer::set_color( const uint8_t color ) noexcept { m_color = color; }
 
 void renderer::draw( const line& data )
 {
-	int x1 = data.start[ 0 ];
-	int y1 = data.start[ 1 ];
-	int x2 = data.end[ 0 ];
-	int y2 = data.end[ 1 ];
+	point difference = ( data.end - data.start ).map( abs );
+	point step = ( data.end - data.start ).map( sign );
 
-	int delta_x = abs( x2 - x1 );
-	int delta_y = -abs( y2 - y1 );
-	int step_x = x1 < x2 ? 1 : -1;
-	int step_y = y1 < y2 ? 1 : -1;
-	int error = delta_x + delta_y;
+	int error = difference[ 0 ] - difference[ 1 ];
+	point current = data.start;
 
 	while( true )
 	{
-		draw( { x1, y1 } );
-		if( x1 == x2 and y1 == y2 ) break;
+		draw( current );
+		if( current == data.end ) break;
+
 		int error_doubled = 2 * error;
-		if( error_doubled >= delta_y )
+		if( error_doubled > -difference[ 1 ] )
 		{
-			error += delta_y;
-			x1 += step_x;
+			error -= difference[ 1 ];
+			current[ 0 ] += step[ 0 ];
 		}
-		if( error_doubled <= delta_x )
+		if( error_doubled < difference[ 0 ] )
 		{
-			error += delta_x;
-			y1 += step_y;
+			error += difference[ 0 ];
+			current[ 1 ] += step[ 1 ];
 		}
 	}
 }
@@ -161,40 +155,33 @@ void renderer::draw( const rectangle& data, bool fill )
 	{
 		for( int y = data.start[ 1 ]; y <= data.end[ 1 ]; ++y )
 			for( int x = data.start[ 0 ]; x <= data.end[ 0 ]; ++x )
-				draw( { x, y } );
+				draw( point{ x, y } );
 	}
 	else
 	{
 		for( int x = data.start[ 0 ]; x <= data.end[ 0 ]; ++x )
 		{
-			draw( { x, data.start[ 1 ] } );
-			draw( { x, data.end[ 1 ] } );
+			draw( point{ x, data.start[ 1 ] } );
+			draw( point{ x, data.end[ 1 ] } );
 		}
 		for( int y = data.start[ 1 ]; y <= data.end[ 1 ]; ++y )
 		{
-			draw( { data.start[ 0 ], y } );
-			draw( { data.end[ 0 ], y } );
+			draw( point{ data.start[ 0 ], y } );
+			draw( point{ data.end[ 0 ], y } );
 		}
 	}
 }
 
 void renderer::draw( const point& pixel ) noexcept
 {
-	int x = pixel[ 0 ];
-	int y = pixel[ 1 ];
-
 	auto lock = lock_guard( m_mutex );
 
-	int width = m_terminal_size[ 0 ];
-	int height = m_terminal_size[ 1 ];
+	if( pixel[ 0 ] < 1 or pixel[ 0 ] > m_terminal_size[ 0 ] or pixel[ 1 ] < 1 or pixel[ 1 ] > 2 * m_terminal_size[ 1 ] ) return;
 
-	if( x < 1 or x > width or y < 1 or y > 2 * height ) return;
+	int row = ( pixel[ 1 ] + 1 ) / 2;
+	int index = ( row - 1 ) * m_terminal_size[ 0 ] + ( pixel[ 0 ] - 1 );
 
-	int row = ( y + 1 ) / 2;
-	int column = x;
-	int index = ( row - 1 ) * width + ( column - 1 );
-
-	if( y % 2 not_eq 0 )
+	if( is_odd( pixel[ 1 ] ) )
 		m_back[ index ].up = m_color;
 	else
 		m_back[ index ].down = m_color;
