@@ -33,8 +33,8 @@
 namespace tui {
 
 
-__using( ::std::, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, views::zip )
-__using( ::sak::math, ::abs, ::sign, ::is_odd )
+__using( ::std::, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, ranges::fill )
+__using( ::sak::math, ::abs, ::sign )
 __using( ::tui::, line, point, rectangle )
 
 
@@ -58,11 +58,7 @@ renderer::renderer( terminal& terminal )
 void renderer::clear( ) noexcept
 {
 	auto lock = lock_guard( m_mutex );
-	for( auto& cell : m_back )
-	{
-		cell.up = 0;
-		cell.down = 0;
-	}
+	fill( m_back, 0 );
 }
 
 void renderer::refresh( )
@@ -74,36 +70,45 @@ void renderer::refresh( )
 	uint8_t current_background = 255;
 	bool force_update = true;
 	point cursor_position = { 0, 0 };
-	point current = { 1, 1 };
 
-	for( auto&& [ back, front ] : zip( m_back, m_front ) )
+	const int width = m_terminal_size[ 0 ];
+	const int height = m_terminal_size[ 1 ];
+
+	for( int y = 0; y < height; ++y )
 	{
-		if( back not_eq front )
+		const int up_offset = ( 2 * y ) * width;
+		const int down_offset = ( 2 * y + 1 ) * width;
+
+		for( int x = 0; x < width; ++x )
 		{
-			if( cursor_position not_eq current )
-				m_terminal.move_cursor( current );
+			const uint8_t b_up = m_back[ up_offset + x ];
+			const uint8_t b_down = m_back[ down_offset + x ];
+			uint8_t& f_up = m_front[ up_offset + x ];
+			uint8_t& f_down = m_front[ down_offset + x ];
 
-			if( back.up not_eq current_foreground or force_update )
+			if( b_up not_eq f_up or b_down not_eq f_down )
 			{
-				current_foreground = back.up;
-				m_terminal.set_color( current_foreground, false );
-			}
-			if( back.down not_eq current_background or force_update )
-			{
-				current_background = back.down;
-				m_terminal.set_color( current_background, true );
-			}
+				const point current = { x + 1, y + 1 };
+				if( cursor_position not_eq current )
+					m_terminal.move_cursor( current );
 
-			m_terminal.print( "\xe2\x96\x80" );
-			front = back;
-			cursor_position = current + point{ 1, 0 };
-			force_update = false;
-		}
+				if( b_up not_eq current_foreground or force_update )
+				{
+					current_foreground = b_up;
+					m_terminal.set_color( current_foreground, false );
+				}
+				if( b_down not_eq current_background or force_update )
+				{
+					current_background = b_down;
+					m_terminal.set_color( current_background, true );
+				}
 
-		if( ++current[ 0 ] > m_terminal_size[ 0 ] )
-		{
-			current[ 0 ] = 1;
-			++current[ 1 ];
+				m_terminal.print( "\xe2\x96\x80" );
+				f_up = b_up;
+				f_down = b_down;
+				cursor_position = { current[ 0 ] + 1, current[ 1 ] };
+				force_update = false;
+			}
 		}
 	}
 }
@@ -166,13 +171,7 @@ void renderer::draw( const point& pixel ) noexcept
 
 	if( not m_screen_bounds.contains( pixel ) ) return;
 
-	int row = ( pixel[ 1 ] + 1 ) / 2;
-	int index = ( row - 1 ) * m_screen_size[ 0 ] + ( pixel[ 0 ] - 1 );
-
-	if( is_odd( pixel[ 1 ] ) )
-		m_back[ index ].up = m_color;
-	else
-		m_back[ index ].down = m_color;
+	m_back[ ( pixel[ 1 ] - 1 ) * m_screen_size[ 0 ] + ( pixel[ 0 ] - 1 ) ] = m_color;
 }
 
 void renderer::on_resize( const point& size )
@@ -182,7 +181,7 @@ void renderer::on_resize( const point& size )
 		m_terminal_size = size;
 		m_screen_size = { m_terminal_size[ 0 ], 2 * m_terminal_size[ 1 ] };
 		m_screen_bounds = { { 1, 1 }, m_screen_size };
-		size_t count = m_terminal_size[ 0 ] * m_terminal_size[ 1 ];
+		size_t count = m_screen_size[ 0 ] * m_screen_size[ 1 ];
 		if( m_back.size( ) not_eq count )
 		{
 			m_back.resize( count );

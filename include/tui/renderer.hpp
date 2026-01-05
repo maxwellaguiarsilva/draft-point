@@ -50,15 +50,7 @@ class terminal;
 class renderer
 {
 public:
-	struct cell
-	{
-		uint8_t	up;
-		uint8_t	down;
-
-		constexpr auto operator ==( const cell& ) const noexcept -> bool = default;
-	};
-
-	using	buffer	=	vector< cell >;
+	using	buffer	=	vector< uint8_t >;
 
 	explicit renderer( terminal& parent );
 	~renderer( ) noexcept = default;
