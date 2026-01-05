@@ -5,7 +5,7 @@ Este documento contém instruções estritamente operacionais. Siga cada passo s
 ### Passo 1: Matemática Base
 **Arquivo:** `include/sak/math/math.hpp`
 
-No final do arquivo, antes do fechamento do namespace, adicione:
+No final do arquivo, antes do fechamento do namespace `sak::math`, adicione ( se ainda não existirem ):
 ```cpp
 struct __sign
 {
@@ -35,14 +35,14 @@ template< is_arithmetic t_scalar, size_t num_dimensions, typename t_tag >
 struct __is_point< point< t_scalar, num_dimensions, t_tag > > : true_type { };
 ```
 
-3.  **Construtores:** Adicione/Modifique na seção `public`:
+3.  **Construtores:** Use inicialização por chaves `{ }` para o `super_type`:
 ```cpp
 template< typename... t_args >
 	requires( sizeof...( t_args ) == num_dimensions
 		and ( ( is_arithmetic< t_args > or convertible_to< t_args, t_scalar > ) and ... )
 	)
 constexpr explicit point( t_args... a_args )
-	: super_type( static_cast< t_scalar >( a_args )... )
+	: super_type{ static_cast< t_scalar >( a_args )... }
 {
 }
 
@@ -67,57 +67,60 @@ friend constexpr auto operator != ( const point& left, const point& right ) noex
 }
 ```
 
-5.  **Método `map`:** Adicione:
-```cpp
-template< typename t_operation >
-constexpr auto map( t_operation&& operation ) const noexcept
-{
-	using t_new_scalar = decltype( operation( t_scalar( ) ) );
-	point< t_new_scalar, num_dimensions, t_tag > result;
-	transform( *this, result.begin( ), operation );
-	return	result;
-}
-```
-
 ### Passo 3: Definições de Domínio TUI
 **Arquivo:** `include/tui/geometry.hpp`
 
-Remova todo o conteúdo interno do namespace `tui` e escreva:
+Substitua todo o conteúdo após as macros de include por:
 ```cpp
-using	pixel		=	::sak::point< int, 2, struct pixel_tag >;
-using	cell_point	=	::sak::point< int, 2, struct cell_tag >;
+#include <generator>
 
-using	pixel_geometry	=	::sak::geometry< pixel >;
-using	pixel_line		=	pixel_geometry::line;
-using	pixel_rectangle	=	pixel_geometry::rectangle;
+namespace tui {
 
-inline constexpr auto to_cell( pixel const& position ) noexcept -> cell_point
-{
-	return	cell_point( position[ 0 ], ( position[ 1 ] + 1 ) / 2 );
+namespace pixel {
+	using point     = ::sak::point< int, 2, struct pixel_tag >;
+	using geometry  = ::sak::geometry< point >;
+	using line      = geometry::line;
+	using rectangle = geometry::rectangle;
 }
 
-inline constexpr auto is_upper( pixel const& position ) noexcept -> bool
-{
-	return	::sak::math::is_odd( position[ 1 ] );
+namespace cell {
+	using point     = ::sak::point< int, 2, struct cell_tag >;
 }
 
-auto trace_line( pixel start, pixel end ) -> ::std::generator< pixel >;
+inline constexpr auto to_cell( pixel::point const& position ) noexcept -> cell::point
+{
+	return	cell::point( position[ 0 ], ( position[ 1 ] + 1 ) / 2 );
+}
+
+inline constexpr auto is_upper( pixel::point const& position ) noexcept -> bool
+{
+	__using( ::sak::math, ::is_odd );
+	return	is_odd( position[ 1 ] );
+}
+
+namespace pixel {
+	auto trace_line( point start, point end ) -> ::std::generator< point >;
+}
+
+} 
 ```
 
 ### Passo 4: Implementação do Gerador
-**Arquivo:** `source/tui/geometry.cpp` ( ou final do `renderer.cpp` se preferir, conforme o projeto )
+**Arquivo:** `source/tui/geometry.cpp`
 
-Implemente o `trace_line`:
+Implemente o `trace_line` usando `__using` para evitar ruído de escopo:
 ```cpp
-auto trace_line( pixel start, pixel end ) -> ::std::generator< pixel >
+namespace tui::pixel {
+
+auto trace_line( point start, point end ) -> ::std::generator< point >
 {
 	__using( ::sak::math, ::abs, ::sign );
 
-	pixel difference = ( end - start ).map( abs );
-	pixel direction_step = ( end - start ).map( sign );
+	point difference = ( end - start ).map( abs );
+	point direction_step = ( end - start ).map( sign );
 	
 	int error = difference[ 0 ] - difference[ 1 ];
-	pixel current = start;
+	point current = start;
 
 	while( true )
 	{
@@ -137,12 +140,13 @@ auto trace_line( pixel start, pixel end ) -> ::std::generator< pixel >
 		}
 	}
 }
+
+}
 ```
 
 ### Passo 5: Visão de Superfície
-**Arquivo:** `include/tui/surface.hpp` ( Novo Arquivo )
+**Arquivo:** `include/tui/surface.hpp`
 
-Escreva exatamente:
 ```cpp
 #pragma once
 #include <sak/using.hpp>
@@ -186,17 +190,23 @@ private:
 ### Passo 6: Alinhamento do Terminal
 **Arquivos:** `include/tui/terminal.hpp` e `source/tui/terminal.cpp`
 
-Substitua toda ocorrência de `point` por `cell_point` nas assinaturas de métodos de movimentação e desenho de célula.
+Substitua toda ocorrência de `point` por `cell::point` nas assinaturas de métodos que lidam com coordenadas do terminal.
 
 ### Passo 7: Membros do Renderizador
 **Arquivo:** `include/tui/renderer.hpp`
 
-1.  Inclua `#include <tui/surface.hpp>`.
-2.  Na seção `private`, substitua os membros:
+1.  Inclua `#include <optional>`.
+2.  Atualize os métodos `draw`:
 ```cpp
-cell_point	m_terminal_size;
-surface_view< buffer, cell_point > m_front_view;
-surface_view< buffer, cell_point > m_back_view;
+void draw( pixel::point const& data ) noexcept;
+void draw( pixel::line const& data );
+void draw( pixel::rectangle const& data, bool fill = true );
+```
+3.  Na seção `private`, use `std::optional` para as visões:
+```cpp
+cell::point	m_terminal_size;
+::std::optional< surface_view< buffer, cell::point > > m_front_view;
+::std::optional< surface_view< buffer, cell::point > > m_back_view;
 ```
 
 ### Passo 8: Lógica do Renderizador
@@ -208,16 +218,16 @@ m_terminal_size = size;
 m_front.assign( size[ 0 ] * size[ 1 ], { 0, 0 } );
 m_back.assign( size[ 0 ] * size[ 1 ], { 0, 0 } );
 
-m_front_view = surface_view( m_front, size );
-m_back_view  = surface_view( m_back, size );
+m_front_view.emplace( m_front, size );
+m_back_view.emplace(  m_back,  size );
 ```
 
-2.  **No `draw( pixel const& position )`:**
+2.  **No `draw( pixel::point const& position )`:**
 ```cpp
 if( not is_inside( position ) ) return; 
 
 auto target_cell = to_cell( position );
-auto& data = m_back_view[ target_cell ]; 
+auto& data = ( *m_back_view )[ target_cell ]; 
 
 if( is_upper( position ) )
 	data.up = m_color;
@@ -227,9 +237,9 @@ else
 
 3.  **No `refresh( )`:**
 ```cpp
-for( auto&& [ position, back_cell ] : m_back_view.elements( ) )
+for( auto&& [ position, back_cell ] : m_back_view->elements( ) )
 {
-	auto& front_cell = m_front_view[ position ];
+	auto& front_cell = ( *m_front_view )[ position ];
 	if( back_cell not_eq front_cell )
 	{
 		m_terminal.move_cursor( position );
@@ -239,9 +249,9 @@ for( auto&& [ position, back_cell ] : m_back_view.elements( ) )
 }
 ```
 
-4.  **Adicione o método privado:**
+4.  **No `is_inside`:**
 ```cpp
-auto renderer::is_inside( pixel const& position ) const noexcept -> bool
+auto renderer::is_inside( pixel::point const& position ) const noexcept -> bool
 {
 	return	position[ 0 ] >= 1 and position[ 0 ] <= m_terminal_size[ 0 ] 
 	   and position[ 1 ] >= 1 and position[ 1 ] <= 2 * m_terminal_size[ 1 ];

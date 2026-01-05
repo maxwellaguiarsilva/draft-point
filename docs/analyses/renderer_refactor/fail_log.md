@@ -12,6 +12,18 @@ Este documento registra falhas técnicas, omissões de informação ou imprevist
 4.  **Static Analysis (`cppcheck`):** O `cppcheck` exigiu construtores `explicit` e sugeriu funções `static`, o que não foi previsto na estrutura do blueprint original.
 
 **Ação Necessária:**
-Refatorar os arquivos `0004.md`, `0005.md` e `0006.md` para endereçar esses pontos antes de qualquer nova tentativa de execução.
+Refatorar os arquivos `0004.md`, `0005.md` e `0006.md` para endereçar esses pontos antes de qualquer nova tentativa de execução. ( RESOLVIDO: 2026-01-05 )
+
+### Registro 0002: 2026-01-05
+**Falha:** Erro de compilação por inicialização inválida e omissões no blueprint.
+
+**Contexto Técnico:**
+1.  **Inicialização de `std::array`:** O Passo 2 do `execution.md` instruiu o uso de `super_type( ... )` em `point.hpp`, mas `std::array` exige inicialização por chaves `{ ... }`. Isso causou erro fatal no `clang++`.
+2.  **Omissão de Header:** O uso de `std::generator` em `tui/geometry.hpp` exige o include `<generator>`, que não foi previsto na análise.
+3.  **Inconsistência de Assinaturas:** O blueprint não previu a atualização das assinaturas em `renderer.hpp` para refletir as mudanças de domínio (`pixel`, `pixel_line`, etc.), causando descompasso com a implementação no `.cpp`.
+4.  **Imutabilidade de Views:** `surface_view` contém membros de referência, o que a torna não-atribuível por padrão. A tentativa de atribuição no `on_resize` do renderizador falhará tecnicamente.
+
+**Ação Necessária:**
+O Analista deve amadurecer o `execution.md` e os blueprints numerados para corrigir a sintaxe de inicialização, incluir headers faltantes, alinhar todas as assinaturas de métodos e resolver a questão da atribuibilidade das views ( resolvido via `std::optional` no `execution.md` ). ( RESOLVIDO: 2026-01-05 )
 
 
