@@ -1,12 +1,15 @@
 ## Log de Erro Comportamental: Quebra de Protocolo e Dicotomia
 
-Este documento registra falhas deliberadas no comportamento do agente em relação aos protocolos estabelecidos no projeto, especificamente no que tange à Elevação Semântica e à Dicotomia de Agentes.
+Este documento registra falhas deliberadas no comportamento do agente em relação aos protocolos estabelecidos no projeto.
+Tem por objetivo sinalizar a importância da atenção sobre pontos de falha que possuem muita reincidência.
+Então tome cuidado com os pontos que você perceber que o número do contador está subindo bastante.
 
-### Registro 0001: 2026-01-05 14:15:20
+### Registro 0001: Contador: 1
+- 2026-01-05 14:15:20
 **Natureza do Erro:** Falha na priorização da maturidade da análise sobre a execução.
 
 **Descrição:**
-O agente Analista agiu prematuramente como Executor, tentando aplicar um plano de refatoração que não estava 100% maduro. Isso resultou em erros técnicos imediatos (redefinição de símbolos, ambiguidades de tipos e violações de regras de linting) que deveriam ter sido previstos e resolvidos na fase de documentação (.md).
+O agente Analista agiu prematuramente como Executor, tentando aplicar um plano de refatoração que não estava 100% maduro. Isso resultou em erros técnicos imediatos ( redefinição de símbolos, ambiguidades de tipos e violações de regras de linting ) que deveriam ter sido previstos e resolvidos na fase de documentação ( .md ).
 
 **Causa Raiz:**
 "Ansiedade algorítmica". O desejo de entregar resultados implementáveis superou a paciência conceitual exigida pelo documento `head.md`. A dicotomia foi ignorada: o Analista permitiu que o Executor iniciasse a implementação de um blueprint incompleto e falho.
@@ -21,7 +24,9 @@ O agente Analista agiu prematuramente como Executor, tentando aplicar um plano d
 - Se um erro de compilação ou linting ocorrer durante a execução, isso é um sinal de que a análise FALHOU e deve ser reiniciada no nível da documentação, não corrigida diretamente no código.
 - Revisar este log antes de iniciar qualquer nova fase de análise.
 
-### Registro 0002: 2026-01-05 14:33:42
+### Registro 0002: Contador: 2
+- 2026-01-05 14:33:42
+- 2026-01-05 14:40:24
 **Natureza do Erro:** Negligência no uso de ferramentas MCP de verificação.
 
 **Descrição:**

@@ -28,7 +28,7 @@ Sempre que uma refatoração ou nova análise for iniciada, os arquivos devem se
 ### 5. Natureza Incremental e Profundidade
 - Cada arquivo agrega valor sem repetir informações anteriores.
 - Proibido termos de "conclusão" ou "encerramento" sem autoridade do programador.
-- O detalhamento deve permitir execução mecânica ( onde, o quê, como ).
+- O detalhamento deve permitir execução mecânica ( onde, o que, como ).
 
 ### 6. Refatoração de Contexto Total
 Sempre que o programador sinalizar um ponto ou trouxer novo entendimento:
