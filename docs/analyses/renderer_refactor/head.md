@@ -12,7 +12,7 @@ Pare imediatamente tudo e qualquer coisa que esteja fazendo quando:
 - Identificar erros de digitação, gramática ou ortografia ( corrija-os imediatamente ).
 - Identificar raciocínios contraditórios entre os arquivos da série.
 - Identificar violações das diretrizes deste `head.md`.
-- Identificar que tem muitos arquivos e com informações redundantes. Que eles poderiam ser sumarizados em poucos arquivos em um texto menor com maior qualidade, objetividade e concisão.
+- Identificar que tem muitos arquivos e com informações redundantes, que eles poderiam ser sumarizados em poucos arquivos em um texto menor com maior qualidade, objetividade e concisão.
 
 ### 3. Ordem de Prioridade e Consulta Obrigatória
 Sempre que uma refatoração ou nova análise for iniciada, os arquivos devem ser consultados e/ou atualizados rigorosamente nesta ordem de importância:

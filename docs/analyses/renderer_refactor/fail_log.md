@@ -12,7 +12,7 @@ Este documento registra falhas técnicas, omissões de informação ou imprevist
 4.  **Static Analysis ( `cppcheck` ):** O `cppcheck` exigiu construtores `explicit` e sugeriu funções `static`, o que não foi previsto na estrutura do blueprint original.
 
 **Ação Necessária:**
-Refatorar os arquivos `0004.md`, `0005.md` e `0006.md` para endereçar esses pontos antes de qualquer nova tentativa de execução. ( RESOLVIDO: 2026-01-05 )
+Refatorar os arquivos de análise ( 0001.md e 0002.md ) para endereçar esses pontos antes de qualquer nova tentativa de execução. ( RESOLVIDO: 2026-01-05 )
 
 ### Registro 0002: 2026-01-05
 **Falha:** Erro de compilação por inicialização inválida e omissões no blueprint.
