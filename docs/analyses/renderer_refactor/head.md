@@ -20,9 +20,8 @@ Sempre que uma refatoração ou nova análise for iniciada, os arquivos devem se
 2.  **`error_log.md`**: Log comportamental para evitar reincidência em falhas de conduta.
 3.  **`history.md`**: Trajetória de decisões e amadurecimento ( sinalizações do programador ).
 4.  **`fail_log.md`**: Impedimentos técnicos e omissões mapeadas.
-5. **analysis.md**: O amadurecimento conceitual e diagnóstico de domínio.
-6. **design.md**: O blueprint técnico e a arquitetura das abstrações.
-7. **execution.md**: O guia mecânico para implementação cega.
+5. **Documentos Numerados ( 0001..000N )**: A evolução técnica incremental e sumarizada.
+6. **execution.md**: O guia mecânico para implementação cega.
 
 ### 4. Protocolo de Execução ( Qual papel cada agente de IA deve executar )
 - **Analista**: Raciocina, projeta e documenta. Proibido alterar código. Produto final: execution.md de alta precisão.
