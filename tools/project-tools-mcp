@@ -81,8 +81,8 @@ def compile( ) -> str:
 
 @mcp.tool( )
 def check( ) -> str:
-    """Runs static analysis (cppcheck) on the project.
-    Ensures that all .cpp and .hpp files follow the project's code formatting rules.
+    """Runs static analysis (cppcheck) and automatically fixes formatting rules.
+    Beyond checking, it also applies fixes for the rules verified by 'verify_rules' (newlines, return spacing, etc.) on all .cpp and .hpp files.
     This command takes no arguments."""
     try:
         process = subprocess.run( [ "python3", "tools/project-builder.py", "--check" ], capture_output=True, text=True )
