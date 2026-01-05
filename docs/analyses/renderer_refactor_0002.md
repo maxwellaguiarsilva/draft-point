@@ -1,6 +1,6 @@
 ## Refatoração do Renderizador 0002: Arquitetura de Espaços e Superfícies
 
-Esta análise consolida a modelagem técnica das transformações de domínio e a abstração de acesso ao buffer.
+Esta análise é sobre a modelagem técnica das transformações de domínio e a abstração de acesso ao buffer.
 
 ### 1. Mapeamento de Domínio: Pixels vs. Células
 O renderizador opera em dois espaços sobrepostos que exigem tradução explícita:
@@ -26,4 +26,4 @@ O movimento do cursor durante o `refresh( )` deixa de ser controlado por increme
 ### 4. Estado da Abstração de Acesso
 Com a `surface_view` e os transformadores de domínio, o `renderer.cpp` deixa de ser um "calculador de endereços" para se tornar um gestor de relações espaciais.
 
-O design apresenta alta maturidade na abstração de superfícies e mapeamento de espaços; está aguardando avaliação do programador para aprovação.
+
