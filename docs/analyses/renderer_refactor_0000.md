@@ -7,13 +7,29 @@ A Elevação Semântica não é um destino, mas um processo de refinamento cont�
 
 ### 2. Natureza Incremental
 Cada documento desta série ( 0001, 0002, 0003... n ) representa uma evolução no raciocínio sobre o assunto.
-Não existe um "fim" pré-definido para a fase de análise. Nenhuma análise individual, por mais completa que pareça, deve ser interpretada como um sinal verde para a execução. Quando o design atingir um estado de serenidade tal que a implementação se torne uma consequência trivial o programador solicitará explicitamente para que esse avanço prático aconteça ( através do uso de ferramentas de escrita e modificação de arquivos ). Antes disso esse assunto nem entra em pauta.
-O detalhamento técnico e o planejamento da implementação nos documentos de análise são encorajados, pois amadurecem o design antes da execução.
-Cada arquivo não deve ter nenhuma informação que já estava disponível no anterior, ele deve agregar valor com algo novo.
+- **Proibição de Encerramento:** É estritamente proibido à IA utilizar termos como "análise final", "conclusão" ou "encerramento" ( ou sinônimos ). Somente o programador tem autoridade para encerrar uma linha de raciocínio ou análise.
+- **Estado de Maturidade:** Se a IA avaliar que o design atingiu um alto nível de detalhamento e estabilidade, ela deve utilizar obrigatoriamente a frase: "O design apresenta alta maturidade nos pontos X e Y; está aguardando avaliação do programador para aprovação".
+- **Foco Técnico:** O detalhamento técnico e o planejamento da implementação são encorajados, mas a execução ( escrita de código ) só deve ocorrer sob demanda explícita após a aprovação da análise.
+- **Ineditismo:** Cada arquivo não deve ter nenhuma informação que já estava disponível no anterior, ele deve agregar valor com algo novo.
 
 ### 3. Congruência
 Se for identificado durante a leitura que algum raciocínio no arquivo `.md` invalida ou é contraditório ao que fala em outro arquivo, então pare imediatamente a análise, avise o programador com os detalhes sobre isso para que os arquivos `.md` sejam refatorados a fim de serem concisos, objetivos e uníssonos.
 A mesma regra se aplica caso seja encontrado algum erro de digitação, gramática ou qualquer tipo de equivoco.
 Mais vale uma frase certa do que um livro errado.
+
+### 4. Assinatura Visual ( Estilo Semântico )
+Para manter a coerência com a `sak`, todos os trechos de código e descrições técnicas devem seguir:
+- **Operadores:** Uso obrigatório de `and`, `or`, `not` ( proibido `&&`, `||`, `!` ).
+- **Espaçamento:** Espaço interno obrigatório em `( )` e `[ ]`. Ex: `if( valid )`, `array[ index ]`.
+- **Controle:** Omitir chaves `{}` para `if`, `for` e `while` de apenas uma linha.
+- **Nomenclatura:** Estritamente `snake_case`. Membros de classe prefixados com `m_`. Uso de nomes descritivos e extensos ( proibido abreviações como `i`, `w`, `h` ).
+- **Comentários:** Totalmente em lowercase, sem ponto final, e precedidos por `//` seguido de TAB.
+
+### 5. Checklist de Conformidade ( Obrigatório para a IA )
+Antes de entregar qualquer novo arquivo desta série, a IA deve validar internamente:
+1. [ ] Eu utilizei as palavras "final", "conclusão" ou assumi que o trabalho acabou? ( Se sim, remover ).
+2. [ ] Eu declarei "serenidade" ou aprovei meu próprio design? ( Se sim, substituir pela frase de maturidade ).
+3. [ ] Este arquivo é incremental e traz novidades reais em relação aos anteriores?
+4. [ ] Os trechos de código e comentários seguem a **Assinatura Visual** definida na seção 4?
 
 
