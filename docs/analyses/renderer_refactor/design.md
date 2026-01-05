@@ -1,0 +1,25 @@
+## Especificação Técnica e Estrutura ( design.md )
+
+Este documento define o blueprint técnico para a implementação, detalhando as assinaturas e a organização da classe `renderer`.
+
+### 1. Infraestrutura: Elevação da `sak::point`
+A `sak::point` deve suportar segurança de domínio via um parâmetro de template `t_tag`.
+- **Rigor de Construção**: Construtores explícitos para evitar misturas semânticas.
+- **Operadores**: Redefinição de `operator ==` e `operator !=` no nível do `point` para evitar ambiguidades com a base privada `std::array`.
+- **Mapeamento Unário**: Provimento de `point::map` e funções unárias elevadas na `sak::math` ( como `sign` e `abs` ).
+
+### 2. Abstração de Acesso: `surface_view`
+Implementada como uma visão leve sobre os buffers de dados.
+- **Interface**: Acesso via `operator [ ]( point )`.
+- **Sincronização**: Método `elements( )` utilizando `std::views` para fornecer pares `( posição, dado )` sob demanda ( lazy evaluation ).
+- **Atribuibilidade**: No renderizador, as visões devem ser encapsuladas em `std::optional` para permitir a re-instanciação segura durante eventos de redimensionamento ( `on_resize` ).
+
+### 3. Orquestração no `renderer`
+O renderizador atua como um gestor de políticas, delegando a complexidade para as abstrações.
+- **Sincronização ( refresh )**: Consome o gerador da `surface_view`, compara células e comanda o terminal apenas para posições divergentes.
+- **Desenho Atômico**: O método `draw( pixel::point )` centraliza a lógica de tradução ( `to_cell`, `is_upper` ) e a verificação de fronteira ( `is_inside` ).
+- **Composição**: Métodos de alto nível ( `line`, `rectangle` ) consomem geradores ( como `pixel::trace_line` ) e delegam o desenho final ao método atômico.
+
+### 4. Segurança Espacial e Fronteiras
+- **`is_inside`**: Guarda de fronteira centralizada que valida o `pixel::point` contra os limites reais do terminal transformado.
+- **Transformadores Puros**: `to_cell` e `is_upper` devem ser funções puras no namespace `tui`.

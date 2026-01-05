@@ -1,0 +1,27 @@
+## Análise de Domínio e Espaços ( analysis.md )
+
+Este documento consolida o diagnóstico e a modelagem teórica para a refatoração do renderizador, focando na separação entre geometria pura e mecanismos de exibição.
+
+### 1. O Abismo Semântico e o Diagnóstico
+O renderizador atual opera em um nível predominantemente mecânico, desmembrando entidades matemáticas ( como `point` ) em coordenadas escalares para cálculos manuais. A refatoração visa eliminar essa "maquinaria" algorítmica em favor de uma linguagem vetorial e declarativa.
+
+### 2. Arquitetura de Espaços e Tipagem Forte
+Para garantir a integridade do sistema, o domínio TUI é dividido em espaços sobrepostos que exigem tradução explícita via tipagem forte:
+- **Espaço de Pixels ( Geometria )**: Namespace `pixel`. Representa a sub-célula ( 1..width x 1..2*height ).
+- **Espaço de Células ( Terminal )**: Namespace `cell`. Representa a coordenada física no terminal ( 1..width x 1..height ).
+
+A distinção em tempo de compilação impede o uso acidental de coordenadas de um domínio em funções de outro, tornando o código robusto contra erros de lógica espacial.
+
+### 3. O Conceito de Superfície ( Surface )
+A `surface_view` atua como uma tradutora entre o espaço geométrico 2D e o layout de memória linear do buffer.
+- **Responsabilidade**: Encapsular a aritmética de ponteiros e o cálculo de strides.
+- **Acesso Elevado**: Substitui o cálculo manual `y * width + x` por `buffer[ point ]`.
+- **Iteração Espacial**: Através do método `.elements( )`, provê uma visão de pares `( posição, dado )`, permitindo que o renderizador foque puramente na política de sincronização sem gerenciar contadores de linha/coluna.
+
+### 4. Geometria como Fluxo ( Generators )
+Algoritmos geométricos complexos ( como o Bresenham ) são removidos da lógica interna do renderizador e transformados em geradores de pontos.
+- **Natureza**: Utilização de `std::generator` ( C++23 ) para tratar a geometria como um fluxo de dados ( lazy evaluation ).
+- **Vantagem**: O renderizador trata o desenho de entidades como um simples loop sobre uma sequência de dados, ignorando a complexidade algorítmica da geração.
+
+### 5. Eliminação de Estado e Posicionamento Declarativo
+O movimento do cursor e a sincronização de buffers deixam de depender de estados incrementais ou variáveis de controle manuais. A posição no terminal é derivada diretamente da estrutura da `surface_view`, garantindo que a lógica de desenho seja imune a mudanças na ordem de iteração.
