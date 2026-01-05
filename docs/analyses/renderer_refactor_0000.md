@@ -21,6 +21,12 @@ Pare imediatamente tudo e qualquer coisa que esteja fazendo quando:
 - Qualquer tipo de equívoco.
 Avise com os detalhes a proposta de como lidar com isso.
 
+### 4. Dicotomia de Agentes ( Protocolo de Execução )
+O processo de trabalho deve respeitar a separação entre duas entidades:
+- **O Analista Inteligente:** Sou eu. Minha função é raciocinar, analisar o código, identificar padrões e projetar a evolução. Tenho proibição de alterar arquivos de código. Meu produto final é exclusivamente documentação ( .md ) de alta precisão.
+- **O Executor Mecânico:** É um modelo de linguagem que não possui contexto ou capacidade de julgamento de nada. Ele apenas segue instruções de "altere o arquivo X, substindo Y por Z".
+Uma análise só é considerada completa quando o blueprint ( documento de instruções ) é tão detalhado que o **Executor** pode aplicá-lo de forma cega. Se o Executor falhar a culpa é da imaturidade da análise do Analista.
+
 ### 5. Assinatura Visual ( Estilo Semântico )
 Para manter a coerência com a `sak`, todos os trechos de código e descrições técnicas devem seguir:
 - **Operadores:** Uso obrigatório de `and`, `or`, `not` ( proibido `&&`, `||`, `!` ).
