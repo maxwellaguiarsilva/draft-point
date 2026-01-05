@@ -164,10 +164,10 @@ void renderer::draw( const point& pixel ) noexcept
 {
 	auto lock = lock_guard( m_mutex );
 
-	if( pixel[ 0 ] < 1 or pixel[ 0 ] > m_terminal_size[ 0 ] or pixel[ 1 ] < 1 or pixel[ 1 ] > 2 * m_terminal_size[ 1 ] ) return;
+	if( not m_screen_bounds.contains( pixel ) ) return;
 
 	int row = ( pixel[ 1 ] + 1 ) / 2;
-	int index = ( row - 1 ) * m_terminal_size[ 0 ] + ( pixel[ 0 ] - 1 );
+	int index = ( row - 1 ) * m_screen_size[ 0 ] + ( pixel[ 0 ] - 1 );
 
 	if( is_odd( pixel[ 1 ] ) )
 		m_back[ index ].up = m_color;
@@ -180,6 +180,8 @@ void renderer::on_resize( const point& size )
 	{
 		auto lock = lock_guard( m_mutex );
 		m_terminal_size = size;
+		m_screen_size = { m_terminal_size[ 0 ], 2 * m_terminal_size[ 1 ] };
+		m_screen_bounds = { { 1, 1 }, m_screen_size };
 		size_t count = m_terminal_size[ 0 ] * m_terminal_size[ 1 ];
 		if( m_back.size( ) not_eq count )
 		{
