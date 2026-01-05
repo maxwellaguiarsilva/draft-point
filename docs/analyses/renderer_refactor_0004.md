@@ -16,11 +16,13 @@ Atualizar o trait `__is_point` e a concept `is_point` para serem variádicos ou 
 **Alteração 2: Método `map`**
 Adicionar o método `map` para transformações unárias:
 ```cpp
+__using( ::std::ranges, ::transform );
+
 template< typename t_operation >
 constexpr auto map( t_operation&& operation ) const noexcept
 {
 	point< decltype( operation( t_scalar{ } ) ), num_dimensions, t_tag > result;
-	::std::ranges::transform( *this, result.begin( ), operation );
+	transform( *this, result.begin( ), operation );
 	return	result;
 }
 ```
@@ -32,21 +34,24 @@ Substituir as definições atuais de `point` por tipos tagueados e adicionar tra
 ```cpp
 namespace tui {
 
+__using( ::sak, ::point );
+__using( ::sak::math, ::is_odd );
+
 struct pixel_tag;
 struct cell_tag;
 
-using	pixel	=	::sak::point< int, 2, pixel_tag >;
-using	cell	=	::sak::point< int, 2, cell_tag >;
+using	pixel	=	point< int, 2, pixel_tag >;
+using	cell	=	point< int, 2, cell_tag >;
 
 //	transformadores de domínio
-inline constexpr auto to_cell( pixel const& p ) noexcept -> cell
+inline constexpr auto to_cell( pixel const& position ) noexcept -> cell
 {
-	return	cell{ p[ 0 ], ( p[ 1 ] + 1 ) / 2 };
+	return	cell{ position[ 0 ], ( position[ 1 ] + 1 ) / 2 };
 }
 
-inline constexpr auto is_upper( pixel const& p ) noexcept -> bool
+inline constexpr auto is_upper( pixel const& position ) noexcept -> bool
 {
-	return	::sak::math::is_odd( p[ 1 ] );
+	return	is_odd( position[ 1 ] );
 }
 
 }
@@ -66,10 +71,10 @@ public:
 	surface_view( t_data* data, t_point_type size ) 
 		: m_data( data ), m_size( size ) { }
 
-	auto operator []( t_point_type const& p ) noexcept -> t_data&
+	auto operator []( t_point_type const& position ) noexcept -> t_data&
 	{
-		//	linearização elevada: y * width + x
-		return	m_data[ ( p[ 1 ] - 1 ) * m_size[ 0 ] + ( p[ 0 ] - 1 ) ];
+		//	linearização elevada: vertical * width + horizontal
+		return	m_data[ ( position[ 1 ] - 1 ) * m_size[ 0 ] + ( position[ 0 ] - 1 ) ];
 	}
 
 private:
@@ -86,15 +91,17 @@ private:
 **Alteração 1: Método `draw( pixel const& )`**
 Remover cálculos manuais de índice. Utilizar transformadores e `surface_view`.
 ```cpp
-void renderer::draw( pixel const& p ) noexcept
+void renderer::draw( pixel const& position ) noexcept
 {
-	auto lock = lock_guard( m_mutex );
-	if( not is_inside( p ) ) return; //	implementar is_inside com base em m_terminal_size
+	__using( ::std, ::lock_guard );
 
-	auto target_cell = to_cell( p );
+	auto lock = lock_guard( m_mutex );
+	if( not is_inside( position ) ) return; //	implementar is_inside com base em m_terminal_size
+
+	auto target_cell = to_cell( position );
 	auto& data = m_back_view[ target_cell ]; //	m_back_view deve ser membro da classe
 
-	if( is_upper( p ) )
+	if( is_upper( position ) )
 		data.up = m_color;
 	else
 		data.down = m_color;

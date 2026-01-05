@@ -9,13 +9,16 @@ O renderizador opera em dois espaços sobrepostos que exigem tradução explíci
 
 A tradução deve ser feita por transformadores de domínio, eliminando cálculos inline:
 ```cpp
+__using( ::sak, ::point );
+__using( ::sak::math, ::is_odd );
+
 point cell_position = to_cell_space( pixel_position );
-bool is_upper = ::sak::math::is_odd( pixel_position[ 1 ] );
+bool is_upper = is_odd( pixel_position[ 1 ] );
 ```
 
 ### 2. A Abstração `surface_view`
 Em vez de manipular buffers brutos, o renderizador utiliza uma `surface_view`.
-- **Semântica de Acesso:** `buffer[ position ]` substitui `buffer[ y * width + x ]`.
+- **Semântica de Acesso:** `buffer[ position ]` substitui `buffer[ vertical * width + horizontal ]`.
 - **Evolução do `draw( pixel )`:** O método torna-se um despachante semântico que identifica a célula e o sub-pixel ( up/down ) correspondente, delegando a complexidade de índice para a `surface_view`.
 
 ### 3. Eliminação de Estado e Posicionamento Declarativo

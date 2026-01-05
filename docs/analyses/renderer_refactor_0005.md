@@ -14,13 +14,13 @@ inline constexpr auto sign = __sign{ };
 ```
 
 **Arquivo:** `include/sak/geometry/point.hpp`
-Adicionar o construtor de conversão de tag para permitir `pixel p = game_point;`:
+Adicionar o construtor de conversão de tag para permitir `pixel position = game_point;`:
 ```cpp
 template< typename t_other_tag >
 constexpr point( const point< t_scalar, num_dimensions, t_other_tag >& other ) noexcept
 {
-	for( size_type i = 0; i < num_dimensions; ++i )
-		( *this )[ i ] = other[ i ];
+	for( size_type index = 0; index < num_dimensions; ++index )
+		( *this )[ index ] = other[ index ];
 }
 ```
 
@@ -38,17 +38,20 @@ public:
 	surface_view( t_container& container, t_point size )
 		: m_container( container ), m_size( size ) { }
 
-	auto operator []( t_point const& p ) noexcept -> auto&
+	auto operator []( t_point const& position ) noexcept -> auto&
 	{
-		return m_container[ ( p[ 1 ] - 1 ) * m_size[ 0 ] + ( p[ 0 ] - 1 ) ];
+		return m_container[ ( position[ 1 ] - 1 ) * m_size[ 0 ] + ( position[ 0 ] - 1 ) ];
 	}
 
 	auto elements( )
 	{
-		return ::std::views::iota( 0, static_cast< int >( m_container.size( ) ) )
-			| ::std::views::transform( [ this ]( int index ) {
-				t_point p{ ( index % m_size[ 0 ] ) + 1, ( index / m_size[ 0 ] ) + 1 };
-				return ::std::pair< t_point, typename t_container::value_type& >{ p, m_container[ index ] };
+		__using( ::std::views, ::iota, ::transform );
+		__using( ::std, ::pair );
+
+		return iota( 0, static_cast< int >( m_container.size( ) ) )
+			| transform( [ this ]( int index ) {
+				t_point position{ ( index % m_size[ 0 ] ) + 1, ( index / m_size[ 0 ] ) + 1 };
+				return pair< t_point, typename t_container::value_type& >{ position, m_container[ index ] };
 			} );
 	}
 
@@ -67,11 +70,14 @@ Implementação de `trace_line` como um gerador de `vector` ( simplificação pa
 ```cpp
 inline auto trace_line( pixel start, pixel end ) -> ::std::vector< pixel >
 {
-	::std::vector< pixel > pixels;
-	pixel delta = ( end - start ).map( ::sak::math::abs );
-	pixel step  = ( end - start ).map( ::sak::math::sign );
+	__using( ::std, ::vector );
+	__using( ::sak::math, ::abs, ::sign );
+
+	vector< pixel > pixels;
+	pixel difference = ( end - start ).map( abs );
+	pixel direction_step = ( end - start ).map( sign );
 	
-	int error = delta[ 0 ] - delta[ 1 ];
+	int error = difference[ 0 ] - difference[ 1 ];
 	pixel current = start;
 
 	while( true )
@@ -80,15 +86,15 @@ inline auto trace_line( pixel start, pixel end ) -> ::std::vector< pixel >
 		if( current == end ) break;
 		
 		int error_doubled = 2 * error;
-		if( error_doubled > -delta[ 1 ] )
+		if( error_doubled > -difference[ 1 ] )
 		{
-			error -= delta[ 1 ];
-			current[ 0 ] += step[ 0 ];
+			error -= difference[ 1 ];
+			current[ 0 ] += direction_step[ 0 ];
 		}
-		if( error_doubled < delta[ 0 ] )
+		if( error_doubled < difference[ 0 ] )
 		{
-			error += delta[ 0 ];
-			current[ 1 ] += step[ 1 ];
+			error += difference[ 0 ];
+			current[ 1 ] += direction_step[ 1 ];
 		}
 	}
 	return pixels;
@@ -103,16 +109,19 @@ O novo loop de atualização utiliza `m_back_view.elements( )` para sincronizar 
 void renderer::refresh( )
 {{
 	if( m_is_resizing.load( ) ) return;
+
+	__using( ::std, ::unique_lock, ::try_to_lock );
+
 	unique_lock lock( m_mutex, try_to_lock );
 	if( not lock.owns_lock( ) ) return;
 
 	//	sincronização baseada em posição derivada
-	for( auto&& [ pos, back_cell ] : m_back_view.elements( ) )
+	for( auto&& [ position, back_cell ] : m_back_view.elements( ) )
 	{
-		auto& front_cell = m_front[ ( pos[ 1 ] - 1 ) * m_terminal_size[ 0 ] + ( pos[ 0 ] - 1 ) ];
+		auto& front_cell = m_front[ ( position[ 1 ] - 1 ) * m_terminal_size[ 0 ] + ( position[ 0 ] - 1 ) ];
 		if( back_cell not_eq front_cell )
 		{
-			m_terminal.move_cursor( pos );
+			m_terminal.move_cursor( position );
 			//	lógica de cores e print... ( manter a existente, mas usando back_cell )
 			front_cell = back_cell;
 		}

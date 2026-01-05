@@ -4,8 +4,12 @@ Padrões idiomáticos e de segurança que garantem a integridade do design eleva
 
 ### 1. Segurança de Domínio via Tipagem Forte
 Para impedir o uso acidental de coordenadas de pixel em funções que esperam células, utilizamos *tags* de tipo aninhadas na classe `renderer`:
-- `using pixel = ::sak::point< int, 2, struct pixel_tag >;`
-- `using cell  = ::sak::point< int, 2, struct cell_tag >;`
+```cpp
+__using( ::sak, ::point );
+
+using pixel = point< int, 2, struct pixel_tag >;
+using cell  = point< int, 2, struct cell_tag >;
+```
 
 Esta distinção em tempo de compilação força o uso de transformadores explícitos, tornando o código auto-documentado e robusto contra erros de lógica espacial.
 
@@ -29,13 +33,15 @@ O método `.elements( )` encapsula a derivação da posição, permitindo que o 
 ### 3. Geometria como Fluxo ( Generators )
 Algoritmos complexos como o Bresenham são removidos do corpo do renderizador e transformados em geradores de pontos:
 ```cpp
+__using( ::geometry, ::trace_line );
+
 void renderer::draw( line const& data )
 {
-    for( pixel pixel : geometry::trace_line( data.start, data.end ) )
+    for( pixel pixel : trace_line( data.start, data.end ) )
         draw( pixel );
 }
 ```
-A infraestrutura `geometry::trace_line` fornece uma `std::ranges::view`, tratando a geometria como um fluxo de dados.
+A infraestrutura `trace_line` fornece uma `::std::ranges::view`, tratando a geometria como um fluxo de dados.
 
 ### 4. Orquestração e Maturidade
 O renderizador atua como um orquestrador de políticas de exibição. A complexidade matemática e de acesso reside em bibliotecas testadas ( `sak` e `geometry` ), resultando em um código focado na intenção de design.

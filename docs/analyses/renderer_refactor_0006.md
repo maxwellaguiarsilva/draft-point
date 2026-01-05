@@ -38,8 +38,8 @@ private:
 ```cpp
 void renderer::draw( line const& data )
 {
-	for( pixel const& p : trace_line( data.start, data.end ) )
-		draw( p );
+	for( pixel const& position : trace_line( data.start, data.end ) )
+		draw( position );
 }
 ```
 
@@ -48,17 +48,17 @@ void renderer::draw( line const& data )
 void renderer::draw( rectangle const& data, bool fill )
 {
 	//	utilizar a lógica de iteração sobre pixels do retângulo,
-	//	chamando draw( pixel{ x, y } ) para cada ponto.
+	//	chamando draw( pixel{ horizontal, vertical } ) para cada ponto.
 }
 ```
 
 ### 4. Verificação de Segurança ( is_inside )
 Adicionar como método privado em `renderer`:
 ```cpp
-auto renderer::is_inside( pixel const& p ) const noexcept -> bool
+auto renderer::is_inside( pixel const& position ) const noexcept -> bool
 {
-	return p[ 0 ] >= 1 and p[ 0 ] <= m_terminal_size[ 0 ] 
-	   and p[ 1 ] >= 1 and p[ 1 ] <= 2 * m_terminal_size[ 1 ];
+	return position[ 0 ] >= 1 and position[ 0 ] <= m_terminal_size[ 0 ] 
+	   and position[ 1 ] >= 1 and position[ 1 ] <= 2 * m_terminal_size[ 1 ];
 }
 ```
 
