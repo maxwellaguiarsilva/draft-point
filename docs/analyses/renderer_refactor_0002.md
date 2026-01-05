@@ -9,10 +9,9 @@ O renderizador opera em dois espaços sobrepostos que exigem tradução explíci
 
 A tradução deve ser feita por transformadores de domínio, eliminando cálculos inline:
 ```cpp
-__using( ::sak, ::point );
 __using( ::sak::math, ::is_odd );
 
-point cell_position = to_cell_space( pixel_position );
+cell_point cell_position = to_cell( pixel_position );
 bool is_upper = is_odd( pixel_position[ 1 ] );
 ```
 

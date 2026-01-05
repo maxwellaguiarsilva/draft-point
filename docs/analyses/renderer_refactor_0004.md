@@ -5,19 +5,34 @@ Este documento é o guia de execução mecânica para a refatoração do sistema
 ### 1. Infraestrutura: Elevação da `sak::point`
 **Arquivo:** `include/sak/geometry/point.hpp`
 
-**Alteração 1: Adição de Tag de Domínio**
-Modificar a assinatura da classe para aceitar um terceiro parâmetro de template:
+**Alteração 1: Adição de Tag de Domínio e Segurança**
+Modificar a assinatura da classe para aceitar um terceiro parâmetro de template e tornar os construtores mais rigorosos:
 ```cpp
 template< is_arithmetic t_scalar = int, size_t num_dimensions = 2, typename t_tag = void >
 class point final : private array< t_scalar, num_dimensions >
+{
+public:
+	// ...
+	constexpr point( ) : super_type{ } { }
+
+	template< typename... t_args >
+		requires( sizeof...( t_args ) == num_dimensions
+			and ( convertible_to< t_args, t_scalar > and ... )
+		)
+	constexpr explicit point( t_args... a_args )
+		: super_type{ static_cast< t_scalar >( a_args )... }
+	{
+	}
 ```
-Atualizar o trait `__is_point` e a concept `is_point` para serem variádicos ou ignorarem a tag na verificação de "point-ness".
+Atualizar o trait `__is_point` e a concept `is_point` para suportar a tag:
+```cpp
+template< is_arithmetic t_scalar, size_t num_dimensions, typename t_tag >
+struct __is_point< point< t_scalar, num_dimensions, t_tag > > : true_type { };
+```
 
 **Alteração 2: Método `map`**
-Adicionar o método `map` para transformações unárias:
+Adicionar o método `map` para transformações unárias, preservando a tag:
 ```cpp
-__using( ::std::ranges, ::transform );
-
 template< typename t_operation >
 constexpr auto map( t_operation&& operation ) const noexcept
 {
@@ -30,28 +45,29 @@ constexpr auto map( t_operation&& operation ) const noexcept
 ### 2. Definições de Domínio TUI
 **Arquivo:** `include/tui/geometry.hpp`
 
-Substituir as definições atuais de `point` por tipos tagueados e adicionar transformadores:
+Substituir as definições atuais para evitar conflitos de nomes e clarificar os domínios:
 ```cpp
 namespace tui {
 
-__using( ::sak, ::point );
-__using( ::sak::math, ::is_odd );
+using	pixel		=	::sak::point< int, 2, struct pixel_tag >;
+using	cell_point	=	::sak::point< int, 2, struct cell_tag >;
 
-struct pixel_tag;
-struct cell_tag;
+using	pixel_geometry	=	::sak::geometry< pixel >;
+using	pixel_line		=	pixel_geometry::line;
+using	pixel_rectangle	=	pixel_geometry::rectangle;
 
-using	pixel	=	point< int, 2, pixel_tag >;
-using	cell	=	point< int, 2, cell_tag >;
+using	cell_geometry	=	::sak::geometry< cell_point >;
+using	cell_rectangle	=	cell_geometry::rectangle;
 
 //	transformadores de domínio
-inline constexpr auto to_cell( pixel const& position ) noexcept -> cell
+inline constexpr auto to_cell( pixel const& position ) noexcept -> cell_point
 {
-	return	cell{ position[ 0 ], ( position[ 1 ] + 1 ) / 2 };
+	return	cell_point{ position[ 0 ], ( position[ 1 ] + 1 ) / 2 };
 }
 
 inline constexpr auto is_upper( pixel const& position ) noexcept -> bool
 {
-	return	is_odd( position[ 1 ] );
+	return	::sak::math::is_odd( position[ 1 ] );
 }
 
 }

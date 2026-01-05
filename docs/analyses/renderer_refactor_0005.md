@@ -14,10 +14,10 @@ inline constexpr auto sign = __sign{ };
 ```
 
 **Arquivo:** `include/sak/geometry/point.hpp`
-Adicionar o construtor de conversão de tag para permitir `pixel position = game_point;`:
+Adicionar o construtor de conversão de tag ( explícito para evitar ambiguidades em comparações ):
 ```cpp
 template< typename t_other_tag >
-constexpr point( const point< t_scalar, num_dimensions, t_other_tag >& other ) noexcept
+constexpr explicit point( const point< t_scalar, num_dimensions, t_other_tag >& other ) noexcept
 {
 	for( size_type index = 0; index < num_dimensions; ++index )
 		( *this )[ index ] = other[ index ];
@@ -65,7 +65,7 @@ private:
 
 ### 3. Gerador de Linha ( Bresenham Elevado )
 **Arquivo:** `include/tui/geometry.hpp`
-Implementação de `trace_line` como um gerador de `vector` ( simplificação para o executor, mantendo a semântica de fluxo no uso ).
+Implementação de `trace_line` como um gerador de `vector`.
 
 ```cpp
 inline auto trace_line( pixel start, pixel end ) -> ::std::vector< pixel >
@@ -103,7 +103,7 @@ inline auto trace_line( pixel start, pixel end ) -> ::std::vector< pixel >
 
 ### 4. Refatoração do `renderer::refresh`
 **Arquivo:** `source/tui/renderer.cpp`
-O novo loop de atualização utiliza `m_back_view.elements( )` para sincronizar o terminal sem gerir coordenadas manuais.
+O novo loop de atualização utiliza `m_back_view.elements( )`.
 
 ```cpp
 void renderer::refresh( )
@@ -115,14 +115,13 @@ void renderer::refresh( )
 	unique_lock lock( m_mutex, try_to_lock );
 	if( not lock.owns_lock( ) ) return;
 
-	//	sincronização baseada em posição derivada
 	for( auto&& [ position, back_cell ] : m_back_view.elements( ) )
 	{
 		auto& front_cell = m_front[ ( position[ 1 ] - 1 ) * m_terminal_size[ 0 ] + ( position[ 0 ] - 1 ) ];
 		if( back_cell not_eq front_cell )
 		{
 			m_terminal.move_cursor( position );
-			//	lógica de cores e print... ( manter a existente, mas usando back_cell )
+			//	lógica de cores e print...
 			front_cell = back_cell;
 		}
 	}

@@ -7,8 +7,8 @@ Para impedir o uso acidental de coordenadas de pixel em funções que esperam c�
 ```cpp
 __using( ::sak, ::point );
 
-using pixel = point< int, 2, struct pixel_tag >;
-using cell  = point< int, 2, struct cell_tag >;
+using pixel      = point< int, 2, struct pixel_tag >;
+using cell_point = point< int, 2, struct cell_tag >;
 ```
 
 Esta distinção em tempo de compilação força o uso de transformadores explícitos, tornando o código auto-documentado e robusto contra erros de lógica espacial.

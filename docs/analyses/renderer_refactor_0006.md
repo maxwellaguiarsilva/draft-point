@@ -24,28 +24,28 @@ private:
 	terminal&	m_terminal;
 	buffer		m_front;
 	buffer		m_back;
-	point		m_terminal_size;
+	cell_point	m_terminal_size;
 	
 	//	novas visões de superfície
-	surface_view< buffer, cell_point > m_front_view; // cell_point deve ser alias para point tagueado com cell_tag
+	surface_view< buffer, cell_point > m_front_view;
 	surface_view< buffer, cell_point > m_back_view;
 ```
 
 ### 3. Implementação dos Métodos de Desenho Elevados
 **Arquivo:** `source/tui/renderer.cpp`
 
-**draw( line const& data )**
+**draw( pixel_line const& data )**
 ```cpp
-void renderer::draw( line const& data )
+void renderer::draw( pixel_line const& data )
 {
 	for( pixel const& position : trace_line( data.start, data.end ) )
 		draw( position );
 }
 ```
 
-**draw( rectangle const& data, bool fill )**
+**draw( pixel_rectangle const& data, bool fill )**
 ```cpp
-void renderer::draw( rectangle const& data, bool fill )
+void renderer::draw( pixel_rectangle const& data, bool fill )
 {
 	//	utilizar a lógica de iteração sobre pixels do retângulo,
 	//	chamando draw( pixel{ horizontal, vertical } ) para cada ponto.
@@ -54,11 +54,13 @@ void renderer::draw( rectangle const& data, bool fill )
 
 ### 4. Verificação de Segurança ( is_inside )
 Adicionar como método privado em `renderer`:
+```cpp
 auto renderer::is_inside( pixel const& position ) const noexcept -> bool
 {
 	return	position[ 0 ] >= 1 and position[ 0 ] <= m_terminal_size[ 0 ] 
 	   and position[ 1 ] >= 1 and position[ 1 ] <= 2 * m_terminal_size[ 1 ];
 }
+```
 
 ### Conclusão do Blueprint
 Com a conclusão deste documento, todas as peças da "maquinaria" foram substituídas por abstrações semânticas. O executor deve agora aplicar as mudanças na ordem:
