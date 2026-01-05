@@ -113,6 +113,26 @@ struct __square_root
 inline constexpr auto square_root = __square_root{ };
 
 
+struct __is_even
+{
+	constexpr auto operator ( ) ( auto value ) const noexcept -> bool
+	{
+		return	( value % 2 ) == 0;
+	}
+};
+inline constexpr auto is_even = __is_even{ };
+
+
+struct __is_odd
+{
+	constexpr auto operator ( ) ( auto value ) const noexcept -> bool
+	{
+		return	( value % 2 ) not_eq 0;
+	}
+};
+inline constexpr auto is_odd = __is_odd{ };
+
+
 } }
 
 

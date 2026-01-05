@@ -128,7 +128,7 @@ private:
 	void clear( unsigned l_clear_count )
 	{
 		auto lock = lock_guard( m_mutex );
-		if( l_clear_count != m_clear_count.load( memory_order_acquire ) )
+		if( l_clear_count not_eq m_clear_count.load( memory_order_acquire ) )
 			return;
 		erase_if( m_list, [ ]( const auto& ptr ) { return ptr.expired( ); } );
 		m_clear_count.fetch_add( 1, memory_order_release );
