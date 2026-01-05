@@ -14,10 +14,17 @@ Cada documento desta série ( 0001, 0002, 0003... n ) representa uma evolução 
 
 ### 3. Congruência
 Se for identificado durante a leitura que algum raciocínio no arquivo `.md` invalida ou é contraditório ao que fala em outro arquivo, então pare imediatamente a análise, avise o programador com os detalhes sobre isso para que os arquivos `.md` sejam refatorados a fim de serem concisos, objetivos e uníssonos.
-A mesma regra se aplica caso seja encontrado algum erro de digitação, gramática ou qualquer tipo de equivoco.
+A mesma regra se aplica caso seja encontrado algum erro de digitação, gramática ou qualquer tipo de equívoco.
 Mais vale uma frase certa do que um livro errado.
 
-### 4. Assinatura Visual ( Estilo Semântico )
+### 4. Rigor na definição de "madura"
+Para que uma análise seja considerada "madura", ela deve obrigatoriamente:
+- **Mapeamento e Congruência:** Antes de qualquer proposta, a IA deve realizar uma varredura exaustiva nos arquivos do projeto envolvidos no tema. A análise deve demonstrar um entendimento profundo do código atual, garantindo que a proposta não apenas evite redundâncias, mas seja estritamente coerente com o status real do projeto.
+- **Blueprint de Execução:** O documento deve especificar o "onde" ( caminho do arquivo e classe ), o "o quê" ( assinatura exata ) e o "como" ( lógica interna ).
+- **Nível de Detalhe:** O detalhamento deve ser tal que um executor ( humano ou IA ) possa realizar a implementação de forma mecânica, sem necessidade de novas decisões arquiteturais.
+- **Fidelidade à Realidade:** Qualquer extensão à biblioteca `sak` deve ser validada contra os padrões de metaprogramação já existentes nela.
+
+### 5. Assinatura Visual ( Estilo Semântico )
 Para manter a coerência com a `sak`, todos os trechos de código e descrições técnicas devem seguir:
 - **Operadores:** Uso obrigatório de `and`, `or`, `not` ( proibido `&&`, `||`, `!` ).
 - **Espaçamento:** Espaço interno obrigatório em `( )` e `[ ]`. Ex: `if( valid )`, `array[ index ]`.
@@ -25,11 +32,12 @@ Para manter a coerência com a `sak`, todos os trechos de código e descrições
 - **Nomenclatura:** Estritamente `snake_case`. Membros de classe prefixados com `m_`. Uso de nomes descritivos e extensos ( proibido abreviações como `i`, `w`, `h` ).
 - **Comentários:** Totalmente em lowercase, sem ponto final, e precedidos por `//` seguido de TAB.
 
-### 5. Checklist de Conformidade ( Obrigatório para a IA )
-Antes de entregar qualquer novo arquivo desta série, a IA deve validar internamente:
+### 6. Checklist de Conformidade ( Obrigatório para a IA )
+Antes de entregar qualquer novo arquivo desta série, a IA deve validar:
 1. [ ] Eu utilizei as palavras "final", "conclusão" ou assumi que o trabalho acabou? ( Se sim, remover ).
 2. [ ] Eu declarei "serenidade" ou aprovei meu próprio design? ( Se sim, substituir pela frase de maturidade ).
 3. [ ] Este arquivo é incremental e traz novidades reais em relação aos anteriores?
-4. [ ] Os trechos de código e comentários seguem a **Assinatura Visual** definida na seção 4?
+4. [ ] Os trechos de código e comentários seguem a **Assinatura Visual** definida?
+5. [ ] O documento proposto segue todas regras definidas no arquivo 0000.md?
 
 
