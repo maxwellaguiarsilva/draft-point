@@ -23,10 +23,15 @@ Sempre que uma refatoração ou nova análise for iniciada, os arquivos devem se
 5. **Documentos Numerados ( 0001..000N )**: A evolução técnica incremental e sumarizada.
 6. **execution.md**: O guia mecânico para implementação cega.
 
-### 4. Protocolo de Execução ( Qual papel cada agente de IA deve executar )
-- **Analista**: Raciocina, projeta e documenta. Proibido alterar código. Produto final: execution.md de alta precisão.
-- **Executor**: Segue instruções cegas de alteração de arquivo. Se o executor falhar, a análise foi imatura.
-- **Revisor**: Avalia se os markdowns e os arquivos de código ( cpp e hpp ) estão em compliance com GEMINI.md, inclusive com o apoio das ferramentas MCP. Se algo não estar como deveria, registra em history.md.
+### 4. Protocolo de Execução e Autoridade ( Quem faz o quê )
+A separação de papéis é absoluta e nenhum agente deve invadir a permissão do outro.
+
+- **Orchestrator ( Programador )**: O único com autoridade sobre a estrutura de diretórios, nomes de arquivos e orquestração geral. Define a estratégia e o "caminho" da análise.
+- **Analista**: Raciocina, projeta e documenta. Sua autoridade é estritamente técnica e limitada aos arquivos numerados ( `0001..000N` ). É **proibido** criar novos arquivos fora da numeração ou alterar o código fonte. Sua função é elevar a semântica e produzir o `execution.md`.
+- **Executor**: Segue instruções cegas de alteração de arquivo. Não possui autoridade de decisão; apenas executa o que está no `execution.md`.
+- **Revisor**: O guardião da conformidade técnica e estilística ( `GEMINI.md` ). Sua autoridade limita-se a validar se os arquivos ( `.md`, `.cpp`, `.hpp` ) seguem as regras. Se identificar falhas, registra no `history.md`, mas **não** tem autoridade para alterar a estrutura de arquivos definida pelo Orchestrator.
+
+**Regra de Sumarização**: Quando identificada a necessidade de sumarizar informações, esta ação deve ser executada obrigatoriamente **re-escrevendo** os arquivos numerados existentes ( começando pelo `0001.md` ). É expressamente proibido criar arquivos nomeados para sumarização sem ordem direta do Orchestrator.
 
 ### 5. Natureza Incremental e Profundidade
 - Cada arquivo agrega valor sem repetir informações anteriores.

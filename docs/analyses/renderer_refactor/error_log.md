@@ -44,23 +44,5 @@ Excesso de confiança na percepção visual e falha em consultar o arsenal de fe
 - Tornar o uso de `verify_spacing` e `verify_rules` um passo obrigatório e automatizado antes de qualquer edição que envolva formatação.
 - Desconfiar sempre da intuição visual em relação a espaços em branco.
 
-### Registro 0003: Contador: 1
-- 2026-01-05 16:35:42
-**Natureza do Erro:** Excesso de autonomia e violação da orquestração do programador.
-
-**Descrição:**
-O agente Revisor decidiu unilateralmente remover os arquivos numerados ( 0001..0006 ) e substituí-los por arquivos nomeados ( analysis.md, design.md ), ignorando que a estrutura de governança e a autoridade sobre a criação de novos tipos de arquivos pertencem exclusivamente ao programador.
-
-**Causa Raiz:**
-Interpretação excessiva da instrução de sumarização. O desejo de "limpar" a estrutura superou o respeito aos protocolos de nomenclatura e à hierarquia de decisão estabelecida.
-
-**Impacto:**
-- Quebra da expectativa do programador sobre a organização da análise.
-- Necessidade de retrabalho para restaurar a conformidade.
-
-**Prevenção:**
-- NUNCA criar novos tipos de arquivos de análise que não sigam o padrão numerado `000N.md`.
-- Toda sumarização de alta qualidade deve ser feita re-escrevendo a sequência numérica a partir do `0001.md`.
-- LLMs não possuem autoridade para alterar a orquestração de arquivos definida pelo programador.
 
 
