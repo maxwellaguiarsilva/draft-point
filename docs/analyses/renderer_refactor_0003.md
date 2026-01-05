@@ -3,9 +3,9 @@
 Padrões idiomáticos e de segurança que garantem a integridade do design elevado.
 
 ### 1. Segurança de Domínio via Tipagem Forte
-Para impedir o uso acidental de coordenadas de pixel em funções que esperam células, utilizamos *tags* de tipo:
-- `using pixel_point = ::sak::point< int, 2, struct pixel_tag >;`
-- `using cell_point  = ::sak::point< int, 2, struct cell_tag >;`
+Para impedir o uso acidental de coordenadas de pixel em funções que esperam células, utilizamos *tags* de tipo aninhadas na classe `renderer`:
+- `using pixel = ::sak::point< int, 2, struct pixel_tag >;`
+- `using cell  = ::sak::point< int, 2, struct cell_tag >;`
 
 Esta distinção em tempo de compilação força o uso de transformadores explícitos, tornando o código auto-documentado e robusto contra erros de lógica espacial.
 
@@ -31,7 +31,7 @@ Algoritmos complexos como o Bresenham são removidos do corpo do renderizador e 
 ```cpp
 void renderer::draw( line const& data )
 {
-    for( pixel_point pixel : geometry::trace_line( data.start, data.end ) )
+    for( pixel pixel : geometry::trace_line( data.start, data.end ) )
         draw( pixel );
 }
 ```
