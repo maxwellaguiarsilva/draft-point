@@ -116,3 +116,5 @@ Eliminar contadores `row`/`column`. Utilizar um iterador espacial ( a ser implem
 
 Adicionar o gerador `trace_line` utilizando o algoritmo de Bresenham, retornando um `std::ranges::view` de `pixel`.
 O executor deve mover a lógica atual de `renderer::draw( line )` para esta função.
+
+

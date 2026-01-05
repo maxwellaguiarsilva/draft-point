@@ -40,7 +40,7 @@ public:
 
 	auto operator []( t_point const& position ) noexcept -> auto&
 	{
-		return m_container[ ( position[ 1 ] - 1 ) * m_size[ 0 ] + ( position[ 0 ] - 1 ) ];
+		return	m_container[ ( position[ 1 ] - 1 ) * m_size[ 0 ] + ( position[ 0 ] - 1 ) ];
 	}
 
 	auto elements( )
@@ -48,10 +48,10 @@ public:
 		__using( ::std::views, ::iota, ::transform );
 		__using( ::std, ::pair );
 
-		return iota( 0, static_cast< int >( m_container.size( ) ) )
+		return	iota( 0, static_cast< int >( m_container.size( ) ) )
 			| transform( [ this ]( int index ) {
 				t_point position{ ( index % m_size[ 0 ] ) + 1, ( index / m_size[ 0 ] ) + 1 };
-				return pair< t_point, typename t_container::value_type& >{ position, m_container[ index ] };
+				return	pair< t_point, typename t_container::value_type& >{ position, m_container[ index ] };
 			} );
 	}
 
@@ -97,7 +97,7 @@ inline auto trace_line( pixel start, pixel end ) -> ::std::vector< pixel >
 			current[ 1 ] += direction_step[ 1 ];
 		}
 	}
-	return pixels;
+	return	pixels;
 }
 ```
 
@@ -129,3 +129,5 @@ void renderer::refresh( )
 }}
 ```
 **Nota:** O executor deve garantir que `m_back_view` seja re-inicializado no `on_resize`.
+
+

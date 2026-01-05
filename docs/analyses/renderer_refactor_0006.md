@@ -54,13 +54,11 @@ void renderer::draw( rectangle const& data, bool fill )
 
 ### 4. Verificação de Segurança ( is_inside )
 Adicionar como método privado em `renderer`:
-```cpp
 auto renderer::is_inside( pixel const& position ) const noexcept -> bool
 {
-	return position[ 0 ] >= 1 and position[ 0 ] <= m_terminal_size[ 0 ] 
+	return	position[ 0 ] >= 1 and position[ 0 ] <= m_terminal_size[ 0 ] 
 	   and position[ 1 ] >= 1 and position[ 1 ] <= 2 * m_terminal_size[ 1 ];
 }
-```
 
 ### Conclusão do Blueprint
 Com a conclusão deste documento, todas as peças da "maquinaria" foram substituídas por abstrações semânticas. O executor deve agora aplicar as mudanças na ordem:
@@ -70,3 +68,5 @@ Com a conclusão deste documento, todas as peças da "maquinaria" foram substitu
 4. `tui/surface.hpp` ( criação )
 5. `tui/renderer.hpp`
 6. `tui/renderer.cpp`
+
+
