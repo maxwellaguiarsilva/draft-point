@@ -16,6 +16,7 @@ class formatter:
         self._return_spacing( )
         self._trailing_newlines( )
         self._include_spacing( )
+        self._bracket_spacing( )
         return self.content
 
     def verify( self ):
@@ -93,33 +94,37 @@ class formatter:
             flags = re.MULTILINE 
         )
 
+    def _bracket_spacing( self ):
+        #   We apply spacing rules only to the body (after the license header)
+        split_index = self.content.find( '\n\n' )
+        if split_index == -1:
+            return
 
-def verify_spacing( content: str ) -> list[ tuple[ int, str ] ]:
-    violations = [ ]
-    
-    #   ignore everything before the first double newline (the license block)
-    split_index = content.find( '\n\n' )
-    skip_lines = content[ :split_index ].count( '\n' ) + 2 if split_index != -1 else 0
-    
-    lines = content.splitlines( )
-    
-    p1 = re.compile( r'\((?![ \t\n\)])' )
-    p2 = re.compile( r'(?<![ \t\n\(])\)' )
-    p3 = re.compile( r'\[(?![ \t\n\]])' )
-    p4 = re.compile( r'(?<![ \t\n\[])\]' )
-    
-    for i, line in enumerate( lines, 1 ):
-        if i <= skip_lines:
-            continue
+        header = self.content[ :split_index + 2 ]
+        body = self.content[ split_index + 2 : ]
+        
+        #   Regex patterns for ( space ) and [ space ]
+        #   1. (not_space -> ( space
+        #   2. not_space) -> space )
+        patterns = [
+             ( r'\((?![ \t\n\)])', r'( ', "missing space after '('" )
+            ,( r'(?<![ \t\n\(])\)', r' )', "missing space before ')'" )
+            ,( r'\[(?![ \t\n\]])', r'[ ', "missing space after '['" )
+            ,( r'(?<![ \t\n\[])\]', r' ]', "missing space before ']'" )
+        ]
 
-        stripped = line.strip( )
-        if stripped in ( '(', ')', '[', ']' ):
-            continue
+        original_body = body
+        for pattern, replacement, message in patterns:
+            if self.flg_fix:
+                body = re.sub( pattern, replacement, body )
+            else:
+                for match in re.finditer( pattern, body ):
+                    line_no = header.count( '\n' ) + original_body.count( '\n', 0, match.start( ) ) + 1
+                    self.messages.append( ( line_no, message ) )
 
-        if p1.search( line ) or p2.search( line ) or p3.search( line ) or p4.search( line ):
-            violations.append( ( i, f"spacing violation in: {stripped}" ) )
-    
-    return violations
+        if self.flg_fix and body != original_body:
+            self.content = header + body
+            self.messages.append( "fixed bracket spacing ( ( space ) and [ space ] rules )" )
 
 
 if __name__ == "__main__":
@@ -130,10 +135,7 @@ if __name__ == "__main__":
             with open( file_path, 'r' ) as f:
                 content = f.read( )
             
-            if command == "--spacing":
-                violations = verify_spacing( content )
-                print( json.dumps( violations ) )
-            elif command == "--formatting":
+            if command == "--formatting":
                 fmt = formatter( content, file_path = file_path )
                 violations = fmt.verify( )
                 print( json.dumps( violations ) )

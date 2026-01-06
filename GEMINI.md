@@ -28,7 +28,7 @@ Mandatory:
 - Verification: 
     1.  Use the `analyze` tool after changes to run static analysis (cppcheck) and apply automatic formatting fixes.
     2.  Use the `compile` tool for incremental building and linking.
-    3.  LLMs frequently generate false positives regarding the spacing of `( )` and `[ ]`. Never trust your visual intuition. If you suspect a violation, verify using the `verify_spacing` and `verify_formatting` MCP tools.
+    3.  LLMs frequently generate false positives regarding the spacing of `( )` and `[ ]`. Never trust your visual intuition. If you suspect a violation, verify using the `verify_formatting` MCP tool.
 
 ### 5. `sak` Library (Swiss Army Knife)
 - Generic and domain-independent utilities (math, geometry, patterns).

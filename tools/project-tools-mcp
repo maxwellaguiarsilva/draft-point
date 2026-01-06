@@ -120,17 +120,8 @@ def _verify_loop( files: list[ str ], command_flag: str, label: str ) -> str:
 
 
 @mcp.tool( )
-def verify_spacing( files: list[ str ] ) -> str:
-    """Verifies if a list of files follows the ( space ) and [ space ] rules.
-    Returns a consolidated list of violations with line numbers.
-    Useful for distinguishing between real violations and LLM false positives.
-    """
-    return _verify_loop( files, "--spacing", "spacing" )
-    
-
-@mcp.tool( )
 def verify_formatting( files: list[ str ] ) -> str:
-    """Verifies if a list of files follows the project's formatting rules (newlines, return spacing, etc.).
+    """Verifies if a list of files follows the project's formatting rules (newlines, return spacing, bracket spacing, etc.).
     Returns a consolidated list of violations.
     """
     return _verify_loop( files, "--formatting", "formatting" )

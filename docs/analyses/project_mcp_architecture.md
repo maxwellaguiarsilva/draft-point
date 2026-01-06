@@ -89,9 +89,8 @@ A ferramenta `compile` do MCP invoca o método `run_build()` do orquestrador:
 | `create_class` | `file_generator.py` | Cria par `.hpp`/`.cpp` com namespaces e metadados. |
 | `create_test` | `file_generator.py` | Cria testes adhoc ou estruturados. |
 | `compile` | `project-builder.py` | Realiza análise estática e compilação incremental paralela. |
-| `analyze` | `project-builder.py --analyze` | Aplica formatação automática e análise estática exaustiva. |
-| `verify_spacing` | `code_verifier.py --spacing` | Verifica especificamente a regra `( )` e `[ ]`. |
-| `verify_formatting` | `code_verifier.py --formatting` | Reporta violações de estilo (return, licença, newlines). |
+| `analyze` | `project-builder.py --analyze` | Aplica formatação automática (incluindo espaçamento) e análise estática exaustiva. |
+| `verify_formatting` | `code_verifier.py --formatting` | Reporta violações de estilo (return, licença, newlines, espaçamento de brackets). |
 | `adhoc_tool` | `adhoc_tool.py` | Executa lógica experimental. |
 
 ---
