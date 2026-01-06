@@ -64,15 +64,13 @@ private:
 	struct terminal_listener;
 
 	void on_resize( const point& size );
-	auto index_at( const point& pixel ) const noexcept -> size_t;
-	void plot_unsafe( const point& pixel ) noexcept;
+	void plot_unsafe( int column, int row ) noexcept;
 
 	terminal&	m_terminal;
 	buffer		m_front;
 	buffer		m_back;
 	point		m_terminal_size;
 	point		m_screen_size;
-	rectangle	m_screen_bounds;
 	uint8_t		m_color;
 	mutable mutex	m_mutex;
 	shared_ptr< terminal_listener > m_terminal_listener;

@@ -65,6 +65,88 @@ auto renderer::clear( ) noexcept -> void
 	fill( m_back, 0 );
 }
 
+auto renderer::set_color( const uint8_t color ) noexcept -> void { m_color = color; }
+
+auto renderer::draw( const line& a_line ) noexcept -> void
+{
+	auto lock = lock_guard( m_mutex );
+	point difference = ( a_line.end - a_line.start ).map( abs );
+	point step = ( a_line.end - a_line.start ).map( sign );
+
+	int error = difference[ 0 ] - difference[ 1 ];
+	point current = a_line.start;
+
+	while( true )
+	{
+		plot_unsafe( current[ 0 ], current[ 1 ] );
+		if( current == a_line.end ) break;
+
+		int error_doubled = 2 * error;
+		if( error_doubled > -difference[ 1 ] )
+		{
+			error -= difference[ 1 ];
+			current[ 0 ] += step[ 0 ];
+		}
+		if( error_doubled < difference[ 0 ] )
+		{
+			error += difference[ 0 ];
+			current[ 1 ] += step[ 1 ];
+		}
+	}
+}
+
+auto renderer::draw( const rectangle& a_rectangle, bool fill ) noexcept -> void
+{
+	auto lock = lock_guard( m_mutex );
+	if( fill )
+		for( auto const [ column, row ] : cartesian_product( iota( a_rectangle.start[ 0 ], a_rectangle.end[ 0 ] + 1 ), iota( a_rectangle.start[ 1 ], a_rectangle.end[ 1 ] + 1 ) ) )
+			plot_unsafe( column, row );
+	else
+	{
+		for( int column = a_rectangle.start[ 0 ]; column <= a_rectangle.end[ 0 ]; ++column )
+		{
+			plot_unsafe( column, a_rectangle.start[ 1 ] );
+			plot_unsafe( column, a_rectangle.end[ 1 ] );
+		}
+		for( int row = a_rectangle.start[ 1 ]; row <= a_rectangle.end[ 1 ]; ++row )
+		{
+			plot_unsafe( a_rectangle.start[ 0 ], row );
+			plot_unsafe( a_rectangle.end[ 0 ], row );
+		}
+	}
+}
+
+auto renderer::draw( const point& pixel ) noexcept -> void
+{
+	auto lock = lock_guard( m_mutex );
+	plot_unsafe( pixel[ 0 ], pixel[ 1 ] );
+}
+
+auto renderer::plot_unsafe( int column, int row ) noexcept -> void
+{
+	const size_t index = row * m_screen_size[ 0 ] + column;
+	if( index < m_back.size( ) )
+		m_back[ index ] = m_color;
+}
+
+auto renderer::on_resize( const point& size ) -> void
+{
+	{
+		auto lock = lock_guard( m_mutex );
+		m_terminal_size = size;
+		m_screen_size = { m_terminal_size[ 0 ], 2 * m_terminal_size[ 1 ] };
+		size_t total_pixel_count = m_screen_size[ 0 ] * m_screen_size[ 1 ];
+		if( m_back.size( ) not_eq total_pixel_count )
+		{
+			m_back.resize( total_pixel_count );
+			m_front.resize( total_pixel_count );
+		}
+	}
+	clear( );
+	refresh( );
+	m_terminal.refresh( );
+}
+
 auto renderer::refresh( ) -> void
 {
 	unique_lock lock( m_mutex, try_to_lock );
@@ -120,86 +202,6 @@ auto renderer::refresh( ) -> void
 			}
 		}
 	}
-}
-
-auto renderer::set_color( const uint8_t color ) noexcept -> void { m_color = color; }
-
-auto renderer::draw( const line& a_line ) noexcept -> void
-{
-	auto lock = lock_guard( m_mutex );
-	point difference = ( a_line.end - a_line.start ).map( abs );
-	point step = ( a_line.end - a_line.start ).map( sign );
-
-	int error = difference[ 0 ] - difference[ 1 ];
-	point current = a_line.start;
-
-	while( true )
-	{
-		plot_unsafe( current );
-		if( current == a_line.end ) break;
-
-		int error_doubled = 2 * error;
-		if( error_doubled > -difference[ 1 ] )
-		{
-			error -= difference[ 1 ];
-			current[ 0 ] += step[ 0 ];
-		}
-		if( error_doubled < difference[ 0 ] )
-		{
-			error += difference[ 0 ];
-			current[ 1 ] += step[ 1 ];
-		}
-	}
-}
-
-auto renderer::draw( const rectangle& a_rectangle, bool fill ) noexcept -> void
-{
-	auto lock = lock_guard( m_mutex );
-	if( fill )
-		for( auto const [ column, row ] : cartesian_product( iota( a_rectangle.start[ 0 ], a_rectangle.end[ 0 ] + 1 ), iota( a_rectangle.start[ 1 ], a_rectangle.end[ 1 ] + 1 ) ) )
-			plot_unsafe( point{ column, row } );
-	else
-	{
-		for( int column = a_rectangle.start[ 0 ]; column <= a_rectangle.end[ 0 ]; ++column )
-		{
-			plot_unsafe( point{ column, a_rectangle.start[ 1 ] } );
-			plot_unsafe( point{ column, a_rectangle.end[ 1 ] } );
-		}
-		for( int row = a_rectangle.start[ 1 ]; row <= a_rectangle.end[ 1 ]; ++row )
-		{
-			plot_unsafe( point{ a_rectangle.start[ 0 ], row } );
-			plot_unsafe( point{ a_rectangle.end[ 0 ], row } );
-		}
-	}
-}
-
-auto renderer::draw( const point& pixel ) noexcept -> void
-{
-	auto lock = lock_guard( m_mutex );
-	plot_unsafe( pixel );
-}
-
-auto renderer::index_at( const point& pixel ) const noexcept -> size_t { return ( pixel[ 1 ] - 1 ) * m_screen_size[ 0 ] + ( pixel[ 0 ] - 1 ); }
-
-auto renderer::plot_unsafe( const point& pixel ) noexcept -> void { if( m_screen_bounds.contains( pixel ) ) m_back[ index_at( pixel ) ] = m_color; }
-
-auto renderer::on_resize( const point& size ) -> void
-{
-	{
-		auto lock = lock_guard( m_mutex );
-		m_terminal_size = size;
-		m_screen_size = { m_terminal_size[ 0 ], 2 * m_terminal_size[ 1 ] };
-		m_screen_bounds = { { 1, 1 }, m_screen_size };
-		size_t total_pixel_count = m_screen_size[ 0 ] * m_screen_size[ 1 ];
-		if( m_back.size( ) not_eq total_pixel_count )
-		{
-			m_back.resize( total_pixel_count );
-			m_front.resize( total_pixel_count );
-		}
-	}
-	clear( );
-	refresh( );
-	m_terminal.refresh( );
 }
 
 

@@ -40,7 +40,7 @@ game::terminal_listener::terminal_listener( const point& a_size )
 
 void game::terminal_listener::on_resize( const point& a_size )
 {
-	start			=	{ 1, 1 };
+	start			=	{ 0, 0 };
 	end				=	{ a_size[0] - 1, 2 * ( a_size[1] - 1 ) };
 	size			=	end - start + 1;
 	label_position	=	{ 1, a_size[1] - 1 };
@@ -97,14 +97,6 @@ auto game::run( ) -> void
 		if( not bounds_end.encloses( position ) )
 			position = ( position - bounds_start ) % bounds_size + bounds_start;
 
-		m_terminal.print( label_position,
-				" | fps: " + to_string( m_fps.compute( ) )
-			+ 	" | size: " + to_string( frame_size[0] ) + " x " + to_string( frame_size[1] )
-			+ 	" | player: " + to_string( position[0] ) + " x " + to_string( position[1] )
-			+ 	" | direction: " + use_direction( m_player.get_direction( ) ).name
-			+ 	" | length: " + to_string( position.get_length( ) )
-			+ 	" | "
-		);
 		l_renderer.clear( );
 		m_player.draw( l_renderer );
 		l_renderer.refresh( );
@@ -112,6 +104,14 @@ auto game::run( ) -> void
 	}
 
 	m_terminal.clear_screen( );
+	m_terminal.print( label_position,
+			" | fps: " + to_string( m_fps.compute( ) )
+		+ 	" | size: " + to_string( frame_size[0] ) + " x " + to_string( frame_size[1] )
+		+ 	" | player: " + to_string( position[0] ) + " x " + to_string( position[1] )
+		+ 	" | direction: " + use_direction( m_player.get_direction( ) ).name
+		+ 	" | length: " + to_string( position.get_length( ) )
+		+ 	" | "
+	);
 }
 
 
