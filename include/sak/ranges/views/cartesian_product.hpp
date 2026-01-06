@@ -38,7 +38,6 @@ namespace sak::ranges::views {
 
 //    ------------------------------
 __using( ::std::
-	,forward
 	,make_pair
 )
 __using( ::std::ranges::
@@ -56,8 +55,8 @@ struct __cartesian_product
 	template< viewable_range t_first_range, viewable_range t_second_range >
 	constexpr auto operator ( ) ( t_first_range&& first_range, t_second_range&& second_range ) const
 	{
-		return	forward< t_first_range >( first_range )
-			bitor	transform( [ second_range = forward< t_second_range >( second_range ) ] ( auto const& first_element ) {
+		return	::std::forward< t_first_range >( first_range )
+			bitor	transform( [ second_range = ::std::forward< t_second_range >( second_range ) ] ( auto const& first_element ) {
 				return	second_range bitor transform( [ first_element ] ( auto const& second_element ) {
 					return	make_pair( first_element, second_element );
 				} );
@@ -74,3 +73,5 @@ inline constexpr auto cartesian_product = __cartesian_product{ };
 
 
 #endif
+
+
