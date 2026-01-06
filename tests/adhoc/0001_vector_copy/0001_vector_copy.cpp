@@ -11,14 +11,14 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General License
+ * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   0001_vector_copy.cpp
+ * File:   adhoc/0001_vector_copy/0001_vector_copy.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-11-20 09:04
+ * Created on 2025-11-20 23:41
  */
 
 

@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   tests/game/test_game_fps.cpp
+ * File:   game/test_game_fps.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-12-26 18:18
+ * Created on 2025-12-26 18:20
  */
 
 

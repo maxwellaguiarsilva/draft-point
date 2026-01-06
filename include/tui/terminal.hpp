@@ -18,7 +18,7 @@
  * File:   tui/terminal.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-08-03 14:35
+ * Created on 2025-08-03 16:17
  */
 
 

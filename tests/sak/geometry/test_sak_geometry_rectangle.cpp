@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   tests/sak/geometry/test_sak_geometry_rectangle.cpp
+ * File:   sak/geometry/test_sak_geometry_rectangle.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-02 00:32
+ * Created on 2026-01-02 00:33
  */
 
 

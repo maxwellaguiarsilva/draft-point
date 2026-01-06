@@ -18,7 +18,7 @@
  * File:   tui/terminal.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-08-03 14:35
+ * Created on 2025-08-24 11:29
  */
 
 //	ignore-no-comments-rule

@@ -18,7 +18,7 @@
  * File:   sak/pattern/dispatcher.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-12-07 18:44
+ * Created on 2025-12-23 19:05
  */
 
 

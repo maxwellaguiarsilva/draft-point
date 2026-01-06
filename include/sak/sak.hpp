@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  *
@@ -19,7 +18,7 @@
  * File:   sak/sak.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-08-05 17:28
+ * Created on 2025-11-16 15:09
  */
 
 

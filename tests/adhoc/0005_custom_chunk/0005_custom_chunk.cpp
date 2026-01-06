@@ -11,14 +11,14 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General License
+ * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   0005_custom_chunk.cpp
+ * File:   adhoc/0005_custom_chunk/0005_custom_chunk.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-05 19:57
+ * Created on 2026-01-05 20:32
  */
 
 

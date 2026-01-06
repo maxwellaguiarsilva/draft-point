@@ -18,7 +18,7 @@
  * File:   tui/renderer.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-03 13:03
+ * Created on 2026-01-03 15:28
  */
 
 

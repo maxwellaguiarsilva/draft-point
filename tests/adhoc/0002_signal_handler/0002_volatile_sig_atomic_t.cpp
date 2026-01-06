@@ -11,14 +11,14 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General License
+ * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   0002_volatile_sig_atomic_t.cpp
+ * File:   adhoc/0002_signal_handler/0002_volatile_sig_atomic_t.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-11-23 12:32:14
+ * Created on 2025-11-23 18:23
  */
 
 

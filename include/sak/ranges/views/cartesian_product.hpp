@@ -18,7 +18,7 @@
  * File:   sak/ranges/views/cartesian_product.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-05 20:53
+ * Created on 2026-01-05 21:09
  */
 
 

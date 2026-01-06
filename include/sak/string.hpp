@@ -18,7 +18,7 @@
  * File:   sak/string.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-12-23 21:31
+ * Created on 2025-12-23 22:21
  */
 
 
