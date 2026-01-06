@@ -1,14 +1,17 @@
 import re
 import sys
 import json
+import file_generator
 
 class formatter:
-    def __init__( self, content: str, mode: str = "fix" ):
+    def __init__( self, content: str, file_path: str = None, mode: str = "fix" ):
         self.content = content
+        self.file_path = file_path
         self.messages = []
         self.mode = mode
 
     def run( self ):
+        self._validate_license( )
         self._consecutive_newlines( )
         self._return_spacing( )
         self._trailing_newlines( )
@@ -33,6 +36,30 @@ class formatter:
                 if old_text != new_text:
                     line_no = self.content.count( '\n', 0, match.start( ) ) + 1
                     self.messages.append( f"Line {line_no}: Violation: {message}" )
+
+    def _validate_license( self ):
+        if not self.file_path:
+            return
+
+        try:
+            #   1. Gera o cabeçalho ideal baseado nos metadados canônicos
+            data = file_generator.get_canonical_metadata( self.file_path )
+            ideal_header = file_generator.render_template( "file-header", data ).strip( )
+            
+            #   2. Extrai o cabeçalho atual (até o primeiro double newline)
+            parts = self.content.split( '\n\n', 1 )
+            actual_header = parts[ 0 ].strip( )
+            
+            if actual_header != ideal_header:
+                if self.mode == "fix":
+                    #   Restaura o cabeçalho mantendo o corpo do arquivo
+                    body = parts[ 1 ] if len( parts ) > 1 else ""
+                    self.content = ideal_header + "\n\n" + body
+                    self.messages.append( f"restored canonical license header for {self.file_path}" )
+                else:
+                    self.messages.append( f"license header mismatch in {self.file_path}" )
+        except Exception as e:
+            self.messages.append( f"license validation skipped: {e}" )
 
     def _consecutive_newlines( self ):
         self._apply( 
@@ -104,11 +131,11 @@ if __name__ == "__main__":
                 violations = verify_spacing( content )
                 print( json.dumps( violations ) )
             elif command == "--verify-rules":
-                fmt = formatter( content )
+                fmt = formatter( content, file_path = file_path )
                 violations = fmt.verify( )
                 print( json.dumps( violations ) )
             elif command == "--fix":
-                fmt = formatter( content )
+                fmt = formatter( content, file_path = file_path )
                 new_content = fmt.run( )
                 result = {
                     "content": new_content,

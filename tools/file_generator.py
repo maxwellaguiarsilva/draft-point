@@ -8,6 +8,62 @@ import time
 import re
 import json
 
+def strip_project_prefix( path ):
+    """Remove prefixos de diretório para exibição limpa no cabeçalho."""
+    prefixes = [ "include/", "source/", "tests/" ]
+    for p in prefixes:
+        if path.startswith( p ):
+            return path[ len( p ) : ]
+    return path
+
+def fetch_git_first_commit( file_path ):
+    """Recupera data, nome e email do primeiro commit de um arquivo via Git."""
+    if not os.path.exists( file_path ):
+        return None
+    try:
+        #   Formato: YYYY-MM-DD HH:MM|Nome|Email
+        cmd = [
+            "git", "log", "--follow", "--reverse", 
+            "--date=format:%Y-%m-%d %H:%M", 
+            "--format=%ad|%an|%ae", "--", file_path
+        ]
+        result = subprocess.run( cmd, capture_output=True, text=True, check=True )
+        if not result.stdout.strip( ):
+            return None
+        first_line = result.stdout.splitlines( )[ 0 ]
+        dt, name, email = first_line.split( '|' )
+        return {
+            "year": dt.split( '-' )[ 0 ],
+            "datetime": dt,
+            "name": name,
+            "email": email
+        }
+    except Exception:
+        return None
+
+def get_canonical_metadata( full_relative_path ):
+    """Gera o conjunto de metadados oficial para um arquivo (existente ou novo)."""
+    canonical_path = strip_project_prefix( full_relative_path )
+    git_info = fetch_git_first_commit( full_relative_path )
+    
+    if git_info:
+        return {
+             "num_year": git_info[ "year" ]
+            ,"des_full_name": git_info[ "name" ]
+            ,"des_email": git_info[ "email" ]
+            ,"des_formatted_datetime": git_info[ "datetime" ]
+            ,"des_file_path": canonical_path
+        }
+    
+    #   Fallback para arquivos novos (ainda não commitados)
+    return {
+         "num_year": datetime.datetime.now( ).strftime( "%Y" )
+        ,"des_full_name": get_git_config_value( "user.name" )
+        ,"des_email": get_git_config_value( "user.email" )
+        ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
+        ,"des_file_path": canonical_path
+    }
+
 def get_git_config_value( configuration_name ):
     try:
         command = [ "git", "config", "--global", configuration_name ]
@@ -36,30 +92,29 @@ def create_class( class_hierarchy, include_list=[], using_list=[], create_header
     message = ""
     hierarchy_list = re.split( r"[/:\\.]+", class_hierarchy )
 
-    data = {
-         "num_year": datetime.datetime.now( ).strftime( "%Y" )
-        ,"des_full_name": get_git_config_value( "user.name" )
-        ,"des_email": get_git_config_value( "user.email" )
-        ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
-        ,"des_file_path": "/".join( hierarchy_list ) + ".hpp"
-        ,"class_name": hierarchy_list[-1]
+    file_path_hpp = f"include/{ '/'.join( hierarchy_list ) }.hpp"
+    data = get_canonical_metadata( file_path_hpp )
+    data.update( {
+         "class_name": hierarchy_list[-1]
         ,"namespace_list": hierarchy_list[:-1]
         ,"include_list": include_list
         ,"using_list": using_list
         ,"header_guard": f"header_guard_{ str( time.time_ns( ) )[-9:] }"
-    }
+    } )
 
     content_hpp = render_template( "class-hpp", data )
-    file_path_hpp = f"include/{data['des_file_path']}"
     message += write_file( file_path_hpp, content_hpp )
 
     if not create_header_only:
+        file_path_cpp = f"source/{ '/'.join( hierarchy_list ) }.cpp"
+        data = get_canonical_metadata( file_path_cpp )
         data.update( {
-             "include_list": [ data[ "des_file_path" ] ]
-            ,"des_file_path": "/".join( hierarchy_list ) + ".cpp"
+             "include_list": [ strip_project_prefix( file_path_hpp ) ]
+            ,"class_name": hierarchy_list[-1]
+            ,"namespace_list": hierarchy_list[:-1]
+            ,"using_list": using_list
         } )
         content_cpp = render_template( "class-cpp", data )
-        file_path_cpp = f"source/{data['des_file_path']}"
         message += write_file( file_path_cpp, content_cpp )
 
     return message
@@ -96,15 +151,11 @@ def create_test( hierarchy, flg_adhoc=False, include_list=[] ):
             file_path = f"tests/{filename}"
         display_hierarchy = hierarchy
 
-    data = {
-         "num_year": datetime.datetime.now( ).strftime( "%Y" )
-        ,"des_full_name": get_git_config_value( "user.name" )
-        ,"des_email": get_git_config_value( "user.email" )
-        ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
-        ,"des_file_path": file_path
-        ,"hierarchy": display_hierarchy
+    data = get_canonical_metadata( file_path )
+    data.update( {
+         "hierarchy": display_hierarchy
         ,"include_list": include_list
-    }
+    } )
 
     content_test = render_template( "test-cpp", data )
     message += write_file( file_path, content_test )
