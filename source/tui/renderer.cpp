@@ -124,7 +124,7 @@ auto renderer::refresh( ) -> void
 
 auto renderer::set_color( const uint8_t color ) noexcept -> void { m_color = color; }
 
-auto renderer::draw( const line& a_line ) -> void
+auto renderer::draw( const line& a_line ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	point difference = ( a_line.end - a_line.start ).map( abs );
@@ -152,7 +152,7 @@ auto renderer::draw( const line& a_line ) -> void
 	}
 }
 
-auto renderer::draw( const rectangle& a_rectangle, bool fill ) -> void
+auto renderer::draw( const rectangle& a_rectangle, bool fill ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	if( fill )
@@ -181,11 +181,7 @@ auto renderer::draw( const point& pixel ) noexcept -> void
 
 auto renderer::index_at( const point& pixel ) const noexcept -> size_t { return ( pixel[ 1 ] - 1 ) * m_screen_size[ 0 ] + ( pixel[ 0 ] - 1 ); }
 
-auto renderer::plot_unsafe( const point& pixel ) noexcept -> void
-{
-	if( m_screen_bounds.contains( pixel ) )
-		m_back[ index_at( pixel ) ] = m_color;
-}
+auto renderer::plot_unsafe( const point& pixel ) noexcept -> void { if( m_screen_bounds.contains( pixel ) ) m_back[ index_at( pixel ) ] = m_color; }
 
 auto renderer::on_resize( const point& size ) -> void
 {

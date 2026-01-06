@@ -33,17 +33,13 @@
 #include <cstdint>
 #include <cstddef>
 #include <mutex>
+#include <memory>
 
 
 namespace tui {
 
 
-using	::std::vector;
-using	::std::uint8_t;
-using	::std::size_t;
-using	::std::mutex;
-using	::std::lock_guard;
-using	::std::shared_ptr;
+__using( ::std::, lock_guard, mutex, shared_ptr, size_t, uint8_t, vector )
 
 
 class terminal;
@@ -61,8 +57,8 @@ public:
 	void refresh( );
 	void set_color( const uint8_t color ) noexcept;
 	void draw( const point& data ) noexcept;
-	void draw( const line& data );
-	void draw( const rectangle& data, bool fill = true );
+	void draw( const line& data ) noexcept;
+	void draw( const rectangle& data, bool fill = true ) noexcept;
 
 private:
 	struct terminal_listener;
