@@ -89,7 +89,7 @@ public:
 	}
 	
 	template< typename t_method, typename... t_call_args >
-	result operator () (
+	result operator ( ) (
 		 t_method member_function_pointer
 		,t_call_args&&... arguments
 	)

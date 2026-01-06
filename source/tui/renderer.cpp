@@ -29,12 +29,14 @@
 #include <sak/using.hpp>
 #include <sak/math/math.hpp>
 #include <sak/ranges/chunk.hpp>
+#include <sak/ranges/views/cartesian_product.hpp>
 
 
 namespace tui {
 
 
-__using( ::std::, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, ranges::fill )
+__using( ::std::, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, ranges::fill, views::iota )
+__using( ::sak::ranges::views::, cartesian_product )
 __using( ::sak::math, ::abs, ::sign )
 __using( ::sak::ranges::, chunk )
 __using( ::tui::, line, point, rectangle )
@@ -124,6 +126,7 @@ auto renderer::set_color( const uint8_t color ) noexcept -> void { m_color = col
 
 auto renderer::draw( const line& a_line ) -> void
 {
+	auto lock = lock_guard( m_mutex );
 	point difference = ( a_line.end - a_line.start ).map( abs );
 	point step = ( a_line.end - a_line.start ).map( sign );
 
@@ -132,7 +135,7 @@ auto renderer::draw( const line& a_line ) -> void
 
 	while( true )
 	{
-		draw( current );
+		plot_unsafe( current );
 		if( current == a_line.end ) break;
 
 		int error_doubled = 2 * error;
@@ -151,21 +154,21 @@ auto renderer::draw( const line& a_line ) -> void
 
 auto renderer::draw( const rectangle& a_rectangle, bool fill ) -> void
 {
+	auto lock = lock_guard( m_mutex );
 	if( fill )
-		for( int row = a_rectangle.start[ 1 ]; row <= a_rectangle.end[ 1 ]; ++row )
-			for( int column = a_rectangle.start[ 0 ]; column <= a_rectangle.end[ 0 ]; ++column )
-				draw( point{ column, row } );
+		for( auto const [ column, row ] : cartesian_product( iota( a_rectangle.start[ 0 ], a_rectangle.end[ 0 ] + 1 ), iota( a_rectangle.start[ 1 ], a_rectangle.end[ 1 ] + 1 ) ) )
+			plot_unsafe( point{ column, row } );
 	else
 	{
 		for( int column = a_rectangle.start[ 0 ]; column <= a_rectangle.end[ 0 ]; ++column )
 		{
-			draw( point{ column, a_rectangle.start[ 1 ] } );
-			draw( point{ column, a_rectangle.end[ 1 ] } );
+			plot_unsafe( point{ column, a_rectangle.start[ 1 ] } );
+			plot_unsafe( point{ column, a_rectangle.end[ 1 ] } );
 		}
 		for( int row = a_rectangle.start[ 1 ]; row <= a_rectangle.end[ 1 ]; ++row )
 		{
-			draw( point{ a_rectangle.start[ 0 ], row } );
-			draw( point{ a_rectangle.end[ 0 ], row } );
+			plot_unsafe( point{ a_rectangle.start[ 0 ], row } );
+			plot_unsafe( point{ a_rectangle.end[ 0 ], row } );
 		}
 	}
 }
@@ -173,10 +176,15 @@ auto renderer::draw( const rectangle& a_rectangle, bool fill ) -> void
 auto renderer::draw( const point& pixel ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
+	plot_unsafe( pixel );
+}
 
-	if( not m_screen_bounds.contains( pixel ) ) return;
+auto renderer::index_at( const point& pixel ) const noexcept -> size_t { return ( pixel[ 1 ] - 1 ) * m_screen_size[ 0 ] + ( pixel[ 0 ] - 1 ); }
 
-	m_back[ ( pixel[ 1 ] - 1 ) * m_screen_size[ 0 ] + ( pixel[ 0 ] - 1 ) ] = m_color;
+auto renderer::plot_unsafe( const point& pixel ) noexcept -> void
+{
+	if( m_screen_bounds.contains( pixel ) )
+		m_back[ index_at( pixel ) ] = m_color;
 }
 
 auto renderer::on_resize( const point& size ) -> void

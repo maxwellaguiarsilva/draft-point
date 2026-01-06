@@ -31,6 +31,7 @@
 #include <tui/geometry.hpp>
 #include <vector>
 #include <cstdint>
+#include <cstddef>
 #include <mutex>
 
 
@@ -39,6 +40,7 @@ namespace tui {
 
 using	::std::vector;
 using	::std::uint8_t;
+using	::std::size_t;
 using	::std::mutex;
 using	::std::lock_guard;
 using	::std::shared_ptr;
@@ -66,6 +68,8 @@ private:
 	struct terminal_listener;
 
 	void on_resize( const point& size );
+	auto index_at( const point& pixel ) const noexcept -> size_t;
+	void plot_unsafe( const point& pixel ) noexcept;
 
 	terminal&	m_terminal;
 	buffer		m_front;
