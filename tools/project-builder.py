@@ -33,6 +33,7 @@ import sys
 import threading
 import subprocess
 import json
+import argparse
 
 
 def get_cpu_count( ):
@@ -520,7 +521,7 @@ class project:
             
         return " ".join( params )
 
-    def check_code( self ):
+    def run_cppcheck( self ):
         if not self.config['quality_control']['static_analysis']['enabled']:
             return
 
@@ -542,7 +543,7 @@ class project:
             raise Exception( "cppcheck failed for the project" )
         print( "Static analysis completed successfully." )
 
-    def fix_format( self ):
+    def format_code( self ):
         line_size = 50
         strong_line = "=" * line_size
         weak_line = "-" * line_size
@@ -567,7 +568,7 @@ class project:
         for file_path in files_to_check:
             try:
                 result_process = subprocess.run(
-                    [ "python3", "tools/ensure_code_formatting.py", "--fix", file_path ],
+                    [ "python3", "tools/code_verifier.py", "--fix", file_path ],
                     capture_output=True, text=True, check=True
                 )
                 fmt_result = json.loads( result_process.stdout )
@@ -594,7 +595,7 @@ class project:
             items.append( f"\"{key}\": {{ \"cpp\": {cpp_json}, \"hpp\": {hpp_json} }}" )
         return "{\n " + "\n ,".join( items ) + "\n}"
 
-    def build( self ):
+    def run_build( self ):
         start_time = datetime.datetime.now( )
         line_size = 50
         strong_line = "=" * line_size
@@ -602,7 +603,7 @@ class project:
 
         print( f"Build started at: {start_time.strftime( '%Y-%m-%d %H:%M:%S' )}" )
 
-        self.check_code( )
+        self.run_cppcheck( )
 
         # 1. Collect all unique CPP files to build
         all_cpps = { }
@@ -643,15 +644,22 @@ class project:
         print( f"\nBuild ended at: {end_time.strftime( '%Y-%m-%d %H:%M:%S' )}" )
         print( f"Elapsed time: {elapsed_time}" )
 
+    def analyze( self ):
+        self.format_code( )
+        self.run_cppcheck( )
+
 
 if __name__ == "__main__":
     try:
+        parser = argparse.ArgumentParser( description = "Project builder" )
+        parser.add_argument( "--analyze", action = "store_true", help = "Run static analysis (cppcheck) and formatting fixes" )
+        args = parser.parse_args( )
+
         current_project = project( { } )
-        if "--check" in sys.argv:
-            current_project.fix_format( )
-            current_project.check_code( )
+        if args.analyze:
+            current_project.analyze( )
         else:
-            current_project.build( )
+            current_project.run_build( )
     except Exception as e:
         print( f"\nError: {e}", file=sys.stderr )
         sys.exit( 1 )

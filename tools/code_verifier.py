@@ -4,11 +4,11 @@ import json
 import file_generator
 
 class formatter:
-    def __init__( self, content: str, file_path: str = None, mode: str = "fix" ):
+    def __init__( self, content: str, file_path: str = None, flg_fix: bool = True ):
         self.content = content
         self.file_path = file_path
         self.messages = []
-        self.mode = mode
+        self.flg_fix = flg_fix
 
     def run( self ):
         self._validate_license( )
@@ -19,12 +19,12 @@ class formatter:
         return self.content
 
     def verify( self ):
-        self.mode = "verify"
+        self.flg_fix = False
         self.run( )
         return self.messages
 
     def _apply( self, pattern: str, replacement: str, message: str, flags: int = 0 ):
-        if self.mode == "fix":
+        if self.flg_fix:
             new_content = re.sub( pattern, replacement, self.content, flags = flags )
             if new_content != self.content:
                 self.content = new_content
@@ -35,7 +35,7 @@ class formatter:
                 new_text = re.sub( pattern, replacement, old_text, flags = flags )
                 if old_text != new_text:
                     line_no = self.content.count( '\n', 0, match.start( ) ) + 1
-                    self.messages.append( f"Line {line_no}: Violation: {message}" )
+                    self.messages.append( ( line_no, message ) )
 
     def _validate_license( self ):
         if not self.file_path:
@@ -51,15 +51,15 @@ class formatter:
             actual_header = parts[ 0 ].strip( )
             
             if actual_header != ideal_header:
-                if self.mode == "fix":
+                if self.flg_fix:
                     #   Restaura o cabeçalho mantendo o corpo do arquivo
                     body = parts[ 1 ] if len( parts ) > 1 else ""
                     self.content = ideal_header + "\n\n" + body
                     self.messages.append( f"restored canonical license header for {self.file_path}" )
                 else:
-                    self.messages.append( f"license header mismatch in {self.file_path}" )
+                    self.messages.append( ( 1, f"license header mismatch in {self.file_path}" ) )
         except Exception as e:
-            self.messages.append( f"license validation skipped: {e}" )
+            self.messages.append( ( 0, f"license validation skipped: {e}" ) )
 
     def _consecutive_newlines( self ):
         self._apply( 
@@ -78,9 +78,12 @@ class formatter:
     def _trailing_newlines( self ):
         new_content = self.content.rstrip( ) + "\n\n\n"
         if new_content != self.content:
-            if self.mode == "fix":
+            if self.flg_fix:
                 self.content = new_content
-            self.messages.append( "file must end with exactly 2 empty lines and no trailing whitespace" )
+                self.messages.append( "file must end with exactly 2 empty lines and no trailing whitespace" )
+            else:
+                line_no = self.content.count( '\n' ) + 1
+                self.messages.append( ( line_no, "file must end with exactly 2 empty lines and no trailing whitespace" ) )
 
     def _include_spacing( self ):
         self._apply( 
@@ -114,7 +117,7 @@ def verify_spacing( content: str ) -> list[ tuple[ int, str ] ]:
             continue
 
         if p1.search( line ) or p2.search( line ) or p3.search( line ) or p4.search( line ):
-            violations.append( ( i, stripped ) )
+            violations.append( ( i, f"spacing violation in: {stripped}" ) )
     
     return violations
 
@@ -127,10 +130,10 @@ if __name__ == "__main__":
             with open( file_path, 'r' ) as f:
                 content = f.read( )
             
-            if command == "--verify":
+            if command == "--spacing":
                 violations = verify_spacing( content )
                 print( json.dumps( violations ) )
-            elif command == "--verify-rules":
+            elif command == "--formatting":
                 fmt = formatter( content, file_path = file_path )
                 violations = fmt.verify( )
                 print( json.dumps( violations ) )

@@ -12,6 +12,23 @@ from fastmcp import FastMCP
 mcp = FastMCP( name="project-tools-mcp" )
 
 
+def _call( args: list[ str ] ) -> subprocess.CompletedProcess:
+    """Internal helper to run subprocess with consistent parameters."""
+    return subprocess.run( args, capture_output=True, text=True, check=True )
+
+
+def _run_and_format( args: list[ str ], success_label: str = None, error_label: str = "Error" ) -> str:
+    """Runs a command and formats the output for MCP return."""
+    try:
+        process = _call( args )
+        return f"{success_label}\n{process.stdout}" if success_label else process.stdout
+    except subprocess.CalledProcessError as e:
+        details = f"{e.stdout}\n{e.stderr}".strip( )
+        return f"{error_label}\n{details}" if success_label else f"{error_label}: {details}"
+    except Exception as e:
+        return f"{error_label}: {str( e )}"
+
+
 @mcp.tool( )
 def	create_class(
          class_hierarchy : str
@@ -31,14 +48,10 @@ def	create_class(
         "using_list": using_list,
         "create_header_only": create_header_only
     }
-    try:
-        process = subprocess.run( 
-            [ "python3", "tools/file_generator.py", "create_class", json.dumps( args ) ], 
-            capture_output=True, text=True, check=True 
-        )
-        return process.stdout
-    except subprocess.CalledProcessError as e:
-        return f"Error creating class: {e.stderr}"
+    return _run_and_format( 
+        [ "python3", "tools/file_generator.py", "create_class", json.dumps( args ) ], 
+        error_label="Error creating class" 
+    )
 
 
 @mcp.tool( )
@@ -56,42 +69,54 @@ def create_test(
         "flg_adhoc": flg_adhoc,
         "include_list": include_list
     }
-    try:
-        process = subprocess.run( 
-            [ "python3", "tools/file_generator.py", "create_test", json.dumps( args ) ], 
-            capture_output=True, text=True, check=True 
-        )
-        return process.stdout
-    except subprocess.CalledProcessError as e:
-        return f"Error creating test: {e.stderr}"
+    return _run_and_format( 
+        [ "python3", "tools/file_generator.py", "create_test", json.dumps( args ) ], 
+        error_label="Error creating test" 
+    )
 
 
 @mcp.tool( )
 def compile( ) -> str:
     """Compiles the project using project-builder.py. This command takes no arguments."""
-    try:
-        process = subprocess.run( [ "python3", "tools/project-builder.py" ], capture_output=True, text=True )
-        if process.returncode == 0:
-            return  f"Build successful:\n{process.stdout}"
-        else:
-            return  f"Build failed:\n{process.stdout}\n{process.stderr}"
-    except Exception as e:
-        return  f"An error occurred during build: {str( e )}"
+    return _run_and_format( 
+        [ "python3", "tools/project-builder.py" ], 
+        success_label="Build successful:", 
+        error_label="Build failed:" 
+    )
 
 
 @mcp.tool( )
-def check( ) -> str:
+def analyze( ) -> str:
     """Runs static analysis (cppcheck) and automatically fixes formatting rules.
-    Beyond checking, it also applies fixes for the rules verified by 'verify_rules' (newlines, return spacing, etc.) on all .cpp and .hpp files.
+    Beyond checking, it also applies fixes for the rules verified by 'verify_formatting' (newlines, return spacing, etc.) on all .cpp and .hpp files.
     This command takes no arguments."""
-    try:
-        process = subprocess.run( [ "python3", "tools/project-builder.py", "--check" ], capture_output=True, text=True )
-        if process.returncode == 0:
-            return  f"Static analysis successful:\n{process.stdout}"
-        else:
-            return  f"Static analysis failed:\n{process.stdout}\n{process.stderr}"
-    except Exception as e:
-        return  f"An error occurred during static analysis: {str( e )}"
+    return _run_and_format( 
+        [ "python3", "tools/project-builder.py", "--analyze" ], 
+        success_label="Static analysis successful:", 
+        error_label="Static analysis failed:" 
+    )
+
+
+def _verify_loop( files: list[ str ], command_flag: str, label: str ) -> str:
+    """Internal helper to iterate over files and collect violations."""
+    if isinstance( files, str ):
+        files = [ files ]
+
+    results = [ ]
+    for file_path in files:
+        try:
+            process = _call( [ "python3", "tools/code_verifier.py", command_flag, file_path ] )
+            violations = json.loads( process.stdout )
+            
+            if violations:
+                message = f"File: {file_path}\n"
+                for line, violation in violations:
+                    message += f"  Line {line}: {violation}\n"
+                results.append( message )
+        except Exception as e:
+            results.append( f"Error verifying {file_path}: {str(e)}" )
+    
+    return "\n".join( results ).strip( ) or f"No {label} violations found in the provided files."
 
 
 @mcp.tool( )
@@ -100,61 +125,15 @@ def verify_spacing( files: list[ str ] ) -> str:
     Returns a consolidated list of violations with line numbers.
     Useful for distinguishing between real violations and LLM false positives.
     """
-    if isinstance( files, str ):
-        files = [ files ]
-
-    results = [ ]
-    for file_path in files:
-        try:
-            process = subprocess.run( 
-                [ "python3", "tools/ensure_code_formatting.py", "--verify", file_path ], 
-                capture_output=True, text=True, check=True 
-            )
-            violations = json.loads( process.stdout )
-            
-            if violations:
-                message = f"File: {file_path}\n"
-                for line_number, line_content in violations:
-                    message += f"  Line {line_number}: {line_content}\n"
-                results.append( message )
-        except Exception as e:
-            results.append( f"Error verifying {file_path}: {str(e)}" )
-    
-    if not results:
-        return "No spacing violations found in the provided files."
-    
-    return "\n".join( results ).strip( )
+    return _verify_loop( files, "--spacing", "spacing" )
     
 
 @mcp.tool( )
-def verify_rules( files: list[ str ] ) -> str:
+def verify_formatting( files: list[ str ] ) -> str:
     """Verifies if a list of files follows the project's formatting rules (newlines, return spacing, etc.).
     Returns a consolidated list of violations.
     """
-    if isinstance( files, str ):
-        files = [ files ]
-
-    results = [ ]
-    for file_path in files:
-        try:
-            process = subprocess.run( 
-                [ "python3", "tools/ensure_code_formatting.py", "--verify-rules", file_path ], 
-                capture_output=True, text=True, check=True 
-            )
-            violations = json.loads( process.stdout )
-            
-            if violations:
-                message = f"File: {file_path}\n"
-                for violation in violations:
-                    message += f"  - {violation}\n"
-                results.append( message )
-        except Exception as e:
-            results.append( f"Error verifying {file_path}: {str(e)}" )
-    
-    if not results:
-        return "No rule violations found in the provided files."
-    
-    return "\n".join( results ).strip( )
+    return _verify_loop( files, "--formatting", "formatting" )
     
 
 @mcp.tool( )
@@ -163,14 +142,10 @@ def adhoc_tool( params: dict ) -> str:
     This tool is used for prototyping new functionalities.
     The 'params' dictionary is passed to the script.
     """
-    try:
-        process = subprocess.run( 
-            [ "python3", "tools/adhoc_tool.py", json.dumps( params ) ], 
-            capture_output=True, text=True, check=True 
-        )
-        return process.stdout
-    except subprocess.CalledProcessError as e:
-        return f"Error executing adhoc tool: {e.stderr or e.stdout}"
+    return _run_and_format( 
+        [ "python3", "tools/adhoc_tool.py", json.dumps( params ) ], 
+        error_label="Error executing adhoc tool" 
+    )
 
 
 if __name__ == "__main__":

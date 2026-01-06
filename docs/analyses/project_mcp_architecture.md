@@ -6,8 +6,8 @@ Este documento descreve a arquitetura técnica, os componentes e os fluxos de tr
 
 O sistema adota um padrão de **Dispatcher-Script**, onde as responsabilidades são divididas para maximizar a agilidade no desenvolvimento:
 
-*   **Dispatcher (Servidor MCP):** Localizado em `tools/project-tools-mcp`, utiliza a biblioteca `FastMCP`. Sua única função é expor a interface das ferramentas e despachar a execução para scripts externos via `subprocess.run`.
-*   **Lógica (Scripts de Ferramentas):** Scripts como `file_generator.py`, `template.py`, `ensure_code_formatting.py` e `project-builder.py` contêm a inteligência real.
+*   **Dispatcher (Servidor MCP):** Localizado em `tools/project-tools-mcp`, utiliza a biblioteca `FastMCP`. Sua única função é expor a interface das ferramentas e despachar a execução para scripts externos via `subprocess.run`. Utiliza helpers internos (`_call`, `_run_and_format`, `_verify_loop`) para padronizar o tratamento de erros e a formatação das saídas.
+*   **Lógica (Scripts de Ferramentas):** Scripts como `file_generator.py`, `template.py`, `code_verifier.py` e `project-builder.py` contêm a inteligência real.
 
 ### Vantagens do Modelo
 1.  **Hot-Reloading:** Alterações na lógica dos scripts (Python) são aplicadas instantaneamente na próxima execução da ferramenta, sem necessidade de reiniciar o servidor MCP.
@@ -34,23 +34,25 @@ Responsável pela criação de boilerplate seguindo os padrões do projeto.
     *   **Adhoc:** Localizados em `tests/adhoc/NNNN_name/`. O sistema auto-incrementa o contador `NNNN`.
     *   **Estruturados:** Seguem a hierarquia de `source/` ou `include/`, mapeando para `tests/path/test_path_name.cpp`.
 
-### 2.3. O Formatador e Verificador (`ensure_code_formatting.py`)
-Garante a aderência estrita às regras de estilo (Hard Rules).
+### 2.3. O Verificador de Código (`code_verifier.py`)
+Garante a aderência estrita às regras de estilo (Hard Rules) e fornece feedback estruturado.
 
+*   **Controle de Ajuste:** Utiliza um flag booleano `flg_fix` na classe `formatter` para alternar entre modo de correção e modo de verificação.
+*   **Retorno Estruturado:** Todas as funções de verificação retornam JSON no formato `[[linha, mensagem], ...]`, permitindo que o Dispatcher MCP formate a saída de maneira uniforme.
 *   **Regras Implementadas:**
     1.  **Licença:** Restaura ou valida o cabeçalho de licença baseado nos metadados canônicos.
-    2.  **Espaçamento de `return`:** Exige exatamente um espaço ou tab (combinando com a indentação) após a palavra `return`.
+    2.  **Espaçamento de `return`:** Exige exatamente um espaço ou tab após a palavra `return`.
     3.  **Newlines Consecutivas:** Máximo de 2 linhas vazias consecutivas permitidas.
-    4.  **Final de Arquivo:** Exige exatamente 2 linhas vazias ao final, sem espaços residuais.
+    4.  **Final de Arquivo:** Exige exatamente 2 linhas vazias ao final.
     5.  **Includes:** Proíbe linhas vazias entre diretivas `#include`.
     6.  **Espaçamento Interno:** Verificação rigorosa de `( space )` e `[ space ]`.
 
-### 2.4. O Orquestrador de Build e Qualidade (`project-builder.py`)
-Centraliza as operações de compilação, análise estática e correção de estilo.
+### 2.4. O Orquestrador de Build e Análise (`project-builder.py`)
+Centraliza as operações de compilação, análise estática e formatação de código.
 
 *   **Gestão de Dependências:** Analisa recursivamente os `#include` para determinar a necessidade de recompilação (incremental build).
-*   **Paralelismo:** Utiliza `ThreadPoolExecutor` para compilar e linkar múltiplos alvos simultaneamente, otimizando o uso dos cores da CPU.
-*   **Interface Unificada:** Atua como o ponto de entrada principal para as ferramentas `compile` e `check` do MCP.
+*   **Paralelismo:** Utiliza `ThreadPoolExecutor` para compilar e linkar múltiplos alvos simultaneamente.
+*   **Fluxo de Análise (`analyze`):** Coordena a execução de `format_code()` (via `code_verifier.py`) e `run_cppcheck()`.
 
 ---
 
@@ -66,17 +68,16 @@ Centraliza as operações de compilação, análise estática e correção de es
 Para evoluir o sistema sem alterar o servidor MCP imediatamente:
 1.  O agente modifica `tools/adhoc_tool.py` com a nova lógica experimental.
 2.  O agente executa a ferramenta `adhoc_tool(params={...})`.
-3.  Após validação, a lógica é migrada para um script definitivo e registrada no servidor MCP (exigindo reinicialização do servidor neste passo final).
 
-### 3.3. Verificação de Integridade e Estilo (`check`)
-A ferramenta `check` do MCP é um atalho para `project-builder.py --check`. Este fluxo garante a "Sanidade Total" antes de um commit:
-1.  **Correção de Estilo (`fix_format`):** Invoca `ensure_code_formatting.py --fix` em todos os arquivos fonte. Se violações forem encontradas, o script as corrige automaticamente e as reporta.
-2.  **Análise Estática (`check_code`):** Executa o `cppcheck` com nível de rigor exaustivo. Qualquer aviso é tratado como erro (exit code 1).
+### 3.3. Análise de Integridade e Estilo (`analyze`)
+A ferramenta `analyze` do MCP é um atalho para `project-builder.py --analyze`. Este fluxo garante a conformidade total:
+1.  **Formatação (`format_code`):** Invoca `code_verifier.py --fix` em todos os arquivos fonte.
+2.  **Análise Estática (`run_cppcheck`):** Executa o `cppcheck` com nível de rigor exaustivo.
 
 ### 3.4. Compilação e Build (`compile`)
-A ferramenta `compile` do MCP invoca `project-builder.py` sem argumentos. O fluxo é otimizado para velocidade:
-1.  **Pré-verificação:** Executa a análise estática (`cppcheck`). Diferente do fluxo `check`, este passo **não** executa o formatador automático para evitar efeitos colaterais inesperados durante o ciclo de desenvolvimento rápido.
-2.  **Compilação Incremental:** Compila apenas os arquivos `.cpp` cujas dependências (arquivos `.hpp`) ou o próprio conteúdo foram alterados desde a última build.
+A ferramenta `compile` do MCP invoca o método `run_build()` do orquestrador:
+1.  **Pré-verificação:** Executa a análise lógica (`run_cppcheck`).
+2.  **Compilação Incremental:** Compila apenas os arquivos alterados ou cujas dependências mudaram.
 3.  **Linkagem Paralela:** Gera os binários finais no diretório `dist/`.
 
 ---
@@ -88,14 +89,14 @@ A ferramenta `compile` do MCP invoca `project-builder.py` sem argumentos. O flux
 | `create_class` | `file_generator.py` | Cria par `.hpp`/`.cpp` com namespaces e metadados. |
 | `create_test` | `file_generator.py` | Cria testes adhoc ou estruturados. |
 | `compile` | `project-builder.py` | Realiza análise estática e compilação incremental paralela. |
-| `check` | `project-builder.py --check` | Aplica correções de estilo automáticas e análise estática exaustiva. |
-| `verify_spacing` | `ensure_code_formatting.py` | Verifica especificamente a regra `( )` e `[ ]`. |
-| `verify_rules` | `ensure_code_formatting.py` | Reporta violações de regras (return, newlines, etc). |
+| `analyze` | `project-builder.py --analyze` | Aplica formatação automática e análise estática exaustiva. |
+| `verify_spacing` | `code_verifier.py --spacing` | Verifica especificamente a regra `( )` e `[ ]`. |
+| `verify_formatting` | `code_verifier.py --formatting` | Reporta violações de estilo (return, licença, newlines). |
 | `adhoc_tool` | `adhoc_tool.py` | Executa lógica experimental. |
 
 ---
 
 ## 5. Notas Técnicas de Manutenção
-*   **Adição de Templates:** Novos arquivos `.txt` em `docs/templates/` ficam disponíveis automaticamente para o `template.py`.
-*   **Novas Ferramentas:** Devem ser decoradas com `@mcp.tool()` em `tools/project-tools-mcp`. Lembre-se que o cliente (Gemini CLI) só reconhece novas assinaturas após o reinício do servidor.
-*   **Regras de Estilo:** Qualquer alteração nas regras de C++ deve ser refletida na classe `formatter` em `ensure_code_formatting.py`.
+*   **Dispatcher:** O script `project-tools-mcp` utiliza `_verify_loop` para unificar a apresentação de erros de múltiplos arquivos.
+*   **Regras de Estilo:** Qualquer alteração nas regras de C++ deve ser refletida na classe `formatter` em `code_verifier.py` e, se necessário, na função `verify_spacing`.
+*   **Consistência de Nomes:** Deve-se manter o alinhamento entre o nome da MCP tool, o flag CLI do script e o método interno no orquestrador.
