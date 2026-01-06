@@ -16,7 +16,7 @@ This document outlines the steps for quickly pushing code changes to GitHub with
     ```
 
 3.  **Commit Changes:**
-    Analyze the modifications to determine if they cover distinct topics. Unrelated changes must be committed separately for better clarity and history tracking.
+    Analyze the modifications to determine if they cover distinct topics. Unrelated changes must be committed separately for better clarity and history tracking. **It is strictly forbidden to commit unrelated changes in the same commit.**
     You must choose the commit message according to the information obtained in git diff.
     The agent should not ask for approval for the commit message and should proceed with the commit automatically.
     **Imperative:** If your commit message contains backticks (``` ` ```), you MUST escape them with a backslash (```\```) to avoid command substitution errors.
