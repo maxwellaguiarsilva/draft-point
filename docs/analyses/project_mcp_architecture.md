@@ -1,4 +1,4 @@
-# Arquitetura e Operação do Sistema Project-Tools MCP
+# Arquitetura e Operação do Sistema Project-Mcp-Tools
 
 Este documento descreve a arquitetura técnica, os componentes e os fluxos de trabalho do sistema de ferramentas Model Context Protocol (MCP) do projeto.
 
@@ -6,7 +6,7 @@ Este documento descreve a arquitetura técnica, os componentes e os fluxos de tr
 
 O sistema adota um padrão de **Dispatcher-Script**, onde as responsabilidades são divididas para maximizar a agilidade no desenvolvimento:
 
-*   **Dispatcher (Servidor MCP):** Localizado em `tools/project-tools-mcp`, utiliza a biblioteca `FastMCP`. Sua única função é expor a interface das ferramentas e despachar a execução para scripts externos via `subprocess.run`. Utiliza helpers internos (`_call`, `_run_and_format`, `_verify_loop`) para padronizar o tratamento de erros e a formatação das saídas.
+*   **Dispatcher (Servidor MCP):** Localizado em `tools/project-mcp-tools`, utiliza a biblioteca `FastMCP`. Sua única função é expor a interface das ferramentas e despachar a execução para scripts externos via `subprocess.run`. Utiliza helpers internos (`_call`, `_run_and_format`, `_verify_loop`) para padronizar o tratamento de erros e a formatação das saídas.
 *   **Lógica (Scripts de Ferramentas):** Scripts como `file_generator.py`, `template.py`, `code_verifier.py` e `project-builder.py` contêm a inteligência real.
 
 ### Vantagens do Modelo
@@ -96,6 +96,6 @@ A ferramenta `compile` do MCP invoca o método `run_build()` do orquestrador:
 ---
 
 ## 5. Notas Técnicas de Manutenção
-*   **Dispatcher:** O script `project-tools-mcp` utiliza `_verify_loop` para unificar a apresentação de erros de múltiplos arquivos.
+*   **Dispatcher:** O script `project-mcp-tools` utiliza `_verify_loop` para unificar a apresentação de erros de múltiplos arquivos.
 *   **Regras de Estilo:** Qualquer alteração nas regras de C++ deve ser refletida na classe `formatter` em `code_verifier.py`.
 *   **Consistência de Nomes:** Deve-se manter o alinhamento entre o nome da MCP tool, o flag CLI do script e o método interno no orquestrador.

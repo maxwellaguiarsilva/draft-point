@@ -2,7 +2,7 @@
 
 
 venv_dir="./tools/venv-fast-mcp"
-python_script="./tools/project-tools-mcp"
+python_script="./tools/project-mcp-tools"
 
 #	check if the virtual environment exists
 if [[ ! -d "${venv_dir}" ]];
