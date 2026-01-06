@@ -113,15 +113,15 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( p1[ 0 ] == 5 and p1[ 1 ] == 10, "operator /= failed" );
 		}
 
-		//	test 7: encloses
+		//	test 7: is_inside
 		{
 			const point p1( 10, 10 );
 			const point p2( 5, 5 );
 			const point p3( 15, 15 );
 
-			ensure( p1.encloses( p2 ), "p1 should enclose p2" );
-			ensure( not p1.encloses( p3 ), "p1 should not enclose p3" );
-			ensure( p1.encloses( p1 ), "p1 should enclose itself" );
+			ensure( p2.is_inside( p1 ), "p2 should be inside p1" );
+			ensure( not p3.is_inside( p1 ), "p3 should not be inside p1" );
+			ensure( p1.is_inside( p1 ), "p1 should be inside itself" );
 		}
 
 		//	test 8: get_length

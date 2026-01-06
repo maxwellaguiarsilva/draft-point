@@ -92,9 +92,9 @@ auto game::run( ) -> void
 		}
 
 		m_player.step_move( );
-		if( not position.encloses( bounds_start ) )
+		if( not bounds_start.is_inside( position ) )
 			position += bounds_size;
-		if( not bounds_end.encloses( position ) )
+		if( not position.is_inside( bounds_end ) )
 			position = ( position - bounds_start ) % bounds_size + bounds_start;
 
 		l_renderer.clear( );

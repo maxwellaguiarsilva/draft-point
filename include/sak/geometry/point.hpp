@@ -138,23 +138,19 @@ public:
 		)
 	constexpr point( t_args... a_args )
 		: super_type{ static_cast< t_scalar >( a_args )... }
-	{
-	}
+	{ }
 
-
-	__352612026_operator( + 	,plus		)
-	__352612026_operator( - 	,minus		)
-	__352612026_operator( * 	,multiplies	)
-	__352612026_operator( / 	,divides	)
-	__352612026_operator( % 	,modulus	)
+	__352612026_operator( + ,plus		)
+	__352612026_operator( - ,minus		)
+	__352612026_operator( * ,multiplies	)
+	__352612026_operator( / ,divides	)
+	__352612026_operator( % ,modulus	)
 	
 	template< invocable< t_scalar, t_scalar > t_operation >
 	constexpr auto is_all( const point& other, const t_operation& operation ) const noexcept -> bool
-	{
-		return	all_of( zip( *this, other ), tupled( operation ) );
-	}
+	{ return all_of( zip( *this, other ), tupled( operation ) ); }
 	constexpr auto operator == ( const point& other ) const noexcept -> bool { return is_all( other, equal_to ); }
-	constexpr auto encloses( const point& other ) const noexcept -> bool { return is_all( other, greater_equal ); }
+	constexpr auto is_inside( const point& other ) const noexcept -> bool { return is_all( other, less_equal ); }
 
 	constexpr auto get_length( ) const noexcept -> t_scalar
 	{
@@ -165,7 +161,7 @@ public:
 	template< invocable< t_scalar > t_operation >
 	constexpr auto map( const t_operation& operation ) const noexcept -> point
 	{
-		point result;
+		point	result;
 		transform( *this, result.begin( ), operation );
 		return	result;
 	}

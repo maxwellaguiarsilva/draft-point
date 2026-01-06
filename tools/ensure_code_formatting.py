@@ -66,6 +66,11 @@ class formatter:
 
 def verify_spacing( content: str ) -> list[ tuple[ int, str ] ]:
     violations = [ ]
+    
+    #   ignore everything before the first double newline (the license block)
+    split_index = content.find( '\n\n' )
+    skip_lines = content[ :split_index ].count( '\n' ) + 2 if split_index != -1 else 0
+    
     lines = content.splitlines( )
     
     p1 = re.compile( r'\((?![ \t\n\)])' )
@@ -74,8 +79,15 @@ def verify_spacing( content: str ) -> list[ tuple[ int, str ] ]:
     p4 = re.compile( r'(?<![ \t\n\[])\]' )
     
     for i, line in enumerate( lines, 1 ):
+        if i <= skip_lines:
+            continue
+
+        stripped = line.strip( )
+        if stripped in ( '(', ')', '[', ']' ):
+            continue
+
         if p1.search( line ) or p2.search( line ) or p3.search( line ) or p4.search( line ):
-            violations.append( ( i, line.strip( ) ) )
+            violations.append( ( i, stripped ) )
     
     return violations
 

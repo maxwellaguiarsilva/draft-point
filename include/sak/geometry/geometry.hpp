@@ -52,11 +52,11 @@ struct geometry
 		constexpr auto get_size( ) const noexcept -> point { return end - start; }
 		constexpr auto contains( const point& point ) const noexcept -> bool
 		{
-			return	point.encloses( start ) and end.encloses( point );
+			return	start.is_inside( point ) and point.is_inside( end );
 		}
-		constexpr auto encloses( const rectangle& other ) const noexcept -> bool
+		constexpr auto is_inside( const rectangle& other ) const noexcept -> bool
 		{
-			return	other.start.encloses( start ) and end.encloses( other.end );
+			return	other.start.is_inside( start ) and end.is_inside( other.end );
 		}
 	};
 

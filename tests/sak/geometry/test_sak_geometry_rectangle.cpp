@@ -72,18 +72,18 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( not r.contains( { 0, 5 } ), "should not contain point outside ( right )" );
 		}
 
-		//	test 3: encloses rectangle
+		//	test 3: is_inside rectangle
 		{
 			const rectangle outer{ { 1, 1 }, { 10, 10 } };
 			const rectangle inner{ { 2, 2 }, { 9, 9 } };
 			const rectangle edge{ { 1, 1 }, { 5, 5 } };
 			const rectangle outside{ { 0, 0 }, { 5, 5 } };
 
-			ensure( outer.encloses( inner ), "outer should enclose inner" );
-			ensure( outer.encloses( edge ), "outer should enclose edge" );
-			ensure( outer.encloses( outer ), "outer should enclose itself" );
-			ensure( not outer.encloses( outside ), "outer should not enclose outside rectangle" );
-			ensure( not inner.encloses( outer ), "inner should not enclose outer" );
+			ensure( inner.is_inside( outer ), "inner should be inside outer" );
+			ensure( edge.is_inside( outer ), "edge should be inside outer" );
+			ensure( outer.is_inside( outer ), "outer should be inside itself" );
+			ensure( not outside.is_inside( outer ), "outside rectangle should not be inside outer" );
+			ensure( not outer.is_inside( inner ), "outer should not be inside inner" );
 		}
 
 		println( "all tests for sak/geometry/rectangle passed!" );
