@@ -7,7 +7,7 @@ def verify_rules_batch( files ):
     for file_path in files:
         try:
             process = subprocess.run( 
-                [ "python3", "tools/ensure_code_formatting.py", "--verify-rules", file_path ], 
+                [ "python3", "tools/code_verifier.py", "--formatting", file_path ], 
                 capture_output=True, text=True, check=True 
             )
             violations = json.loads( process.stdout )

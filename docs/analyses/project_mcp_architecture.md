@@ -97,5 +97,5 @@ A ferramenta `compile` do MCP invoca o método `run_build()` do orquestrador:
 
 ## 5. Notas Técnicas de Manutenção
 *   **Dispatcher:** O script `project-tools-mcp` utiliza `_verify_loop` para unificar a apresentação de erros de múltiplos arquivos.
-*   **Regras de Estilo:** Qualquer alteração nas regras de C++ deve ser refletida na classe `formatter` em `code_verifier.py` e, se necessário, na função `verify_spacing`.
+*   **Regras de Estilo:** Qualquer alteração nas regras de C++ deve ser refletida na classe `formatter` em `code_verifier.py`.
 *   **Consistência de Nomes:** Deve-se manter o alinhamento entre o nome da MCP tool, o flag CLI do script e o método interno no orquestrador.
