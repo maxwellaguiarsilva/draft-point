@@ -44,23 +44,27 @@ using	point_3d	= 	point< int, 3 >;
 //	--------------------------------------------------
 
 
-template< typename t_point >
-	requires( is_point< t_point > and numeric_limits< typename t_point::value_type >::is_integer )
-void step( t_point& a_point )
+struct __step
 {
-	__using( ::std::views::, transform )
-	__using( ::sak::math::, square, sum, square_root )
-	__using( ::std::, round, max )
-	using	t_scalar	= 	typename t_point::value_type;
+	template< typename t_point >
+		requires( is_point< t_point > and numeric_limits< typename t_point::value_type >::is_integer )
+	constexpr void operator ( ) ( t_point& a_point ) const noexcept
+	{
+		__using( ::std::views::, transform )
+		__using( ::sak::math::, square, sum, square_root )
+		__using( ::std::, round, max )
+		using	t_scalar	= 	typename t_point::value_type;
 
-	const auto	length	= 	square_root( static_cast< double >( sum( transform( a_point, square ) ) ) );
-	const auto	factor	= 	length > 0.0 ? max( 0.0, ( length - 1.0 ) / length ) : 0.0;
+		const auto	length	= 	square_root( static_cast< double >( sum( transform( a_point, square ) ) ) );
+		const auto	factor	= 	length > 0.0 ? max( 0.0, ( length - 1.0 ) / length ) : 0.0;
 
-	if( length > 0.0 )
-		a_point = a_point.map( [ factor ] ( const auto& a_scalar ) {
-			return	static_cast< t_scalar >( round( a_scalar * factor ) );
-		} );
-}
+		if( length > 0.0 )
+			a_point = a_point.map( [ factor ] ( const auto& a_scalar ) {
+				return	static_cast< t_scalar >( round( a_scalar * factor ) );
+			} );
+	}
+};
+inline constexpr auto step = __step{ };
 
 
 auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
