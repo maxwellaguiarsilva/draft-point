@@ -58,24 +58,24 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		println( "starting tests for: sak/string..." );
 
 		//	test char to_lower_case
-		ensure( to_lower_case( 'A' ) == 'a', "to_lower_case('a') failed" );
-		ensure( to_lower_case( 'Z' ) == 'z', "to_lower_case('z') failed" );
-		ensure( to_lower_case( 'a' ) == 'a', "to_lower_case('a') failed" );
-		ensure( to_lower_case( '1' ) == '1', "to_lower_case('1') failed" );
+		ensure( to_lower_case( 'A' ) == 'a', "to_lower_case( 'a' ) failed" );
+		ensure( to_lower_case( 'Z' ) == 'z', "to_lower_case( 'z' ) failed" );
+		ensure( to_lower_case( 'a' ) == 'a', "to_lower_case( 'a' ) failed" );
+		ensure( to_lower_case( '1' ) == '1', "to_lower_case( '1' ) failed" );
 
 		//	test string to_lower_case
-		ensure( to_lower_case( string( "ABC" ) ) == "abc", "to_lower_case(\"abc\") failed" );
-		ensure( to_lower_case( string( "aBc123!" ) ) == "abc123!", "to_lower_case(\"abc123!\") failed" );
+		ensure( to_lower_case( string( "ABC" ) ) == "abc", "to_lower_case( \"abc\" ) failed" );
+		ensure( to_lower_case( string( "aBc123!" ) ) == "abc123!", "to_lower_case( \"abc123!\" ) failed" );
 
 		//	test char to_upper_case
-		ensure( to_upper_case( 'a' ) == 'A', "to_upper_case('a') failed" );
-		ensure( to_upper_case( 'z' ) == 'Z', "to_upper_case('z') failed" );
-		ensure( to_upper_case( 'A' ) == 'A', "to_upper_case('a') failed" );
-		ensure( to_upper_case( '1' ) == '1', "to_upper_case('1') failed" );
+		ensure( to_upper_case( 'a' ) == 'A', "to_upper_case( 'a' ) failed" );
+		ensure( to_upper_case( 'z' ) == 'Z', "to_upper_case( 'z' ) failed" );
+		ensure( to_upper_case( 'A' ) == 'A', "to_upper_case( 'a' ) failed" );
+		ensure( to_upper_case( '1' ) == '1', "to_upper_case( '1' ) failed" );
 
 		//	test string to_upper_case
-		ensure( to_upper_case( string( "abc" ) ) == "ABC", "to_upper_case(\"abc\") failed" );
-		ensure( to_upper_case( string( "aBc123!" ) ) == "ABC123!", "to_upper_case(\"abc123!\") failed" );
+		ensure( to_upper_case( string( "abc" ) ) == "ABC", "to_upper_case( \"abc\" ) failed" );
+		ensure( to_upper_case( string( "aBc123!" ) ) == "ABC123!", "to_upper_case( \"abc123!\" ) failed" );
 
 		println( "all tests for sak/string passed!" );
 	}

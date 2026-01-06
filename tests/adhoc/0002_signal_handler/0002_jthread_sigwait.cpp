@@ -39,7 +39,7 @@ using	::std::println;
 using	::sak::ensure;
 
 
-//	gets and prints the current terminal size (rows and columns)
+//	gets and prints the current terminal size ( rows and columns )
 void print_terminal_size( )
 {
 	struct winsize window_size;
@@ -78,7 +78,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		sigaddset( &signal_set, SIGINT );
 		sigaddset( &signal_set, SIGTERM );
 
-		//	block signals in the main thread (they will be blocked in child threads too)
+		//	block signals in the main thread ( they will be blocked in child threads too )
 		ensure( pthread_sigmask( SIG_BLOCK, &signal_set, nullptr ) == 0, "error blocking signals" );
 
 		println( "resize the terminal window: press ctrl+c to exit" );

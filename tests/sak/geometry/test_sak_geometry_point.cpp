@@ -78,10 +78,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( p3[ 0 ] == 14 and p3[ 1 ] == 16, "operator + failed" );
 
 			const auto p4 = 10 + p1;
-			ensure( p4[ 0 ] == 14 and p4[ 1 ] == 16, "operator + (scalar left) failed" );
+			ensure( p4[ 0 ] == 14 and p4[ 1 ] == 16, "operator + ( scalar left ) failed" );
 
 			const auto p5 = p1 + 10;
-			ensure( p5[ 0 ] == 14 and p5[ 1 ] == 16, "operator + (scalar right) failed" );
+			ensure( p5[ 0 ] == 14 and p5[ 1 ] == 16, "operator + ( scalar right ) failed" );
 		}
 
 		//	test 4: subtraction
@@ -99,11 +99,11 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		{
 			point p1( 2, 3 );
 			p1 *= 2;
-			ensure( p1[ 0 ] == 4 and p1[ 1 ] == 6, "operator *= (scalar) failed" );
+			ensure( p1[ 0 ] == 4 and p1[ 1 ] == 6, "operator *= ( scalar ) failed" );
 
 			const point p2( 2, 2 );
 			p1 *= p2;
-			ensure( p1[ 0 ] == 8 and p1[ 1 ] == 12, "operator *= (point) failed" );
+			ensure( p1[ 0 ] == 8 and p1[ 1 ] == 12, "operator *= ( point ) failed" );
 		}
 
 		//	test 6: division
@@ -139,7 +139,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		{
 			const point< int, 3 > p( 1, 2, 3 );
 			ensure( p[ 0 ] == 1 and p[ 1 ] == 2 and p[ 2 ] == 3, "3d point failed" );
-			ensure( p.get_length( ) == 3, "get_length for 3d int point failed (truncated)" );
+			ensure( p.get_length( ) == 3, "get_length for 3d int point failed ( truncated )" );
 		}
 
 		println( "all tests for sak/geometry/point passed!" );

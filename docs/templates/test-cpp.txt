@@ -34,7 +34,11 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	{
 		println( "starting tests for: {{hierarchy}}..." );
 
-		//	todo: implement tests here using ensure( expression, message )
+		//	--------------------------------------------------
+		//	todo: implement tests here.
+		//	signature: ensure( bool expression, const std::string& message )
+		//	example:   ensure( 1 + 1 == 2, "math is broken" );
+		//	--------------------------------------------------
 
 		println( "all tests for {{hierarchy}} passed!" );
 	}

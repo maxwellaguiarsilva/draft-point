@@ -41,15 +41,15 @@ game::terminal_listener::terminal_listener( const point& a_size )
 void game::terminal_listener::on_resize( const point& a_size )
 {
 	start			=	{ 0, 0 };
-	end				=	{ a_size[0] - 1, 2 * ( a_size[1] - 1 ) };
+	end				=	{ a_size[ 0 ] - 1, 2 * ( a_size[ 1 ] - 1 ) };
 	size			=	end - start + 1;
-	label_position	=	{ 1, a_size[1] - 1 };
+	label_position	=	{ 1, a_size[ 1 ] - 1 };
 }
 
 
 game::game( )
 	:m_terminal{ }
-	,m_player{ { m_terminal.size( )[0] / 2, m_terminal.size( )[1] } }
+	,m_player{ { m_terminal.size( )[ 0 ] / 2, m_terminal.size( )[ 1 ] } }
 	,m_fps{ }
 	,m_terminal_listener{ make_shared< terminal_listener >( m_terminal.size( ) ) }
 {
@@ -106,8 +106,8 @@ auto game::run( ) -> void
 	m_terminal.clear_screen( );
 	m_terminal.print( label_position,
 			" | fps: " + to_string( m_fps.compute( ) )
-		+ 	" | size: " + to_string( frame_size[0] ) + " x " + to_string( frame_size[1] )
-		+ 	" | player: " + to_string( position[0] ) + " x " + to_string( position[1] )
+		+ 	" | size: " + to_string( frame_size[ 0 ] ) + " x " + to_string( frame_size[ 1 ] )
+		+ 	" | player: " + to_string( position[ 0 ] ) + " x " + to_string( position[ 1 ] )
 		+ 	" | direction: " + use_direction( m_player.get_direction( ) ).name
 		+ 	" | length: " + to_string( position.get_length( ) )
 		+ 	" | "

@@ -31,7 +31,7 @@
 #include <sak/sak.hpp>	//	ensure
 #include <unistd.h>		//	stdout_fileno
 #include <sys/ioctl.h>	//	ioctl
-#include <signal.h>		//	signal handling (sigaction, siginfo_t, etc.)
+#include <signal.h>		//	signal handling ( sigaction, siginfo_t, etc. )
 #include <game/fps.hpp>	//	fps
 
 
@@ -43,7 +43,7 @@ using	::sak::ensure;
 volatile sig_atomic_t flg_window_changed = 0;
 
 
-//	gets and prints the current terminal size (rows and columns)
+//	gets and prints the current terminal size ( rows and columns )
 void print_terminal_size( )
 {
 	struct winsize window_size;

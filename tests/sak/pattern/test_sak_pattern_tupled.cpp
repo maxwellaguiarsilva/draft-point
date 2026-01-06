@@ -73,17 +73,17 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			const array left	=	{ 1, 2, 3, 4, 5 };
 			const array right	=	{ 2, 3, 4, 5, 6 };
 			
-			ensure( all_of( zip( left, right ), tupled_less_equal ), "all_of zip(left, right) with tupled less_equal should be true" );
+			ensure( all_of( zip( left, right ), tupled_less_equal ), "all_of zip( left, right ) with tupled less_equal should be true" );
 		}
 
 		{
-			ensure( tupled_less_equal( make_pair( 1, 2 ) ), "tupled less_equal(pair(1, 2)) should be true" );
-			ensure( not tupled_less_equal( make_pair( 2, 1 ) ), "tupled less_equal(pair(2, 1)) should be false" );
+			ensure( tupled_less_equal( make_pair( 1, 2 ) ), "tupled less_equal( pair( 1, 2 ) ) should be true" );
+			ensure( not tupled_less_equal( make_pair( 2, 1 ) ), "tupled less_equal( pair( 2, 1 ) ) should be false" );
 		}
 
 		{
-			ensure( tupled_less_equal( array{ 5, 5 } ), "tupled less_equal(array{5, 5}) should be true" );
-			ensure( not tupled_less_equal( array{ 6, 5 } ), "tupled less_equal(array{6, 5}) should be false" );
+			ensure( tupled_less_equal( array{ 5, 5 } ), "tupled less_equal( array{5, 5} ) should be true" );
+			ensure( not tupled_less_equal( array{ 6, 5 } ), "tupled less_equal( array{6, 5} ) should be false" );
 		}
 
 		println( "All tests for sak/pattern/tupled passed!" );

@@ -80,7 +80,7 @@ public:
 			case	up_right:	return	up_right_d;
 			case	down_left:	return	down_left_d;
 			case	down_right:	return	down_right_d;
-			case	none:		[[fallthrough]];
+			case	none:		[ [ fallthrough ] ];
 			default:			return	none_d;
 		}
 	}
