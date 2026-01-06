@@ -7,7 +7,7 @@ Este documento descreve a arquitetura técnica, os componentes e os fluxos de tr
 O sistema adota um padrão de **Dispatcher-Script**, onde as responsabilidades são divididas para maximizar a agilidade no desenvolvimento:
 
 *   **Dispatcher (Servidor MCP):** Localizado em `tools/project-tools-mcp`, utiliza a biblioteca `FastMCP`. Sua única função é expor a interface das ferramentas e despachar a execução para scripts externos via `subprocess.run`.
-*   **Lógica (Scripts de Ferramentas):** Scripts como `file_generator.py`, `template.py` e `ensure_code_formatting.py` contêm a inteligência real.
+*   **Lógica (Scripts de Ferramentas):** Scripts como `file_generator.py`, `template.py`, `ensure_code_formatting.py` e `project-builder.py` contêm a inteligência real.
 
 ### Vantagens do Modelo
 1.  **Hot-Reloading:** Alterações na lógica dos scripts (Python) são aplicadas instantaneamente na próxima execução da ferramenta, sem necessidade de reiniciar o servidor MCP.
@@ -45,6 +45,13 @@ Garante a aderência estrita às regras de estilo (Hard Rules).
     5.  **Includes:** Proíbe linhas vazias entre diretivas `#include`.
     6.  **Espaçamento Interno:** Verificação rigorosa de `( space )` e `[ space ]`.
 
+### 2.4. O Orquestrador de Build e Qualidade (`project-builder.py`)
+Centraliza as operações de compilação, análise estática e correção de estilo.
+
+*   **Gestão de Dependências:** Analisa recursivamente os `#include` para determinar a necessidade de recompilação (incremental build).
+*   **Paralelismo:** Utiliza `ThreadPoolExecutor` para compilar e linkar múltiplos alvos simultaneamente, otimizando o uso dos cores da CPU.
+*   **Interface Unificada:** Atua como o ponto de entrada principal para as ferramentas `compile` e `check` do MCP.
+
 ---
 
 ## 3. Fluxos de Trabalho Principais
@@ -61,10 +68,16 @@ Para evoluir o sistema sem alterar o servidor MCP imediatamente:
 2.  O agente executa a ferramenta `adhoc_tool(params={...})`.
 3.  Após validação, a lógica é migrada para um script definitivo e registrada no servidor MCP (exigindo reinicialização do servidor neste passo final).
 
-### 3.3. Verificação de Integridade (`check`)
-A ferramenta `check` do MCP é um atalho para `project-builder.py --check`. Este fluxo:
-1.  Executa análise estática (cppcheck).
-2.  Aplica o `formatter` em modo "fix" para corrigir automaticamente todas as violações de estilo em arquivos `.cpp` e `.hpp`.
+### 3.3. Verificação de Integridade e Estilo (`check`)
+A ferramenta `check` do MCP é um atalho para `project-builder.py --check`. Este fluxo garante a "Sanidade Total" antes de um commit:
+1.  **Correção de Estilo (`fix_format`):** Invoca `ensure_code_formatting.py --fix` em todos os arquivos fonte. Se violações forem encontradas, o script as corrige automaticamente e as reporta.
+2.  **Análise Estática (`check_code`):** Executa o `cppcheck` com nível de rigor exaustivo. Qualquer aviso é tratado como erro (exit code 1).
+
+### 3.4. Compilação e Build (`compile`)
+A ferramenta `compile` do MCP invoca `project-builder.py` sem argumentos. O fluxo é otimizado para velocidade:
+1.  **Pré-verificação:** Executa a análise estática (`cppcheck`). Diferente do fluxo `check`, este passo **não** executa o formatador automático para evitar efeitos colaterais inesperados durante o ciclo de desenvolvimento rápido.
+2.  **Compilação Incremental:** Compila apenas os arquivos `.cpp` cujas dependências (arquivos `.hpp`) ou o próprio conteúdo foram alterados desde a última build.
+3.  **Linkagem Paralela:** Gera os binários finais no diretório `dist/`.
 
 ---
 
@@ -74,8 +87,8 @@ A ferramenta `check` do MCP é um atalho para `project-builder.py --check`. Este
 | :--- | :--- | :--- |
 | `create_class` | `file_generator.py` | Cria par `.hpp`/`.cpp` com namespaces e metadados. |
 | `create_test` | `file_generator.py` | Cria testes adhoc ou estruturados. |
-| `compile` | `project-builder.py` | Compila o projeto. |
-| `check` | `project-builder.py` | Análise estática e correção automática de estilo. |
+| `compile` | `project-builder.py` | Realiza análise estática e compilação incremental paralela. |
+| `check` | `project-builder.py --check` | Aplica correções de estilo automáticas e análise estática exaustiva. |
 | `verify_spacing` | `ensure_code_formatting.py` | Verifica especificamente a regra `( )` e `[ ]`. |
 | `verify_rules` | `ensure_code_formatting.py` | Reporta violações de regras (return, newlines, etc). |
 | `adhoc_tool` | `adhoc_tool.py` | Executa lógica experimental. |
