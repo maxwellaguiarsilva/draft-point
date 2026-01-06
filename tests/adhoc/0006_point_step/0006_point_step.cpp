@@ -18,7 +18,7 @@
  * File:   adhoc/0006_point_step/0006_point_step.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-06 14:50
+ * Created on 2026-01-06 14:53
  */
 
 
@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 #include <exception>
+#include <limits>
 #include <cmath>
 #include <ranges>
 #include <algorithm>
@@ -35,12 +36,16 @@
 
 
 //	--------------------------------------------------
-using	point_2d	= 	::sak::point< int, 2 >;
-using	point_3d	= 	::sak::point< int, 3 >;
+__using( ::std::, numeric_limits )
+__using( ::sak::, is_point, point )
+
+using	point_2d	= 	point< int, 2 >;
+using	point_3d	= 	point< int, 3 >;
 //	--------------------------------------------------
 
 
 template< typename t_point >
+	requires( is_point< t_point > and numeric_limits< typename t_point::value_type >::is_integer )
 void step( t_point& a_point )
 {
 	__using( ::std::views::, transform )
