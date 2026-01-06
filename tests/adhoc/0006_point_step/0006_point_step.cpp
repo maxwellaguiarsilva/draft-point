@@ -51,7 +51,7 @@ void step( t_point& a_point )
 	const auto	length	= 	square_root( static_cast< double >( sum( transform( a_point, square ) ) ) );
 	const auto	factor	= 	length > 0.0 ? max( 0.0, ( length - 1.0 ) / length ) : 0.0;
 
-	if( factor > 0.0 )
+	if( length > 0.0 )
 		a_point = a_point.map( [ factor ] ( const auto& a_scalar ) {
 			return	static_cast< t_scalar >( round( a_scalar * factor ) );
 		} );
