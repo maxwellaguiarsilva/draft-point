@@ -72,7 +72,7 @@ const array< string, 256 > terminal::m_foreground_colors	=	[ ]( )
 {
 	array< string, 256 > l_colors;
 	for( uint16_t i = 0; i < 256; ++i )
-		l_colors[ i ]	=	"\033[ 38;5;" + to_string( i ) + "m";
+		l_colors[ i ]	=	"\033[38;5;" + to_string( i ) + "m";
 	return	l_colors;
 }( );
 
@@ -81,7 +81,7 @@ const array< string, 256 > terminal::m_background_colors	=	[ ]( )
 {
 	array< string, 256 > l_colors;
 	for( uint16_t i = 0; i < 256; ++i )
-		l_colors[ i ]	=	"\033[ 48;5;" + to_string( i ) + "m";
+		l_colors[ i ]	=	"\033[48;5;" + to_string( i ) + "m";
 	return	l_colors;
 }( );
 
@@ -156,7 +156,7 @@ auto terminal::clear_screen( bool full_reset ) -> void
 		}
 		move_cursor( l_start );
 	}
-	print( "\033[ 2J" );
+	print( "\033[2J" );
 }
 
 auto terminal::read_char( ) -> char
@@ -172,7 +172,7 @@ auto terminal::move_cursor( const point& position ) -> result
 		auto lock = lock_guard( m_mutex );
 		if( not m_bounds.contains( position ) )
 			return	unexpected( out_of_bounds );
-		m_buffer << "\033[ " << position[ 1 ] << ';' << position[ 0 ] << 'H';
+		m_buffer << "\033[" << position[ 1 ] << ';' << position[ 0 ] << 'H';
 	}
 	return	{ };
 }
@@ -207,7 +207,7 @@ auto terminal::set_color( uint8_t code, bool background ) -> void
 	m_buffer << ( background ? m_background_colors[ code ] : m_foreground_colors[ code ] );
 }
 
-auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[ ?25h" : "\033[ ?25l" ); }
+auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }
 
 auto terminal::set_raw_mode( bool enable ) -> result
 {
@@ -231,7 +231,7 @@ auto terminal::set_raw_mode( bool enable ) -> result
 auto terminal::set_text_style( text_style style ) -> void
 {
 	auto lock = lock_guard( m_mutex );
-	m_buffer << "\033[ " << static_cast<int>( style ) << 'm';
+	m_buffer << "\033[" << static_cast<int>( style ) << 'm';
 }
 
 auto terminal::query_size( ) -> point

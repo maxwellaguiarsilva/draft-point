@@ -96,30 +96,38 @@ class formatter:
 
     def _bracket_spacing( self ):
         #   We apply spacing rules only to the body (after the license header)
-        split_index = self.content.find( '\n\n' )
+        split_index = self.content.find( "\n\n" )
         if split_index == -1:
             return
 
         header = self.content[ :split_index + 2 ]
         body = self.content[ split_index + 2 : ]
+
+        #   Regex to identify strings and comments to be ignored
+        ignore_pattern = r"//.*|/\*[\s\S]*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\\n])'"
         
         #   Regex patterns for ( space ) and [ space ]
         #   1. (not_space -> ( space
         #   2. not_space) -> space )
         patterns = [
-             ( r'\((?![ \t\n\)])', r'( ', "missing space after '('" )
-            ,( r'(?<![ \t\n\(])\)', r' )', "missing space before ')'" )
-            ,( r'\[(?![ \t\n\]])', r'[ ', "missing space after '['" )
-            ,( r'(?<![ \t\n\[])\]', r' ]', "missing space before ']'" )
+             ( r"\((?![ \t\n\)])", r"( ", "missing space after '('" )
+            ,( r"(?<![ \t\n\(])\)", r" )", "missing space before ')'" )
+            ,( r"\[(?![ \t\n\]])", r"[ ", "missing space after '['" )
+            ,( r"(?<![ \t\n\[])\]", r" ]", "missing space before ']'" )
         ]
 
         original_body = body
         for pattern, replacement, message in patterns:
+            combined = f"({ignore_pattern})|({pattern})"
             if self.flg_fix:
-                body = re.sub( pattern, replacement, body )
+                def sub_func( m ):
+                    if m.group( 1 ): return m.group( 1 )
+                    return replacement
+                body = re.sub( combined, sub_func, body )
             else:
-                for match in re.finditer( pattern, body ):
-                    line_no = header.count( '\n' ) + original_body.count( '\n', 0, match.start( ) ) + 1
+                for match in re.finditer( combined, body ):
+                    if match.group( 1 ): continue
+                    line_no = header.count( "\n" ) + original_body.count( "\n", 0, match.start( ) ) + 1
                     self.messages.append( ( line_no, message ) )
 
         if self.flg_fix and body != original_body:
