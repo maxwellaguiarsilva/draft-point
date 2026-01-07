@@ -32,6 +32,7 @@ namespace game {
 using	::game::point;
 using	::std::to_string;
 using	::sak::to_lower_case;
+__using( ::tui::, line, point, rectangle )
 
 
 game::terminal_listener::terminal_listener( const point& a_size )
@@ -99,19 +100,22 @@ auto game::run( ) -> void
 
 		l_renderer.clear( );
 		m_player.draw( l_renderer );
+
+		l_renderer.draw( line{ { 0, 0 }, position - 2 } );
+
 		l_renderer.refresh( );
 		m_terminal.refresh( );
+			m_terminal.print( label_position,
+				" | fps: " + to_string( m_fps.compute( ) )
+			+ 	" | size: " + to_string( frame_size[ 0 ] ) + " x " + to_string( frame_size[ 1 ] )
+			+ 	" | player: " + to_string( position[ 0 ] ) + " x " + to_string( position[ 1 ] )
+			+ 	" | direction: " + use_direction( m_player.get_direction( ) ).name
+			+ 	" | length: " + to_string( position.get_length( ) )
+			+ 	" | "
+		);
 	}
 
 	m_terminal.clear_screen( );
-	m_terminal.print( label_position,
-			" | fps: " + to_string( m_fps.compute( ) )
-		+ 	" | size: " + to_string( frame_size[ 0 ] ) + " x " + to_string( frame_size[ 1 ] )
-		+ 	" | player: " + to_string( position[ 0 ] ) + " x " + to_string( position[ 1 ] )
-		+ 	" | direction: " + use_direction( m_player.get_direction( ) ).name
-		+ 	" | length: " + to_string( position.get_length( ) )
-		+ 	" | "
-	);
 }
 
 

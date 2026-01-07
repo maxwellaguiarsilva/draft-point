@@ -35,9 +35,9 @@
 namespace tui {
 
 
-__using( ::std::, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, ranges::fill, views::iota )
+__using( ::std::, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, ranges::fill, ranges::max, views::iota )
 __using( ::sak::ranges::views::, cartesian_product )
-__using( ::sak::math, ::abs, ::sign )
+__using( ::sak::math::, abs, sign )
 __using( ::sak::ranges::, chunk )
 __using( ::tui::, line, point, rectangle )
 
@@ -70,28 +70,20 @@ auto renderer::set_color( const uint8_t color ) noexcept -> void { m_color = col
 auto renderer::draw( const line& a_line ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
-	point difference = ( a_line.end - a_line.start ).map( abs );
-	point step = ( a_line.end - a_line.start ).map( sign );
+	const point difference = ( a_line.end - a_line.start );
+	const point walker_step = difference.map( abs );
+	const point step = difference.map( sign );
+	const int total = max( walker_step );
 
-	int error = difference[ 0 ] - difference[ 1 ];
 	point current = a_line.start;
+	point walker = walker_step;
 
-	while( true )
+	for( int i = 0; i <= total; ++i )
 	{
 		plot_unsafe( current[ 0 ], current[ 1 ] );
-		if( current == a_line.end ) break;
-
-		int error_doubled = 2 * error;
-		if( error_doubled > -difference[ 1 ] )
-		{
-			error -= difference[ 1 ];
-			current[ 0 ] += step[ 0 ];
-		}
-		if( error_doubled < difference[ 0 ] )
-		{
-			error += difference[ 0 ];
-			current[ 1 ] += step[ 1 ];
-		}
+		const point direction = walker.map( [ total ]( const int value ) noexcept { return value >= total; } );
+		current += step * direction;
+		walker += walker_step - direction * total;
 	}
 }
 
