@@ -107,7 +107,7 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 			walker	+=	walker_step - direction * total;
 		}
 
-		ensure( current != zero, "path to zero failed" );
+		ensure( current == zero, "path to zero failed" );
 
 		println( "all tests for point_step passed!" );
 	}
