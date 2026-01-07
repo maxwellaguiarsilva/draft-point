@@ -87,10 +87,10 @@ const array< string, 256 > terminal::m_background_colors	=	[ ]( )
 
 
 terminal::terminal( )
-	:	m_output( cout )
-	,	m_error_output( cerr )
-	,	m_bounds( { 1, 1 }, query_size( ) )
-	,	m_renderer( *this )
+	:m_output( cout )
+	,m_error_output( cerr )
+	,m_bounds( { 1, 1 }, query_size( ) )
+	,m_renderer( *this )
 {
 	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, get_error_message( tcgetattr_failed ) );
 	ensure( m_bounds.end not_eq point{ 0, 0 }, get_error_message( ioctl_failed ) );
