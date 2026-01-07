@@ -73,7 +73,9 @@ __using( ::sak::math::
 //	--------------------------------------------------
 
 
-template< is_arithmetic, size_t > class point; 
+template< is_arithmetic t_scalar, size_t num_dimensions >
+requires	( num_dimensions > 1 )
+class point;
 template< typename t_point >
 struct __is_point : false_type { };
 template< is_arithmetic t_scalar, size_t num_dimensions >
@@ -104,6 +106,7 @@ friend constexpr auto operator a_operator ( t_scalar left, const point& right   
 
 
 template< is_arithmetic t_scalar = int, size_t num_dimensions = 2 >
+requires	( num_dimensions > 1 )
 class point final : private array< t_scalar, num_dimensions >
 {
 public:

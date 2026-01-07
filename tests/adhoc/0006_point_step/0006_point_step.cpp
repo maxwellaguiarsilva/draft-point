@@ -30,6 +30,7 @@
 #include <cmath>
 #include <ranges>
 #include <algorithm>
+#include <format>
 #include <sak/geometry/point.hpp>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
@@ -38,33 +39,23 @@
 //	--------------------------------------------------
 __using( ::std::, numeric_limits )
 __using( ::sak::, is_point, point )
-
-using	point_2d	= 	point< int, 2 >;
-using	point_3d	= 	point< int, 3 >;
+__using( ::std::ranges::, max )
 //	--------------------------------------------------
 
 
-struct __step
+template< typename t_point >
+requires	is_point< t_point >
+auto to_string( const t_point& a_point ) -> ::std::string
 {
-	template< typename t_point >
-		requires( is_point< t_point > and numeric_limits< typename t_point::value_type >::is_integer )
-	constexpr void operator ( ) ( t_point& a_point ) const noexcept
-	{
-		__using( ::std::views::, transform )
-		__using( ::sak::math::, square, sum, square_root )
-		__using( ::std::, round, max )
-		using	t_scalar	= 	typename t_point::value_type;
+	__using( ::std::, format, string );
+	__using( ::std::views::, transform, join );
 
-		const auto	length	= 	square_root( static_cast< double >( sum( transform( a_point, square ) ) ) );
-		const auto	factor	= 	length > 0.0 ? max( 0.0, ( length - 1.0 ) / length ) : 0.0;
-
-		if( length > 0.0 )
-			a_point = a_point.map( [ factor ] ( const auto& a_scalar ) {
-				return	static_cast< t_scalar >( round( a_scalar * factor ) );
-			} );
-	}
-};
-inline constexpr auto step = __step{ };
+	return	format( "|{} |", a_point 
+		| transform( [ ]( const auto a_value ) { return format( " {}", a_value ); } ) 
+		| join
+		| ::std::ranges::to< string >( ) 
+	);
+}
 
 
 auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
@@ -81,6 +72,8 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 		,exception
 	)
 
+	__using( ::sak::math::, sign, abs );
+
 	const vector< string >	arguments( a_argument_values, a_argument_values + a_argument_count );
 	for( const auto& value : arguments )
 		println( "{}", value );
@@ -89,38 +82,32 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 	{
 		println( "starting tests for: point_step..." );
 
-		//	test 2d: axis aligned
-		point_2d	point_2d_axis( 10, 0 );
-		step( point_2d_axis );
-		ensure( point_2d_axis == point_2d( 9, 0 ), "2d axis step failed" );
-		
-		//	test 2d: diagonal
-		point_2d	point_2d_diagonal( 5, 5 );
-		step( point_2d_diagonal );
-		ensure( point_2d_diagonal == point_2d( 4, 4 ), "2d diagonal step failed" );
-
-		//	test 3d: generic dimensions
-		point_3d	point_3d_generic( 10, 10, 10 );
-		step( point_3d_generic );
-		ensure( point_3d_generic == point_3d( 9, 9, 9 ), "3d generic step failed" );
-		
-		//	test: reaching zero
-		point_2d	point_2d_small( 1, 0 );
-		step( point_2d_small );
-		ensure( point_2d_small == point_2d( 0, 0 ), "reaching zero failed" );
+		using	point	=	point< int, 3 >;
 
 		//	test 3d: path to zero
-		point_3d	point_3d_path( 11, 13, 17 );
-		const point_3d	point_3d_zero( 0, 0, 0 );
+		point	pixel( 11, 13, 17 );
+		const	point	zero( 0, 0, 0 );
+		const	auto	total	=	max( pixel );
 
-		println( "path for {{ 11, 13, 17 }} to zero:" );
-		while( not ( point_3d_path == point_3d_zero ) )
+		const	point	step	=	pixel.map( sign ) * -1;	//	{ -1, -1, -1};
+
+		const	point	walker_step	=	pixel.map( abs );
+		point	walker	=	walker_step;
+		
+		auto	is_greater_equal	=	( [ & ]( auto value ){ return value >= total; } );
+		point	direction	=	walker.map( is_greater_equal );
+		point	current	=	pixel;
+
+		auto	count	=	total;
+		while( --count >= 0 )
 		{
-			println( "  - {{ {}, {}, {} }}", point_3d_path[ 0 ], point_3d_path[ 1 ], point_3d_path[ 2 ] );
-			step( point_3d_path );
+			println( "current: {}", to_string( current ) );
+			direction	=	walker.map( is_greater_equal );
+			current	+=	step * direction;
+			walker	+=	walker_step - direction * total;
 		}
-		println( "  - {{ {}, {}, {} }}", point_3d_path[ 0 ], point_3d_path[ 1 ], point_3d_path[ 2 ] );
-		ensure( point_3d_path == point_3d_zero, "path to zero failed" );
+
+		ensure( current != zero, "path to zero failed" );
 
 		println( "all tests for point_step passed!" );
 	}
