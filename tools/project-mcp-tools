@@ -120,11 +120,13 @@ def _verify_loop( files: list[ str ], command_flag: str, label: str ) -> str:
 
 
 @mcp.tool( )
-def verify_formatting( files: list[ str ] ) -> str:
+def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
     """Verifies if a list of files follows the project's formatting rules (newlines, return spacing, bracket spacing, etc.).
+    If flg_auto_fix is True, allows the tool to attempt to adjust automatically ( Default False ).
     Returns a consolidated list of violations.
+    These rules are specific to hpp and cpp files.
     """
-    return _verify_loop( files, "--formatting", "formatting" )
+    return _verify_loop( files, "--fix" if flg_auto_fix else "--formatting", "formatting" )
     
 
 @mcp.tool( )
