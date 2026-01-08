@@ -32,15 +32,15 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	
 	try
 	{
-		println( "starting tests for: {{hierarchy}}..." );
+		println( "starting tests for: {{hierarchy}}" );
 
 		//	--------------------------------------------------
-		//	todo: implement tests here.
-		//	signature: ensure( bool expression, const std::string& message )
-		//	example:   ensure( 1 + 1 == 2, "math is broken" );
+		//	todo: implement tests here
+		//	signature: `ensure( bool expression, const std::string& message )`
+		//	example:   `ensure( 1 + 1 == 2, "math is broken" );`
 		//	--------------------------------------------------
 
-		println( "all tests for {{hierarchy}} passed!" );
+		println( "all tests for {{hierarchy}} passed" );
 	}
 	catch( const exception& error )
 	{
