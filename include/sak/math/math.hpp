@@ -77,6 +77,8 @@ struct exception : ::std::exception
 
 
 using	::std::is_arithmetic_v;
+using	::std::bind_front;
+using	::std::bind_back;
 template< typename t_arithmetic >
 concept is_arithmetic = is_arithmetic_v< t_arithmetic >;
 

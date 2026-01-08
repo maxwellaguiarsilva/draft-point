@@ -37,7 +37,7 @@ namespace tui {
 
 __using( ::std::, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, ranges::fill, ranges::max, views::iota )
 __using( ::sak::ranges::views::, cartesian_product )
-__using( ::sak::math::, abs, sign )
+__using( ::sak::math::, abs, sign, bind_back, greater_equal )
 __using( ::sak::ranges::, chunk )
 __using( ::tui::, line, point, rectangle )
 
@@ -73,15 +73,16 @@ auto renderer::draw( const line& a_line ) noexcept -> void
 	const point difference = ( a_line.end - a_line.start );
 	const point walker_step = difference.map( abs );
 	const point step = difference.map( sign );
-	const int total = max( walker_step );
-
+	const auto total = max( walker_step );
+	
 	point current = a_line.start;
 	point walker = walker_step;
-
-	for( int index = 0; index <= total; ++index )
+	
+	auto count = total + 1;
+	while( --count > 0 )
 	{
 		plot_unsafe( current[ 0 ], current[ 1 ] );
-		const point direction = walker.map( [ total ]( const int value ) noexcept { return value >= total; } );
+		const point direction = walker.map( bind_back( greater_equal, total ) );
 		current += step * direction;
 		walker += walker_step - direction * total;
 	}
