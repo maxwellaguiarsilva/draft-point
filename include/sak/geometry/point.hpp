@@ -51,11 +51,6 @@ __using( ::std::
 	,false_type
 	,remove_cvref_t
 )
-__using( ::std::ranges::
-	,all_of
-	,transform
-)
-__using( ::std::views::, zip, repeat )
 __using( ::sak::math::
 	,plus
 	,minus
@@ -87,11 +82,14 @@ concept is_point = __is_point< remove_cvref_t< t_point > >::value;
 #define __352612026_operator( a_operator, a_operation ) \
 constexpr auto operator a_operator##= ( const point& other ) noexcept -> point& \
 { \
+	using	::std::ranges::transform; \
 	transform( *this, other, begin( ), a_operation ); \
 	return	*this; \
 } \
 constexpr auto operator a_operator##= ( t_scalar other ) noexcept -> point& \
 { \
+	using	::std::ranges::transform; \
+	using	::std::views::repeat; \
 	transform( *this, repeat( other ), begin( ), a_operation ); \
 	return	*this; \
 } \
@@ -151,7 +149,11 @@ public:
 	
 	template< invocable< t_scalar, t_scalar > t_operation >
 	constexpr auto is_all( const point& other, const t_operation& operation ) const noexcept -> bool
-	{ return all_of( zip( *this, other ), tupled( operation ) ); }
+	{
+		using	::std::views::zip;
+		using	::std::ranges::all_of;
+		return all_of( zip( *this, other ), tupled( operation ) );
+	}
 	constexpr auto operator == ( const point& other ) const noexcept -> bool { return is_all( other, equal_to ); }
 	constexpr auto is_inside( const point& other ) const noexcept -> bool { return is_all( other, less_equal ); }
 
@@ -164,6 +166,7 @@ public:
 	template< invocable< t_scalar > t_operation >
 	constexpr auto map( const t_operation& operation ) const noexcept -> point
 	{
+		using	::std::ranges::transform;
 		point	result;
 		transform( *this, result.begin( ), operation );
 		return	result;
