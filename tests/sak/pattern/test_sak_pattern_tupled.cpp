@@ -62,7 +62,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	
 	try
 	{
-		println( "Starting tests for: sak/pattern/tupled..." );
+		println( "starting tests for: sak/pattern/tupled" );
 
 		const auto tupled_less_equal = tupled( less_equal{} );
 
@@ -79,11 +79,11 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		}
 
 		{
-			ensure( tupled_less_equal( array{ 5, 5 } ), "tupled less_equal( array{5, 5} ) should be true" );
-			ensure( not tupled_less_equal( array{ 6, 5 } ), "tupled less_equal( array{6, 5} ) should be false" );
+			ensure( tupled_less_equal( array{ 5, 5 } ), "tupled less_equal( array{ 5, 5 } ) should be true" );
+			ensure( not tupled_less_equal( array{ 6, 5 } ), "tupled less_equal( array{ 6, 5 } ) should be false" );
 		}
 
-		println( "All tests for sak/pattern/tupled passed!" );
+		println( "all tests for sak/pattern/tupled passed" );
 	}
 	catch( const exception& error )
 	{

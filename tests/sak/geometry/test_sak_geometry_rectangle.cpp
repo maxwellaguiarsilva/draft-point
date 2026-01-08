@@ -51,7 +51,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	
 	try
 	{
-		println( "starting tests for: sak/geometry/rectangle..." );
+		println( "starting tests for: sak/geometry/rectangle" );
 
 		using	point	=	::sak::point< int, 2 >;
 		using	rectangle	=	::sak::geometry< point >::rectangle;
@@ -86,7 +86,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( not outer.is_inside( inner ), "outer should not be inside inner" );
 		}
 
-		println( "all tests for sak/geometry/rectangle passed!" );
+		println( "all tests for sak/geometry/rectangle passed" );
 	}
 	catch( const exception& error )
 	{

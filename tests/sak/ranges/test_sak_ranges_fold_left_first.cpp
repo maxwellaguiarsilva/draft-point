@@ -54,7 +54,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	
 	try
 	{
-		println( "starting tests for: sak/ranges/fold_left_first..." );
+		println( "starting tests for: sak/ranges/fold_left_first" );
 
 		//	empty range
 		{
@@ -87,7 +87,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( *result == "abc", "concatenation of a, b, c should be abc" );
 		}
 
-		println( "all tests for sak/ranges/fold_left_first passed!" );
+		println( "all tests for sak/ranges/fold_left_first passed" );
 	}
 	catch( const exception& error )
 	{

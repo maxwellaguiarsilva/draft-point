@@ -56,26 +56,26 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	
 	try
 	{
-		println( "Starting tests for: sak/pattern/value_or..." );
+		println( "starting tests for: sak/pattern/value_or" );
 
 		{
 			map< string, float > fruits_price = { { "apple", 1.5f }, { "banana", 0.75f } };
 			
-			ensure( value_or( fruits_price, "apple", 0.0f ) == 1.5f, "Value for 'apple' should be 1.5f" );
-			ensure( value_or( fruits_price, "banana", 0.0f ) == 0.75f, "Value for 'banana' should be 0.75f" );
-			ensure( value_or( fruits_price, "orange", 0.0f ) == 0.0f, "Value for 'orange' should be 0.0f" );
+			ensure( value_or( fruits_price, "apple", 0.0f ) == 1.5f, "value for 'apple' should be 1.5f" );
+			ensure( value_or( fruits_price, "banana", 0.0f ) == 0.75f, "value for 'banana' should be 0.75f" );
+			ensure( value_or( fruits_price, "orange", 0.0f ) == 0.0f, "value for 'orange' should be 0.0f" );
 		}
 
 		{
 			unordered_map< int, string > id_to_name = { { 1, "Alice" }, { 2, "Bob" } };
 			string unknown = "Unknown";
 
-			ensure( value_or( id_to_name, 1, unknown ) == "Alice", "Value for ID 1 should be 'Alice'" );
-			ensure( value_or( id_to_name, 2, unknown ) == "Bob", "Value for ID 2 should be 'Bob'" );
-			ensure( value_or( id_to_name, 3, unknown ) == "Unknown", "Value for ID 3 should be 'Unknown'" );
+			ensure( value_or( id_to_name, 1, unknown ) == "Alice", "value for id 1 should be 'alice'" );
+			ensure( value_or( id_to_name, 2, unknown ) == "Bob", "value for id 2 should be 'bob'" );
+			ensure( value_or( id_to_name, 3, unknown ) == "Unknown", "value for id 3 should be 'unknown'" );
 		}
 
-		println( "All tests for sak/pattern/value_or passed!" );
+		println( "all tests for sak/pattern/value_or passed" );
 	}
 	catch( const exception& error )
 	{

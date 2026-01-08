@@ -53,7 +53,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 	try
 	{
-		println( "starting tests for sak::math::sum..." );
+		println( "starting tests for sak::math::sum" );
 
 		//	integers
 		{
@@ -68,24 +68,24 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			auto result = sum( values );
 			println( "sum of {{ 1.5, 1.5 }} = {}", result );
 			println( "type of result: {}", typeid( result ).name( ) );
-			ensure( result == 3.0, "test 2 ( floating point 1.5+1.5 ) failed!" );
+			ensure( result == 3.0, "test 2 ( floating point 1.5+1.5 ) failed" );
 			println( "test 2 ( floating point 1.5+1.5 ) passed" );
 
 			vector< double > values2 = { 0.9, 0.9 };
 			auto result2 = sum( values2 );
 			println( "sum of {{ 0.9, 0.9 }} = {}", result2 );
 			println( "type of result2: {}", typeid( result2 ).name( ) );
-			ensure( result2 == 1.8, "test 3 ( floating point 0.9+0.9 ) failed!" );
+			ensure( result2 == 1.8, "test 3 ( floating point 0.9+0.9 ) failed" );
 			println( "test 3 ( floating point 0.9+0.9 ) passed" );
 
 			vector< double > values3( 100, 0.9 );
 			auto result3 = sum( values3 );
 			println( "sum of 100 * 0.9 = {}", result3 );
-			ensure( result3 >= 89.0, "test 4 ( 100 * 0.9 ) failed!" );
+			ensure( result3 >= 89.0, "test 4 ( 100 * 0.9 ) failed" );
 			println( "test 4 ( 100 * 0.9 ) passed" );
 		}
 
-		println( "all tests for sak::math::sum passed!" );
+		println( "all tests for sak::math::sum passed" );
 	}
 	catch( const exception& error )
 	{

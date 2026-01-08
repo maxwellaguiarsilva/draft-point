@@ -51,7 +51,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	
 	try
 	{
-		println( "starting tests for: sak/geometry/point..." );
+		println( "starting tests for: sak/geometry/point" );
 
 		using	::sak::point;
 
@@ -142,7 +142,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( p.get_length( ) == 3, "get_length for 3d int point failed ( truncated )" );
 		}
 
-		println( "all tests for sak/geometry/point passed!" );
+		println( "all tests for sak/geometry/point passed" );
 	}
 	catch( const exception& error )
 	{

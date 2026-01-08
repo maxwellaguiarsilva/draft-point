@@ -53,7 +53,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	
 	try
 	{
-		println( "starting tests for: sak/ranges/chunk..." );
+		println( "starting tests for: sak/ranges/chunk" );
 
 		vector< int > data	=	{ 1, 2, 3, 4, 5, 6 };
 		auto chunks			=	chunk( data, 2 );
@@ -71,7 +71,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		ensure( chunk_count == 3, "should have 3 chunks" );
 
-		println( "all tests for sak/ranges/chunk passed!" );
+		println( "all tests for sak/ranges/chunk passed" );
 	}
 	catch( const exception& error )
 	{
