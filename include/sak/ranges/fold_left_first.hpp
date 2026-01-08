@@ -18,7 +18,7 @@
  * File:   sak/ranges/fold_left_first.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-08 01:05
+ * Created on 2026-01-08 01:06
  */
 
 
