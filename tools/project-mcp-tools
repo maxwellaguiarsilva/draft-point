@@ -97,28 +97,6 @@ def analyze( ) -> str:
     )
 
 
-def _verify_loop( files: list[ str ], command_flag: str, label: str ) -> str:
-    """Internal helper to iterate over files and collect violations."""
-    if isinstance( files, str ):
-        files = [ files ]
-
-    results = [ ]
-    for file_path in files:
-        try:
-            process = _call( [ "python3", "tools/code_verifier.py", command_flag, file_path ] )
-            violations = json.loads( process.stdout )
-            
-            if violations:
-                message = f"File: {file_path}\n"
-                for line, violation in violations:
-                    message += f"  Line {line}: {violation}\n"
-                results.append( message )
-        except Exception as e:
-            results.append( f"Error verifying {file_path}: {str(e)}" )
-    
-    return "\n".join( results ).strip( ) or f"No {label} violations found in the provided files."
-
-
 @mcp.tool( )
 def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
     """Verifies if a list of files follows the project's formatting rules (newlines, return spacing, bracket spacing, etc.).
@@ -126,7 +104,14 @@ def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
     Returns a consolidated list of violations.
     These rules are specific to hpp and cpp files.
     """
-    return _verify_loop( files, "--fix" if flg_auto_fix else "--formatting", "formatting" )
+    args = {
+        "files": files,
+        "flg_auto_fix": flg_auto_fix
+    }
+    return _run_and_format( 
+        [ "python3", "tools/code_verifier.py", "verify_formatting", json.dumps( args ) ], 
+        error_label="Error verifying formatting" 
+    )
     
 
 @mcp.tool( )

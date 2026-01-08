@@ -135,27 +135,64 @@ class formatter:
             self.messages.append( "fixed bracket spacing ( ( space ) and [ space ] rules )" )
 
 
-if __name__ == "__main__":
-    if len( sys.argv ) > 2:
-        command = sys.argv[ 1 ]
-        file_path = sys.argv[ 2 ]
+def verify_formatting( files: list[ str ], flg_fix: bool = False ) -> str:
+    """Iterates over files and returns a formatted report of violations."""
+    results = [ ]
+    for file_path in files:
         try:
             with open( file_path, 'r' ) as f:
                 content = f.read( )
             
-            if command == "--formatting":
-                fmt = formatter( content, file_path = file_path )
-                violations = fmt.verify( )
-                print( json.dumps( violations ) )
-            elif command == "--fix":
-                fmt = formatter( content, file_path = file_path )
+            fmt = formatter( content, file_path = file_path, flg_fix = flg_fix )
+            if flg_fix:
                 new_content = fmt.run( )
-                result = {
-                    "content": new_content,
-                    "messages": fmt.messages,
-                    "changed": content != new_content
-                }
-                print( json.dumps( result ) )
+                if content != new_content:
+                    with open( file_path, 'w' ) as f:
+                        f.write( new_content )
+            else:
+                fmt.verify( )
+            
+            if fmt.messages:
+                message = f"File: {file_path}\n"
+                for violation in fmt.messages:
+                    if isinstance( violation, ( list, tuple ) ):
+                        line, text = violation
+                        message += f"  Line {line}: {text}\n"
+                    else:
+                        message += f"  {violation}\n"
+                results.append( message )
+        except Exception as e:
+            results.append( f"Error verifying {file_path}: {str( e )}" )
+    
+    label = "formatting"
+    return "\n".join( results ).strip( ) or f"No {label} violations found in the provided files."
+
+
+if __name__ == "__main__":
+    if len( sys.argv ) > 2:
+        command = sys.argv[ 1 ]
+        try:
+            if command == "verify_formatting":
+                args = json.loads( sys.argv[ 2 ] )
+                print( verify_formatting( args[ "files" ], args.get( "flg_auto_fix", False ) ) )
+            else:
+                file_path = sys.argv[ 2 ]
+                with open( file_path, 'r' ) as f:
+                    content = f.read( )
+                
+                if command == "--formatting":
+                    fmt = formatter( content, file_path = file_path )
+                    violations = fmt.verify( )
+                    print( json.dumps( violations ) )
+                elif command == "--fix":
+                    fmt = formatter( content, file_path = file_path )
+                    new_content = fmt.run( )
+                    result = {
+                         "changed": content != new_content
+                        ,"content": new_content
+                        ,"messages": fmt.messages
+                    }
+                    print( json.dumps( result ) )
         except Exception as e:
             print( f"Error: {e}", file=sys.stderr )
             sys.exit( 1 )

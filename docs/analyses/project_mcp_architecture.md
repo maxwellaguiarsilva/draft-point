@@ -6,7 +6,7 @@ Este documento descreve a arquitetura técnica, os componentes e os fluxos de tr
 
 O sistema adota um padrão de **Dispatcher-Script**, onde as responsabilidades são divididas para maximizar a agilidade no desenvolvimento:
 
-*   **Dispatcher (Servidor MCP):** Localizado em `tools/project-mcp-tools`, utiliza a biblioteca `FastMCP`. Sua única função é expor a interface das ferramentas e despachar a execução para scripts externos via `subprocess.run`. Utiliza helpers internos (`_call`, `_run_and_format`, `_verify_loop`) para padronizar o tratamento de erros e a formatação das saídas.
+*   **Dispatcher (Servidor MCP):** Localizado em `tools/project-mcp-tools`, utiliza a biblioteca `FastMCP`. Sua única função é expor a interface das ferramentas e despachar a execução para scripts externos via `subprocess.run`. Utiliza helpers internos (`_call`, `_run_and_format`) para padronizar o tratamento de erros e a comunicação, mantendo-se totalmente agnóstico à lógica de processamento dos dados.
 *   **Lógica (Scripts de Ferramentas):** Scripts como `file_generator.py`, `template.py`, `code_verifier.py` e `project-builder.py` contêm a inteligência real.
 
 ### Vantagens do Modelo
@@ -38,7 +38,9 @@ Responsável pela criação de boilerplate seguindo os padrões do projeto.
 Garante a aderência estrita às regras de estilo (Hard Rules) e fornece feedback estruturado.
 
 *   **Controle de Ajuste:** Utiliza um flag booleano `flg_fix` na classe `formatter` para alternar entre modo de correção e modo de verificação.
-*   **Retorno Estruturado:** Todas as funções de verificação retornam JSON no formato `[[linha, mensagem], ...]`, permitindo que o Dispatcher MCP formate a saída de maneira uniforme.
+*   **Modos de Retorno:** 
+    1.  **JSON Estruturado:** As flags `--formatting` e `--fix` retornam JSON, permitindo que outros scripts (como o `project-builder.py`) processem os resultados programmaticamente.
+    2.  **Relatório Formatado:** O comando `verify_formatting` processa múltiplos arquivos e gera um relatório legível para humanos, centralizando a lógica de apresentação que anteriormente residia no Dispatcher.
 *   **Regras Implementadas:**
     1.  **Licença:** Restaura ou valida o cabeçalho de licença baseado nos metadados canônicos.
     2.  **Espaçamento de `return`:** Exige exatamente um espaço ou tab após a palavra `return`.
@@ -90,12 +92,12 @@ A ferramenta `compile` do MCP invoca o método `run_build()` do orquestrador:
 | `create_test` | `file_generator.py` | Cria testes adhoc ou estruturados. |
 | `compile` | `project-builder.py` | Realiza análise estática e compilação incremental paralela. |
 | `analyze` | `project-builder.py --analyze` | Aplica formatação automática (incluindo espaçamento) e análise estática exaustiva. |
-| `verify_formatting` | `code_verifier.py --formatting` | Reporta violações de estilo (return, licença, newlines, espaçamento de brackets). |
+| `verify_formatting` | `code_verifier.py verify_formatting` | Reporta violações de estilo (return, licença, newlines, espaçamento de brackets). |
 | `adhoc_tool` | `adhoc_tool.py` | Executa lógica experimental. |
 
 ---
 
 ## 5. Notas Técnicas de Manutenção
-*   **Dispatcher:** O script `project-mcp-tools` utiliza `_verify_loop` para unificar a apresentação de erros de múltiplos arquivos.
+*   **Dispatcher:** O script `project-mcp-tools` deve permanecer agnóstico, delegando toda a lógica de iteração e formatação de relatórios para os scripts de destino.
 *   **Regras de Estilo:** Qualquer alteração nas regras de C++ deve ser refletida na classe `formatter` em `code_verifier.py`.
 *   **Consistência de Nomes:** Deve-se manter o alinhamento entre o nome da MCP tool, o flag CLI do script e o método interno no orquestrador.
