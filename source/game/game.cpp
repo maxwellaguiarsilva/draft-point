@@ -35,8 +35,7 @@ using	::sak::to_lower_case;
 __using( ::tui::, line, point, rectangle )
 
 
-game::terminal_listener::terminal_listener( const point& a_size )
-{ on_resize( a_size ); }
+game::terminal_listener::terminal_listener( const point& a_size ) { on_resize( a_size ); }
 
 
 void game::terminal_listener::on_resize( const point& a_size )

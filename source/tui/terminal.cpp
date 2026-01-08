@@ -71,8 +71,8 @@ const string terminal::m_unknown_error_message	=	"terminal: unknown error";
 const array< string, 256 > terminal::m_foreground_colors	=	[ ]( )
 {
 	array< string, 256 > l_colors;
-	for( uint16_t i = 0; i < 256; ++i )
-		l_colors[ i ]	=	"\033[38;5;" + to_string( i ) + "m";
+	for( uint16_t index = 0; index < 256; ++index )
+		l_colors[ index ]	=	"\033[38;5;" + to_string( index ) + "m";
 	return	l_colors;
 }( );
 
@@ -80,8 +80,8 @@ const array< string, 256 > terminal::m_foreground_colors	=	[ ]( )
 const array< string, 256 > terminal::m_background_colors	=	[ ]( )
 {
 	array< string, 256 > l_colors;
-	for( uint16_t i = 0; i < 256; ++i )
-		l_colors[ i ]	=	"\033[48;5;" + to_string( i ) + "m";
+	for( uint16_t index = 0; index < 256; ++index )
+		l_colors[ index ]	=	"\033[48;5;" + to_string( index ) + "m";
 	return	l_colors;
 }( );
 
@@ -161,9 +161,9 @@ auto terminal::clear_screen( bool full_reset ) -> void
 
 auto terminal::read_char( ) -> char
 {
-	char c = 0;
-	read( STDIN_FILENO, &c, 1 );
-	return	c;
+	char character = 0;
+	read( STDIN_FILENO, &character, 1 );
+	return	character;
 }
 
 auto terminal::move_cursor( const point& position ) -> result 
@@ -236,10 +236,10 @@ auto terminal::set_text_style( text_style style ) -> void
 
 auto terminal::query_size( ) -> point
 {
-	winsize ws;
-	if( ioctl( STDOUT_FILENO, TIOCGWINSZ, &ws ) not_eq 0 )
+	winsize window_size;
+	if( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) not_eq 0 )
 		return	{ 0, 0 };
-	return	{ ws.ws_col, ws.ws_row };
+	return	{ window_size.ws_col, window_size.ws_row };
 }
 
 auto terminal::size( ) const noexcept -> point

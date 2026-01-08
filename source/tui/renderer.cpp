@@ -78,7 +78,7 @@ auto renderer::draw( const line& a_line ) noexcept -> void
 	point current = a_line.start;
 	point walker = walker_step;
 
-	for( int i = 0; i <= total; ++i )
+	for( int index = 0; index <= total; ++index )
 	{
 		plot_unsafe( current[ 0 ], current[ 1 ] );
 		const point direction = walker.map( [ total ]( const int value ) noexcept { return value >= total; } );
