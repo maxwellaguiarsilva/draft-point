@@ -31,6 +31,7 @@
 #include <ranges>
 #include <algorithm>
 #include <format>
+#include <sak/math/math.hpp>
 #include <sak/geometry/point.hpp>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
@@ -72,7 +73,7 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 		,exception
 	)
 
-	__using( ::sak::math::, sign, abs );
+	__using( ::sak::math::, sign, abs, bind_back, greater_equal );
 
 	const vector< string >	arguments( a_argument_values, a_argument_values + a_argument_count );
 	for( const auto& value : arguments )
@@ -85,26 +86,24 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 		using	point	=	point< int, 3 >;
 
 		//	test 3d: path to zero
-		point	pixel( 11, 13, 17 );
+		const	point	pixel( 11, 13, 17 );
 		const	point	zero( 0, 0, 0 );
-		const	auto	total	=	max( pixel );
 
-		const	point	step	=	pixel.map( sign ) * -1;	//	{ -1, -1, -1};
+		const	point	difference	=	( zero - pixel );
+		const	point	walker_step	=	difference.map( abs );
+		const	point	step	=	difference.map( sign );
+		const	auto	total	=	max( walker_step );
 
-		const	point	walker_step	=	pixel.map( abs );
+		point	current	=	pixel;
 		point	walker	=	walker_step;
 		
-		auto	is_greater_equal	=	( [ & ]( auto value ){ return value >= total; } );
-		point	direction	=	walker.map( is_greater_equal );
-		point	current	=	pixel;
-
-		auto	count	=	total;
-		while( --count >= 0 )
+		auto	count	=	total + 1;
+		while( --count > 0 )
 		{
 			println( "current: {}", to_string( current ) );
-			direction	=	walker.map( is_greater_equal );
-			current	+=	step * direction;
-			walker	+=	walker_step - direction * total;
+			const point direction = walker.map( bind_back( greater_equal, total ) );
+			current += step * direction;
+			walker += walker_step - direction * total;
 		}
 
 		ensure( current == zero, "path to zero failed" );
