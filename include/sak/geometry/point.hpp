@@ -152,7 +152,7 @@ public:
 	{
 		using	::std::views::zip;
 		using	::std::ranges::all_of;
-		return all_of( zip( *this, other ), tupled( operation ) );
+		return	all_of( zip( *this, other ), tupled( operation ) );
 	}
 	constexpr auto operator == ( const point& other ) const noexcept -> bool { return is_all( other, equal_to ); }
 	constexpr auto is_inside( const point& other ) const noexcept -> bool { return is_all( other, less_equal ); }

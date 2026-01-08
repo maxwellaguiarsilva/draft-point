@@ -94,7 +94,7 @@ terminal::terminal( )
 {
 	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, get_error_message( tcgetattr_failed ) );
 	ensure( m_bounds.end not_eq point{ 0, 0 }, get_error_message( ioctl_failed ) );
-	ensure( m_bounds.start.is_inside( m_bounds.end ), "error: invalid terminal size" );
+	ensure( m_bounds.start.is_inside( m_bounds.end ), "invalid terminal size" );
 
 	clear_screen( true );
 	set_raw_mode( true );
