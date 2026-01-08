@@ -15,90 +15,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   adhoc/0004_fold_left_first/0004_fold_left_first.cpp
+ * File:   sak/ranges/test_sak_ranges_fold_left_first.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-04 14:28
+ * Created on 2026-01-08 01:05
  */
 
 
-#include <algorithm>
+#include <print>
+#include <string>
+#include <vector>
 #include <exception>
 #include <functional>
-#include <iterator>
-#include <optional>
-#include <print>
-#include <ranges>
-#include <string>
-#include <utility>
-#include <vector>
+#include <sak/ranges/fold_left_first.hpp>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
 
-
-namespace {
-
-__using( ::std::
-	,assignable_from
-	,constructible_from
-	,convertible_to
-	,copy_constructible
-	,in_place
-	,indirectly_readable
-	,input_iterator
-	,invoke
-	,invoke_result_t
-	,invocable
-	,iter_reference_t
-	,iter_value_t
-	,move
-	,optional
-	,ref
-	,sentinel_for
-)
-namespace ranges = ::std::ranges;
-
-template< class t_function, class t_type, class t_iterator >
-concept indirectly_binary_left_foldable	=
-		copy_constructible< t_function >
-	and	indirectly_readable< t_iterator >
-	and	invocable< t_function&, t_type, iter_reference_t< t_iterator > >
-	and	assignable_from< t_type&, invoke_result_t< t_function&, t_type, iter_reference_t< t_iterator > > >
-	and	convertible_to< invoke_result_t< t_function&, t_type, iter_reference_t< t_iterator > >, t_type >;
-
-struct __fold_left_first
-{
-	template<
-		 input_iterator t_iterator
-		,sentinel_for< t_iterator > t_sentinel
-		,indirectly_binary_left_foldable< iter_value_t< t_iterator >, t_iterator > t_function
-	>
-	requires constructible_from< iter_value_t< t_iterator >, iter_reference_t< t_iterator > >
-	constexpr auto operator ( ) ( t_iterator first, t_sentinel last, t_function function ) const
-	{
-		using	value_type = iter_value_t< t_iterator >;
-
-		if( first == last )
-			return	optional< value_type >( );
-		
-		optional< value_type > init( in_place, *first );
-
-		for( ++first; first not_eq last; ++first )
-			*init = invoke( function, ::std::move( *init ), *first );
-		
-		return	init;
-	}
-
-	template<
-		 ranges::input_range t_range
-		,indirectly_binary_left_foldable< ranges::range_value_t< t_range >, ranges::iterator_t< t_range > > t_function
-	>
-	requires constructible_from< ranges::range_value_t< t_range >, ranges::range_reference_t< t_range > >
-	constexpr auto operator ( ) ( t_range&& range, t_function function ) const { return ( *this )( ranges::begin( range ), ranges::end( range ), ref( function ) ); }
-};
-inline constexpr auto fold_left_first = __fold_left_first{ };
-
-}
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
@@ -114,6 +46,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,exception
 		,plus
 	)
+	using	::sak::ranges::fold_left_first;
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
@@ -121,7 +54,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	
 	try
 	{
-		println( "starting tests for: fold_left_first..." );
+		println( "starting tests for: sak/ranges/fold_left_first..." );
 
 		//	empty range
 		{
@@ -154,7 +87,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( *result == "abc", "concatenation of a, b, c should be abc" );
 		}
 
-		println( "all tests for fold_left_first passed!" );
+		println( "all tests for sak/ranges/fold_left_first passed!" );
 	}
 	catch( const exception& error )
 	{
