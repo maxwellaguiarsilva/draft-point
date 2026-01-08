@@ -22,17 +22,17 @@
  */
 
 
-#include <print>		//	print
+#include <print>
 #include <string>
 #include <vector>
 #include <exception>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
-#include <sak/sak.hpp>	//	ensure
-#include <unistd.h>		//	stdout_fileno
-#include <sys/ioctl.h>	//	ioctl
-#include <signal.h>		//	signal handling ( sigaction, siginfo_t, etc. )
-#include <game/fps.hpp>	//	fps
+#include <sak/sak.hpp>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <signal.h>
+#include <game/fps.hpp>
 
 
 using	::std::println;
@@ -68,7 +68,7 @@ void setup_signal_handler( )
 	//	resets any flags that may be set
 	sigemptyset( &signal_action.sa_mask );
 
-	//	flags: sa_restart restarts interrupted system calls
+	//	sa_restart restarts interrupted system calls
 	signal_action.sa_flags = SA_RESTART;
 
 	//	register the action for the sigwinch signal

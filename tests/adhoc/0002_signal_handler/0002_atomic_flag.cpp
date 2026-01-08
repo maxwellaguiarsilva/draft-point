@@ -22,19 +22,19 @@
  */
 
 
-#include <print>		//	print
+#include <print>
 #include <string>
 #include <vector>
 #include <exception>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
-#include <sak/sak.hpp>	//	ensure
-#include <unistd.h>		//	stdout_fileno, pause
-#include <sys/ioctl.h>	//	ioctl
-#include <csignal>		//	signal
-#include <atomic>		//	atomic_flag
-#include <thread>		//	jthread, stop_token
-#include <game/fps.hpp>	//	fps
+#include <sak/sak.hpp>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <csignal>
+#include <atomic>
+#include <thread>
+#include <game/fps.hpp>
 
 
 using	::std::println;

@@ -22,17 +22,17 @@
  */
 
 
-#include <print>		//	print
+#include <print>
 #include <string>
 #include <vector>
 #include <exception>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
-#include <sak/sak.hpp>	//	ensure
-#include <unistd.h>		//	stdout_fileno
-#include <sys/ioctl.h>	//	ioctl
-#include <csignal>		//	sigset_t, sigaddset, sigwait, pthread_sigmask
-#include <thread>		//	jthread, stop_token
+#include <sak/sak.hpp>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <csignal>
+#include <thread>
 
 
 using	::std::println;

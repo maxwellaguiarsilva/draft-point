@@ -22,7 +22,6 @@
  */
 
 
-//	--------------------------------------------------
 #include <print>
 #include <string>
 #include <vector>
@@ -30,7 +29,6 @@
 #include <sak/string.hpp>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
-//	--------------------------------------------------
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
@@ -55,7 +53,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	
 	try
 	{
-		println( "starting tests for: sak/string..." );
+		println( "starting tests for: sak/string" );
 
 		//	test char to_lower_case
 		ensure( to_lower_case( 'A' ) == 'a', "to_lower_case( 'a' ) failed" );
@@ -77,7 +75,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		ensure( to_upper_case( string( "abc" ) ) == "ABC", "to_upper_case( \"abc\" ) failed" );
 		ensure( to_upper_case( string( "aBc123!" ) ) == "ABC123!", "to_upper_case( \"abc123!\" ) failed" );
 
-		println( "all tests for sak/string passed!" );
+		println( "all tests for sak/string passed" );
 	}
 	catch( const exception& error )
 	{

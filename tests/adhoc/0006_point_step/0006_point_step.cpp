@@ -37,11 +37,9 @@
 #include <sak/using.hpp>
 
 
-//	--------------------------------------------------
 __using( ::std::, numeric_limits )
 __using( ::sak::, is_point, point )
 __using( ::std::ranges::, max )
-//	--------------------------------------------------
 
 
 template< typename t_point >
@@ -81,11 +79,11 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 	
 	try
 	{
-		println( "starting tests for: point_step..." );
+		println( "starting tests for: point_step" );
 
 		using	point	=	point< int, 3 >;
 
-		//	test 3d: path to zero
+		//	3d path to zero
 		const	point	pixel( 11, 13, 17 );
 		const	point	zero( 0, 0, 0 );
 
@@ -108,7 +106,7 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 
 		ensure( current == zero, "path to zero failed" );
 
-		println( "all tests for point_step passed!" );
+		println( "all tests for point_step passed" );
 	}
 	catch( const exception& error )
 	{

@@ -22,7 +22,6 @@
  */
 
 
-//	--------------------------------------------------
 #include <print>
 #include <string>
 #include <vector>
@@ -31,8 +30,6 @@
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
 #include <sak/math/math.hpp>
-
-//	--------------------------------------------------
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
@@ -58,14 +55,14 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	{
 		println( "starting tests for sak::math::sum..." );
 
-		//	test 1: integers
+		//	integers
 		{
 			vector< int > values = { 10, 20, 30 };
 			ensure( sum( values ) == 60, "test 1 ( integers ) failed" );
 			println( "test 1 ( integers ) passed" );
 		}
 
-		//	test 2: floating point
+		//	floating point
 		{
 			vector< double > values = { 1.5, 1.5 };
 			auto result = sum( values );

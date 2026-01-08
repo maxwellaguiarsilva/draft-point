@@ -22,7 +22,6 @@
  */
 
 
-//	--------------------------------------------------
 #include <print>
 #include <string>
 #include <vector>
@@ -32,8 +31,6 @@
 #include <sak/pattern/value_or.hpp>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
-
-//	--------------------------------------------------
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int

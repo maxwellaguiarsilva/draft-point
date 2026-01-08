@@ -18,7 +18,7 @@
  * File:   adhoc/0007_point_ranges/0007_point_ranges.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-08 01:27
+ * Created on 2026-01-08 02:23
  */
 
 
@@ -28,7 +28,6 @@
 #include <exception>
 #include <ranges>
 #include <algorithm>
-
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
 #include <sak/geometry/point.hpp>
@@ -40,7 +39,7 @@ namespace demo {
 __using( ::std::, forward, remove_cvref_t, invocable )
 __using( ::std::ranges::, input_range, copy, range_value_t )
 
-//	1. O "conversor" final
+//	the final converter
 template< typename t_point >
 struct to_point_t
 {
@@ -59,14 +58,14 @@ inline constexpr to_point_t< t_point > to_point{ };
 }
 
 
-//	Colocamos no namespace sak para que o ADL encontre os operadores
-//	quando usados com tipos de sak:: geometry ou sak::math
+//	putting in sak namespace so adl finds operators
+//	when used with sak::geometry or sak::math types
 namespace sak {
 
 __using( ::std::, remove_cvref_t, invocable )
 __using( ::std::ranges::, input_range, range_value_t )
 
-//	2. Sobrecarga para Point | Invocable -> TransformView (Lazy)
+//	overload for point | invocable -> transform_view (lazy)
 template< is_point t_point, invocable< typename remove_cvref_t< t_point >::value_type > t_operation >
 constexpr auto operator | ( t_point&& a_point, t_operation&& a_operation )
 {
@@ -74,7 +73,7 @@ constexpr auto operator | ( t_point&& a_point, t_operation&& a_operation )
 	return	transform( ::std::forward< t_point >( a_point ), ::std::forward< t_operation >( a_operation ) );
 }
 
-//	3. Sobrecarga para View | Invocable -> TransformView (Lazy)
+//	overload for view | invocable -> transform_view (lazy)
 template< input_range t_range, invocable< range_value_t< t_range > > t_operation >
 requires ( not is_point< remove_cvref_t< t_range > > )
 constexpr auto operator | ( t_range&& a_range, t_operation&& a_operation )
@@ -109,28 +108,28 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 	
 	try
 	{
-		println( "starting tests for: point_ranges..." );
+		println( "starting tests for: point_ranges" );
 
 		using	point_type	=	point< int, 3 >;
 		const	point_type	p( -10, 20, -30 );
 
-		//	DEMONSTRAÇÃO DA SINTAXE DESEJADA:
-		//	- p | abs: retorna uma view (lazy)
-		//	- | sign: aninha outra view (lazy)
-		//	- | to_point: executa a composição e converte para point (eager)
+		//	demonstration of desired syntax
+		//	p | abs: returns a view (lazy)
+		//	| sign: nests another view (lazy)
+		//	| to_point: executes composition and converts to point (eager)
 		const	point_type	result	=	p | abs | sign | to_point< point_type >;
 
-		//	Verificação
+		//	verification
 		ensure( result == point_type( 1, 1, 1 ), "lazy pipe composition failed" );
 		
-		//	Provando que é lazy: podemos usar em algoritmos de range sem o to_point
-		const	auto	soma_abs	=	sum( p | abs );
-		ensure( soma_abs == 10 + 20 + 30, "lazy evaluation in sum failed" );
+		//	proving it is lazy: we can use it in range algorithms without to_point
+		const	auto	sum_abs	=	sum( p | abs );
+		ensure( sum_abs == 10 + 20 + 30, "lazy evaluation in sum failed" );
 
-		println( "Result of p | abs | sign | to_point: [ {}, {}, {} ]", result[ 0 ], result[ 1 ], result[ 2 ] );
-		println( "Sum of p | abs (without to_point):   {}", soma_abs );
+		println( "result of p | abs | sign | to_point: [ {}, {}, {} ]", result[ 0 ], result[ 1 ], result[ 2 ] );
+		println( "sum of p | abs (without to_point):   {}", sum_abs );
 
-		println( "all tests for point_ranges passed!" );
+		println( "all tests for point_ranges passed" );
 	}
 	catch( const exception& error )
 	{

@@ -56,14 +56,14 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		using	point	=	::sak::point< int, 2 >;
 		using	rectangle	=	::sak::geometry< point >::rectangle;
 
-		//	test 1: get_size
+		//	get_size
 		{
 			const rectangle r{ { 1, 1 }, { 10, 10 } };
 			const auto size = r.get_size( );
 			ensure( size[ 0 ] == 9 and size[ 1 ] == 9, "get_size failed" );
 		}
 
-		//	test 2: contains point
+		//	contains point
 		{
 			const rectangle r{ { 1, 1 }, { 10, 10 } };
 			ensure( r.contains( { 1, 1 } ), "should contain start point" );
@@ -72,7 +72,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( not r.contains( { 0, 5 } ), "should not contain point outside ( right )" );
 		}
 
-		//	test 3: is_inside rectangle
+		//	is_inside rectangle
 		{
 			const rectangle outer{ { 1, 1 }, { 10, 10 } };
 			const rectangle inner{ { 2, 2 }, { 9, 9 } };

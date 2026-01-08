@@ -55,19 +55,19 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		using	::sak::point;
 
-		//	test 1: default construction
+		//	default construction
 		{
 			const point p;
 			ensure( p[ 0 ] == 0 and p[ 1 ] == 0, "default construction failed" );
 		}
 
-		//	test 2: argument construction
+		//	argument construction
 		{
 			const point p( 10, 20 );
 			ensure( p[ 0 ] == 10 and p[ 1 ] == 20, "argument construction failed" );
 		}
 
-		//	test 3: addition
+		//	addition
 		{
 			point p1( 1, 2 );
 			const point p2( 3, 4 );
@@ -84,7 +84,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( p5[ 0 ] == 14 and p5[ 1 ] == 16, "operator + ( scalar right ) failed" );
 		}
 
-		//	test 4: subtraction
+		//	subtraction
 		{
 			point p1( 10, 20 );
 			const point p2( 3, 4 );
@@ -95,7 +95,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( p3[ 0 ] == 5 and p3[ 1 ] == 10, "operator - failed" );
 		}
 
-		//	test 5: multiplication
+		//	multiplication
 		{
 			point p1( 2, 3 );
 			p1 *= 2;
@@ -106,14 +106,14 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( p1[ 0 ] == 8 and p1[ 1 ] == 12, "operator *= ( point ) failed" );
 		}
 
-		//	test 6: division
+		//	division
 		{
 			point p1( 10, 20 );
 			p1 /= 2;
 			ensure( p1[ 0 ] == 5 and p1[ 1 ] == 10, "operator /= failed" );
 		}
 
-		//	test 7: is_inside
+		//	is_inside
 		{
 			const point p1( 10, 10 );
 			const point p2( 5, 5 );
@@ -124,7 +124,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( p1.is_inside( p1 ), "p1 should be inside itself" );
 		}
 
-		//	test 8: get_length
+		//	get_length
 		{
 			const point p1( 3, 4 );
 			//	sqrt( 3*3 + 4*4 ) = sqrt( 9 + 16 ) = sqrt( 25 ) = 5
@@ -135,7 +135,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( p2.get_length( ) == 7.0f, "get_length for 3d float point failed" );
 		}
 
-		//	test 9: 3d point
+		//	3d point
 		{
 			const point< int, 3 > p( 1, 2, 3 );
 			ensure( p[ 0 ] == 1 and p[ 1 ] == 2 and p[ 2 ] == 3, "3d point failed" );

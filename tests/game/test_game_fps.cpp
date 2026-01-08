@@ -22,7 +22,6 @@
  */
 
 
-//	--------------------------------------------------
 #include <print>
 #include <string>
 #include <vector>
@@ -31,7 +30,6 @@
 #include <sak/using.hpp>
 #include <game/fps.hpp>
 
-//	--------------------------------------------------
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
@@ -54,30 +52,30 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	
 	try
 	{
-		println( "Starting tests for: game/fps..." );
+		println( "starting tests for: game/fps" );
 
 		fps monitor( 60 );
 
-		// Test 1: Initial limit
-		println( "Test 1: Verifying FPS stabilization..." );
-		monitor.compute( ); // First call to reset m_start_time
+		//	initial limit
+		println( "test 1: verifying fps stabilization" );
+		monitor.compute( ); //	first call to reset m_start_time
 		for( int i = 0; i < 20; ++i )
 		{
 			int current_fps = monitor.compute( );
-			println( "Frame {}: {} FPS", i, current_fps );
+			println( "frame {}: {} fps", i, current_fps );
 		}
 
-		// Test 2: Limit change
-		println( "Test 2: Changing limit to 30 FPS..." );
+		//	limit change
+		println( "test 2: changing limit to 30 fps" );
 		monitor.set_limit( 30 );
 		monitor.compute( );
 		for( int i = 0; i < 20; ++i )
 		{
 			int current_fps = monitor.compute( );
-			println( "Frame {}: {} FPS", i, current_fps );
+			println( "frame {}: {} fps", i, current_fps );
 		}
 
-		println( "all tests for game/fps passed!" );
+		println( "all tests for game/fps passed" );
 	}
 	catch( const exception& error )
 	{
