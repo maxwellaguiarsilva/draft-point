@@ -59,13 +59,12 @@ __using( ::std::
 namespace ranges = ::std::ranges;
 
 template< class t_function, class t_type, class t_iterator >
-concept indirectly_binary_left_foldable = (
+concept indirectly_binary_left_foldable	=
 		copy_constructible< t_function >
-	and indirectly_readable< t_iterator >
-	and invocable< t_function&, t_type, iter_reference_t< t_iterator > >
-	and assignable_from< t_type&, invoke_result_t< t_function&, t_type, iter_reference_t< t_iterator > > >
-	and convertible_to< invoke_result_t< t_function&, t_type, iter_reference_t< t_iterator > >, t_type >
-);
+	and	indirectly_readable< t_iterator >
+	and	invocable< t_function&, t_type, iter_reference_t< t_iterator > >
+	and	assignable_from< t_type&, invoke_result_t< t_function&, t_type, iter_reference_t< t_iterator > > >
+	and	convertible_to< invoke_result_t< t_function&, t_type, iter_reference_t< t_iterator > >, t_type >;
 
 struct __fold_left_first
 {
@@ -75,7 +74,7 @@ struct __fold_left_first
 		,indirectly_binary_left_foldable< iter_value_t< t_iterator >, t_iterator > t_function
 	>
 	requires constructible_from< iter_value_t< t_iterator >, iter_reference_t< t_iterator > >
-	constexpr auto operator( )( t_iterator first, t_sentinel last, t_function function ) const
+	constexpr auto operator ( ) ( t_iterator first, t_sentinel last, t_function function ) const
 	{
 		using	value_type = iter_value_t< t_iterator >;
 
@@ -95,15 +94,11 @@ struct __fold_left_first
 		,indirectly_binary_left_foldable< ranges::range_value_t< t_range >, ranges::iterator_t< t_range > > t_function
 	>
 	requires constructible_from< ranges::range_value_t< t_range >, ranges::range_reference_t< t_range > >
-	constexpr auto operator( )( t_range&& range, t_function function ) const
-	{
-		return	( *this )( ranges::begin( range ), ranges::end( range ), ref( function ) );
-	}
+	constexpr auto operator ( ) ( t_range&& range, t_function function ) const { return ( *this )( ranges::begin( range ), ranges::end( range ), ref( function ) ); }
 };
-
 inline constexpr auto fold_left_first = __fold_left_first{ };
 
-} // namespace
+}
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
@@ -121,44 +116,43 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	)
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
-
-	for( const auto& argument : arguments )
-		println( "{}", argument );
+	for( const auto& value : arguments )
+		println( "{}", value );
 	
 	try
 	{
 		println( "starting tests for: fold_left_first..." );
 
 		//	empty range
-		{{
+		{
 			const vector< int > v;
 			const auto result = fold_left_first( v, plus< int >( ) );
 			ensure( not result.has_value( ), "empty range should return empty optional" );
-		}}
+		}
 
 		//	single element
-		{{
+		{
 			const vector< int > v = { 42 };
 			const auto result = fold_left_first( v, plus< int >( ) );
 			ensure( result.has_value( ), "single element range should return a value" );
 			ensure( *result == 42, "single element range should return the element itself" );
-		}}
+		}
 
 		//	multiple elements
-		{{
+		{
 			const vector< int > v = { 1, 2, 3, 4, 5 };
 			const auto result = fold_left_first( v, plus< int >( ) );
 			ensure( result.has_value( ), "multiple elements range should return a value" );
 			ensure( *result == 15, "sum of 1..5 should be 15" );
-		}}
+		}
 
 		//	string concatenation
-		{{
+		{
 			const vector< string > v = { "a", "b", "c" };
 			const auto result = fold_left_first( v, plus< string >( ) );
 			ensure( result.has_value( ), "string range should return a value" );
 			ensure( *result == "abc", "concatenation of a, b, c should be abc" );
-		}}
+		}
 
 		println( "all tests for fold_left_first passed!" );
 	}
