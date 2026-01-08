@@ -68,9 +68,9 @@ def get_git_config_value( configuration_name ):
     try:
         command = [ "git", "config", "--global", configuration_name ]
         process = subprocess.run( command, capture_output=True, text=True, check=True )
-        return  process.stdout.strip( )
+        return process.stdout.strip( )
     except subprocess.CalledProcessError:
-        return  "value not found"
+        return "value not found"
 
 def render_template( template_name, data ):
     data_json = json.dumps( data )
@@ -86,7 +86,7 @@ def write_file( file_path, content ):
     os.makedirs( os.path.dirname( file_path ), exist_ok=True )
     with open( file_path, "w" ) as f:
         f.write( content )
-    return  f"created file: {file_path}\n"
+    return f"created file: {file_path}\n"
 
 def create_class( class_hierarchy, include_list=[], using_list=[], create_header_only=False ):
     message = ""
@@ -95,11 +95,11 @@ def create_class( class_hierarchy, include_list=[], using_list=[], create_header
     file_path_hpp = f"include/{ '/'.join( hierarchy_list ) }.hpp"
     data = get_canonical_metadata( file_path_hpp )
     data.update( {
-         "class_name": hierarchy_list[-1]
-        ,"namespace_list": hierarchy_list[:-1]
+         "class_name": hierarchy_list[ -1 ]
+        ,"namespace_list": hierarchy_list[ :-1 ]
         ,"include_list": include_list
         ,"using_list": using_list
-        ,"header_guard": f"header_guard_{ str( time.time_ns( ) )[-9:] }"
+        ,"header_guard": f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
     } )
 
     content_hpp = render_template( "class-hpp", data )
@@ -110,8 +110,8 @@ def create_class( class_hierarchy, include_list=[], using_list=[], create_header
         data = get_canonical_metadata( file_path_cpp )
         data.update( {
              "include_list": [ strip_project_prefix( file_path_hpp ) ]
-            ,"class_name": hierarchy_list[-1]
-            ,"namespace_list": hierarchy_list[:-1]
+            ,"class_name": hierarchy_list[ -1 ]
+            ,"namespace_list": hierarchy_list[ :-1 ]
             ,"using_list": using_list
         } )
         content_cpp = render_template( "class-cpp", data )
@@ -127,22 +127,23 @@ def create_test( hierarchy, flg_adhoc=False, include_list=[] ):
         os.makedirs( adhoc_dir, exist_ok=True )
         
         existing_adhocs = [ d for d in os.listdir( adhoc_dir ) if os.path.isdir( os.path.join( adhoc_dir, d ) ) ]
-        max_counter = 0
+        existing_counters = set( )
         for d in existing_adhocs:
             match = re.match( r"(\d+)_", d )
             if match:
-                counter = int( match.group( 1 ) )
-                if counter > max_counter:
-                    max_counter = counter
+                existing_counters.add( int( match.group( 1 ) ) )
         
-        next_counter = max_counter + 1
+        next_counter = 1
+        while next_counter in existing_counters:
+            next_counter += 1
+        
         prefix = f"{next_counter:04d}"
         test_folder = f"{prefix}_{hierarchy}"
         file_path = f"{adhoc_dir}/{test_folder}/{prefix}_{hierarchy}.cpp"
         display_hierarchy = hierarchy
     else:
         hierarchy_list = re.split( r"[/:\\.]+", hierarchy )
-        path = "/".join( hierarchy_list[:-1] )
+        path = "/".join( hierarchy_list[ :-1 ] )
         filename = "test_" + "_".join( hierarchy_list ) + ".cpp"
         
         if path:
