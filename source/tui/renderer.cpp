@@ -68,15 +68,15 @@ auto renderer::clear( ) noexcept -> void
 
 auto renderer::set_color( const uint8_t color ) noexcept -> void { m_color = color; }
 
-auto renderer::draw( const line& a_line ) noexcept -> void
+auto renderer::draw( const line& segment ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
-	const point difference = ( a_line.end - a_line.start );
+	const point difference = ( segment.end - segment.start );
 	const point walker_step = difference | abs | to_point;
 	const point step = difference | sign | to_point;
 	const auto total = max( walker_step );
 	
-	point current = a_line.start;
+	point current = segment.start;
 	point walker = walker_step;
 	
 	auto count = total + 1;
@@ -89,23 +89,23 @@ auto renderer::draw( const line& a_line ) noexcept -> void
 	}
 }
 
-auto renderer::draw( const rectangle& a_rectangle, bool fill ) noexcept -> void
+auto renderer::draw( const rectangle& area, bool fill ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	if( fill )
-		for( auto const [ column, row ] : cartesian_product( iota( a_rectangle.start[ 0 ], a_rectangle.end[ 0 ] + 1 ), iota( a_rectangle.start[ 1 ], a_rectangle.end[ 1 ] + 1 ) ) )
+		for( auto const [ column, row ] : cartesian_product( iota( area.start[ 0 ], area.end[ 0 ] + 1 ), iota( area.start[ 1 ], area.end[ 1 ] + 1 ) ) )
 			plot_unsafe( column, row );
 	else
 	{
-		for( int column = a_rectangle.start[ 0 ]; column <= a_rectangle.end[ 0 ]; ++column )
+		for( int column = area.start[ 0 ]; column <= area.end[ 0 ]; ++column )
 		{
-			plot_unsafe( column, a_rectangle.start[ 1 ] );
-			plot_unsafe( column, a_rectangle.end[ 1 ] );
+			plot_unsafe( column, area.start[ 1 ] );
+			plot_unsafe( column, area.end[ 1 ] );
 		}
-		for( int row = a_rectangle.start[ 1 ]; row <= a_rectangle.end[ 1 ]; ++row )
+		for( int row = area.start[ 1 ]; row <= area.end[ 1 ]; ++row )
 		{
-			plot_unsafe( a_rectangle.start[ 0 ], row );
-			plot_unsafe( a_rectangle.end[ 0 ], row );
+			plot_unsafe( area.start[ 0 ], row );
+			plot_unsafe( area.end[ 0 ], row );
 		}
 	}
 }

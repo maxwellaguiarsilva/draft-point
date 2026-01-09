@@ -33,14 +33,14 @@ using	enum	::game::direction;
 using	::game::use_direction;
 using	::tui::renderer;
 
-player::player( const point& a_position ) noexcept
-	:position{ a_position }
+player::player( const point& position ) noexcept
+	:position{ position }
 	,m_direction{ right }
 { }
 
 
 auto player::get_direction( ) const noexcept -> const direction& { return m_direction; }
-auto player::set_direction( const direction& a_direction ) noexcept -> void { m_direction = a_direction; }
+auto player::set_direction( const direction& heading ) noexcept -> void { m_direction = heading; }
 
 auto player::step_move( ) noexcept -> void { position += use_direction( m_direction ).value; }
 

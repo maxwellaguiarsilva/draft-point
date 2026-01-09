@@ -58,8 +58,8 @@ public:
 private:
 	struct terminal_listener final : public terminal::listener
 	{
-		explicit terminal_listener( const point& a_size );
-		void on_resize( const point& a_size ) override;
+		explicit terminal_listener( const point& size );
+		void on_resize( const point& size ) override;
 
 		point start;
 		point end;

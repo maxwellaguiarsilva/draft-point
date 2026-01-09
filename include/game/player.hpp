@@ -45,10 +45,10 @@ using	enum	::game::direction;
 class player
 {
 public:
-	explicit player( const point& a_position ) noexcept;
+	explicit player( const point& position ) noexcept;
 
 	auto get_direction( ) const noexcept -> const direction&;
-	auto set_direction( const direction& a_direction ) noexcept -> void;
+	auto set_direction( const direction& heading ) noexcept -> void;
 
 	auto step_move( ) noexcept -> void;
 

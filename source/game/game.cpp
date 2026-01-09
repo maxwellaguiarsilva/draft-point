@@ -35,15 +35,15 @@ using	::sak::to_lower_case;
 __using( ::tui::, line, point, rectangle )
 
 
-game::terminal_listener::terminal_listener( const point& a_size ) { on_resize( a_size ); }
+game::terminal_listener::terminal_listener( const point& size ) { on_resize( size ); }
 
 
-void game::terminal_listener::on_resize( const point& a_size )
+void game::terminal_listener::on_resize( const point& size )
 {
 	start			=	{ 0, 0 };
-	end				=	{ a_size[ 0 ] - 1, 2 * ( a_size[ 1 ] - 1 ) };
-	size			=	end - start + 1;
-	label_position	=	{ 1, a_size[ 1 ] - 1 };
+	end				=	{ size[ 0 ] - 1, 2 * ( size[ 1 ] - 1 ) };
+	this->size		=	end - start + 1;
+	label_position	=	{ 1, size[ 1 ] - 1 };
 }
 
 

@@ -142,8 +142,8 @@ public:
 		requires( sizeof...( t_args ) == num_dimensions
 			and ( convertible_to< t_args, t_scalar > and ... )
 		)
-	constexpr point( t_args... a_args )
-		: super_type{ static_cast< t_scalar >( a_args )... }
+	constexpr point( t_args... args )
+		: super_type{ static_cast< t_scalar >( args )... }
 	{ }
 
 	__352612026_operator( + ,plus		)
@@ -195,26 +195,26 @@ struct __to_point { };
 inline constexpr __to_point to_point{ };
 
 template< input_range t_range >
-constexpr auto operator | ( t_range&& a_range, __to_point )
+constexpr auto operator | ( t_range&& subject, __to_point )
 {
-	return	__point_from< t_range >{ ::std::forward< t_range >( a_range ) };
+	return	__point_from< t_range >{ ::std::forward< t_range >( subject ) };
 }
 
 //	overload for point | invocable -> transform_view (lazy)
 template< is_point t_point, invocable< typename remove_cvref_t< t_point >::value_type > t_operation >
-constexpr auto operator | ( t_point&& a_point, t_operation&& a_operation )
+constexpr auto operator | ( t_point&& pixel, t_operation&& operation )
 {
 	using	::std::views::transform;
-	return	transform( ::std::forward< t_point >( a_point ), ::std::forward< t_operation >( a_operation ) );
+	return	transform( ::std::forward< t_point >( pixel ), ::std::forward< t_operation >( operation ) );
 }
 
 //	overload for view | invocable -> transform_view (lazy)
 template< input_range t_range, invocable< range_value_t< t_range > > t_operation >
 requires ( not is_point< remove_cvref_t< t_range > > )
-constexpr auto operator | ( t_range&& a_range, t_operation&& a_operation )
+constexpr auto operator | ( t_range&& subject, t_operation&& operation )
 {
 	using	::std::views::transform;
-	return	transform( ::std::forward< t_range >( a_range ), ::std::forward< t_operation >( a_operation ) );
+	return	transform( ::std::forward< t_range >( subject ), ::std::forward< t_operation >( operation ) );
 }
 //	--------------------------------------------------
 

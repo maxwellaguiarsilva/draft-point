@@ -61,7 +61,7 @@ enum class error
 struct exception : ::std::exception
 {
 	error m_error;
-	constexpr explicit exception( error a_error ) : m_error( a_error ) { }
+	constexpr explicit exception( error error_code ) : m_error( error_code ) { }
 	
 	const char* what( ) const noexcept override
 	{

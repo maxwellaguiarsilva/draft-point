@@ -58,7 +58,7 @@ private:
 	struct __direction { string name; point value; };
 
 public:
-	constexpr auto operator ( )( const direction& a_direction ) const noexcept -> const __direction&
+	constexpr auto operator ( )( const direction& heading ) const noexcept -> const __direction&
 	{
 		static __direction	up_d			{	"up"			,{	0	,-1	}	};
 		static __direction	down_d			{	"down"			,{	0	,1	}	};
@@ -70,7 +70,7 @@ public:
 		static __direction	down_right_d	{	"down_right"	,{	1	,1	}	};
 		static __direction	none_d			{	"none"			,{	0	,0	}	};
 
-		switch( a_direction )
+		switch( heading )
 		{
 			case	up:			return	up_d;
 			case	down:		return	down_d;
