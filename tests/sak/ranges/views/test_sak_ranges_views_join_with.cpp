@@ -15,59 +15,47 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   adhoc/0006_join_with/0006_join_with.cpp
+ * File:   sak/ranges/views/test_sak_ranges_views_join_with.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-09 16:36
+ * Created on 2026-01-09 17:04
  */
 
 
-#include <print>
 #include <string>
 #include <vector>
-#include <exception>
-#include <ranges>
-#include <iostream>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
 #include <sak/ranges/views/join_with.hpp>
 
 
-auto main( const int argument_count, const char* argument_values[ ] ) -> int
+auto main( ) -> int
 {{
-	__using( ::sak:: ,exit_success ,exit_failure ,ensure )
-	__using( ::std:: ,string ,vector ,println ,exception )
+	__using( ::sak:: ,exit_success ,ensure )
+	__using( ::std:: ,string ,vector )
 	__using( ::sak::ranges::views:: ,join_with )
 
-	const vector< string > arguments( argument_values, argument_values + argument_count );
-	
-	try
 	{
-		println( "starting tests for: join_with" );
-
 		const vector< string > words = { "hello", "world", "from", "sak" };
 		const string delimiter = " ";
 		
 		const auto joined = join_with( words, delimiter );
 		
 		ensure( joined == "hello world from sak", "joined string mismatch" );
-		
-		println( "joined result: {}", joined );
+	}
 
+	{
 		const vector< string > empty_vector = { };
+		const string delimiter = "-";
 		const auto empty_joined = join_with( empty_vector, delimiter );
 		ensure( empty_joined == "", "empty join should return an empty string" );
+	}
 
+	{
 		const vector< string > single_word = { "only" };
+		const string delimiter = ",";
 		const auto single_joined = join_with( single_word, delimiter );
 		ensure( single_joined == "only", "single word join mismatch" );
-
-		println( "all tests for join_with passed" );
-	}
-	catch( const exception& error )
-	{
-		println( "test failed: {}", error.what( ) );
-		return	exit_failure;
 	}
 
 	return	exit_success;
