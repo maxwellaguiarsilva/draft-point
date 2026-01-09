@@ -30,6 +30,7 @@
 #include <iostream>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
+#include <sak/math/math.hpp>
 #include <sak/ranges/fold_left_first.hpp>
 
 
@@ -40,9 +41,12 @@ struct __join_with
 	template< ::std::ranges::input_range t_range, typename t_delimiter >
 	constexpr auto operator ( ) ( t_range&& range, t_delimiter&& delimiter ) const
 	{
-		return	::sak::ranges::fold_left_first( range, [ &delimiter ]( auto a, auto b ) {
-			return	a + delimiter + b;
-		} ).value_or( ::std::ranges::range_value_t< t_range >{ } );
+		__using( ::sak::math:: ,plus )
+		__using( ::sak::ranges:: ,fold_left_first )
+		__using( ::std:: ,bind )
+		__using( ::std::ranges:: ,range_value_t )
+		__using( ::std::placeholders:: ,_1 ,_2 )
+		return	fold_left_first( range, bind( plus, bind( plus, _1, delimiter ), _2 ) ).value_or( range_value_t< t_range >{ } );
 	}
 };
 inline constexpr auto join_with = __join_with{ };
@@ -52,20 +56,9 @@ inline constexpr auto join_with = __join_with{ };
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
-	__using( ::sak::
-		,exit_success
-		,exit_failure
-		,ensure
-	)
-	__using( ::std::
-		,string
-		,vector
-		,println
-		,exception
-	)
-	__using( ::sak::ranges::
-		,join_with
-	)
+	__using( ::sak:: ,exit_success ,exit_failure ,ensure )
+	__using( ::std:: ,string ,vector ,println ,exception )
+	__using( ::sak::ranges:: ,join_with )
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	
