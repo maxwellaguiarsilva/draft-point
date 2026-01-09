@@ -22,8 +22,8 @@
  */
 
 
-#include <string>
 #include <print>
+#include <string>
 #include <vector>
 #include <memory>
 #include <exception>
@@ -31,9 +31,9 @@
 #include <sak/using.hpp>
 
 
-const auto red	=	"\033[ 41;5m";
-const auto blue	=	"\033[ 44;5m";
-const auto reset	=	"\033[ 0m";
+const auto red	=	"\033[41;5m";
+const auto blue	=	"\033[44;5m";
+const auto reset	=	"\033[0m";
 
 class base
 {
@@ -41,6 +41,7 @@ public:
 	base( ) { ::std::println( "{}{}: ctc base{}", blue, static_cast< void* >( this ), reset ); }
 	virtual ~base( ) { ::std::println( "{}{}: dtc base{}", red, static_cast< void* >( this ), reset ); }
 };
+
 class derived final : public base
 {
 public:
@@ -48,13 +49,13 @@ public:
 	~derived( ) override { ::std::println( "{}{}: dtc derived{}", red, static_cast< void* >( this ), reset ); }
 };
 
-
 class non_virtual_base
 {
 public:
 	non_virtual_base( ) { ::std::println( "{}{}: ctc non_virtual_base{}", blue, static_cast< void* >( this ), reset ); }
 	~non_virtual_base( ) { ::std::println( "{}{}: dtc non_virtual_base{}", red, static_cast< void* >( this ), reset ); }
 };
+
 class non_virtual_derived : public non_virtual_base
 {
 public:
@@ -65,45 +66,33 @@ public:
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
-	__using( ::sak::
-		,exit_success
-		,exit_failure
-		,ensure
-	)
-	__using( ::std::
-		,print
-		,println
-		,string
-		,vector
-		,unique_ptr
-		,make_unique
-		,exception
-	)
+	__using( ::sak::, exit_success, exit_failure, ensure )
+	__using( ::std::, string, vector, println, exception, unique_ptr, make_unique )
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
-	for( const auto& value : arguments )
-		println( "{}", value );
 
 	try
 	{
+		println( "starting tests for: vector_copy" );
+
 		const string line( 50, '-' );
-		println( "{}\n", line );
+		println( "{}", line );
 		{
 			vector< unique_ptr< base > > list;
 			list.emplace_back( make_unique< derived >( ) );
 			list.emplace_back( make_unique< derived >( ) );
 			list.pop_back( );
 		}
-		println( "{}\n", line );
+		println( "{}", line );
 		{
 			vector< unique_ptr< non_virtual_base > > list;
 			list.emplace_back( make_unique< non_virtual_derived >( ) );
 			list.emplace_back( make_unique< non_virtual_derived >( ) );
 			list.pop_back( );
 		}
-		println( "{}\n", line );
+		println( "{}", line );
 
-		println( "all tests for 0001_vector_copy passed!" );
+		println( "all tests for vector_copy passed" );
 	}
 	catch( const exception& error )
 	{
