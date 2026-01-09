@@ -42,8 +42,7 @@ __using( ::sak::, is_point, point )
 __using( ::std::ranges::, max )
 
 
-template< typename t_point >
-requires	is_point< t_point >
+template< is_point t_point >
 auto to_string( const t_point& a_point ) -> ::std::string
 {
 	__using( ::std::, format, string );

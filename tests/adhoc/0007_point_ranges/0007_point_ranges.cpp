@@ -41,10 +41,10 @@ __using( ::std::ranges::, input_range, copy, range_value_t )
 
 //	the final converter
 template< typename t_point >
-struct to_point_t
+struct __to_point
 {
 	template< input_range t_range >
-	friend constexpr auto operator | ( t_range&& a_range, const to_point_t& ) -> t_point
+	friend constexpr auto operator | ( t_range&& a_range, const __to_point& ) -> t_point
 	{
 		t_point	result;
 		copy( a_range, result.begin( ) );
@@ -53,7 +53,7 @@ struct to_point_t
 };
 
 template< typename t_point >
-inline constexpr to_point_t< t_point > to_point{ };
+inline constexpr __to_point< t_point > to_point{ };
 
 }
 
