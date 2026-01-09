@@ -18,7 +18,7 @@
  * File:   adhoc/0006_join_with/0006_join_with.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-09 16:39
+ * Created on 2026-01-09 16:36
  */
 
 
@@ -42,7 +42,7 @@ struct __join_with
 	{
 		return	::sak::ranges::fold_left_first( range, [ &delimiter ]( auto a, auto b ) {
 			return	a + delimiter + b;
-		} );
+		} ).value_or( ::std::ranges::range_value_t< t_range >{ } );
 	}
 };
 inline constexpr auto join_with = __join_with{ };
@@ -78,19 +78,17 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		
 		const auto joined = join_with( words, delimiter );
 		
-		ensure( joined.has_value( ), "joined should have a value" );
-		ensure( joined.value( ) == "hello world from sak", "joined string mismatch" );
+		ensure( joined == "hello world from sak", "joined string mismatch" );
 		
-		println( "joined result: {}", joined.value( ) );
+		println( "joined result: {}", joined );
 
 		const vector< string > empty_vector = { };
 		const auto empty_joined = join_with( empty_vector, delimiter );
-		ensure( not empty_joined.has_value( ), "empty join should not have a value" );
+		ensure( empty_joined == "", "empty join should return an empty string" );
 
 		const vector< string > single_word = { "only" };
 		const auto single_joined = join_with( single_word, delimiter );
-		ensure( single_joined.has_value( ), "single word join should have a value" );
-		ensure( single_joined.value( ) == "only", "single word join mismatch" );
+		ensure( single_joined == "only", "single word join mismatch" );
 
 		println( "all tests for join_with passed" );
 	}
