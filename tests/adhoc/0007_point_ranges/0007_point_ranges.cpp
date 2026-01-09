@@ -50,7 +50,7 @@ __using( ::sak::math::, is_arithmetic )
 
 //	proxy to handle conversion from range to point
 //	it does not support auto deduction, forcing a strong type definition
-template< typename t_range >
+template< input_range t_range >
 struct __point_from
 {
 	t_range m_range;
