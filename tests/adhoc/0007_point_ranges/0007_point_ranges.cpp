@@ -37,41 +37,32 @@
 namespace sak {
 
 __using( ::std::
-	,declval
 	,forward
-	,integral_constant
 	,remove_cvref_t
 	,size_t
 )
 __using( ::std::ranges::
 	,copy
 	,input_range
-	,owning_view
 	,range_value_t
-	,ref_view
 )
 __using( ::sak::math::, is_arithmetic )
 
-//	trait to extract the dimension by peeling views
-template< typename t_view >
-struct __point_dimension;
-
-template< is_arithmetic t_scalar, size_t num_size >
-struct __point_dimension< point< t_scalar, num_size > >
-	: integral_constant< size_t, num_size > { };
-
+//	proxy to handle conversion from range to point
+//	it does not support auto deduction, forcing a strong type definition
 template< typename t_range >
-struct __point_dimension< ref_view< t_range > >
-	: __point_dimension< remove_cvref_t< t_range > > { };
+struct __point_from
+{
+	t_range m_range;
 
-template< typename t_range >
-struct __point_dimension< owning_view< t_range > >
-	: __point_dimension< remove_cvref_t< t_range > > { };
-
-template< typename t_view >
-requires requires { declval< t_view >( ).base( ); }
-struct __point_dimension< t_view >
-	: __point_dimension< remove_cvref_t< decltype( declval< t_view >( ).base( ) ) > > { };
+	template< is_arithmetic t_scalar, size_t num_size >
+	constexpr operator point< t_scalar, num_size >( ) &&
+	{
+		point< t_scalar, num_size >	result;
+		copy( m_range, result.begin( ) );
+		return	result;
+	}
+};
 
 struct __to_point { };
 inline constexpr __to_point to_point{ };
@@ -79,12 +70,7 @@ inline constexpr __to_point to_point{ };
 template< input_range t_range >
 constexpr auto operator | ( t_range&& a_range, __to_point )
 {
-	constexpr size_t num_size = __point_dimension< remove_cvref_t< t_range > >::value;
-	using	t_scalar	=	range_value_t< t_range >;
-
-	point< t_scalar, num_size >	result;
-	copy( a_range, result.begin( ) );
-	return	result;
+	return	__point_from< t_range >{ ::std::forward< t_range >( a_range ) };
 }
 
 }
@@ -131,7 +117,7 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 		,println
 		,exception
 	)
-	__using( ::sak::math::, abs, sign, square, sum )
+	__using( ::sak::math::, abs, sign, sum )
 	__using( ::sak::, to_point )
 
 	const vector< string > arguments( a_argument_values, a_argument_values + a_argument_count );
@@ -148,8 +134,8 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 		//	demonstration of desired syntax
 		//	p | abs: returns a view (lazy)
 		//	| sign: nests another view (lazy)
-		//	| to_point: executes composition and converts to point (eager)
-		//	the dimension and type are now automatically deduced from the range lineage
+		//	| to_point: returns a __point_from proxy (lazy)
+		//	the assignment to point_type triggers the conversion operator (eager)
 		const	point_type	result	=	p | abs | sign | to_point;
 
 		//	verification
