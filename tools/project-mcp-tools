@@ -62,6 +62,7 @@ def create_test(
     ) -> str:
     """Creates a new C++ test file.
     If flg_adhoc is True, creates an adhoc test in tests/adhoc/NNNN_hierarchy/.
+    IMPORTANT: In adhoc mode, 'hierarchy' MUST be a simple name (no slashes or paths).
     If flg_adhoc is False, creates a structured test in tests/path/test_path_hierarchy.cpp.
     """
     args = {

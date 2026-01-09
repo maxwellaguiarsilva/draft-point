@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   adhoc/0004_sak/ranges/join_with/0004_sak/ranges/join_with.cpp
+ * File:   adhoc/0006_join_with/0006_join_with.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-09 16:25
+ * Created on 2026-01-09 16:39
  */
 
 
@@ -71,7 +71,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	
 	try
 	{
-		println( "starting tests for: sak/ranges/join_with" );
+		println( "starting tests for: join_with" );
 
 		const vector< string > words = { "hello", "world", "from", "sak" };
 		const string delimiter = " ";
@@ -92,7 +92,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		ensure( single_joined.has_value( ), "single word join should have a value" );
 		ensure( single_joined.value( ) == "only", "single word join mismatch" );
 
-		println( "all tests for sak/ranges/join_with passed" );
+		println( "all tests for join_with passed" );
 	}
 	catch( const exception& error )
 	{
