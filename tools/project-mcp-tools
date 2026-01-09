@@ -103,6 +103,7 @@ def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
     If flg_auto_fix is True, allows the tool to attempt to adjust automatically ( Default False ).
     Returns a consolidated list of violations.
     These rules are specific to hpp and cpp files.
+    To verify and process the entire project, prefer the `analyze`` tool. The `verify_formatting` tool is recommended for a small group of files or just a single file.
     """
     args = {
         "files": files,

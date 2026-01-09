@@ -11,7 +11,7 @@ Relying on these notes, models and tools saves tokens in the context of the LLM 
 - Verification: 
     1.  Use the `analyze` tool after changes to run static analysis ( cppcheck ) and apply automatic formatting fixes.
     2.  Use the `verify_formatting` MCP tool.
-    3.  Use the `compile` tool for incremental building and linking.
+    3.  Use the `compile` tool for incremental building and linking. This tool should be used last.
 
 ### 2. `sak` Library ( Swiss Army Knife )
 - Generic and domain-independent utilities ( math, geometry, patterns ).
@@ -55,3 +55,5 @@ person::person( )
 - Visual Serenity: Reduce visual noise. Code should be a statement of intent ( "what" ), not a CPU instruction manual ( "how" ).
 - With composition: If logic can be named, it should be a utility in the `sak` library. Avoid ad-hoc lambdas; prefer composing named entities.
 - Any lambda with generic, reusable logic that can be expressed via `ranges`, `views`, or other `sak` utilities should be implemented as a niebloid or CPO in `sak`.
+
+
