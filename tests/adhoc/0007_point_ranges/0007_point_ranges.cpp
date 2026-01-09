@@ -34,13 +34,13 @@
 #include <sak/math/math.hpp>
 
 
-namespace demo {
+namespace sak {
 
 __using( ::std::, forward, remove_cvref_t, invocable )
 __using( ::std::ranges::, input_range, copy, range_value_t )
 
 //	the final converter
-template< typename t_point >
+template< is_point t_point >
 struct __to_point
 {
 	template< input_range t_range >
@@ -52,7 +52,7 @@ struct __to_point
 	}
 };
 
-template< typename t_point >
+template< is_point t_point >
 inline constexpr __to_point< t_point > to_point{ };
 
 }
@@ -100,7 +100,7 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 		,exception
 	)
 	__using( ::sak::math::, abs, sign, square, sum )
-	__using( ::demo::, to_point )
+	__using( ::sak::, to_point )
 
 	const vector< string > arguments( a_argument_values, a_argument_values + a_argument_count );
 	for( const auto& value : arguments )
