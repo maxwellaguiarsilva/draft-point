@@ -20,6 +20,7 @@ Relying on these notes, models and tools saves tokens in the context of the LLM 
 ### 3. C++ Coding Style
 - Modernity: C++23 project, using `ranges`, `views`, and custom `Niebloids` in `sak`.
 - Using: Use `using` or `__using` macro from `sak/using.hpp` ( for multiple symbols ) to avoid the scope operator `::`. No `using namespace`. ADL-sensitive STL utilities ( e.g., `::std::move`, `::std::forward` ) are exempt and must be qualified.
+    - The `__using` macro accepts up to 64 parameters. If four or fewer symbols are provided, they may remain on the same line. For more than four symbols, each must be on its own line, adhering to the "Comma rule".
 - Naming: Use `snake_case`. Class members prefixed with `m_`, template parameters with `t_`. Use descriptive and extensive names; abbreviations such as `i`, `w`, `h` are forbidden. STL, external libraries, and macros with numeric prefixes are exempt.
 - Flow Control: No braces `{}` for single-line `if, for, while`.
 - Allowed Comments: Only to explain subtle behaviors or in tests. A good example:
