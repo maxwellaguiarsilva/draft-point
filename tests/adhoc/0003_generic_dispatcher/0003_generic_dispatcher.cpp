@@ -108,7 +108,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	notifier += normal;
 	notifier += unsafe;
 
-	handle_result( notifier( &button_listener::on_clicked, "btn_start" ) );
+	handle_result( notifier( &button_listener::on_clicked, "button_start" ) );
 	handle_result( notifier( &button_listener::on_hover, 100 ) );
 
 	return	exit_success;

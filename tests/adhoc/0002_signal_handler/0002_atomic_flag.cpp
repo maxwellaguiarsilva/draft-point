@@ -42,7 +42,7 @@ using	::std::atomic_flag;
 using	::sak::ensure;
 
 
-atomic_flag flg_window_changed;
+atomic_flag flag_window_changed;
 
 
 void print_terminal_size( )
@@ -57,7 +57,7 @@ void print_terminal_size( )
 void signal_handler( int signal_number )
 {
 	if( signal_number == SIGWINCH )
-		flg_window_changed.test_and_set( );
+		flag_window_changed.test_and_set( );
 }
 
 
@@ -94,14 +94,14 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		println( "resize the terminal window: press ctrl+c to exit" );
 		print_terminal_size( );
 		
-		jthread worker( [ ]( stop_token stoken ) {
+		jthread worker( [ ]( stop_token stop_token ) {
 			::game::fps fps( 10 );
 
-			while( not stoken.stop_requested( ) )
+			while( not stop_token.stop_requested( ) )
 			{
-				if( flg_window_changed.test( ) )
+				if( flag_window_changed.test( ) )
 				{
-					flg_window_changed.clear( );
+					flag_window_changed.clear( );
 					print_terminal_size( );
 				}
 

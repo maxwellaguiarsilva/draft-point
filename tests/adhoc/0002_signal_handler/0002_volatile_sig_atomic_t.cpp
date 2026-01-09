@@ -40,7 +40,7 @@ using	::sak::ensure;
 
 
 //	needs to be `volatile` to be `signal_thread_safe`
-volatile sig_atomic_t flg_window_changed = 0;
+volatile sig_atomic_t flag_window_changed = 0;
 
 
 //	gets and prints the current terminal size ( rows and columns )
@@ -54,7 +54,7 @@ void print_terminal_size( )
 
 
 //	signal handler for sigwinch
-void signal_window_change_handler( int signal_number ) { if( signal_number == SIGWINCH ) flg_window_changed = 1; }
+void signal_window_change_handler( int signal_number ) { if( signal_number == SIGWINCH ) flag_window_changed = 1; }
 
 
 //	configures the handler for the sigwinch signal
@@ -106,9 +106,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		//	main program loop
 		while( true )
 		{
-			if( flg_window_changed )
+			if( flag_window_changed )
 			{
-				flg_window_changed = 0;
+				flag_window_changed = 0;
 				print_terminal_size( );
 			}
 

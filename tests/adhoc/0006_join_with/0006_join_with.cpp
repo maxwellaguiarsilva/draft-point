@@ -35,9 +35,9 @@
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
-	__using( ::sak:: ,exit_success ,exit_failure ,ensure )
-	__using( ::std:: ,string ,vector ,println ,exception )
-	__using( ::sak::ranges::views:: ,join_with )
+	__using( ::sak::, exit_success, exit_failure, ensure )
+	__using( ::std::, string, vector, println, exception )
+	__using( ::sak::ranges::views::, join_with )
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	

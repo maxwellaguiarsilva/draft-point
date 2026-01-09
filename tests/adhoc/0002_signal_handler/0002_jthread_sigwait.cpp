@@ -85,15 +85,15 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		print_terminal_size( );
 
 		//	dedicated thread for signal handling
-		jthread signal_handler( [ signal_set ]( stop_token token )
+		jthread signal_handler( [ signal_set ]( stop_token stop_token )
 		{
 			int received_signal = 0;
-			while( not token.stop_requested( ) )
+			while( not stop_token.stop_requested( ) )
 			{
 				//	synchronously wait for signals in the set
 				if( sigwait( &signal_set, &received_signal ) == 0 )
 				{
-					if( token.stop_requested( ) )
+					if( stop_token.stop_requested( ) )
 						break;
 
 					switch( received_signal )
