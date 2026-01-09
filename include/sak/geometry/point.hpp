@@ -168,15 +168,6 @@ public:
 		return	square_root( sum( transform( *this, square ) ) );
 	}
 
-	template< invocable< t_scalar > t_operation >
-	constexpr auto map( const t_operation& operation ) const noexcept -> point
-	{
-		using	::std::ranges::transform;
-		point	result;
-		transform( *this, result.begin( ), operation );
-		return	result;
-	}
-
 };
 
 
