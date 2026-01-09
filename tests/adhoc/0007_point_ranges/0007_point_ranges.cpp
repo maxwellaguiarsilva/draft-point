@@ -36,24 +36,56 @@
 
 namespace sak {
 
-__using( ::std::, forward, remove_cvref_t, invocable )
-__using( ::std::ranges::, input_range, copy, range_value_t )
+__using( ::std::
+	,declval
+	,forward
+	,integral_constant
+	,remove_cvref_t
+	,size_t
+)
+__using( ::std::ranges::
+	,copy
+	,input_range
+	,owning_view
+	,range_value_t
+	,ref_view
+)
+__using( ::sak::math::, is_arithmetic )
 
-//	the final converter
-template< is_point t_point >
-struct __to_point
+//	trait to extract the dimension by peeling views
+template< typename t_view >
+struct __point_dimension;
+
+template< is_arithmetic t_scalar, size_t num_size >
+struct __point_dimension< point< t_scalar, num_size > >
+	: integral_constant< size_t, num_size > { };
+
+template< typename t_range >
+struct __point_dimension< ref_view< t_range > >
+	: __point_dimension< remove_cvref_t< t_range > > { };
+
+template< typename t_range >
+struct __point_dimension< owning_view< t_range > >
+	: __point_dimension< remove_cvref_t< t_range > > { };
+
+template< typename t_view >
+requires requires { declval< t_view >( ).base( ); }
+struct __point_dimension< t_view >
+	: __point_dimension< remove_cvref_t< decltype( declval< t_view >( ).base( ) ) > > { };
+
+struct __to_point { };
+inline constexpr __to_point to_point{ };
+
+template< input_range t_range >
+constexpr auto operator | ( t_range&& a_range, __to_point )
 {
-	template< input_range t_range >
-	friend constexpr auto operator | ( t_range&& a_range, const __to_point& ) -> t_point
-	{
-		t_point	result;
-		copy( a_range, result.begin( ) );
-		return	result;
-	}
-};
+	constexpr size_t num_size = __point_dimension< remove_cvref_t< t_range > >::value;
+	using	t_scalar	=	range_value_t< t_range >;
 
-template< is_point t_point >
-inline constexpr __to_point< t_point > to_point{ };
+	point< t_scalar, num_size >	result;
+	copy( a_range, result.begin( ) );
+	return	result;
+}
 
 }
 
@@ -117,7 +149,8 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 		//	p | abs: returns a view (lazy)
 		//	| sign: nests another view (lazy)
 		//	| to_point: executes composition and converts to point (eager)
-		const	point_type	result	=	p | abs | sign | to_point< point_type >;
+		//	the dimension and type are now automatically deduced from the range lineage
+		const	point_type	result	=	p | abs | sign | to_point;
 
 		//	verification
 		ensure( result == point_type( 1, 1, 1 ), "lazy pipe composition failed" );
