@@ -26,81 +26,10 @@
 #include <string>
 #include <vector>
 #include <exception>
-#include <ranges>
-#include <algorithm>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
 #include <sak/geometry/point.hpp>
 #include <sak/math/math.hpp>
-
-
-namespace sak {
-
-__using( ::std::
-	,forward
-	,remove_cvref_t
-	,size_t
-)
-__using( ::std::ranges::
-	,copy
-	,input_range
-	,range_value_t
-)
-__using( ::sak::math::, is_arithmetic )
-
-//	proxy to handle conversion from range to point
-//	it does not support auto deduction, forcing a strong type definition
-template< input_range t_range >
-struct __point_from
-{
-	t_range m_range;
-
-	template< is_arithmetic t_scalar, size_t num_size >
-	constexpr operator point< t_scalar, num_size >( ) &&
-	{
-		point< t_scalar, num_size >	result;
-		copy( m_range, result.begin( ) );
-		return	result;
-	}
-};
-
-struct __to_point { };
-inline constexpr __to_point to_point{ };
-
-template< input_range t_range >
-constexpr auto operator | ( t_range&& a_range, __to_point )
-{
-	return	__point_from< t_range >{ ::std::forward< t_range >( a_range ) };
-}
-
-}
-
-
-//	putting in sak namespace so adl finds operators
-//	when used with sak::geometry or sak::math types
-namespace sak {
-
-__using( ::std::, remove_cvref_t, invocable )
-__using( ::std::ranges::, input_range, range_value_t )
-
-//	overload for point | invocable -> transform_view (lazy)
-template< is_point t_point, invocable< typename remove_cvref_t< t_point >::value_type > t_operation >
-constexpr auto operator | ( t_point&& a_point, t_operation&& a_operation )
-{
-	using	::std::views::transform;
-	return	transform( ::std::forward< t_point >( a_point ), ::std::forward< t_operation >( a_operation ) );
-}
-
-//	overload for view | invocable -> transform_view (lazy)
-template< input_range t_range, invocable< range_value_t< t_range > > t_operation >
-requires ( not is_point< remove_cvref_t< t_range > > )
-constexpr auto operator | ( t_range&& a_range, t_operation&& a_operation )
-{
-	using	::std::views::transform;
-	return	transform( ::std::forward< t_range >( a_range ), ::std::forward< t_operation >( a_operation ) );
-}
-
-}
 
 
 auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
@@ -110,6 +39,7 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 		,exit_failure
 		,ensure
 		,point
+		,to_point
 	)
 	__using( ::std::
 		,string
@@ -118,7 +48,6 @@ auto main( const int a_argument_count, const char* a_argument_values[ ] ) -> int
 		,exception
 	)
 	__using( ::sak::math::, abs, sign, sum )
-	__using( ::sak::, to_point )
 
 	const vector< string > arguments( a_argument_values, a_argument_values + a_argument_count );
 	for( const auto& value : arguments )
