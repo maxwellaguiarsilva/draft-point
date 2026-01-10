@@ -103,7 +103,6 @@ auto game::run( ) -> void
 
 		l_renderer.draw( line{ { 0, 0 }, position - 2 } );
 
-		l_renderer.refresh( );
 		l_renderer.print( label_position,
 				" | fps: " + to_string( m_fps.compute( ) )
 			+ 	" | size: " + to_string( frame_size[ 0 ] ) + " x " + to_string( frame_size[ 1 ] )
@@ -112,6 +111,7 @@ auto game::run( ) -> void
 			+ 	" | length: " + to_string( position.get_length( ) )
 			+ 	" | "
 		);
+		l_renderer.refresh( );
 	}
 
 	m_renderer.clear_screen( );

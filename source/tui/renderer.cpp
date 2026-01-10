@@ -172,7 +172,6 @@ auto renderer::on_resize( const point& new_size ) -> void
 	}
 	clear( );
 	refresh( );
-	m_terminal.refresh( );
 	m_dispatcher( &listener::on_resize, m_screen_size );
 }
 
@@ -231,6 +230,7 @@ auto renderer::refresh( ) -> void
 			}
 		}
 	}
+	m_terminal.refresh( );
 }
 
 void renderer::operator +=( const shared_ptr< listener >& subject ) { m_dispatcher += subject; }

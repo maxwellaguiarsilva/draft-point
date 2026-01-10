@@ -98,6 +98,7 @@ terminal::terminal( )
 
 	clear_screen( true );
 	set_raw_mode( true );
+	refresh( );
 
 	sigset_t set;
 	sigemptyset( &set );
