@@ -94,17 +94,17 @@ public:
 		,t_call_args&&... arguments
 	)
 	{
-		unsigned l_clear_count;
-		list l_list;
+		unsigned clear_count;
+		list listeners_list;
 		{
-			auto lock	=	lock_guard( m_mutex );
-			l_list		=	m_list;
-			l_clear_count	=	m_clear_count.load( memory_order_acquire );
+			auto lock		=	lock_guard( m_mutex );
+			listeners_list	=	m_list;
+			clear_count		=	m_clear_count.load( memory_order_acquire );
 		};
 		
 		error   failed_list;
 		bool should_clear = false;
-		for( const auto& current_listener : l_list )
+		for( const auto& current_listener : listeners_list )
 			if( auto locked = current_listener.lock( ) )
 				try {
 					invoke( member_function_pointer, locked.get( ), arguments... );
@@ -113,7 +113,7 @@ public:
 				should_clear = true;
 		
 		if( should_clear )
-			clear( l_clear_count );
+			clear( clear_count );
 		
 		if( failed_list.empty( ) )
 			return	{ };
@@ -123,12 +123,12 @@ public:
 private:
 	list	m_list;
 	mutex	m_mutex;
-	atomic<unsigned>	m_clear_count	=	0;
+	atomic< unsigned >	m_clear_count	=	0;
 	
-	void clear( unsigned l_clear_count )
+	void clear( unsigned clear_count )
 	{
 		auto lock = lock_guard( m_mutex );
-		if( l_clear_count not_eq m_clear_count.load( memory_order_acquire ) )
+		if( clear_count not_eq m_clear_count.load( memory_order_acquire ) )
 			return;
 		erase_if( m_list, [ ]( const auto& ptr ) { return ptr.expired( ); } );
 		m_clear_count.fetch_add( 1, memory_order_release );

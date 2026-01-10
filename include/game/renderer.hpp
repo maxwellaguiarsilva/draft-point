@@ -18,7 +18,7 @@
  * File:   game/renderer.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-10 15:34
+ * Created on 2026-01-10 15:44
  */
 
 
