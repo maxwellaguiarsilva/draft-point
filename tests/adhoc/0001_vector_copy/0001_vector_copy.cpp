@@ -67,7 +67,14 @@ public:
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
 	__using( ::sak::, exit_success, exit_failure, ensure )
-	__using( ::std::, string, vector, println, exception, unique_ptr, make_unique )
+	__using( ::std::
+		,string
+		,vector
+		,println
+		,exception
+		,unique_ptr
+		,make_unique
+	)
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 

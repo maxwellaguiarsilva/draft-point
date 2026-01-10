@@ -31,9 +31,9 @@
 
 auto main( ) -> int
 {{
-	__using( ::sak:: ,exit_success ,ensure )
-	__using( ::std:: ,string ,vector )
-	__using( ::sak::ranges::views:: ,join_with )
+	__using( ::sak::, exit_success, ensure )
+	__using( ::std::, string, vector )
+	__using( ::sak::ranges::views::, join_with )
 
 	{
 		const vector< string > words = { "hello", "world", "from", "sak" };

@@ -39,7 +39,14 @@
 namespace tui {
 
 
-__using( ::std::, lock_guard, mutex, shared_ptr, size_t, uint8_t, vector )
+__using( ::std::
+	,lock_guard
+	,mutex
+	,shared_ptr
+	,size_t
+	,uint8_t
+	,vector
+)
 
 
 class terminal;

@@ -86,7 +86,7 @@ struct button_logger final : public button_listener
 {
 	void on_clicked( const string& button_name ) const override
 	{
-		println( "   -> button clicked: {}" , button_name );
+		println( "   -> button clicked: {}", button_name );
 	}
 };
 
@@ -95,7 +95,7 @@ struct unsafe_logger final : public button_listener
 {
 	void on_clicked( const string& button_name ) const override 
 	{
-		throw runtime_error( format( "error on button clicked: {}" , button_name ) ); 
+		throw runtime_error( format( "error on button clicked: {}", button_name ) ); 
 	}
 };
 
@@ -109,7 +109,7 @@ void handle_result( const dispatcher< button_listener >::result& result )
 	for( const auto& failed : result.error( ) )
 		if( auto locked = failed.listener.lock( ) )
 			try { rethrow_exception( failed.exception ); } catch( const exception& error ) {
-				println( "     - caught: {}" , error.what( ) );
+				println( "     - caught: {}", error.what( ) );
 			}
 }
 
@@ -175,7 +175,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )
-		println( "{}" , value );
+		println( "{}", value );
 	
 	try
 	{

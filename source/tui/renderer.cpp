@@ -35,7 +35,19 @@
 namespace tui {
 
 
-__using( ::std::, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, ranges::fill, ranges::max, views::iota, views::drop, views::take )
+__using( ::std::
+	,lock_guard
+	,make_shared
+	,try_to_lock
+	,uint8_t
+	,unique_lock
+	,vector
+	,ranges::fill
+	,ranges::max
+	,views::iota
+	,views::drop
+	,views::take
+)
 __using( ::sak::ranges::views::, cartesian_product )
 __using( ::sak::math::, abs, sign, bind_back, greater_equal )
 __using( ::sak::, to_point )

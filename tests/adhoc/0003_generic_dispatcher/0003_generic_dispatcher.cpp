@@ -78,7 +78,7 @@ void handle_result( const button_result& result ) {
 	for( const auto& failed : result.error( ) )
 		if( auto locked = failed.listener.lock( ) )
 			try { rethrow_exception( failed.exception ); } catch( const exception& error ) {
-				println( "    -   {}" , error.what( ) );
+				println( "    -   {}", error.what( ) );
 			}
 }
 

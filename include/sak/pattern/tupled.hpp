@@ -36,7 +36,14 @@
 namespace sak {
 namespace pattern {
 
-__using( ::std::, apply, is_class_v, is_function_v, remove_cvref_t, remove_pointer_t, tuple_size )
+__using( ::std::
+	,apply
+	,is_class_v
+	,is_function_v
+	,remove_cvref_t
+	,remove_pointer_t
+	,tuple_size
+)
 
 
 template< typename t_invocable >
