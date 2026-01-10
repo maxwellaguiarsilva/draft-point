@@ -27,6 +27,7 @@
 #include <vector>
 #include <cstdlib>
 #include <game/game.hpp>
+#include <tui/terminal.hpp>
 
 
 auto main( int, char*[ ] ) -> int
@@ -37,7 +38,8 @@ auto main( int, char*[ ] ) -> int
 
 	try
 	{
-		::game::game game;
+		::tui::terminal terminal;
+		::game::game game( terminal.get_renderer( ) );
 		game.run( );
 	} catch( const exception& e )
 	{

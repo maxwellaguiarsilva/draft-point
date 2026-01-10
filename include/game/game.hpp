@@ -29,6 +29,7 @@
 
 #include <sak/sak.hpp>
 #include <tui/terminal.hpp>
+#include <tui/renderer.hpp>
 #include <game/player.hpp>
 #include <game/fps.hpp>
 #include <memory>
@@ -37,7 +38,7 @@
 namespace game {
 
 
-using	::tui::terminal;
+using	::tui::renderer;
 using	::game::player;
 using	::game::fps;
 using	::game::point;
@@ -48,7 +49,7 @@ using	::std::make_shared;
 class game
 {
 public:
-	game( );
+	explicit game( renderer& renderer );
 	virtual ~game( ) noexcept = default;
 
 	delete_copy_move_ctc( game );
@@ -56,10 +57,10 @@ public:
 	auto run( ) -> void;
 
 private:
-	struct terminal_listener final : public terminal::listener
+	struct terminal_listener final : public renderer::listener
 	{
-		explicit terminal_listener( const point& size );
-		void on_resize( const point& size ) override;
+		explicit terminal_listener( const point& new_size );
+		void on_resize( const point& new_size ) override;
 
 		point start;
 		point end;
@@ -67,7 +68,7 @@ private:
 		point label_position;
 	};
 
-	terminal	m_terminal;
+	renderer&	m_renderer;
 	player		m_player;
 	fps			m_fps;
 	shared_ptr< terminal_listener > m_terminal_listener;

@@ -28,6 +28,7 @@
 
 
 #include <sak/sak.hpp>
+#include <sak/pattern/dispatcher.hpp>
 #include <tui/geometry.hpp>
 #include <vector>
 #include <cstdint>
@@ -44,9 +45,11 @@ __using( ::std::
 	,mutex
 	,shared_ptr
 	,size_t
+	,string
 	,uint8_t
 	,vector
 )
+using	::sak::pattern::dispatcher;
 
 
 class terminal;
@@ -61,11 +64,25 @@ public:
 	~renderer( ) noexcept = default;
 
 	void clear( ) noexcept;
+	void clear_screen( ) noexcept;
 	void refresh( );
 	void set_color( const uint8_t color ) noexcept;
 	void draw( const point& pixel ) noexcept;
 	void draw( const line& segment ) noexcept;
 	void draw( const rectangle& area, bool is_filled = true ) noexcept;
+	void print( const point& position, const string& text ) noexcept;
+
+	auto size( ) const noexcept -> point;
+
+	static auto read_char( ) -> char;
+
+	class listener
+	{
+	public:
+		virtual ~listener( ) = default;
+		virtual void on_resize( const point& new_size ) = 0;
+	};
+	void operator +=( const shared_ptr< listener >& subject );
 
 private:
 	struct terminal_listener;
@@ -81,6 +98,7 @@ private:
 	uint8_t		m_color;
 	mutable mutex	m_mutex;
 	shared_ptr< terminal_listener > m_terminal_listener;
+	dispatcher< listener >	m_dispatcher;
 };
 
 

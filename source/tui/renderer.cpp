@@ -58,7 +58,7 @@ __using( ::tui::, line, point, rectangle )
 struct renderer::terminal_listener final : public terminal::listener
 {
 	explicit terminal_listener( renderer& parent ) : m_renderer( parent ) { }
-	auto on_resize( const point& size ) -> void override { m_renderer.on_resize( size ); }
+	auto on_resize( const point& new_size ) -> void override { m_renderer.on_resize( new_size ); }
 	renderer& m_renderer;
 };
 
@@ -76,6 +76,12 @@ auto renderer::clear( ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	fill( m_back, 0 );
+}
+
+auto renderer::clear_screen( ) noexcept -> void
+{
+	auto lock = lock_guard( m_mutex );
+	m_terminal.clear_screen( );
 }
 
 auto renderer::set_color( const uint8_t color ) noexcept -> void { m_color = color; }
@@ -130,6 +136,20 @@ auto renderer::draw( const point& pixel ) noexcept -> void
 	plot_unsafe( pixel[ 0 ], pixel[ 1 ] );
 }
 
+auto renderer::print( const point& position, const string& text ) noexcept -> void
+{
+	auto lock = lock_guard( m_mutex );
+	m_terminal.print( position, text );
+}
+
+auto renderer::size( ) const noexcept -> point
+{
+	auto lock = lock_guard( m_mutex );
+	return	m_screen_size;
+}
+
+auto renderer::read_char( ) -> char { return terminal::read_char( ); }
+
 auto renderer::plot_unsafe( int column, int row ) noexcept -> void
 {
 	const size_t index = row * m_screen_size[ 0 ] + column;
@@ -137,11 +157,11 @@ auto renderer::plot_unsafe( int column, int row ) noexcept -> void
 		m_back[ index ] = m_color;
 }
 
-auto renderer::on_resize( const point& size ) -> void
+auto renderer::on_resize( const point& new_size ) -> void
 {
 	{
 		auto lock = lock_guard( m_mutex );
-		m_terminal_size = size;
+		m_terminal_size = new_size;
 		m_screen_size = { m_terminal_size[ 0 ], 2 * m_terminal_size[ 1 ] };
 		size_t total_pixel_count = m_screen_size[ 0 ] * m_screen_size[ 1 ];
 		if( m_back.size( ) not_eq total_pixel_count )
@@ -153,6 +173,7 @@ auto renderer::on_resize( const point& size ) -> void
 	clear( );
 	refresh( );
 	m_terminal.refresh( );
+	m_dispatcher( &listener::on_resize, m_screen_size );
 }
 
 auto renderer::refresh( ) -> void
@@ -211,6 +232,8 @@ auto renderer::refresh( ) -> void
 		}
 	}
 }
+
+void renderer::operator +=( const shared_ptr< listener >& subject ) { m_dispatcher += subject; }
 
 
 }

@@ -22,7 +22,14 @@ Relying on these notes, models and tools saves tokens in the context of the LLM 
 - Modernity: C++23 project, using `ranges`, `views`, and custom `Niebloids` in `sak`.
 - Using: Use `using` or `__using` macro from `sak/using.hpp` ( for multiple symbols ) to avoid the scope operator `::`. No `using namespace`. ADL-sensitive STL utilities ( e.g., `::std::move`, `::std::forward` ) are exempt and must be qualified.
     - The `__using` macro accepts up to 64 parameters. If four or fewer symbols are provided, they may remain on the same line. For more than four symbols, each must be on its own line, adhering to the "Comma rule".
-- Naming: Use `snake_case`. Class members prefixed with `m_`, template parameters with `t_`. Use descriptive and extensive names; abbreviations such as `i`, `w`, `h` are forbidden. STL, external libraries, and macros with numeric prefixes are exempt.
+- Naming:
+    - Use `snake_case`.
+    - Class members prefixed with `m_`, template parameters with `t_`.
+    - Use descriptive and extensive names; abbreviations such as `i`, `w`, `h` are forbidden.
+    - STL, external libraries, and macros with numeric prefixes are exempt.
+    - Use good semantic names and synonyms to prevent collision and shadowing between arguments and their types.
+        - Bad: `const line& line`
+        - Good: `const line& segment`
 - Flow Control: No braces `{}` for single-line `if, for, while`.
 - Allowed Comments: Only to explain subtle behaviors or in tests. A good example:
 `	//	a comment that does not contain any capital letters or periods at the end of the sentence`
@@ -50,7 +57,9 @@ person::person( )
 - Methods: Mark methods that do not change state with `const` and `noexcept`.
 - Headers: Namespaces declared as `namespace n {` on the same line. No extra indentation for namespace content.
 - Main Function: The main function requires double braces `{{ ... }}`. Its body code and everywhere else, use standard braces {} when necessary, adhering to the flow control rules.
-- Indirection: Prefer `const&` ( constant reference ) to avoid `->` operator noise.
+- Indirection:
+    - Prefer `const&` ( constant reference ) to avoid `->` operator noise.
+    - Adjust the names to avoid collision and shadowing, in order to prevent `this->`.
 
 ### 4. Semantic Elevation
 - Data over Machinery: Hide the "machinery" ( pointers, manual loops ) to let the "data" speak.

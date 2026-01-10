@@ -172,14 +172,13 @@ auto terminal::move_cursor( const point& position ) -> result
 		auto lock = lock_guard( m_mutex );
 		if( not m_bounds.contains( position ) )
 			return	unexpected( out_of_bounds );
-		m_buffer << "\033[" << position[ 1 ] << ';' << position[ 0 ] << 'H';
 	}
+	m_buffer << "\033[" << position[ 1 ] << ';' << position[ 0 ] << 'H';
 	return	{ };
 }
 
 auto terminal::print( const string& text ) -> void
 {
-	auto lock = lock_guard( m_mutex );
 	m_buffer << text;
 }
 
@@ -193,18 +192,16 @@ auto terminal::print( const point& position, const string& text ) -> result
 
 auto terminal::refresh( ) -> void
 {
-	auto lock = lock_guard( m_mutex );
 	m_output << m_buffer.str( ) << flush;
 	m_buffer.str( "" );
 	m_buffer.clear( );
 }
 
-auto terminal::set_color( color code, bool is_background ) -> void { set_color( static_cast< uint8_t >( code ), is_background ); }
+auto terminal::set_color( color code, bool background ) -> void { set_color( static_cast< uint8_t >( code ), background ); }
 
-auto terminal::set_color( uint8_t code, bool is_background ) -> void
+auto terminal::set_color( uint8_t code, bool background ) -> void
 {
-	auto lock = lock_guard( m_mutex );
-	m_buffer << ( is_background ? m_background_colors[ code ] : m_foreground_colors[ code ] );
+	m_buffer << ( background ? m_background_colors[ code ] : m_foreground_colors[ code ] );
 }
 
 auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }
@@ -230,7 +227,6 @@ auto terminal::set_raw_mode( bool enable ) -> result
 
 auto terminal::set_text_style( text_style style ) -> void
 {
-	auto lock = lock_guard( m_mutex );
 	m_buffer << "\033[" << static_cast<int>( style ) << 'm';
 }
 

@@ -35,34 +35,35 @@ using	::sak::to_lower_case;
 __using( ::tui::, line, point, rectangle )
 
 
-game::terminal_listener::terminal_listener( const point& size ) { on_resize( size ); }
+game::terminal_listener::terminal_listener( const point& new_size )
+{ on_resize( new_size ); }
 
 
-void game::terminal_listener::on_resize( const point& size )
+void game::terminal_listener::on_resize( const point& new_size )
 {
 	start			=	{ 0, 0 };
-	end				=	{ size[ 0 ] - 1, 2 * ( size[ 1 ] - 1 ) };
-	this->size		=	end - start + 1;
-	label_position	=	{ 1, size[ 1 ] - 1 };
+	end				=	{ new_size[ 0 ] - 1, new_size[ 1 ] - 1 };
+	size			=	end - start + 1;
+	label_position	=	{ 1, new_size[ 1 ] / 2 - 1 };
 }
 
 
-game::game( )
-	:m_terminal{ }
-	,m_player{ { m_terminal.size( )[ 0 ] / 2, m_terminal.size( )[ 1 ] } }
+game::game( renderer& renderer )
+	:m_renderer{ renderer }
+	,m_player{ { m_renderer.size( )[ 0 ] / 2, m_renderer.size( )[ 1 ] } }
 	,m_fps{ }
-	,m_terminal_listener{ make_shared< terminal_listener >( m_terminal.size( ) ) }
+	,m_terminal_listener{ make_shared< terminal_listener >( m_renderer.size( ) ) }
 {
 	m_fps.set_limit( 60 );
-	m_terminal += m_terminal_listener;
+	m_renderer += m_terminal_listener;
 }
 
 
 auto game::run( ) -> void
 {
 	using enum direction;
-	const point& frame_size	=	m_terminal.size( );
-	auto& l_renderer		=	m_terminal.get_renderer( );
+	const point& frame_size	=	m_renderer.size( );
+	auto& l_renderer		=	m_renderer;
 	point&	position		=	m_player.position;
 	
 	const point& label_position	=	m_terminal_listener->label_position;
@@ -76,7 +77,7 @@ auto game::run( ) -> void
 	while( true )
 	{
 		//	any bugs caused by read_char are not important in this project and should be ignored
-		char code = m_terminal.read_char( );
+		char code = renderer::read_char( );
 		if( code not_eq 0 )
 		{
 			switch( to_lower_case( code ) )
@@ -103,8 +104,7 @@ auto game::run( ) -> void
 		l_renderer.draw( line{ { 0, 0 }, position - 2 } );
 
 		l_renderer.refresh( );
-		m_terminal.refresh( );
-			m_terminal.print( label_position,
+		l_renderer.print( label_position,
 				" | fps: " + to_string( m_fps.compute( ) )
 			+ 	" | size: " + to_string( frame_size[ 0 ] ) + " x " + to_string( frame_size[ 1 ] )
 			+ 	" | player: " + to_string( position[ 0 ] ) + " x " + to_string( position[ 1 ] )
@@ -114,7 +114,7 @@ auto game::run( ) -> void
 		);
 	}
 
-	m_terminal.clear_screen( );
+	m_renderer.clear_screen( );
 }
 
 
