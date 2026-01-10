@@ -103,16 +103,16 @@ public:
 		};
 		
 		error   failed_list;
-		bool flg_clear = false;
+		bool should_clear = false;
 		for( const auto& current_listener : l_list )
 			if( auto locked = current_listener.lock( ) )
 				try {
 					invoke( member_function_pointer, locked.get( ), arguments... );
 				} catch( ... ) { failed_list.emplace_back( current_listener, current_exception( ) ); }
 			else
-				flg_clear = true;
+				should_clear = true;
 		
-		if( flg_clear )
+		if( should_clear )
 			clear( l_clear_count );
 		
 		if( failed_list.empty( ) )
