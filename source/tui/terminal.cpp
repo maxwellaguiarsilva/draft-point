@@ -25,9 +25,11 @@
 
 #include <sak/sak.hpp>
 #include <sak/pattern/value_or.hpp>
+#include <sak/ranges/to_array.hpp>
 #include <tui/terminal.hpp>
 #include <tui/renderer.hpp>
 #include <iostream>
+#include <format>
 #include <termios.h>
 #include <unistd.h>		//	STDIN_FILENO, read
 #include <sys/ioctl.h>	//	TIOCGWINSZ
@@ -47,11 +49,18 @@ __using( ::std::
 	,flush
 	,make_shared
 	,to_string
+	,format
+)
+__using( ::std::views::
+	,iota
+	,transform
 )
 
 
 using	::sak::ensure;
 using	::sak::pattern::value_or;
+using	::sak::ranges::to_array;
+using	::sak::math::bind_back;
 using	::tui::point;
 using	color		=	::tui::terminal::color;
 using	text_style	=	::tui::terminal::text_style;
@@ -68,22 +77,13 @@ const terminal::error_messages terminal::m_error_messages	=
 const string terminal::m_unknown_error_message	=	"terminal: unknown error";
 
 
-const array< string, 256 > terminal::m_foreground_colors	=	[ ]( )
-{
-	array< string, 256 > l_colors;
-	for( uint16_t index = 0; index < 256; ++index )
-		l_colors[ index ]	=	"\033[38;5;" + to_string( index ) + "m";
-	return	l_colors;
-}( );
-
-
-const array< string, 256 > terminal::m_background_colors	=	[ ]( )
-{
-	array< string, 256 > l_colors;
-	for( uint16_t index = 0; index < 256; ++index )
-		l_colors[ index ]	=	"\033[48;5;" + to_string( index ) + "m";
-	return	l_colors;
-}( );
+auto generate_color = [ ]( uint16_t index, bool background ) { return format( "\033[{};5;{}m", background ? 48 : 38, index ); };
+const array< string, 256 > terminal::m_foreground_colors	=	iota( 0, 256 )
+	|	transform( bind_back( generate_color, false ) )
+	|	to_array;
+const array< string, 256 > terminal::m_background_colors	=	iota( 0, 256 )
+	|	transform( bind_back( generate_color, true ) )
+	|	to_array;
 
 
 terminal::terminal( )

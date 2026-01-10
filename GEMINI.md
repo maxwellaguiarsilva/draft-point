@@ -64,6 +64,7 @@ person::person( )
 ### 4. Semantic Elevation
 - Data over Machinery: Hide the "machinery" ( pointers, manual loops ) to let the "data" speak.
 - Visual Serenity: Reduce visual noise. Code should be a statement of intent ( "what" ), not a CPU instruction manual ( "how" ).
+- DRY ( Don't Repeat Yourself ): Avoid visual and logic redundancy. If a pattern repeats with minimal variation, abstract it using `sak` utilities or composition.
 - With composition: If logic can be named, it should be a utility in the `sak` library. Avoid ad-hoc lambdas; prefer composing named entities.
 - Any lambda with generic, reusable logic that can be expressed via `ranges`, `views`, or other `sak` utilities should be implemented as a niebloid or CPO in `sak`.
 
