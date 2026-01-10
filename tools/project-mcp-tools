@@ -122,6 +122,7 @@ def agent_statistic( name: str = None, short_description: str = None ) -> str:
     If 'name' is provided, increments the count for that event.
     If 'short_description' is provided, it sets or updates the description for the event.
     If no arguments are provided, returns the current statistics table.
+    Run this tool at the beginning of every conversation to view this data.
     """
     args = { }
     if name:
