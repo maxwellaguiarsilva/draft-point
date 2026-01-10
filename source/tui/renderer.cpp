@@ -122,7 +122,7 @@ auto renderer::draw( const rectangle& area, bool is_filled ) noexcept -> void
 		fill( rows[ area.start[ 1 ] ] | drop( column_start ) | take( column_count ), m_color );
 		fill( rows[ area.end[ 1 ] ] | drop( column_start ) | take( column_count ), m_color );
 
-		for( int row = area.start[ 1 ]; row <= area.end[ 1 ]; ++row )
+		for( auto row : iota( area.start[ 1 ], area.end[ 1 ] + 1 ) )
 		{
 			plot_unsafe( area.start[ 0 ], row );
 			plot_unsafe( area.end[ 0 ], row );
@@ -191,43 +191,35 @@ auto renderer::refresh( ) -> void
 	auto back_rows = chunk( m_back, terminal_width );
 	auto front_rows = chunk( m_front, terminal_width );
 
-	for( int row = 0; row < terminal_height; ++row )
+	for( auto [ row, column ] : cartesian_product( iota( 0, terminal_height ), iota( 0, terminal_width ) ) )
 	{
-		auto back_upper_row = back_rows[ 2 * row ];
-		auto back_lower_row = back_rows[ 2 * row + 1 ];
-		auto front_upper_row = front_rows[ 2 * row ];
-		auto front_lower_row = front_rows[ 2 * row + 1 ];
+		const uint8_t back_upper = back_rows[ 2 * row ][ column ];
+		const uint8_t back_lower = back_rows[ 2 * row + 1 ][ column ];
+		uint8_t& front_upper = front_rows[ 2 * row ][ column ];
+		uint8_t& front_lower = front_rows[ 2 * row + 1 ][ column ];
 
-		for( int column = 0; column < terminal_width; ++column )
+		if( back_upper not_eq front_upper or back_lower not_eq front_lower )
 		{
-			const uint8_t back_upper = back_upper_row[ column ];
-			const uint8_t back_lower = back_lower_row[ column ];
-			uint8_t& front_upper = front_upper_row[ column ];
-			uint8_t& front_lower = front_lower_row[ column ];
+			const point current = { column + 1, row + 1 };
+			if( cursor_position not_eq current )
+				m_terminal.move_cursor( current );
 
-			if( back_upper not_eq front_upper or back_lower not_eq front_lower )
+			if( back_upper not_eq current_foreground or force_update )
 			{
-				const point current = { column + 1, row + 1 };
-				if( cursor_position not_eq current )
-					m_terminal.move_cursor( current );
-
-				if( back_upper not_eq current_foreground or force_update )
-				{
-					current_foreground = back_upper;
-					m_terminal.set_color( current_foreground, false );
-				}
-				if( back_lower not_eq current_background or force_update )
-				{
-					current_background = back_lower;
-					m_terminal.set_color( current_background, true );
-				}
-
-				m_terminal.print( "\xe2\x96\x80" );
-				front_upper = back_upper;
-				front_lower = back_lower;
-				cursor_position = { current[ 0 ] + 1, current[ 1 ] };
-				force_update = false;
+				current_foreground = back_upper;
+				m_terminal.set_color( current_foreground, false );
 			}
+			if( back_lower not_eq current_background or force_update )
+			{
+				current_background = back_lower;
+				m_terminal.set_color( current_background, true );
+			}
+
+			m_terminal.print( "\xe2\x96\x80" );
+			front_upper = back_upper;
+			front_lower = back_lower;
+			cursor_position = { current[ 0 ] + 1, current[ 1 ] };
+			force_update = false;
 		}
 	}
 	m_terminal.refresh( );
