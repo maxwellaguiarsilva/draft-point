@@ -117,10 +117,9 @@ def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
 
 
 @mcp.tool( )
-def agent_statistic( name: str = None, short_description: str = None ) -> str:
+def agent_statistic( name: str = None ) -> str:
     """Records or retrieves agent behavioral statistics.
     If 'name' is provided, increments the count for that event.
-    If 'short_description' is provided, it sets or updates the description for the event.
     If no arguments are provided, returns the current statistics table.
     Check the current data at the beginning of every conversation.
     If you identify that you have made a mistake that has already been recorded previously, increment the counter.
@@ -129,8 +128,6 @@ def agent_statistic( name: str = None, short_description: str = None ) -> str:
     args = { }
     if name:
         args[ "name" ] = name
-    if short_description:
-        args[ "short-description" ] = short_description
     
     return _run_and_format( 
         [ "python3", "tools/agent_statistic.py", json.dumps( args ) ], 
