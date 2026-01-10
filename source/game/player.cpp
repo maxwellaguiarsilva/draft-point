@@ -23,7 +23,6 @@
 
 
 #include <game/player.hpp>
-#include <tui/renderer.hpp>
 
 
 namespace game {
@@ -31,7 +30,6 @@ namespace game {
 
 using	enum	::game::direction;
 using	::game::use_direction;
-using	::tui::renderer;
 
 player::player( const point& position ) noexcept
 	:position{ position }

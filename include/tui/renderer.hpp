@@ -30,6 +30,7 @@
 #include <sak/sak.hpp>
 #include <sak/pattern/dispatcher.hpp>
 #include <tui/geometry.hpp>
+#include <game/renderer.hpp>
 #include <vector>
 #include <cstdint>
 #include <cstddef>
@@ -55,34 +56,29 @@ using	::sak::pattern::dispatcher;
 class terminal;
 
 
-class renderer
+class renderer : public ::game::renderer
 {
 public:
 	using	buffer	=	vector< uint8_t >;
+	using	listener =	::game::renderer::listener;
 
 	explicit renderer( terminal& parent );
-	~renderer( ) noexcept = default;
+	~renderer( ) noexcept override = default;
 
-	void clear( ) noexcept;
-	void clear_screen( ) noexcept;
-	void refresh( );
-	void set_color( const uint8_t color ) noexcept;
-	void draw( const point& pixel ) noexcept;
-	void draw( const line& segment ) noexcept;
-	void draw( const rectangle& area, bool is_filled = true ) noexcept;
-	void print( const point& position, const string& text ) noexcept;
+	void clear( ) noexcept override;
+	void clear_screen( ) noexcept override;
+	void refresh( ) override;
+	void set_color( const uint8_t color ) noexcept override;
+	void draw( const point& pixel ) noexcept override;
+	void draw( const line& segment ) noexcept override;
+	void draw( const rectangle& area, bool is_filled = true ) noexcept override;
+	void print( const point& position, const string& text ) noexcept override;
 
-	auto size( ) const noexcept -> point;
+	auto size( ) const noexcept -> point override;
 
 	static auto read_char( ) -> char;
 
-	class listener
-	{
-	public:
-		virtual ~listener( ) = default;
-		virtual void on_resize( const point& new_size ) = 0;
-	};
-	void operator +=( const shared_ptr< listener >& subject );
+	void operator +=( const shared_ptr< listener >& subject ) override;
 
 private:
 	struct terminal_listener;

@@ -29,7 +29,7 @@
 
 #include <sak/sak.hpp>
 #include <tui/terminal.hpp>
-#include <tui/renderer.hpp>
+#include <game/renderer.hpp>
 #include <game/player.hpp>
 #include <game/fps.hpp>
 #include <memory>
@@ -38,7 +38,6 @@
 namespace game {
 
 
-using	::tui::renderer;
 using	::game::player;
 using	::game::fps;
 using	::game::point;

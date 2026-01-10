@@ -32,7 +32,7 @@ namespace game {
 using	::game::point;
 using	::std::to_string;
 using	::sak::to_lower_case;
-__using( ::tui::, line, point, rectangle )
+__using( ::game::, line, point, rectangle )
 
 
 game::renderer_listener::renderer_listener( const point& new_size )
@@ -76,8 +76,11 @@ auto game::run( ) -> void
 
 	while( true )
 	{
+		//	this coupling between the game and the terminal is temporary, and read_char is used only once
+		//	for this reason, the violation of the `__using` rule was permitted
 		//	any bugs caused by read_char are not important in this project and should be ignored
-		char code = renderer::read_char( );
+		char code	=	::tui::terminal::read_char( );
+
 		if( code not_eq 0 )
 		{
 			switch( to_lower_case( code ) )

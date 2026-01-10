@@ -27,7 +27,7 @@
 #define header_guard_185813530
 
 
-#include <tui/renderer.hpp>
+#include <game/renderer.hpp>
 #include <sak/sak.hpp>
 #include <game/geometry.hpp>
 #include <game/direction.hpp>
@@ -36,7 +36,6 @@
 namespace game {
 
 
-using	::tui::renderer;
 using	::game::point;
 using	::game::direction;
 using	enum	::game::direction;
