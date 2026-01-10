@@ -18,7 +18,7 @@
  * File:   sak/ranges/to_array.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-10 17:27
+ * Created on 2026-01-10 17:28
  */
 
 
