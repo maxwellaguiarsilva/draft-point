@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
 
-import sys
+import json
 import os
 import subprocess
-import json
+from typing import Any
 from fastmcp import FastMCP
 
 
@@ -117,16 +117,17 @@ def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
 
 
 @mcp.tool( )
-def agent_statistic( name: str = None ) -> str:
+def agent_statistic( name: Any = None ) -> str:
     """Records or retrieves agent behavioral statistics.
     If 'name' is provided, increments the count for that event.
     If no arguments are provided, returns the current statistics table.
     Check the current data at the beginning of every conversation.
+    This tool accepts a literal call with no arguments.
     If you identify that you have made a mistake that has already been recorded previously, increment the counter.
     This is a support tool to help prioritize attention for repeat offenders.
     """
     args = { }
-    if name:
+    if isinstance( name, str ):
         args[ "name" ] = name
     
     return _run_and_format( 
