@@ -66,8 +66,8 @@ auto game::run( ) -> void
 	auto& l_renderer		=	m_renderer;
 	point&	position		=	m_player.position;
 	
-	const point& label_position	=	m_renderer_listener->label_position;
 	const auto& l_listener		=	*m_renderer_listener;
+	const point& label_position	=	l_listener.label_position;
 	const point& bounds_start	=	l_listener.start;
 	const point& bounds_end		=	l_listener.end;
 	const point& bounds_size	=	l_listener.size;
