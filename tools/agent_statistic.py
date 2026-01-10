@@ -1,3 +1,6 @@
+#!/usr/bin/python
+
+
 import json
 import os
 import sys
@@ -95,3 +98,5 @@ if __name__ == "__main__":
             print( run_statistic( { } ) )
     except Exception as e:
         print( f"Error: {str( e )}" )
+
+
