@@ -58,7 +58,7 @@ public:
 	void set_color( const uint8_t color ) noexcept;
 	void draw( const point& pixel ) noexcept;
 	void draw( const line& segment ) noexcept;
-	void draw( const rectangle& area, bool fill = true ) noexcept;
+	void draw( const rectangle& area, bool is_filled = true ) noexcept;
 
 private:
 	struct terminal_listener;

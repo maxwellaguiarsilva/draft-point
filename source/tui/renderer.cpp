@@ -35,7 +35,7 @@
 namespace tui {
 
 
-__using( ::std::, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, ranges::fill, ranges::max, views::iota )
+__using( ::std::, lock_guard, make_shared, try_to_lock, uint8_t, unique_lock, vector, ranges::fill, ranges::max, views::iota, views::drop, views::take )
 __using( ::sak::ranges::views::, cartesian_product )
 __using( ::sak::math::, abs, sign, bind_back, greater_equal )
 __using( ::sak::, to_point )
@@ -89,19 +89,21 @@ auto renderer::draw( const line& segment ) noexcept -> void
 	}
 }
 
-auto renderer::draw( const rectangle& area, bool fill ) noexcept -> void
+auto renderer::draw( const rectangle& area, bool is_filled ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
-	if( fill )
-		for( auto const [ column, row ] : cartesian_product( iota( area.start[ 0 ], area.end[ 0 ] + 1 ), iota( area.start[ 1 ], area.end[ 1 ] + 1 ) ) )
-			plot_unsafe( column, row );
+	if( is_filled )
+		for( auto row : chunk( m_back, m_screen_size[ 0 ] ) | drop( area.start[ 1 ] ) | take( area.end[ 1 ] - area.start[ 1 ] + 1 ) )
+			fill( row | drop( area.start[ 0 ] ) | take( area.end[ 0 ] - area.start[ 0 ] + 1 ), m_color );
 	else
 	{
-		for( int column = area.start[ 0 ]; column <= area.end[ 0 ]; ++column )
-		{
-			plot_unsafe( column, area.start[ 1 ] );
-			plot_unsafe( column, area.end[ 1 ] );
-		}
+		auto rows = chunk( m_back, m_screen_size[ 0 ] );
+		auto const column_start = area.start[ 0 ];
+		auto const column_count = area.end[ 0 ] - area.start[ 0 ] + 1;
+
+		fill( rows[ area.start[ 1 ] ] | drop( column_start ) | take( column_count ), m_color );
+		fill( rows[ area.end[ 1 ] ] | drop( column_start ) | take( column_count ), m_color );
+
 		for( int row = area.start[ 1 ]; row <= area.end[ 1 ]; ++row )
 		{
 			plot_unsafe( area.start[ 0 ], row );
