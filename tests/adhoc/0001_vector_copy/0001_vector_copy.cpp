@@ -31,8 +31,8 @@
 #include <sak/using.hpp>
 
 
-const auto red	=	"\033[41;5m";
-const auto blue	=	"\033[44;5m";
+const auto red		=	"\033[41;5m";
+const auto blue		=	"\033[44;5m";
 const auto reset	=	"\033[0m";
 
 class base
