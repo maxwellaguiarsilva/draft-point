@@ -57,9 +57,9 @@ public:
 	auto run( ) -> void;
 
 private:
-	struct terminal_listener final : public renderer::listener
+	struct renderer_listener final : public renderer::listener
 	{
-		explicit terminal_listener( const point& new_size );
+		explicit renderer_listener( const point& new_size );
 		void on_resize( const point& new_size ) override;
 
 		point start;
@@ -71,7 +71,7 @@ private:
 	renderer&	m_renderer;
 	player		m_player;
 	fps			m_fps;
-	shared_ptr< terminal_listener > m_terminal_listener;
+	shared_ptr< renderer_listener > m_renderer_listener;
 
 };
 

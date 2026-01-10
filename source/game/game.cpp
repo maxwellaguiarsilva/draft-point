@@ -35,11 +35,11 @@ using	::sak::to_lower_case;
 __using( ::tui::, line, point, rectangle )
 
 
-game::terminal_listener::terminal_listener( const point& new_size )
+game::renderer_listener::renderer_listener( const point& new_size )
 { on_resize( new_size ); }
 
 
-void game::terminal_listener::on_resize( const point& new_size )
+void game::renderer_listener::on_resize( const point& new_size )
 {
 	start			=	{ 0, 0 };
 	end				=	{ new_size[ 0 ] - 1, new_size[ 1 ] - 1 };
@@ -52,10 +52,10 @@ game::game( renderer& renderer )
 	:m_renderer{ renderer }
 	,m_player{ { m_renderer.size( )[ 0 ] / 2, m_renderer.size( )[ 1 ] } }
 	,m_fps{ }
-	,m_terminal_listener{ make_shared< terminal_listener >( m_renderer.size( ) ) }
+	,m_renderer_listener{ make_shared< renderer_listener >( m_renderer.size( ) ) }
 {
 	m_fps.set_limit( 60 );
-	m_renderer += m_terminal_listener;
+	m_renderer += m_renderer_listener;
 }
 
 
@@ -66,8 +66,8 @@ auto game::run( ) -> void
 	auto& l_renderer		=	m_renderer;
 	point&	position		=	m_player.position;
 	
-	const point& label_position	=	m_terminal_listener->label_position;
-	const auto& l_listener		=	*m_terminal_listener;
+	const point& label_position	=	m_renderer_listener->label_position;
+	const auto& l_listener		=	*m_renderer_listener;
 	const point& bounds_start	=	l_listener.start;
 	const point& bounds_end		=	l_listener.end;
 	const point& bounds_size	=	l_listener.size;
