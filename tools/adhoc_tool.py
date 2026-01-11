@@ -21,9 +21,9 @@ def quick_upload( message ):
         subprocess.run( [ "git", "push" ], check=True, capture_output=True, text=True )
         
         #   5. Record success statistic
-        subprocess.run( [ "python3", "tools/agent_statistic.py", json.dumps( { "name": "success" } ) ], check=True, capture_output=True, text=True )
+        stats_process = subprocess.run( [ "python3", "tools/agent_statistic.py", json.dumps( { "name": "success" } ) ], check=True, capture_output=True, text=True )
         
-        return f"Quick upload successful: `{message}`"
+        return f"Quick upload successful: `{message}`\n\n{stats_process.stdout}"
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr if e.stderr else e.stdout
         return f"Quick upload failed at command: {" ".join(e.cmd)}\nError: {error_msg}"
