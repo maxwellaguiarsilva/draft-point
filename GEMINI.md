@@ -68,4 +68,7 @@ person::person( )
 - With composition: If logic can be named, it should be a utility in the `sak` library. Avoid ad-hoc lambdas; prefer composing named entities.
 - Any lambda with generic, reusable logic that can be expressed via `ranges`, `views`, or other `sak` utilities should be implemented as a niebloid or CPO in `sak`.
 
+### 5. Exceptions to the rule
+- Markdown documents written in brazilian portuguese are allowed if they are located within a `docs/analyses/pt-br/` folder.
+
 
