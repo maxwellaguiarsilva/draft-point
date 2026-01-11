@@ -130,7 +130,6 @@ public:
 	static auto read_char( ) -> char;
 
 
-
 	class listener
 	{
 	public:

@@ -35,7 +35,6 @@
 #include <sak/ensure.hpp>
 
 
-
 namespace sak {
 
 
