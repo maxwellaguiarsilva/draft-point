@@ -57,6 +57,10 @@ __using( ::std::views::
 )
 
 
+constexpr int left_index = 0;
+constexpr int top_index = 1;
+
+
 using	::sak::ensure;
 using	::sak::pattern::value_or;
 using	::sak::ranges::to_array;
@@ -168,7 +172,7 @@ auto terminal::read_char( ) -> char
 
 auto terminal::move_cursor( const point& position ) -> void
 { 
-	m_buffer << "\033[" << position[ 1 ] << ';' << position[ 0 ] << 'H';
+	m_buffer << "\033[" << position[ top_index ] << ';' << position[ left_index ] << 'H';
 }
 
 auto terminal::print( const string& text ) -> void { m_buffer << text; }
