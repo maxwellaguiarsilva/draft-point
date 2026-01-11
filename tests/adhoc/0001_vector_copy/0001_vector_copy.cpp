@@ -27,6 +27,7 @@
 #include <vector>
 #include <memory>
 #include <exception>
+#include <sak/ranges/views/join_with.hpp>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
 
@@ -67,6 +68,7 @@ public:
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
 	__using( ::sak::, exit_success, exit_failure, ensure )
+	__using( ::sak::ranges::views::, join_with )
 	__using( ::std::
 		,string
 		,vector
@@ -76,7 +78,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,make_unique
 	)
 
-	const vector< string > arguments( argument_values, argument_values + argument_count );
+	println( "{}", join_with( vector< string >( argument_values, argument_values + argument_count ), "\n" ) );
 
 	try
 	{

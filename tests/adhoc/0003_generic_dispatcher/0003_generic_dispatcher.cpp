@@ -28,6 +28,7 @@
 #include <format>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
+#include <sak/ranges/views/join_with.hpp>
 #include <sak/pattern/dispatcher.hpp>
 
 
@@ -90,6 +91,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,exit_failure
 		,ensure
 	)
+	__using( ::sak::ranges::views::, join_with )
 	__using( ::std::
 		,string
 		,vector
@@ -97,9 +99,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,exception
 	)
 
-	const vector< string > arguments( argument_values, argument_values + argument_count );
-	for( const auto& value : arguments )
-		println( "{}", value );
+	println( "{}", join_with( vector< string >( argument_values, argument_values + argument_count ), "\n" ) );
 
 	dispatcher<button_listener> notifier;
 	

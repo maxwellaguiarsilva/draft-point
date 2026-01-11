@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   adhoc/0006_join_with/0006_join_with.cpp
+ * File:   adhoc/0004_random_number/0004_random_number.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-09 16:36
+ * Created on 2026-01-11 15:40
  */
 
 
@@ -26,43 +26,33 @@
 #include <string>
 #include <vector>
 #include <exception>
-#include <ranges>
-#include <iostream>
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
 #include <sak/ranges/views/join_with.hpp>
+#include <random>
+#include <iostream>
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {{
 	__using( ::sak::, exit_success, exit_failure, ensure )
-	__using( ::std::, string, vector, println, exception )
 	__using( ::sak::ranges::views::, join_with )
+	__using( ::std::
+		,string
+		,vector
+		,println
+		,exception
+		,random_device
+		,mt19937_64 )
 
 	println( "{}", join_with( vector< string >( argument_values, argument_values + argument_count ), "\n" ) );
-	
+
 	try
 	{
-		println( "starting tests for: join_with" );
+		random_device	entropy;
+		mt19937_64		engine( entropy( ) );
 
-		const vector< string > words = { "hello", "world", "from", "sak" };
-		const string delimiter = " ";
-		
-		const auto joined = join_with( words, delimiter );
-		
-		ensure( joined == "hello world from sak", "joined string mismatch" );
-		
-		println( "joined result: {}", joined );
-
-		const vector< string > empty_vector = { };
-		const auto empty_joined = join_with( empty_vector, delimiter );
-		ensure( empty_joined == "", "empty join should return an empty string" );
-
-		const vector< string > single_word = { "only" };
-		const auto single_joined = join_with( single_word, delimiter );
-		ensure( single_joined == "only", "single word join mismatch" );
-
-		println( "all tests for join_with passed" );
+		println( "random number: {}", engine( ) );
 	}
 	catch( const exception& error )
 	{
