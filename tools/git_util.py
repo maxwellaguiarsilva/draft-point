@@ -4,17 +4,14 @@ import subprocess
 
 def quick_upload( message ):
     try:
-        #   Executing git commands in sequence
-        #   If any command fails, it will raise a CalledProcessError
-        
         #   1. Pull latest changes
+        #   We use check=True to raise CalledProcessError on failure
         subprocess.run( [ "git", "pull" ], check=True, capture_output=True, text=True )
         
         #   2. Add all changes
         subprocess.run( [ "git", "add", "." ], check=True, capture_output=True, text=True )
         
         #   3. Commit with the provided message
-        #   We use a list to avoid shell injection and handle spaces correctly
         subprocess.run( [ "git", "commit", "-m", message ], check=True, capture_output=True, text=True )
         
         #   4. Push to remote
@@ -23,32 +20,22 @@ def quick_upload( message ):
         return f"Quick upload successful: `{message}`"
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr if e.stderr else e.stdout
-        return f"Quick upload failed at command: {" ".join(e.cmd)}\nError: {error_msg}"
+        #   If commit fails because there's nothing to commit, we can handle it
+        if "nothing to commit" in error_msg.lower( ):
+             return "Quick upload aborted: Nothing to commit."
+        return f"Quick upload failed at command: {' '.join(e.cmd)}\nError: {error_msg}"
     except Exception as e:
         return f"An unexpected error occurred during quick upload: {str(e)}"
-
-def run_adhoc( params ):
-    action = params.get( "action" )
-    
-    if action == "quick_upload":
-        message = params.get( "message" )
-        if not message:
-            return "Error: 'message' parameter is required for quick_upload action."
-        return quick_upload( message )
-    
-    #   Keep support for existing adhoc functionality if needed
-    files = params.get( "files", [ ] )
-    if files:
-        from tools.adhoc_tool_legacy import verify_rules_batch
-        return verify_rules_batch( files )
-        
-    return "Error: No valid action or parameters provided to adhoc_tool."
 
 if __name__ == "__main__":
     if len( sys.argv ) > 1:
         try:
             params = json.loads( sys.argv[ 1 ] )
-            print( run_adhoc( params ) )
+            message = params.get( "message" )
+            if message:
+                print( quick_upload( message ) )
+            else:
+                print( "Error: 'message' parameter is required." )
         except json.JSONDecodeError:
             print( "Error: Invalid JSON parameters." )
     else:

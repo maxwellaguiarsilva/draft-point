@@ -148,6 +148,18 @@ def adhoc_tool( params: dict ) -> str:
     )
 
 
+@mcp.tool( )
+def quick_upload( message: str ) -> str:
+    """Performs a quick git upload: pull, add all, commit with message, and push.
+    This tool is intended for simple, non-conflicting changes to increase agility.
+    """
+    args = { "message": message }
+    return _run_and_format( 
+        [ "python3", "tools/git_util.py", json.dumps( args ) ], 
+        error_label="Error during quick upload" 
+    )
+
+
 if __name__ == "__main__":
     mcp.run()
 
