@@ -55,6 +55,10 @@ __using( ::sak::ranges::, chunk )
 __using( ::tui::, line, point, rectangle )
 
 
+constexpr int width_index = 0, left_index = 0;
+constexpr int height_index = 1, top_index = 1;
+
+
 struct renderer::terminal_listener final : public terminal::listener
 {
 	explicit terminal_listener( renderer& parent ) : m_renderer( parent ) { }
@@ -100,7 +104,7 @@ auto renderer::draw( const line& segment ) noexcept -> void
 	auto count = total + 1;
 	while( --count > 0 )
 	{
-		plot_unsafe( current[ 0 ], current[ 1 ] );
+		plot_unsafe( current[ width_index ], current[ height_index ] );
 		const point direction = walker | bind_back( greater_equal, total ) | to_point;
 		current += step * direction;
 		walker += walker_step - direction * total;
@@ -110,22 +114,22 @@ auto renderer::draw( const line& segment ) noexcept -> void
 auto renderer::draw( const rectangle& area, bool is_filled ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
+	auto const area_bound = area.end - area.start + 1;
+
 	if( is_filled )
-		for( auto row : chunk( m_back, m_screen_size[ 0 ] ) | drop( area.start[ 1 ] ) | take( area.end[ 1 ] - area.start[ 1 ] + 1 ) )
-			fill( row | drop( area.start[ 0 ] ) | take( area.end[ 0 ] - area.start[ 0 ] + 1 ), m_color );
+		for( auto row : chunk( m_back, m_screen_size[ width_index ] ) | drop( area.start[ top_index ] ) | take( area_bound[ height_index ] ) )
+			fill( row | drop( area.start[ left_index ] ) | take( area_bound[ width_index ] ), m_color );
 	else
 	{
-		auto rows = chunk( m_back, m_screen_size[ 0 ] );
-		auto const column_start = area.start[ 0 ];
-		auto const column_count = area.end[ 0 ] - area.start[ 0 ] + 1;
+		auto rows = chunk( m_back, m_screen_size[ width_index ] );
 
-		fill( rows[ area.start[ 1 ] ] | drop( column_start ) | take( column_count ), m_color );
-		fill( rows[ area.end[ 1 ] ] | drop( column_start ) | take( column_count ), m_color );
+		fill( rows[ area.start[ top_index ] ] | drop( area.start[ left_index ] ) | take( area_bound[ width_index ] ), m_color );
+		fill( rows[ area.end[ top_index ] ]   | drop( area.start[ left_index ] ) | take( area_bound[ width_index ] ), m_color );
 
-		for( auto row : iota( area.start[ 1 ], area.end[ 1 ] + 1 ) )
+		for( auto row : iota( area.start[ top_index ], area.end[ top_index ] + 1 ) )
 		{
-			plot_unsafe( area.start[ 0 ], row );
-			plot_unsafe( area.end[ 0 ], row );
+			plot_unsafe( area.start[ left_index ], row );
+			plot_unsafe( area.end[ left_index ],   row );
 		}
 	}
 }
@@ -133,7 +137,7 @@ auto renderer::draw( const rectangle& area, bool is_filled ) noexcept -> void
 auto renderer::draw( const point& pixel ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
-	plot_unsafe( pixel[ 0 ], pixel[ 1 ] );
+	plot_unsafe( pixel[ left_index ], pixel[ top_index ] );
 }
 
 auto renderer::print( const point& position, const string& text ) noexcept -> void
@@ -152,7 +156,7 @@ auto renderer::read_char( ) -> char { return terminal::read_char( ); }
 
 auto renderer::plot_unsafe( int column, int row ) noexcept -> void
 {
-	const size_t index = row * m_screen_size[ 0 ] + column;
+	const size_t index = row * m_screen_size[ width_index ] + column;
 	if( index < m_back.size( ) )
 		m_back[ index ] = m_color;
 }
@@ -162,8 +166,8 @@ auto renderer::on_resize( const point& new_size ) -> void
 	{
 		auto lock = lock_guard( m_mutex );
 		m_terminal_size = new_size;
-		m_screen_size = { m_terminal_size[ 0 ], 2 * m_terminal_size[ 1 ] };
-		size_t total_pixel_count = m_screen_size[ 0 ] * m_screen_size[ 1 ];
+		m_screen_size = { m_terminal_size[ width_index ], 2 * m_terminal_size[ height_index ] };
+		size_t total_pixel_count = m_screen_size[ width_index ] * m_screen_size[ height_index ];
 		if( m_back.size( ) not_eq total_pixel_count )
 		{
 			m_back.resize( total_pixel_count );
@@ -185,8 +189,8 @@ auto renderer::refresh( ) -> void
 	bool force_update = true;
 	point cursor_position = { 0, 0 };
 
-	const int terminal_width = m_terminal_size[ 0 ];
-	const int terminal_height = m_terminal_size[ 1 ];
+	const int terminal_width = m_terminal_size[ width_index ];
+	const int terminal_height = m_terminal_size[ height_index ];
 
 	auto back_rows = chunk( m_back, terminal_width );
 	auto front_rows = chunk( m_front, terminal_width );
