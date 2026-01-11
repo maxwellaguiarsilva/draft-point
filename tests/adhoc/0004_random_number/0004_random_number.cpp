@@ -18,7 +18,7 @@
  * File:   adhoc/0004_random_number/0004_random_number.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-11 15:40
+ * Created on 2026-01-11 15:41
  */
 
 
@@ -43,7 +43,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,println
 		,exception
 		,random_device
-		,mt19937_64 )
+		,mt19937_64
+		,uniform_int_distribution
+	)
 
 	println( "{}", join_with( vector< string >( argument_values, argument_values + argument_count ), "\n" ) );
 
@@ -53,6 +55,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		mt19937_64		engine( entropy( ) );
 
 		println( "random number: {}", engine( ) );
+
+		uniform_int_distribution< int >	range( 16, 231 );
+		println( "random number [16, 231]: {}", range( engine ) );
 	}
 	catch( const exception& error )
 	{
