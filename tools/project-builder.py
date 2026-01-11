@@ -563,9 +563,10 @@ class project:
             
         print( strong_line )
         print( f"Checking code formatting for {len(files_to_check)} files..." )
-        modified_count = 0
         
-        for file_path in files_to_check:
+        max_workers = self.config[ "build_behavior" ].get( "max_threads", get_cpu_count( ) )
+
+        def process_file( file_path ):
             try:
                 result_process = subprocess.run(
                     [ "python3", "tools/code_verifier.py", "--fix", file_path ],
@@ -576,13 +577,21 @@ class project:
                 if fmt_result[ "changed" ]:
                     with open( file_path, 'w', encoding='utf-8' ) as f:
                         f.write( fmt_result[ "content" ] )
-                    modified_count += 1
-                    print( weak_line )
-                    print( f"    [fixed]: {file_path}" )
-                    for msg in fmt_result[ "messages" ]:
-                        print( f"        {msg}" )
+                    
+                    with self._lock:
+                        print( weak_line )
+                        print( f"    [fixed]: {file_path}" )
+                        for msg in fmt_result[ "messages" ]:
+                            print( f"        {msg}" )
+                    return True
             except Exception as e:
-                print( f"    [error]: Failed to format {file_path}: {e}" )
+                with self._lock:
+                    print( f"    [error]: Failed to format {file_path}: {e}" )
+            return False
+
+        with concurrent.futures.ThreadPoolExecutor( max_workers = max_workers ) as executor:
+            results = list( executor.map( process_file, files_to_check ) )
+            modified_count = sum( results )
         
         print( f"Done. Modified {modified_count} files." )
         print( strong_line )
@@ -603,7 +612,7 @@ class project:
 
         print( f"Build started at: {start_time.strftime( '%Y-%m-%d %H:%M:%S' )}" )
 
-        self.run_cppcheck( )
+        self.analyze( )
 
         # 1. Collect all unique CPP files to build
         all_cpps = { }
