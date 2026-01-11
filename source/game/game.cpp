@@ -64,7 +64,6 @@ auto game::run( ) -> void
 {
 	using enum direction;
 	const point& frame_size	=	m_renderer.size( );
-	auto& game_renderer		=	m_renderer;
 	point&	position		=	m_player.position;
 	
 	const auto& renderer_listener	=	*m_renderer_listener;
@@ -102,12 +101,12 @@ auto game::run( ) -> void
 		if( not position.is_inside( bounds_end ) )
 			position = ( position - bounds_start ) % bounds_size + bounds_start;
 
-		game_renderer.clear( );
-		m_player.draw( game_renderer );
+		m_renderer.clear( );
+		m_player.draw( m_renderer );
 
-		game_renderer.draw( line{ { 0, 0 }, position - 2 } );
+		m_renderer.draw( line{ { 0, 0 }, position - 2 } );
 
-		game_renderer.print( label_position,
+		m_renderer.print( label_position,
 				" | fps: " + to_string( m_fps.compute( ) )
 			+ 	" | size: " + to_string( frame_size[ 0 ] ) + " x " + to_string( frame_size[ 1 ] )
 			+ 	" | player: " + to_string( position[ 0 ] ) + " x " + to_string( position[ 1 ] )
@@ -115,10 +114,11 @@ auto game::run( ) -> void
 			+ 	" | length: " + to_string( position.get_length( ) )
 			+ 	" | "
 		);
-		game_renderer.refresh( );
+		m_renderer.refresh( );
 	}
 
-	m_renderer.clear_screen( );
+	m_renderer.clear( );
+	m_renderer.refresh( );
 }
 
 

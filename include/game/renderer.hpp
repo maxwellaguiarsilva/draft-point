@@ -53,7 +53,6 @@ public:
 	virtual ~renderer( ) noexcept = default;
 
 	virtual void clear( ) noexcept = 0;
-	virtual void clear_screen( ) noexcept = 0;
 	virtual void refresh( ) = 0;
 	virtual void set_color( const byte color ) noexcept = 0;
 	virtual void draw( const point& pixel ) noexcept = 0;

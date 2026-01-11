@@ -48,7 +48,7 @@ __using( ::std::
 	,views::take
 )
 __using( ::sak::ranges::views::, cartesian_product )
-__using( ::sak::math::, abs, sign, bind_back, greater_equal )
+__using( ::sak::math::, abs, sign, bind_back, greater_equal, between )
 __using( ::sak::, to_point )
 __using( ::sak::ranges::, chunk )
 __using( ::tui::, line, point, rectangle )
@@ -75,19 +75,16 @@ renderer::renderer( terminal& terminal )
 	on_resize( m_terminal.size( ) );
 }
 
+
 auto renderer::clear( ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	fill( m_back, 0 );
 }
 
-auto renderer::clear_screen( ) noexcept -> void
-{
-	auto lock = lock_guard( m_mutex );
-	m_terminal.clear_screen( );
-}
 
 auto renderer::set_color( const byte color ) noexcept -> void { m_color = color; }
+
 
 auto renderer::draw( const line& segment ) noexcept -> void
 {
@@ -110,18 +107,18 @@ auto renderer::draw( const line& segment ) noexcept -> void
 	}
 }
 
+
 auto renderer::draw( const rectangle& area, bool is_filled ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	auto const area_bound = area.end - area.start + 1;
+	auto rows = chunk( m_back, m_screen_size[ width_index ] );
 
 	if( is_filled )
-		for( auto row : chunk( m_back, m_screen_size[ width_index ] ) | drop( area.start[ top_index ] ) | take( area_bound[ height_index ] ) )
+		for( auto row : rows | drop( area.start[ top_index ] ) | take( area_bound[ height_index ] ) )
 			fill( row | drop( area.start[ left_index ] ) | take( area_bound[ width_index ] ), m_color );
 	else
 	{
-		auto rows = chunk( m_back, m_screen_size[ width_index ] );
-
 		fill( rows[ area.start[ top_index ] ] | drop( area.start[ left_index ] ) | take( area_bound[ width_index ] ), m_color );
 		fill( rows[ area.end[ top_index ] ]   | drop( area.start[ left_index ] ) | take( area_bound[ width_index ] ), m_color );
 
@@ -151,12 +148,10 @@ auto renderer::size( ) const noexcept -> point
 	return	m_screen_size;
 }
 
-auto renderer::read_char( ) -> char { return terminal::read_char( ); }
-
 auto renderer::plot_unsafe( int column, int row ) noexcept -> void
 {
 	const size_t index = row * m_screen_size[ width_index ] + column;
-	if( index < m_back.size( ) )
+	if( between( index, static_cast< size_t >( 0 ), m_back.size( ) - 1 ) )
 		m_back[ index ] = m_color;
 }
 

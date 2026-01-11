@@ -63,7 +63,6 @@ public:
 	~renderer( ) noexcept override = default;
 
 	void clear( ) noexcept override;
-	void clear_screen( ) noexcept override;
 	void refresh( ) override;
 	void set_color( const byte color ) noexcept override;
 	void draw( const point& pixel ) noexcept override;
