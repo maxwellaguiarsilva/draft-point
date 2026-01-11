@@ -116,12 +116,12 @@ terminal::terminal( )
 
 				if( sig == SIGWINCH )
 				{
-					point l_size = query_size( );
-					if( l_size not_eq point{ 0, 0 } )
+					point current_size = query_size( );
+					if( current_size not_eq point{ 0, 0 } )
 					{
 						{
 							auto lock = lock_guard( m_mutex );
-							m_bounds.end	=	l_size;
+							m_bounds.end	=	current_size;
 						}
 						m_dispatcher( &listener::on_resize, size( ) );
 					}
@@ -149,12 +149,12 @@ auto terminal::clear_screen( bool full_reset ) -> void
 		if( auto result = set_raw_mode( false ); not result )
 			print( result.error( ) );
 		
-		point l_start;
+		point start_position;
 		{
 			auto lock = lock_guard( m_mutex );
-			l_start = m_bounds.start;
+			start_position = m_bounds.start;
 		}
-		move_cursor( l_start );
+		move_cursor( start_position );
 	}
 	print( "\033[2J" );
 }
