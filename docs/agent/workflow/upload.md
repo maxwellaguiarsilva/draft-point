@@ -43,3 +43,6 @@ This document outlines the steps for quickly pushing code changes to GitHub with
     Inform the user that the procedure was completed successfully.
     In this final communication, show exactly which commit message was used, enclosed in `backticks`.
 
+7.  **Register Success:**
+    Upon successful completion of the upload, the agent must call the `agent_statistic` tool with the `name` parameter set to `"success"`.
+
