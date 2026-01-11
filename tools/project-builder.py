@@ -144,12 +144,12 @@ class project_file:
         relative_path = os.path.relpath( path, base_folder )
         self.hierarchy = os.path.splitext( relative_path )[0]
 
-        with open( path, 'r' ) as f:
+        with open( path, "r" ) as f:
             self.content = f.read( )
 
     def _repr_included_items( self ):
-        included_keys = [f'"{k}"' for k in self.included_items.keys()] if hasattr(self, 'included_items') else []
-        return "[" + ", ".join(included_keys) + "]"
+        included_keys = [ f"\"{k}\"" for k in self.included_items.keys( ) ] if hasattr( self, "included_items" ) else [ ]
+        return "[" + ", ".join( included_keys ) + "]"
 
 
 class cpp( project_file ):
@@ -181,9 +181,7 @@ class cpp( project_file ):
             return
 
         if self.compiled_at and self.dependencies_modified_at <= self.compiled_at:
-            with self.project._lock:
-                if not self.project._stop_event.is_set( ):
-                    print( f"    [cached]: {self.hierarchy}" )
+            self.project.print( f"    [cached]: {self.hierarchy}", flg_check_stop = True )
             return
 
         compile_params = self.project._get_compile_params
@@ -191,26 +189,22 @@ class cpp( project_file ):
 
         result = subprocess.run( compiler_command, shell=True, capture_output=True, text=True )
 
-        with self.project._lock:
-            if self.project._stop_event.is_set( ):
-                return
-
-            if result.returncode != 0:
-                self.project._stop_event.set( )
-                print( f"    [build]: {self.hierarchy} (FAILED)" )
-                if result.stderr:
-                    print( result.stderr, end="" )
-                if result.stdout:
-                    print( result.stdout, end="" )
-                print( f"compiler: {compiler_command}" )
-                raise Exception( f"Compilation failed for {self.path}" )
-            else:
-                print( f"    [build]: {self.hierarchy}" )
-                if result.stderr:
-                    print( result.stderr, end="" )
-                if result.stdout:
-                    print( result.stdout, end="" )
-                self.compiled_at = self._get_compiled_at( )
+        lines = [ f"    [build]: {self.hierarchy}" ]
+        if result.returncode != 0:
+            lines[ 0 ] += " (FAILED)"
+        
+        if result.stderr: lines.append( result.stderr.rstrip( "\n" ) )
+        if result.stdout: lines.append( result.stdout.rstrip( "\n" ) )
+            
+        if result.returncode != 0:
+            lines.append( f"compiler: {compiler_command}" )
+            
+        self.project.print( *lines, sep = "\n", flg_check_stop = True, flg_set_stop = ( result.returncode != 0 ) )
+        
+        if result.returncode != 0:
+            raise Exception( f"Compilation failed for {self.path}" )
+        else:
+            self.compiled_at = self._get_compiled_at( )
 
 
     def __repr__( self ):
@@ -300,34 +294,21 @@ class binary_builder:
             
             result = subprocess.run( linker_command, shell=True, capture_output=True, text=True )
 
-            with self.cpp.project._lock:
-                if self.cpp.project._stop_event.is_set( ):
-                    return
-
-                print( "\n" )
-                print( strong_line )
-                print( self.binary_path )
-                print( weak_line )
-                
-                if result.returncode != 0:
-                    self.cpp.project._stop_event.set( )
-                    print( f"    [link]: {os.path.basename( self.binary_path )} (FAILED)" )
-                    if result.stderr:
-                        print( result.stderr, end="" )
-                    if result.stdout:
-                        print( result.stdout, end="" )
-                    print( weak_line )
-                    print( f"linker: {linker_command}" )
-                    print( weak_line )
-                    raise Exception( f"Linking failed for {self.binary_path}" )
-                else:
-                    print( f"    [link]: {os.path.basename( self.binary_path )}" )
-                    if result.stderr:
-                        print( result.stderr, end="" )
-                    if result.stdout:
-                        print( result.stdout, end="" )
-                
-                print( strong_line )
+            lines = [ "", strong_line, self.binary_path, weak_line ]
+            
+            if result.returncode != 0:
+                lines.append( f"    [link]: {os.path.basename( self.binary_path )} (FAILED)" )
+                if result.stderr: lines.append( result.stderr.rstrip( "\n" ) )
+                if result.stdout: lines.append( result.stdout.rstrip( "\n" ) )
+                lines.extend( [ weak_line, f"linker: {linker_command}", weak_line, strong_line ] )
+                self.cpp.project.print( *lines, sep = "\n", flg_check_stop = True, flg_set_stop = True )
+                raise Exception( f"Linking failed for {self.binary_path}" )
+            else:
+                lines.append( f"    [link]: {os.path.basename( self.binary_path )}" )
+                if result.stderr: lines.append( result.stderr.rstrip( "\n" ) )
+                if result.stdout: lines.append( result.stdout.rstrip( "\n" ) )
+                lines.append( strong_line )
+                self.cpp.project.print( *lines, sep = "\n", flg_check_stop = True )
 
     def __repr__( self ):
         modified_at_str = f"\"{self.modified_at.isoformat()}\"" if self.modified_at else "null"
@@ -336,7 +317,7 @@ class binary_builder:
             f"\"hierarchy\": \"{self.cpp.hierarchy}\""
             f", \"binary_path\": \"{self.binary_path}\""
             f", \"modified_at\": {modified_at_str}"
-            f", \"dependencies_list\": [{', '.join(dependencies_json)}]"
+            f", \"dependencies_list\": [{", ".join(dependencies_json)}]"
             f"}}"
         )
 
@@ -375,6 +356,16 @@ class project:
 
         self._stabilize_dependencies( )
         self.binary_list = [binary_builder( c ) for c in self.cpp_list if c.is_main]
+
+    def print( self, *args, flg_check_stop = False, flg_set_stop = False, **kwargs ):
+        with self._lock:
+            if flg_check_stop and self._stop_event.is_set( ):
+                return
+
+            if flg_set_stop:
+                self._stop_event.set( )
+
+            print( *args, **kwargs )
 
         # Check for binary name collisions
         binaries_by_path = { }
@@ -575,14 +566,15 @@ class project:
                 fmt_result = json.loads( result_process.stdout )
                 
                 if fmt_result[ "changed" ]:
-                    with open( file_path, 'w', encoding='utf-8' ) as f:
+                    with open( file_path, "w", encoding="utf-8" ) as f:
                         f.write( fmt_result[ "content" ] )
                     
-                    with self._lock:
-                        print( weak_line )
-                        print( f"    [fixed]: {file_path}" )
-                        for msg in fmt_result[ "messages" ]:
-                            print( f"        {msg}" )
+                    self.print(
+                        weak_line
+                        ,f"    [fixed]: {file_path}"
+                        ,*[ f"        {msg}" for msg in fmt_result[ "messages" ] ]
+                        ,sep = "\n"
+                    )
                     return True
             except Exception as e:
                 with self._lock:
