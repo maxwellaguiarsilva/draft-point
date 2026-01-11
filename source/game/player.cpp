@@ -31,7 +31,7 @@ namespace game {
 using	enum	::game::direction;
 using	::game::use_direction;
 
-player::player( const point& position ) noexcept
+player::player( const g2i::point& position ) noexcept
 	:position{ position }
 	,m_direction{ right }
 { }
@@ -40,7 +40,7 @@ player::player( const point& position ) noexcept
 auto player::get_direction( ) const noexcept -> const direction& { return m_direction; }
 auto player::set_direction( const direction& heading ) noexcept -> void { m_direction = heading; }
 
-auto player::step_move( ) noexcept -> void { position += use_direction( m_direction ).value; }
+auto player::step_move( ) noexcept -> void { position += use_direction( m_direction ).point; }
 
 auto player::draw( renderer& renderer ) const noexcept -> void
 {

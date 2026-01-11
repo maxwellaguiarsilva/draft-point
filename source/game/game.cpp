@@ -30,17 +30,15 @@
 namespace game {
 
 
-using	::game::point;
 using	::std::to_string;
 using	::sak::to_lower_case;
-__using( ::game::, line, point, rectangle )
 
 
-game::renderer_listener::renderer_listener( const point& new_size )
+game::renderer_listener::renderer_listener( const g2i::point& new_size )
 { on_resize( new_size ); }
 
 
-void game::renderer_listener::on_resize( const point& new_size )
+void game::renderer_listener::on_resize( const g2i::point& new_size )
 {
 	start			=	{ 0, 0 };
 	end				=	{ new_size[ 0 ] - 1, new_size[ 1 ] - 1 };
@@ -63,14 +61,14 @@ game::game( renderer& renderer )
 auto game::run( ) -> void
 {
 	using enum direction;
-	const point& frame_size	=	m_renderer.size( );
-	point&	position		=	m_player.position;
+	const auto& frame_size	=	m_renderer.size( );
+	auto&	position		=	m_player.position;
 	
-	const auto& renderer_listener	=	*m_renderer_listener;
-	const point& label_position	=	renderer_listener.label_position;
-	const point& bounds_start	=	renderer_listener.start;
-	const point& bounds_end		=	renderer_listener.end;
-	const point& bounds_size	=	renderer_listener.size;
+	const auto& listener		=	*m_renderer_listener;
+	const auto& label_position	=	listener.label_position;
+	const auto& bounds_start	=	listener.start;
+	const auto& bounds_end		=	listener.end;
+	const auto& bounds_size		=	listener.size;
 
 	bool exit_loop = false;
 
@@ -103,8 +101,6 @@ auto game::run( ) -> void
 
 		m_renderer.clear( );
 		m_player.draw( m_renderer );
-
-		m_renderer.draw( line{ { 0, 0 }, position - 2 } );
 
 		m_renderer.print( label_position,
 				" | fps: " + to_string( m_fps.compute( ) )

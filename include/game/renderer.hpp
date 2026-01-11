@@ -47,7 +47,7 @@ public:
 	{
 	public:
 		virtual ~listener( ) = default;
-		virtual void on_resize( const point& new_size ) = 0;
+		virtual void on_resize( const g2i::point& new_size ) = 0;
 	};
 
 	virtual ~renderer( ) noexcept = default;
@@ -55,12 +55,12 @@ public:
 	virtual void clear( ) noexcept = 0;
 	virtual void refresh( ) = 0;
 	virtual void set_color( const byte color ) noexcept = 0;
-	virtual void draw( const point& pixel ) noexcept = 0;
-	virtual void draw( const line& segment ) noexcept = 0;
-	virtual void draw( const rectangle& area, bool is_filled = true ) noexcept = 0;
-	virtual void print( const point& position, const string& text ) noexcept = 0;
+	virtual void draw( const g2i::point& pixel ) noexcept = 0;
+	virtual void draw( const g2i::line& segment ) noexcept = 0;
+	virtual void draw( const g2i::rectangle& area, bool is_filled = true ) noexcept = 0;
+	virtual void print( const g2i::point& position, const string& text ) noexcept = 0;
 
-	virtual auto size( ) const noexcept -> point = 0;
+	virtual auto size( ) const noexcept -> g2i::point = 0;
 
 	virtual void operator +=( const shared_ptr< listener >& subject ) = 0;
 };

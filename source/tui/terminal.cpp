@@ -65,8 +65,6 @@ using	::sak::ensure;
 using	::sak::pattern::value_or;
 using	::sak::ranges::to_array;
 using	::sak::math::bind_back;
-using	::tui::point;
-using	color		=	::tui::terminal::color;
 using	text_style	=	::tui::terminal::text_style;
 using	enum	::tui::terminal::error;
 
@@ -91,6 +89,7 @@ auto generate_style = [ ]( uint16_t index ) { return format( "\033[{}m", index )
 const array< string, 10 > terminal::m_text_styles	=	iota( 0, 10 )
 	|	transform( generate_style )
 	|	to_array;
+constexpr auto zero = g2i::point( 0, 0 );
 
 
 terminal::terminal( )
@@ -99,7 +98,7 @@ terminal::terminal( )
 	,m_bounds( { 1, 1 }, query_size( ) )
 {
 	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, get_error_message( tcgetattr_failed ) );
-	ensure( m_bounds.end not_eq point{ 0, 0 }, get_error_message( ioctl_failed ) );
+	ensure( m_bounds.end not_eq zero, get_error_message( ioctl_failed ) );
 	ensure( m_bounds.start.is_inside( m_bounds.end ), "invalid terminal size" );
 
 	clear_screen( true );
@@ -123,8 +122,8 @@ terminal::terminal( )
 
 				if( sig == SIGWINCH )
 				{
-					point current_size = query_size( );
-					if( current_size not_eq point{ 0, 0 } )
+					auto current_size = query_size( );
+					if( current_size not_eq zero )
 					{
 						{
 							auto lock = lock_guard( m_mutex );
@@ -156,7 +155,7 @@ auto terminal::clear_screen( bool full_reset ) -> void
 		if( auto result = set_raw_mode( false ); not result )
 			print( result.error( ) );
 		
-		point start_position;
+		g2i::point start_position;
 		{
 			auto lock = lock_guard( m_mutex );
 			start_position = m_bounds.start;
@@ -173,14 +172,14 @@ auto terminal::read_char( ) -> char
 	return	character;
 }
 
-auto terminal::move_cursor( const point& position ) -> void
+auto terminal::move_cursor( const g2i::point& position ) -> void
 { 
 	m_buffer << "\033[" << position[ top_index ] << ';' << position[ left_index ] << 'H';
 }
 
 auto terminal::print( const string& text ) -> void { m_buffer << text; }
 
-auto terminal::print( const point& position, const string& text ) -> void
+auto terminal::print( const g2i::point& position, const string& text ) -> void
 {
 	move_cursor( position );
 	print( text );
@@ -224,7 +223,7 @@ auto terminal::set_text_style( text_style style ) -> void
 	m_buffer << m_text_styles[ static_cast< size_t >( style ) ];
 }
 
-auto terminal::query_size( ) -> point
+auto terminal::query_size( ) -> g2i::point
 {
 	winsize window_size;
 	if( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) not_eq 0 )
@@ -232,7 +231,7 @@ auto terminal::query_size( ) -> point
 	return	{ window_size.ws_col, window_size.ws_row };
 }
 
-auto terminal::size( ) const noexcept -> point
+auto terminal::size( ) const noexcept -> g2i::point
 {
 	auto lock = lock_guard( m_mutex );
 	return	m_bounds.end;

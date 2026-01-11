@@ -34,6 +34,9 @@
 namespace tui {
 
 
+using	::sak::g2i;
+
+
 } 
 
 

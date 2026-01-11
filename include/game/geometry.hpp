@@ -27,15 +27,14 @@
 #define header_guard_104340424
 
 
-#include <sak/sak.hpp>
 #include <sak/geometry/geometry.hpp>
 
 
 namespace game {
 
 
-using	g2i	=	::sak::geometry< ::sak::point< int, 2 > >;
-using	g3i	=	::sak::geometry< ::sak::point< int, 3 > >;
+using	::sak::g2i;
+using	::sak::g3i;
 
 
 } 

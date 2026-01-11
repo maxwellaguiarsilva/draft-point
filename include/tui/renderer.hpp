@@ -29,7 +29,7 @@
 
 #include <sak/sak.hpp>
 #include <sak/pattern/dispatcher.hpp>
-#include <tui/geometry.hpp>
+#include <tui/terminal.hpp>
 #include <game/renderer.hpp>
 #include <vector>
 #include <mutex>
@@ -50,10 +50,7 @@ using	::sak::pattern::dispatcher;
 using	::sak::byte;
 
 
-class terminal;
-
-
-class renderer : public ::game::renderer
+class renderer final : public ::game::renderer
 {
 public:
 	using	buffer	=	vector< byte >;
@@ -65,28 +62,25 @@ public:
 	void clear( ) noexcept override;
 	void refresh( ) override;
 	void set_color( const byte color ) noexcept override;
-	void draw( const point& pixel ) noexcept override;
-	void draw( const line& segment ) noexcept override;
-	void draw( const rectangle& area, bool is_filled = true ) noexcept override;
-	void print( const point& position, const string& text ) noexcept override;
-
-	auto size( ) const noexcept -> point override;
-
-	static auto read_char( ) -> char;
+	void draw( const g2i::point& point ) noexcept override;
+	void draw( const g2i::line& line ) noexcept override;
+	void draw( const g2i::rectangle& rectangle, bool is_filled = true ) noexcept override;
+	void print( const g2i::point& position, const string& text ) noexcept override;
+	auto size( ) const noexcept -> g2i::point override;
 
 	void operator +=( const shared_ptr< listener >& subject ) override;
 
 private:
 	struct terminal_listener;
 
-	void on_resize( const point& size );
+	void on_resize( const g2i::point& size );
 	void plot_unsafe( int column, int row ) noexcept;
 
 	terminal&	m_terminal;
 	buffer		m_front;
 	buffer		m_back;
-	point		m_terminal_size;
-	point		m_screen_size;
+	g2i::point	m_terminal_size;
+	g2i::point	m_screen_size;
 	byte		m_color;
 	mutable mutex	m_mutex;
 	shared_ptr< terminal_listener > m_terminal_listener;

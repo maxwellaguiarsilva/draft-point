@@ -55,7 +55,7 @@ using enum direction;
 struct __use_direction
 {
 private:
-	struct __direction { string name; point value; };
+	struct __direction { string name; g2i::point point; };
 
 public:
 	constexpr auto operator ( )( const direction& heading ) const noexcept -> const __direction&

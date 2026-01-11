@@ -36,7 +36,6 @@
 namespace game {
 
 
-using	::game::point;
 using	::game::direction;
 using	enum	::game::direction;
 
@@ -44,7 +43,7 @@ using	enum	::game::direction;
 class player
 {
 public:
-	explicit player( const point& position ) noexcept;
+	explicit player( const g2i::point& position ) noexcept;
 
 	auto get_direction( ) const noexcept -> const direction&;
 	auto set_direction( const direction& heading ) noexcept -> void;
@@ -53,7 +52,7 @@ public:
 
 	auto draw( renderer& renderer ) const noexcept -> void;
 	
-	point position;
+	g2i::point position;
 private:
 	direction m_direction;
 };

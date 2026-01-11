@@ -45,18 +45,19 @@ namespace tui {
 
 
 __using( ::std::
-	,string
 	,array
+	,atomic
+	,expected
+	,jthread
+	,lock_guard
+	,mutex
 	,ostream
 	,ostringstream
-	,expected
-	,unexpected
 	,shared_ptr
-	,jthread
 	,stop_token
-	,mutex
-	,lock_guard
-	,atomic
+	,string
+	,unexpected
+	,unordered_map
 )
 using	::sak::byte;
 using	::sak::pattern::dispatcher;
@@ -66,18 +67,6 @@ using	::termios;
 class terminal final
 {
 public:
-	enum class color
-	{
-		 black			=	0
-		,red			=	1
-		,green			=	2
-		,yellow			=	3
-		,blue			=	4
-		,magenta		=	5
-		,cyan			=	6
-		,white			=	7
-	};
-
 	enum class text_style
 	{
 		 reset			=	0
@@ -101,7 +90,7 @@ public:
 	};
 
 	using	result	=	expected< void, error >;
-	using	error_messages	=	::std::unordered_map< error, string >;
+	using	error_messages	=	unordered_map< error, string >;
 
 
 	terminal( );
@@ -110,18 +99,18 @@ public:
 	delete_copy_move_ctc( terminal );
 
 	auto clear_screen( bool full_reset = false ) -> void;
-	auto move_cursor( const point& position ) -> void;
-	auto print( const point& position, const string& text ) -> void;
+	auto move_cursor( const g2i::point& position ) -> void;
+	auto print( const g2i::point& position, const string& text ) -> void;
 	auto print( const string& text ) -> void;
 	auto refresh( ) -> void;
 	auto set_color( byte code, bool is_background = false ) -> void;
 	auto set_cursor( bool enable ) -> void;
 	auto set_raw_mode( bool enable ) -> result;
 	auto set_text_style( text_style style ) -> void;
-	auto size( ) const noexcept -> point;
+	auto size( ) const noexcept -> g2i::point;
 
 	static auto get_error_message( const error& error_code ) noexcept -> const string&;
-	static auto query_size( ) -> point;
+	static auto query_size( ) -> g2i::point;
 	static auto read_char( ) -> char;
 
 
@@ -129,7 +118,7 @@ public:
 	{
 	public:
 		virtual ~listener( ) = default;
-		virtual void on_resize( const point& size ) = 0;
+		virtual void on_resize( const g2i::point& size ) = 0;
 	};
 	void operator +=( const shared_ptr< listener >& instance );
 
@@ -147,7 +136,7 @@ private:
 	ostringstream	m_buffer;
 	termios			m_original_termios;
 	mutable mutex	m_mutex;
-	rectangle		m_bounds;
+	g2i::rectangle	m_bounds;
 	jthread			m_resize_thread;
 	dispatcher< listener >	m_dispatcher;
 };

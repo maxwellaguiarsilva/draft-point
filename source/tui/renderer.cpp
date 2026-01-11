@@ -51,7 +51,6 @@ __using( ::sak::ranges::views::, cartesian_product )
 __using( ::sak::math::, abs, sign, bind_back, greater_equal, between )
 __using( ::sak::, to_point )
 __using( ::sak::ranges::, chunk )
-__using( ::tui::, line, point, rectangle )
 
 
 constexpr int width_index = 0, left_index = 0;
@@ -61,7 +60,7 @@ constexpr int height_index = 1, top_index = 1;
 struct renderer::terminal_listener final : public terminal::listener
 {
 	explicit terminal_listener( renderer& parent ) : m_renderer( parent ) { }
-	auto on_resize( const point& new_size ) -> void override { m_renderer.on_resize( new_size ); }
+	auto on_resize( const g2i::point& new_size ) -> void override { m_renderer.on_resize( new_size ); }
 	renderer& m_renderer;
 };
 
@@ -86,16 +85,17 @@ auto renderer::clear( ) noexcept -> void
 auto renderer::set_color( const byte color ) noexcept -> void { m_color = color; }
 
 
-auto renderer::draw( const line& segment ) noexcept -> void
+auto renderer::draw( const g2i::line& line ) noexcept -> void
 {
+	using	point	=	g2i::point;
 	auto lock = lock_guard( m_mutex );
-	const point difference = ( segment.end - segment.start );
+	const point difference = ( line.end - line.start );
 	const point walker_step = difference | abs | to_point;
 	const point step = difference | sign | to_point;
-	const auto total = max( walker_step );
+	const int total = max( walker_step );
 	
-	point current = segment.start;
-	point walker = walker_step;
+	auto current = line.start;
+	auto walker = walker_step;
 	
 	auto count = total + 1;
 	while( --count > 0 )
@@ -108,7 +108,7 @@ auto renderer::draw( const line& segment ) noexcept -> void
 }
 
 
-auto renderer::draw( const rectangle& area, bool is_filled ) noexcept -> void
+auto renderer::draw( const g2i::rectangle& area, bool is_filled ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	auto const area_bound = area.end - area.start + 1;
@@ -130,19 +130,19 @@ auto renderer::draw( const rectangle& area, bool is_filled ) noexcept -> void
 	}
 }
 
-auto renderer::draw( const point& pixel ) noexcept -> void
+auto renderer::draw( const g2i::point& pixel ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	plot_unsafe( pixel[ left_index ], pixel[ top_index ] );
 }
 
-auto renderer::print( const point& position, const string& text ) noexcept -> void
+auto renderer::print( const g2i::point& position, const string& text ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	m_terminal.print( position, text );
 }
 
-auto renderer::size( ) const noexcept -> point
+auto renderer::size( ) const noexcept -> g2i::point
 {
 	auto lock = lock_guard( m_mutex );
 	return	m_screen_size;
@@ -155,7 +155,7 @@ auto renderer::plot_unsafe( int column, int row ) noexcept -> void
 		m_back[ index ] = m_color;
 }
 
-auto renderer::on_resize( const point& new_size ) -> void
+auto renderer::on_resize( const g2i::point& new_size ) -> void
 {
 	{
 		auto lock = lock_guard( m_mutex );
@@ -168,13 +168,14 @@ auto renderer::on_resize( const point& new_size ) -> void
 			m_front.resize( total_pixel_count );
 		}
 	}
-	clear( );
-	refresh( );
+	renderer::clear( );
+	renderer::refresh( );
 	m_dispatcher( &listener::on_resize, m_screen_size );
 }
 
 auto renderer::refresh( ) -> void
 {
+	using	point	=	g2i::point;
 	unique_lock lock( m_mutex, try_to_lock );
 	if( not lock.owns_lock( ) ) return;
 

@@ -38,7 +38,6 @@ namespace game {
 
 using	::game::player;
 using	::game::fps;
-using	::game::point;
 using	::std::shared_ptr;
 using	::std::make_shared;
 
@@ -56,9 +55,12 @@ public:
 private:
 	struct renderer_listener final : public renderer::listener
 	{
-		explicit renderer_listener( const point& new_size );
-		void on_resize( const point& new_size ) override;
-		point size;
+		explicit renderer_listener( const g2i::point& new_size );
+		void on_resize( const g2i::point& new_size ) override;
+		g2i::point start;
+		g2i::point end;
+		g2i::point size;
+		g2i::point label_position;
 	};
 
 	renderer&	m_renderer;
