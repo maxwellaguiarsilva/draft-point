@@ -37,6 +37,7 @@ namespace sak {
 
 
 using	::std::string;
+using	::std::ranges::transform;
 using	::sak::math::between;
 
 
@@ -50,11 +51,10 @@ struct __to_lower_case
 		return	( between( code, 'A', 'Z' ) ? static_cast< char >( code + delta_case ) : code );
 	}
 
-	auto operator ( ) ( const string& text ) const -> string
+	auto operator ( ) ( string text ) const -> string
 	{
-		string result = text;
-		::std::ranges::transform( result, result.begin( ), *this );
-		return	result;
+		transform( text, text.begin( ), *this );
+		return	text;
 	}
 };
 inline constexpr auto to_lower_case = __to_lower_case{ };
@@ -67,11 +67,10 @@ struct __to_upper_case
 		return	( between( code, 'a', 'z' ) ? static_cast< char >( code - delta_case ) : code );
 	}
 
-	auto operator ( ) ( const string& text ) const -> string
+	auto operator ( ) ( string text ) const -> string
 	{
-		string result = text;
-		::std::ranges::transform( result, result.begin( ), *this );
-		return	result;
+		transform( text, text.begin( ), *this );
+		return	text;
 	}
 };
 inline constexpr auto to_upper_case = __to_upper_case{ };

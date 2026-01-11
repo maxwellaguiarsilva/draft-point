@@ -33,6 +33,7 @@
 #include <sak/using.hpp>
 #include <sak/default_ctc_dtc.hpp>
 #include <sak/ensure.hpp>
+#include <cstdint>
 
 
 namespace sak {
