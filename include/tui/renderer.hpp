@@ -32,7 +32,6 @@
 #include <tui/geometry.hpp>
 #include <game/renderer.hpp>
 #include <vector>
-#include <cstdint>
 #include <cstddef>
 #include <mutex>
 #include <memory>
@@ -47,10 +46,10 @@ __using( ::std::
 	,shared_ptr
 	,size_t
 	,string
-	,uint8_t
 	,vector
 )
 using	::sak::pattern::dispatcher;
+using	::sak::byte;
 
 
 class terminal;
@@ -59,7 +58,7 @@ class terminal;
 class renderer : public ::game::renderer
 {
 public:
-	using	buffer	=	vector< uint8_t >;
+	using	buffer	=	vector< byte >;
 	using	listener =	::game::renderer::listener;
 
 	explicit renderer( terminal& parent );
@@ -68,7 +67,7 @@ public:
 	void clear( ) noexcept override;
 	void clear_screen( ) noexcept override;
 	void refresh( ) override;
-	void set_color( const uint8_t color ) noexcept override;
+	void set_color( const byte color ) noexcept override;
 	void draw( const point& pixel ) noexcept override;
 	void draw( const line& segment ) noexcept override;
 	void draw( const rectangle& area, bool is_filled = true ) noexcept override;
@@ -91,7 +90,7 @@ private:
 	buffer		m_back;
 	point		m_terminal_size;
 	point		m_screen_size;
-	uint8_t		m_color;
+	byte		m_color;
 	mutable mutex	m_mutex;
 	shared_ptr< terminal_listener > m_terminal_listener;
 	dispatcher< listener >	m_dispatcher;

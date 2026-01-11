@@ -62,6 +62,7 @@ __using( ::std::
 	,lock_guard
 	,atomic
 )
+using	::sak::byte;
 using	::sak::pattern::dispatcher;
 using	::termios;
 
@@ -113,23 +114,22 @@ public:
 	delete_copy_move_ctc( terminal );
 
 	auto clear_screen( bool full_reset = false ) -> void;
-	static auto read_char( ) -> char;
+	auto get_renderer( ) noexcept -> renderer&;
 	auto move_cursor( const point& position ) -> void;
-	auto print( const string& text ) -> void;
 	auto print( const point& position, const string& text ) -> void;
+	auto print( const string& text ) -> void;
 	auto refresh( ) -> void;
-	auto set_color( color code, bool is_background = false ) -> void;
-	auto set_color( uint8_t code, bool is_background = false ) -> void;
+	auto set_color( byte code, bool is_background = false ) -> void;
 	auto set_cursor( bool enable ) -> void;
 	auto set_raw_mode( bool enable ) -> result;
 	auto set_text_style( text_style style ) -> void;
 	auto size( ) const noexcept -> point;
 
-	static auto query_size( ) -> point;
-
-	auto get_renderer( ) noexcept -> renderer&;
-
 	static auto get_error_message( const error& error_code ) noexcept -> const string&;
+	static auto query_size( ) -> point;
+	static auto read_char( ) -> char;
+
+
 
 	class listener
 	{
@@ -140,23 +140,23 @@ public:
 	void operator +=( const shared_ptr< listener >& instance );
 
 private:
-	static const error_messages m_error_messages;
-	static const string			m_unknown_error_message;
+	static const error_messages			m_error_messages;
+	static const string					m_unknown_error_message;
 	static const array< string, 256 >	m_foreground_colors;
 	static const array< string, 256 >	m_background_colors;
 	static const array< string, 10 >	m_text_styles;
 
 	auto print( const error& error_code ) const noexcept -> void;
 
-	ostream&	m_output;
-	ostream&	m_error_output;
+	ostream&		m_output;
+	ostream&		m_error_output;
 	ostringstream	m_buffer;
-	termios		m_original_termios;
+	termios			m_original_termios;
 	mutable mutex	m_mutex;
-	rectangle	m_bounds;
-	jthread		m_resize_thread;
+	rectangle		m_bounds;
+	jthread			m_resize_thread;
 	dispatcher< listener >	m_dispatcher;
-	renderer	m_renderer;
+	renderer		m_renderer;
 };
 
 

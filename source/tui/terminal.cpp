@@ -194,9 +194,7 @@ auto terminal::refresh( ) -> void
 	m_buffer.clear( );
 }
 
-auto terminal::set_color( color code, bool background ) -> void { set_color( static_cast< uint8_t >( code ), background ); }
-
-auto terminal::set_color( uint8_t code, bool background ) -> void
+auto terminal::set_color( byte code, bool background ) -> void
 {
 	m_buffer << ( background ? m_background_colors[ code ] : m_foreground_colors[ code ] );
 }

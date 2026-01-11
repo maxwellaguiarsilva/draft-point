@@ -39,7 +39,6 @@ __using( ::std::
 	,lock_guard
 	,make_shared
 	,try_to_lock
-	,uint8_t
 	,unique_lock
 	,vector
 	,ranges::fill
@@ -88,7 +87,7 @@ auto renderer::clear_screen( ) noexcept -> void
 	m_terminal.clear_screen( );
 }
 
-auto renderer::set_color( const uint8_t color ) noexcept -> void { m_color = color; }
+auto renderer::set_color( const byte color ) noexcept -> void { m_color = color; }
 
 auto renderer::draw( const line& segment ) noexcept -> void
 {
@@ -184,8 +183,8 @@ auto renderer::refresh( ) -> void
 	unique_lock lock( m_mutex, try_to_lock );
 	if( not lock.owns_lock( ) ) return;
 
-	uint8_t current_foreground = 255;
-	uint8_t current_background = 255;
+	byte current_foreground = 255;
+	byte current_background = 255;
 	bool force_update = true;
 	point cursor_position = { 0, 0 };
 
@@ -197,10 +196,10 @@ auto renderer::refresh( ) -> void
 
 	for( auto [ row, column ] : cartesian_product( iota( 0, terminal_height ), iota( 0, terminal_width ) ) )
 	{
-		const uint8_t back_upper = back_rows[ 2 * row ][ column ];
-		const uint8_t back_lower = back_rows[ 2 * row + 1 ][ column ];
-		uint8_t& front_upper = front_rows[ 2 * row ][ column ];
-		uint8_t& front_lower = front_rows[ 2 * row + 1 ][ column ];
+		const byte back_upper = back_rows[ 2 * row ][ column ];
+		const byte back_lower = back_rows[ 2 * row + 1 ][ column ];
+		byte& front_upper = front_rows[ 2 * row ][ column ];
+		byte& front_lower = front_rows[ 2 * row + 1 ][ column ];
 
 		if( back_upper not_eq front_upper or back_lower not_eq front_lower )
 		{

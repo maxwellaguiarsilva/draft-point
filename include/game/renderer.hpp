@@ -38,7 +38,7 @@ namespace game {
 
 using	::std::shared_ptr;
 using	::std::string;
-using	::std::uint8_t;
+using	::sak::byte;
 
 
 class renderer
@@ -56,7 +56,7 @@ public:
 	virtual void clear( ) noexcept = 0;
 	virtual void clear_screen( ) noexcept = 0;
 	virtual void refresh( ) = 0;
-	virtual void set_color( const uint8_t color ) noexcept = 0;
+	virtual void set_color( const byte color ) noexcept = 0;
 	virtual void draw( const point& pixel ) noexcept = 0;
 	virtual void draw( const line& segment ) noexcept = 0;
 	virtual void draw( const rectangle& area, bool is_filled = true ) noexcept = 0;

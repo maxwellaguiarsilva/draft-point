@@ -35,11 +35,11 @@
 #include <sak/ensure.hpp>
 
 
+
 namespace sak {
 
 
-using	::std::string;
-using	::std::runtime_error;
+using	byte	=	uint8_t;
 
 
 }
