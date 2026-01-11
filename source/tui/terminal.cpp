@@ -87,6 +87,10 @@ const array< string, 256 > terminal::m_foreground_colors	=	iota( 0, 256 )
 const array< string, 256 > terminal::m_background_colors	=	iota( 0, 256 )
 	|	transform( bind_back( generate_color, true ) )
 	|	to_array;
+auto generate_style = [ ]( uint16_t index ) { return format( "\033[{}m", index ); };
+const array< string, 10 > terminal::m_text_styles	=	iota( 0, 10 )
+	|	transform( generate_style )
+	|	to_array;
 
 
 terminal::terminal( )
@@ -220,7 +224,7 @@ auto terminal::set_raw_mode( bool enable ) -> result
 
 auto terminal::set_text_style( text_style style ) -> void
 {
-	m_buffer << "\033[" << static_cast<int>( style ) << 'm';
+	m_buffer << m_text_styles[ static_cast< size_t >( style ) ];
 }
 
 auto terminal::query_size( ) -> point

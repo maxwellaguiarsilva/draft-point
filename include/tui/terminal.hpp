@@ -144,6 +144,7 @@ private:
 	static const string			m_unknown_error_message;
 	static const array< string, 256 >	m_foreground_colors;
 	static const array< string, 256 >	m_background_colors;
+	static const array< string, 10 >	m_text_styles;
 
 	auto print( const error& error_code ) const noexcept -> void;
 
