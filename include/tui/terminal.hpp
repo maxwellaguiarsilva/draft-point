@@ -97,8 +97,7 @@ public:
 
 	enum class error
 	{
-		 out_of_bounds
-		,tcgetattr_failed
+		 tcgetattr_failed
 		,tcsetattr_failed
 		,ioctl_failed
 		,unknown
@@ -115,9 +114,9 @@ public:
 
 	auto clear_screen( bool full_reset = false ) -> void;
 	static auto read_char( ) -> char;
-	auto move_cursor( const point& position ) -> result;
+	auto move_cursor( const point& position ) -> void;
 	auto print( const string& text ) -> void;
-	auto print( const point& position, const string& text ) -> result;
+	auto print( const point& position, const string& text ) -> void;
 	auto refresh( ) -> void;
 	auto set_color( color code, bool is_background = false ) -> void;
 	auto set_color( uint8_t code, bool is_background = false ) -> void;

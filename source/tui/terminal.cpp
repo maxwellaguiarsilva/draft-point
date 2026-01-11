@@ -69,8 +69,7 @@ using	enum	::tui::terminal::error;
 
 const terminal::error_messages terminal::m_error_messages	=
 {
-	 { out_of_bounds	,"terminal: cursor position out of bounds" }
-	,{ tcgetattr_failed	,"terminal: tcgetattr error" }
+	 { tcgetattr_failed	,"terminal: tcgetattr error" }
 	,{ tcsetattr_failed	,"terminal: tcsetattr error" }
 	,{ ioctl_failed		,"terminal: ioctl error" }
 };
@@ -167,28 +166,17 @@ auto terminal::read_char( ) -> char
 	return	character;
 }
 
-auto terminal::move_cursor( const point& position ) -> result 
+auto terminal::move_cursor( const point& position ) -> void
 { 
-	{
-		auto lock = lock_guard( m_mutex );
-		if( not m_bounds.contains( position ) )
-			return	unexpected( out_of_bounds );
-	}
 	m_buffer << "\033[" << position[ 1 ] << ';' << position[ 0 ] << 'H';
-	return	{ };
 }
 
-auto terminal::print( const string& text ) -> void
-{
-	m_buffer << text;
-}
+auto terminal::print( const string& text ) -> void { m_buffer << text; }
 
-auto terminal::print( const point& position, const string& text ) -> result
+auto terminal::print( const point& position, const string& text ) -> void
 {
-	if( auto status = move_cursor( position ); not status )
-		return	status;
+	move_cursor( position );
 	print( text );
-	return	{ };
 }
 
 auto terminal::refresh( ) -> void
