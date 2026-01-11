@@ -30,7 +30,6 @@
 #include <sak/sak.hpp>
 #include <sak/pattern/dispatcher.hpp>
 #include <tui/geometry.hpp>
-#include <tui/renderer.hpp>
 #include <termios.h>
 #include <string>
 #include <array>
@@ -114,7 +113,6 @@ public:
 	delete_copy_move_ctc( terminal );
 
 	auto clear_screen( bool full_reset = false ) -> void;
-	auto get_renderer( ) noexcept -> renderer&;
 	auto move_cursor( const point& position ) -> void;
 	auto print( const point& position, const string& text ) -> void;
 	auto print( const string& text ) -> void;
@@ -155,7 +153,6 @@ private:
 	rectangle		m_bounds;
 	jthread			m_resize_thread;
 	dispatcher< listener >	m_dispatcher;
-	renderer		m_renderer;
 };
 
 

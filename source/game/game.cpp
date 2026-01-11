@@ -23,6 +23,7 @@
 
 
 #include <game/game.hpp>
+#include <tui/terminal.hpp>
 #include <sak/string.hpp>
 
 

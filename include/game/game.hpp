@@ -28,7 +28,6 @@
 
 
 #include <sak/sak.hpp>
-#include <tui/terminal.hpp>
 #include <game/renderer.hpp>
 #include <game/player.hpp>
 #include <game/fps.hpp>

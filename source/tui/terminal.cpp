@@ -27,7 +27,6 @@
 #include <sak/pattern/value_or.hpp>
 #include <sak/ranges/to_array.hpp>
 #include <tui/terminal.hpp>
-#include <tui/renderer.hpp>
 #include <iostream>
 #include <format>
 #include <termios.h>
@@ -97,7 +96,6 @@ terminal::terminal( )
 	:m_output( cout )
 	,m_error_output( cerr )
 	,m_bounds( { 1, 1 }, query_size( ) )
-	,m_renderer( *this )
 {
 	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, get_error_message( tcgetattr_failed ) );
 	ensure( m_bounds.end not_eq point{ 0, 0 }, get_error_message( ioctl_failed ) );
@@ -238,8 +236,6 @@ auto terminal::size( ) const noexcept -> point
 	auto lock = lock_guard( m_mutex );
 	return	m_bounds.end;
 }
-
-auto terminal::get_renderer( ) noexcept -> renderer& { return m_renderer; }
 
 auto terminal::get_error_message( const error& error_code ) noexcept -> const string&
 {

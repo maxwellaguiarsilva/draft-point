@@ -28,6 +28,7 @@
 #include <cstdlib>
 #include <game/game.hpp>
 #include <tui/terminal.hpp>
+#include <tui/renderer.hpp>
 
 
 auto main( int, char*[ ] ) -> int
@@ -39,7 +40,8 @@ auto main( int, char*[ ] ) -> int
 	try
 	{
 		::tui::terminal terminal;
-		::game::game game( terminal.get_renderer( ) );
+		::tui::renderer renderer( terminal );
+		::game::game game( renderer );
 		game.run( );
 	} catch( const exception& e )
 	{
