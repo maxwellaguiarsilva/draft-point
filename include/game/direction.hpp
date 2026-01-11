@@ -26,12 +26,13 @@
 #ifndef header_guard_399468167
 #define header_guard_399468167
 
+
 #include <sak/sak.hpp>
-#include <string>
 #include <game/geometry.hpp>
 
 
 namespace game {
+
 
 using	::std::string;
 using	::game::point;

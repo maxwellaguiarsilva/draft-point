@@ -28,7 +28,6 @@
 
 #include <sak/sak.hpp>
 #include <sak/math/math.hpp>
-#include <string>
 #include <ranges>
 #include <algorithm>
 

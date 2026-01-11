@@ -31,7 +31,6 @@
 #include <game/renderer.hpp>
 #include <game/player.hpp>
 #include <game/fps.hpp>
-#include <memory>
 
 
 namespace game {

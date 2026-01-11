@@ -27,13 +27,12 @@
 #define header_guard_935812590
 
 
-#include <type_traits>
-#include <exception>
+#include <concepts>
 #include <ranges>
+#include <exception>
 #include <functional>
-#include <algorithm>
-#include <utility>
 #include <cmath>
+#include <algorithm>
 
 
 namespace sak {

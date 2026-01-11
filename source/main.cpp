@@ -23,9 +23,7 @@
 
 
 #include <iostream>
-#include <string>
-#include <vector>
-#include <cstdlib>
+#include <sak/sak.hpp>
 #include <game/game.hpp>
 #include <tui/terminal.hpp>
 #include <tui/renderer.hpp>
@@ -33,9 +31,8 @@
 
 auto main( int, char*[ ] ) -> int
 {{
-	using	::std::cerr;
-	using	::std::endl;
-	using	::std::exception;
+	__using( ::std::, cerr, endl, exception );
+	__using( ::sak::, exit_success, exit_failure, ensure )
 
 	try
 	{
@@ -46,14 +43,14 @@ auto main( int, char*[ ] ) -> int
 	} catch( const exception& e )
 	{
 		cerr << "error: " << e.what( ) << endl;
-		return	EXIT_FAILURE;
+		return	exit_failure;
 	} catch( ... )
 	{
 		cerr << "error: an unknown exception occurred" << endl;
-		return	EXIT_FAILURE;
+		return	exit_failure;
 	}
 
-	return	EXIT_SUCCESS;
+	return	exit_success;
 }}
 
 

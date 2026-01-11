@@ -29,11 +29,11 @@
 //	sak	=	swiss_army_knife
 
 
-#include <string>
+#include <cstdint>
+#include <memory>
 #include <sak/using.hpp>
 #include <sak/default_ctc_dtc.hpp>
 #include <sak/ensure.hpp>
-#include <cstdint>
 
 
 namespace sak {

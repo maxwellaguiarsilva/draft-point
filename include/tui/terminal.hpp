@@ -31,17 +31,14 @@
 #include <sak/pattern/dispatcher.hpp>
 #include <tui/geometry.hpp>
 #include <termios.h>
-#include <string>
 #include <array>
-#include <unordered_map>
-#include <expected>
 #include <ostream>
 #include <sstream>
-#include <memory>
+#include <expected>
 #include <thread>
-#include <csignal>
 #include <mutex>
 #include <atomic>
+#include <unordered_map>
 
 
 namespace tui {

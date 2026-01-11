@@ -29,6 +29,7 @@
 #include <sak/sak.hpp>
 #include <ranges>
 #include <algorithm>
+#include <cstddef>
 
 
 namespace sak::ranges {

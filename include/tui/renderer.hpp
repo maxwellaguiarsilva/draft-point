@@ -32,9 +32,7 @@
 #include <tui/geometry.hpp>
 #include <game/renderer.hpp>
 #include <vector>
-#include <cstddef>
 #include <mutex>
-#include <memory>
 
 
 namespace tui {

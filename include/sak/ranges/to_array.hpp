@@ -31,6 +31,8 @@
 #include <array>
 #include <ranges>
 #include <algorithm>
+#include <utility>
+#include <cstddef>
 
 
 namespace sak::ranges {

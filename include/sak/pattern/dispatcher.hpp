@@ -28,14 +28,12 @@
 
 
 #include <sak/sak.hpp>
-#include <algorithm>
-#include <exception>
-#include <expected>
-#include <functional>
-#include <memory>
-#include <mutex>
-#include <utility>
 #include <vector>
+#include <expected>
+#include <exception>
+#include <atomic>
+#include <mutex>
+#include <functional>
 
 
 namespace sak {
