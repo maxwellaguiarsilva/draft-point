@@ -35,7 +35,6 @@ namespace game {
 
 
 using	::std::string;
-using	::game::point;
 
 
 enum class direction

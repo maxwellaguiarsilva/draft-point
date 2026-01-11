@@ -34,10 +34,8 @@
 namespace game {
 
 
-using	point		=	::sak::point< int, 2 >;
-using	geometry	=	::sak::geometry< point >;
-using	rectangle	=	geometry::rectangle;
-using	line		=	geometry::line;
+using	g2i	=	::sak::geometry< ::sak::point< int, 2 > >;
+using	g3i	=	::sak::geometry< ::sak::point< int, 3 > >;
 
 
 } 

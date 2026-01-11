@@ -58,11 +58,7 @@ private:
 	{
 		explicit renderer_listener( const point& new_size );
 		void on_resize( const point& new_size ) override;
-
-		point start;
-		point end;
 		point size;
-		point label_position;
 	};
 
 	renderer&	m_renderer;

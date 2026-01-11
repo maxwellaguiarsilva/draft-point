@@ -63,6 +63,13 @@ struct geometry
 };
 
 
+using	g2i	=	geometry< point< int, 2 > >;
+using	g3i	=	geometry< point< int, 3 > >;
+
+using	g2f	=	geometry< point< float, 2 > >;
+using	g3f	=	geometry< point< float, 3 > >;
+
+
 }
 
 
