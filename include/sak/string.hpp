@@ -26,6 +26,7 @@
 #ifndef header_guard_501228163
 #define header_guard_501228163
 
+
 #include <sak/sak.hpp>
 #include <sak/math/math.hpp>
 #include <ranges>

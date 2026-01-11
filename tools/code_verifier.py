@@ -112,11 +112,28 @@ class formatter:
                 self.messages.append( ( line_no, "file must end with exactly 2 empty lines and no trailing whitespace" ) )
 
     def _include_spacing( self ):
+        #   1. Remove empty lines between includes
         self._apply( 
             r'(^#include\s+.*)\n(?:[ \t]*\n)+(?=#include\s+.*)', 
             r'\1\n', 
             "include directives must not be separated by empty lines" ,
             flags = re.MULTILINE 
+        )
+
+        #   2. Exactly two empty lines before the first include
+        self._apply(
+            r'^((?!#include).+)\n+(#include\s+.*)',
+            r'\1\n\n\n\2',
+            "there must be exactly two empty lines before the first include",
+            flags = re.MULTILINE
+        )
+
+        #   3. Exactly two empty lines after the last include
+        self._apply(
+            r'(^#include\s+.*)\n+((?!#include).+)',
+            r'\1\n\n\n\2',
+            "there must be exactly two empty lines after the last include",
+            flags = re.MULTILINE
         )
 
     def _bracket_spacing( self ):
