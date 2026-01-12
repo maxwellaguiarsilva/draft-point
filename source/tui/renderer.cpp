@@ -165,7 +165,7 @@ auto renderer::on_resize( const g2i::point& new_size ) -> void
 		auto lock = lock_guard( m_mutex );
 		m_terminal_size = new_size;
 		m_screen_size = { m_terminal_size[ width_index ], 2 * m_terminal_size[ height_index ] };
-		size_t total_pixel_count = m_screen_size[ width_index ] * m_screen_size[ height_index ];
+		const size_t total_pixel_count = m_screen_size.get_product( );
 		if( m_back.size( ) not_eq total_pixel_count )
 		{
 			m_back.resize( total_pixel_count );
