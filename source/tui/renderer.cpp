@@ -113,14 +113,15 @@ auto renderer::draw( const g2i::rectangle& area, bool is_filled ) noexcept -> vo
 	auto lock = lock_guard( m_mutex );
 	auto const area_bound = area.end - area.start + 1;
 	auto rows = chunk( m_back, m_screen_size[ width_index ] );
+	const auto crop_width = drop( area.start[ left_index ] ) | take( area_bound[ width_index ] );
 
 	if( is_filled )
 		for( auto row : rows | drop( area.start[ top_index ] ) | take( area_bound[ height_index ] ) )
-			fill( row | drop( area.start[ left_index ] ) | take( area_bound[ width_index ] ), m_color );
+			fill( row | crop_width, m_color );
 	else
 	{
-		fill( rows[ area.start[ top_index ] ] | drop( area.start[ left_index ] ) | take( area_bound[ width_index ] ), m_color );
-		fill( rows[ area.end[ top_index ] ]   | drop( area.start[ left_index ] ) | take( area_bound[ width_index ] ), m_color );
+		fill( rows[ area.start[ top_index ] ] | crop_width, m_color );
+		fill( rows[ area.end[ top_index ] ]   | crop_width, m_color );
 
 		for( auto row : iota( area.start[ top_index ], area.end[ top_index ] + 1 ) )
 		{
