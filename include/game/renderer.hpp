@@ -30,6 +30,7 @@
 #include <sak/sak.hpp>
 #include <game/geometry.hpp>
 #include <memory>
+#include <functional>
 
 
 namespace game {
@@ -37,6 +38,7 @@ namespace game {
 
 using	::std::shared_ptr;
 using	::std::string;
+using	::std::function;
 using	::sak::byte;
 
 
@@ -59,6 +61,7 @@ public:
 	virtual void draw( const g2i::line& segment ) noexcept = 0;
 	virtual void draw( const g2i::rectangle& area, bool is_filled = true ) noexcept = 0;
 	virtual void print( const g2i::point& position, const string& text ) noexcept = 0;
+	virtual void fill_with( const function< g3f::point( g2f::point ) >& shader ) noexcept = 0;
 
 	virtual auto size( ) const noexcept -> g2i::point = 0;
 

@@ -59,12 +59,13 @@ __using( ::std::ranges::
 __using( ::sak::math::
 	,plus
 	,minus
+	,negate
 	,multiplies
 	,divides
 	,modulus
 	,sum
 	,square
-	,square_root
+	,sqrt
 	,equal_to
 	,less_equal
 	,greater_equal
@@ -83,6 +84,51 @@ template< is_arithmetic t_scalar, size_t num_dimensions >
 struct __is_point< point< t_scalar, num_dimensions > > : true_type { };
 template< typename t_point >
 concept is_point = __is_point< remove_cvref_t< t_point > >::value;
+
+
+//	--------------------------------------------------
+//	proxy to handle conversion from range to point
+//	it does not support auto deduction, forcing a strong type definition
+template< input_range t_range >
+struct __point_from
+{
+	t_range m_range;
+
+	template< is_arithmetic t_scalar, size_t num_size >
+	constexpr operator point< t_scalar, num_size >( ) &&
+	{
+		point< t_scalar, num_size >	result;
+		copy( m_range, result.begin( ) );
+		return	result;
+	}
+};
+
+struct __to_point { };
+inline constexpr __to_point to_point{ };
+
+template< input_range t_range >
+constexpr auto operator | ( t_range&& subject, __to_point )
+{
+	return	__point_from< t_range >{ ::std::forward< t_range >( subject ) };
+}
+
+//	overload for point | invocable -> transform_view (lazy)
+template< is_point t_point, invocable< typename remove_cvref_t< t_point >::value_type > t_operation >
+constexpr auto operator | ( t_point&& pixel, t_operation&& operation )
+{
+	using	::std::views::transform;
+	return	transform( ::std::forward< t_point >( pixel ), ::std::forward< t_operation >( operation ) );
+}
+
+//	overload for view | invocable -> transform_view (lazy)
+template< input_range t_range, invocable< range_value_t< t_range > > t_operation >
+requires ( not is_point< remove_cvref_t< t_range > > )
+constexpr auto operator | ( t_range&& subject, t_operation&& operation )
+{
+	using	::std::views::transform;
+	return	transform( ::std::forward< t_range >( subject ), ::std::forward< t_operation >( operation ) );
+}
+//	--------------------------------------------------
 
 
 #define __352612026_operator( a_operator, a_operation ) \
@@ -152,6 +198,8 @@ public:
 	__352612026_operator( * ,multiplies	)
 	__352612026_operator( / ,divides	)
 	__352612026_operator( % ,modulus	)
+
+	constexpr auto operator - ( ) const noexcept -> point { return *this | negate | to_point; }
 	
 	template< invocable< t_scalar, t_scalar > t_operation >
 	constexpr auto is_all( const point& other, const t_operation& operation ) const noexcept -> bool
@@ -165,8 +213,7 @@ public:
 
 	constexpr auto get_length( ) const noexcept -> t_scalar
 	{
-		using	::std::views::transform;
-		return	square_root( sum( transform( *this, square ) ) );
+		return	sqrt( sum( *this | square ) );
 	}
 
 	constexpr auto get_product( ) const noexcept -> t_scalar
@@ -178,51 +225,6 @@ public:
 
 
 #undef __352612026_operator
-
-
-//	--------------------------------------------------
-//	proxy to handle conversion from range to point
-//	it does not support auto deduction, forcing a strong type definition
-template< input_range t_range >
-struct __point_from
-{
-	t_range m_range;
-
-	template< is_arithmetic t_scalar, size_t num_size >
-	constexpr operator point< t_scalar, num_size >( ) &&
-	{
-		point< t_scalar, num_size >	result;
-		copy( m_range, result.begin( ) );
-		return	result;
-	}
-};
-
-struct __to_point { };
-inline constexpr __to_point to_point{ };
-
-template< input_range t_range >
-constexpr auto operator | ( t_range&& subject, __to_point )
-{
-	return	__point_from< t_range >{ ::std::forward< t_range >( subject ) };
-}
-
-//	overload for point | invocable -> transform_view (lazy)
-template< is_point t_point, invocable< typename remove_cvref_t< t_point >::value_type > t_operation >
-constexpr auto operator | ( t_point&& pixel, t_operation&& operation )
-{
-	using	::std::views::transform;
-	return	transform( ::std::forward< t_point >( pixel ), ::std::forward< t_operation >( operation ) );
-}
-
-//	overload for view | invocable -> transform_view (lazy)
-template< input_range t_range, invocable< range_value_t< t_range > > t_operation >
-requires ( not is_point< remove_cvref_t< t_range > > )
-constexpr auto operator | ( t_range&& subject, t_operation&& operation )
-{
-	using	::std::views::transform;
-	return	transform( ::std::forward< t_range >( subject ), ::std::forward< t_operation >( operation ) );
-}
-//	--------------------------------------------------
 
 
 }

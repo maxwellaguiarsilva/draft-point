@@ -30,6 +30,7 @@
 #include <sak/math/math.hpp>
 #include <sak/ranges/chunk.hpp>
 #include <sak/ranges/views/cartesian_product.hpp>
+#include <tui/color.hpp>
 
 
 namespace tui {
@@ -52,6 +53,7 @@ __using( ::sak::ranges::views::, cartesian_product )
 __using( ::sak::math::, abs, sign, bind_back, greater_equal, between )
 __using( ::sak::, to_point )
 __using( ::sak::ranges::, chunk )
+__using( ::tui::color::, to_xterm )
 
 
 constexpr int width_index = 0, left_index = 0;
@@ -147,6 +149,21 @@ auto renderer::print( const g2i::point& position, const string& text ) noexcept 
 	auto lock = lock_guard( m_mutex );
 	m_terminal.set_text_style( reset );
 	m_terminal.print( position, text );
+}
+
+auto renderer::fill_with( const function< g3f::point( g2f::point ) >& shader ) noexcept -> void
+{
+	auto lock = lock_guard( m_mutex );
+	const int width = m_screen_size[ width_index ];
+	const int height = m_screen_size[ height_index ];
+	const g2f::point size_f{ static_cast< float >( width ), static_cast< float >( height ) };
+	const g2f::point inverse_size = 1.0f / size_f;
+
+	for( auto [ row, column ] : cartesian_product( iota( 0, height ), iota( 0, width ) ) )
+	{
+		const g2f::point coord = g2f::point{ static_cast< float >( column ), static_cast< float >( row ) } * inverse_size;
+		m_back[ row * width + column ] = to_xterm( shader( coord ) );
+	}
 }
 
 auto renderer::size( ) const noexcept -> g2i::point

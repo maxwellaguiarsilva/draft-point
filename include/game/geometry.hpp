@@ -36,6 +36,9 @@ namespace game {
 using	::sak::g2i;
 using	::sak::g3i;
 
+using	::sak::g2f;
+using	::sak::g3f;
+
 
 } 
 

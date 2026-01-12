@@ -15,26 +15,46 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   tui/geometry.hpp
+ * File:   game/shadertoy.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-03 15:28
+ * Created on 2026-01-12 16:00
  */
 
 
 #pragma once
-#ifndef header_guard_048673562
-#define header_guard_048673562
+#ifndef header_guard_803317754
+#define header_guard_803317754
 
 
 #include <sak/sak.hpp>
-#include <sak/geometry/geometry.hpp>
+#include <game/renderer.hpp>
+#include <game/fps.hpp>
+#include <functional>
 
 
-namespace tui {
+namespace game {
 
 
-__using( ::sak::, g2i, g3i, g2f, g3f )
+using	::std::function;
+using	::sak::byte;
+
+
+class shadertoy
+{
+public:
+	explicit shadertoy( renderer& renderer );
+	virtual ~shadertoy( ) noexcept = default;
+
+	delete_copy_move_ctc( shadertoy );
+
+	auto run( const function< g3f::point( g3f::point ) >& shader ) -> void;
+
+private:
+	renderer&	m_renderer;
+	fps			m_fps;
+
+};
 
 
 } 

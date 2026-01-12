@@ -39,6 +39,7 @@ namespace tui {
 
 
 __using( ::std::
+	,function
 	,lock_guard
 	,mutex
 	,shared_ptr
@@ -66,6 +67,7 @@ public:
 	void draw( const g2i::line& line ) noexcept override;
 	void draw( const g2i::rectangle& rectangle, bool is_filled = true ) noexcept override;
 	void print( const g2i::point& position, const string& text ) noexcept override;
+	void fill_with( const function< g3f::point( g2f::point ) >& shader ) noexcept override;
 	auto size( ) const noexcept -> g2i::point override;
 
 	void operator +=( const shared_ptr< listener >& subject ) override;

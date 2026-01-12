@@ -41,6 +41,7 @@ namespace math {
 
 inline constexpr auto plus			= 	::std::plus{ };
 inline constexpr auto minus			= 	::std::minus{ };
+inline constexpr auto negate		= 	::std::negate{ };
 inline constexpr auto multiplies	= 	::std::multiplies{ };
 inline constexpr auto divides		= 	::std::divides{ };
 inline constexpr auto modulus		= 	::std::modulus{ };
@@ -53,7 +54,7 @@ enum class error
 {
 	 division_by_zero
 	,arithmetic_overflow
-	,square_root_of_negative
+	,sqrt_of_negative
 };
 
 
@@ -68,7 +69,7 @@ struct exception : ::std::exception
 		{
 			case error::division_by_zero: return "math: division by zero";
 			case error::arithmetic_overflow: return "math: arithmetic overflow";
-			case error::square_root_of_negative: return "math: square root of negative number";
+			case error::sqrt_of_negative: return "math: square root of negative number";
 		}
 		return	"math: unknown error";
 	}
@@ -107,11 +108,66 @@ struct __square
 inline constexpr auto square = __square{ };
 
 
-struct __square_root
+#define __935812590_unary( a_name ) \
+struct __##a_name \
+{ \
+	constexpr auto operator ( ) ( auto a_value ) const noexcept { return ::std::a_name( a_value ); } \
+}; \
+inline constexpr auto a_name = __##a_name{ };
+
+
+#define __935812590_binary( a_name ) \
+struct __##a_name \
+{ \
+	constexpr auto operator ( ) ( auto a_left, auto a_right ) const noexcept { return ::std::a_name( a_left, a_right ); } \
+}; \
+inline constexpr auto a_name = __##a_name{ };
+
+
+__935812590_unary( sqrt )
+__935812590_unary( sin )
+__935812590_unary( cos )
+__935812590_unary( tan )
+__935812590_unary( asin )
+__935812590_unary( acos )
+__935812590_unary( atan )
+__935812590_binary( atan2 )
+__935812590_unary( exp )
+__935812590_unary( log )
+__935812590_unary( log2 )
+__935812590_binary( pow )
+__935812590_unary( floor )
+__935812590_unary( ceil )
+__935812590_unary( round )
+__935812590_unary( trunc )
+
+
+#undef __935812590_unary
+#undef __935812590_binary
+
+
+struct __min
 {
-	constexpr auto operator ( ) ( const auto& value ) const noexcept { return sqrt( value ); }
+	constexpr auto operator ( ) ( auto left, auto right ) const noexcept { return left < right ? left : right; }
 };
-inline constexpr auto square_root = __square_root{ };
+inline constexpr auto min = __min{ };
+
+
+struct __max
+{
+	constexpr auto operator ( ) ( auto left, auto right ) const noexcept { return left > right ? left : right; }
+};
+inline constexpr auto max = __max{ };
+
+
+struct __clamp
+{
+	constexpr auto operator ( ) ( auto value, auto low, auto high ) const noexcept
+	{
+		return	min( max( value, low ), high );
+	}
+};
+inline constexpr auto clamp = __clamp{ };
 
 
 struct __is_multiple
