@@ -68,6 +68,7 @@ struct renderer::terminal_listener final : public terminal::listener
 
 renderer::renderer( terminal& terminal )
 	:m_terminal( terminal )
+	,m_margin( { 0, 1 } )
 	,m_color( 15 )
 	,m_terminal_listener( make_shared< terminal_listener >( *this ) )
 {
@@ -142,7 +143,9 @@ auto renderer::draw( const g2i::point& pixel ) noexcept -> void
 
 auto renderer::print( const g2i::point& position, const string& text ) noexcept -> void
 {
+	using	enum	::tui::terminal::text_style;
 	auto lock = lock_guard( m_mutex );
+	m_terminal.set_text_style( reset );
 	m_terminal.print( position, text );
 }
 
@@ -164,7 +167,7 @@ auto renderer::on_resize( const g2i::point& new_size ) -> void
 	{
 		auto lock = lock_guard( m_mutex );
 		m_terminal_size = new_size;
-		m_screen_size = { m_terminal_size[ width_index ], 2 * m_terminal_size[ height_index ] };
+		m_screen_size = ( m_terminal_size - m_margin * 2 ) * g2i::point{ 1, 2 };
 		const size_t total_pixel_count = m_screen_size.get_product( );
 		if( m_back.size( ) not_eq total_pixel_count )
 		{
@@ -188,13 +191,13 @@ auto renderer::refresh( ) -> void
 	bool force_update = true;
 	point cursor_position = { 0, 0 };
 
-	const int terminal_width = m_terminal_size[ width_index ];
-	const int terminal_height = m_terminal_size[ height_index ];
+	const int width = m_screen_size[ width_index ];
+	const int height = m_screen_size[ height_index ] / 2;
 
-	auto back_rows = chunk( m_back, terminal_width );
-	auto front_rows = chunk( m_front, terminal_width );
+	auto back_rows = chunk( m_back, width );
+	auto front_rows = chunk( m_front, width );
 
-	for( auto [ row, column ] : cartesian_product( iota( 0, terminal_height ), iota( 0, terminal_width ) ) )
+	for( auto [ row, column ] : cartesian_product( iota( 0, height ), iota( 0, width ) ) )
 	{
 		const byte back_upper = back_rows[ 2 * row ][ column ];
 		const byte back_lower = back_rows[ 2 * row + 1 ][ column ];
@@ -203,7 +206,7 @@ auto renderer::refresh( ) -> void
 
 		if( back_upper not_eq front_upper or back_lower not_eq front_lower )
 		{
-			const point current = { column + 1, row + 1 };
+			const point current = { column + 1 + m_margin[ width_index ], row + 1 + m_margin[ height_index ] };
 			if( cursor_position not_eq current )
 				m_terminal.move_cursor( current );
 

@@ -80,6 +80,7 @@ private:
 	buffer		m_front;
 	buffer		m_back;
 	g2i::point	m_terminal_size;
+	g2i::point	m_margin;
 	g2i::point	m_screen_size;
 	byte		m_color;
 	mutable mutex	m_mutex;

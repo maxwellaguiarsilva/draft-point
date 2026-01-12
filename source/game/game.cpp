@@ -43,7 +43,7 @@ void game::renderer_listener::on_resize( const g2i::point& new_size )
 	start			=	{ 0, 0 };
 	end				=	{ new_size[ 0 ] - 1, new_size[ 1 ] - 1 };
 	size			=	end - start + 1;
-	label_position	=	{ 1, new_size[ 1 ] / 2 - 1 };
+	label_position	=	{ 1, 1 };
 }
 
 
