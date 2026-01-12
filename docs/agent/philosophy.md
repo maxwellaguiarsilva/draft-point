@@ -37,7 +37,7 @@ return all_of( zip( *this, other ), tupled( less_equal ) );
 Instead of a `for` loop with a temporary `sum` variable (mechanical), we describe the formula:
 ```cpp
 // Elevated: What is the formula?
-return sqrt( sum( transform( m_data, square ) ) );
+return sqrt( sum( m_data | square ) );
 ```
 
 ### C. Domain Movement
