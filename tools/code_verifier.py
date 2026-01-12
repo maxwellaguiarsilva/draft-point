@@ -145,8 +145,8 @@ class formatter:
         header = self.content[ :split_index + 2 ]
         body = self.content[ split_index + 2 : ]
 
-        #   Regex to identify strings and comments to be ignored
-        ignore_pattern = r"//.*|/\*[\s\S]*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\\n])'"
+        #   Regex to identify strings, comments and attributes to be ignored
+        ignore_pattern = r"//.*|/\*[\s\S]*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\\n])'|\[\[[\s\S]*?\]\]"
         
         #   Regex patterns for ( space ) and [ space ]
         #   1. (not_space -> ( space
