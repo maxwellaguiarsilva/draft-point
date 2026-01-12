@@ -46,6 +46,7 @@ __using( ::std::
 	,views::iota
 	,views::drop
 	,views::take
+	,views::transform
 )
 __using( ::sak::ranges::views::, cartesian_product )
 __using( ::sak::math::, abs, sign, bind_back, greater_equal, between )
@@ -96,9 +97,8 @@ auto renderer::draw( const g2i::line& line ) noexcept -> void
 	
 	auto current = line.start;
 	auto walker = walker_step;
-	
-	auto count = total + 1;
-	while( --count > 0 )
+
+	for( [[maybe_unused]] auto const iteration : iota( 0, total ) )
 	{
 		plot_unsafe( current[ width_index ], current[ height_index ] );
 		const point direction = walker | bind_back( greater_equal, total ) | to_point;
@@ -112,16 +112,19 @@ auto renderer::draw( const g2i::rectangle& area, bool is_filled ) noexcept -> vo
 {
 	auto lock = lock_guard( m_mutex );
 	auto const area_bound = area.end - area.start + 1;
-	auto rows = chunk( m_back, m_screen_size[ width_index ] );
 	const auto crop_width = drop( area.start[ left_index ] ) | take( area_bound[ width_index ] );
+	auto rows = chunk( m_back, m_screen_size[ width_index ] )
+		| drop( area.start[ top_index ] )
+		| take( area_bound[ height_index ] )
+		| transform( crop_width );
 
 	if( is_filled )
-		for( auto row : rows | drop( area.start[ top_index ] ) | take( area_bound[ height_index ] ) )
-			fill( row | crop_width, m_color );
+		for( auto row : rows )
+			fill( row, m_color );
 	else
 	{
-		fill( rows[ area.start[ top_index ] ] | crop_width, m_color );
-		fill( rows[ area.end[ top_index ] ]   | crop_width, m_color );
+		fill( rows.front( ), m_color );
+		fill( rows.back( ),  m_color );
 
 		for( auto row : iota( area.start[ top_index ], area.end[ top_index ] + 1 ) )
 		{
