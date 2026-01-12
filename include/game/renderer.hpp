@@ -52,7 +52,7 @@ public:
 
 	virtual ~renderer( ) noexcept = default;
 
-	virtual void clear( ) noexcept = 0;
+	virtual void clear( const byte color = 0 ) noexcept = 0;
 	virtual void refresh( ) = 0;
 	virtual void set_color( const byte color ) noexcept = 0;
 	virtual void draw( const g2i::point& pixel ) noexcept = 0;

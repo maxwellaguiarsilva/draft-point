@@ -77,10 +77,10 @@ renderer::renderer( terminal& terminal )
 }
 
 
-auto renderer::clear( ) noexcept -> void
+auto renderer::clear( const byte color ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
-	fill( m_back, 0 );
+	fill( m_back, color );
 }
 
 

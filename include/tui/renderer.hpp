@@ -59,7 +59,7 @@ public:
 	explicit renderer( terminal& parent );
 	~renderer( ) noexcept override = default;
 
-	void clear( ) noexcept override;
+	void clear( const byte color = 0 ) noexcept override;
 	void refresh( ) override;
 	void set_color( const byte color ) noexcept override;
 	void draw( const g2i::point& point ) noexcept override;
