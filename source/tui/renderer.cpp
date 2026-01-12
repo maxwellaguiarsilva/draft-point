@@ -155,7 +155,7 @@ auto renderer::size( ) const noexcept -> g2i::point
 auto renderer::plot_unsafe( int column, int row ) noexcept -> void
 {
 	const size_t index = row * m_screen_size[ width_index ] + column;
-	if( between( index, static_cast< size_t >( 0 ), m_back.size( ) - 1 ) )
+	if( index < m_back.size( ) )
 		m_back[ index ] = m_color;
 }
 
