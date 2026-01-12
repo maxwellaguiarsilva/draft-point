@@ -69,6 +69,7 @@ __using( ::sak::math::
 	,less_equal
 	,greater_equal
 	,is_arithmetic
+	,fold_left
 )
 //	--------------------------------------------------
 
@@ -166,6 +167,11 @@ public:
 	{
 		using	::std::views::transform;
 		return	square_root( sum( transform( *this, square ) ) );
+	}
+
+	constexpr auto get_product( ) const noexcept -> t_scalar
+	{
+		return	fold_left( *this, 1, multiplies );
 	}
 
 };

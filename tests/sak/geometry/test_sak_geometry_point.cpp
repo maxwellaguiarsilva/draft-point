@@ -135,6 +135,15 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( p2.get_length( ) == 7.0f, "get_length for 3d float point failed" );
 		}
 
+		//	get_product
+		{
+			const point< int, 3 > p1( 2, 3, 4 );
+			ensure( p1.get_product( ) == 24, "get_product failed" );
+
+			const point< float, 2 > p2( 0.5f, 0.5f );
+			ensure( p2.get_product( ) == 0.25f, "get_product for float point failed" );
+		}
+
 		//	3d point
 		{
 			const point< int, 3 > p( 1, 2, 3 );
