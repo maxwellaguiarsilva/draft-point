@@ -122,18 +122,19 @@ auto renderer::draw( const g2i::rectangle& area, bool is_filled ) noexcept -> vo
 		| transform( crop_width );
 
 	if( is_filled )
+	{
 		for( auto row : rows )
 			fill( row, m_color );
-	else
-	{
-		fill( rows.front( ), m_color );
-		fill( rows.back( ),  m_color );
+		return;
+	}
 
-		for( auto row : iota( area.start[ top_index ], area.end[ top_index ] + 1 ) )
-		{
-			plot_unsafe( area.start[ left_index ], row );
-			plot_unsafe( area.end[ left_index ],   row );
-		}
+	fill( rows.front( ), m_color );
+	fill( rows.back( ),  m_color );
+
+	for( auto row : iota( area.start[ top_index ], area.end[ top_index ] + 1 ) )
+	{
+		plot_unsafe( area.start[ left_index ], row );
+		plot_unsafe( area.end[ left_index ],   row );
 	}
 }
 
