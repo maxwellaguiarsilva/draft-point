@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   adhoc_tool
+#   File:   adhoc-tool
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-04 20:18:54
@@ -48,7 +48,7 @@ def quick_upload( message ):
         subprocess.run( [ "git", "push" ], check=True, capture_output=True, text=True )
         
         #   5. Record success statistic
-        stats_process = subprocess.run( [ "python3", "tools/agent_statistic.py", json.dumps( { "name": "success" } ) ], check=True, capture_output=True, text=True )
+        stats_process = subprocess.run( [ "python3", "tools/agent-statistic.py", json.dumps( { "name": "success" } ) ], check=True, capture_output=True, text=True )
         
         return f"Quick upload successful: `{message}`\n\n{stats_process.stdout}"
     except subprocess.CalledProcessError as e:
@@ -166,8 +166,7 @@ def run_adhoc( params ):
     #   Keep support for existing adhoc functionality if needed
     files = params.get( "files", [ ] )
     if files:
-        from tools.adhoc_tool_legacy import verify_rules_batch
-        return verify_rules_batch( files )
+        return "Error: verify_rules_batch is no longer supported in adhoc_tool."
         
     return "Error: No valid action or parameters provided to adhoc_tool."
 

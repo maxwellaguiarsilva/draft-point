@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   include_analyzer
+#   File:   include-analyzer
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-13 14:30:00
@@ -151,5 +151,5 @@ if __name__ == "__main__":
             print( f"error: {e}", file=sys.stderr )
             sys.exit( 1 )
     else:
-        print( "usage: include_analyzer.py include_tree '{\"file_path\": \"...\"}'", file=sys.stderr )
+        print( "usage: include-analyzer.py include_tree '{\"file_path\": \"...\"}'", file=sys.stderr )
         sys.exit( 1 )

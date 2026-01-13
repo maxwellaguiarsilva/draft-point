@@ -7,7 +7,7 @@ Este documento descreve a arquitetura técnica, os componentes e os fluxos de tr
 O sistema adota um padrão de **Dispatcher-Script**, onde as responsabilidades são divididas para maximizar a agilidade no desenvolvimento:
 
 *   **Dispatcher (Servidor MCP):** Localizado em `tools/project-mcp-tools`, utiliza a biblioteca `FastMCP`. Sua única função é expor a interface das ferramentas e despachar a execução para scripts externos via `subprocess.run`. Utiliza helpers internos (`_call`, `_run_and_format`) para padronizar o tratamento de erros e a comunicação, mantendo-se totalmente agnóstico à lógica de processamento dos dados.
-*   **Lógica (Scripts de Ferramentas):** Scripts como `file_generator.py`, `template.py`, `code_verifier.py` e `project-builder.py` contêm a inteligência real.
+*   **Lógica (Scripts de Ferramentas):** Scripts como `file-generator.py`, `template.py`, `code-verifier.py` e `project-builder.py` contêm a inteligência real.
 
 ### Vantagens do Modelo
 1.  **Hot-Reloading:** Alterações na lógica dos scripts (Python) são aplicadas instantaneamente na próxima execução da ferramenta, sem necessidade de reiniciar o servidor MCP.
@@ -25,7 +25,7 @@ Implementa um sistema de substituição de strings e processamento de listas bas
 *   **Substituição Simples (`{{key}}`):** Troca de marcadores por strings.
 *   **Processamento de Listas:** Utiliza blocos `{{list_open key}}`, `{{list_item key}}` e `{{list_close key}}`. Suporta múltiplas linhas dentro do bloco (via `re.DOTALL`).
 
-### 2.2. O Gerador de Arquivos (`file_generator.py`)
+### 2.2. O Gerador de Arquivos (`file-generator.py`)
 Responsável pela criação de boilerplate seguindo os padrões do projeto.
 
 *   **Metadados Canônicos:** Antes de criar ou formatar um arquivo, o sistema tenta recuperar o autor, e-mail e data do *primeiro commit* do arquivo via `git log`. Se o arquivo for novo, utiliza a configuração global do Git e a data atual.
@@ -34,7 +34,7 @@ Responsável pela criação de boilerplate seguindo os padrões do projeto.
     *   **Adhoc:** Localizados em `tests/adhoc/NNNN_name/`. O sistema auto-incrementa o contador `NNNN`.
     *   **Estruturados:** Seguem a hierarquia de `source/` ou `include/`, mapeando para `tests/path/test_path_name.cpp`.
 
-### 2.3. O Verificador de Código (`code_verifier.py`)
+### 2.3. O Verificador de Código (`code-verifier.py`)
 Garante a aderência estrita às regras de estilo (Hard Rules) e fornece feedback estruturado.
 
 *   **Controle de Ajuste:** Utiliza um flag booleano `flg_fix` na classe `formatter` para alternar entre modo de correção e modo de verificação.
@@ -54,7 +54,7 @@ Centraliza as operações de compilação, análise estática e formatação de 
 
 *   **Gestão de Dependências:** Analisa recursivamente os `#include` para determinar a necessidade de recompilação (incremental build).
 *   **Paralelismo:** Utiliza `ThreadPoolExecutor` para compilar e linkar múltiplos alvos simultaneamente.
-*   **Fluxo de Análise (`analyze`):** Coordena a execução de `format_code()` (via `code_verifier.py`) e `run_cppcheck()`.
+*   **Fluxo de Análise (`analyze`):** Coordena a execução de `format_code()` (via `code-verifier.py`) e `run_cppcheck()`.
 
 ---
 
@@ -62,18 +62,18 @@ Centraliza as operações de compilação, análise estática e formatação de 
 
 ### 3.1. Geração de Nova Classe
 1.  Agente chama `create_class(class_hierarchy="n1/n2/name")`.
-2.  `file_generator.py` monta o dicionário de dados (namespaces, include lists, metadata).
+2.  `file-generator.py` monta o dicionário de dados (namespaces, include lists, metadata).
 3.  `template.py` renderiza `class-hpp.txt` e `class-cpp.txt`.
 4.  Arquivos são gravados em `include/n1/n2/name.hpp` e `source/n1/n2/name.cpp`.
 
 ### 3.2. Ciclo de Prototipagem com `adhoc_tool`
 Para evoluir o sistema sem alterar o servidor MCP imediatamente:
-1.  O agente modifica `tools/adhoc_tool.py` com a nova lógica experimental.
+1.  O agente modifica `tools/adhoc-tool.py` com a nova lógica experimental.
 2.  O agente executa a ferramenta `adhoc_tool(params={...})`.
 
 ### 3.3. Análise de Integridade e Estilo (`analyze`)
 A ferramenta `analyze` do MCP é um atalho para `project-builder.py --analyze`. Este fluxo garante a conformidade total:
-1.  **Formatação (`format_code`):** Invoca `code_verifier.py --fix` em todos os arquivos fonte.
+1.  **Formatação (`format_code`):** Invoca `code-verifier.py --fix` em todos os arquivos fonte.
 2.  **Análise Estática (`run_cppcheck`):** Executa o `cppcheck` com nível de rigor exaustivo.
 
 ### 3.4. Compilação e Build (`compile`)
@@ -88,16 +88,16 @@ A ferramenta `compile` do MCP invoca o método `run_build()` do orquestrador:
 
 | Ferramenta | Script de Destino | Descrição |
 | :--- | :--- | :--- |
-| `create_class` | `file_generator.py` | Cria par `.hpp`/`.cpp` com namespaces e metadados. |
-| `create_test` | `file_generator.py` | Cria testes adhoc ou estruturados. |
+| `create_class` | `file-generator.py` | Cria par `.hpp`/`.cpp` com namespaces e metadados. |
+| `create_test` | `file-generator.py` | Cria testes adhoc ou estruturados. |
 | `compile` | `project-builder.py` | Realiza análise estática e compilação incremental paralela. |
 | `analyze` | `project-builder.py --analyze` | Aplica formatação automática (incluindo espaçamento) e análise estática exaustiva. |
-| `verify_formatting` | `code_verifier.py verify_formatting` | Reporta violações de estilo (return, licença, newlines, espaçamento de brackets). |
-| `adhoc_tool` | `adhoc_tool.py` | Executa lógica experimental. |
+| `verify_formatting` | `code-verifier.py verify_formatting` | Reporta violações de estilo (return, licença, newlines, espaçamento de brackets). |
+| `adhoc_tool` | `adhoc-tool.py` | Executa lógica experimental. |
 
 ---
 
 ## 5. Notas Técnicas de Manutenção
 *   **Dispatcher:** O script `project-mcp-tools` deve permanecer agnóstico, delegando toda a lógica de iteração e formatação de relatórios para os scripts de destino.
-*   **Regras de Estilo:** Qualquer alteração nas regras de C++ deve ser refletida na classe `formatter` em `code_verifier.py`.
+*   **Regras de Estilo:** Qualquer alteração nas regras de C++ deve ser refletida na classe `formatter` em `code-verifier.py`.
 *   **Consistência de Nomes:** Deve-se manter o alinhamento entre o nome da MCP tool, o flag CLI do script e o método interno no orquestrador.

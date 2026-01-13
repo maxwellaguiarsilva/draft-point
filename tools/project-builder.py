@@ -560,7 +560,7 @@ class project:
         def process_file( file_path ):
             try:
                 result_process = subprocess.run(
-                    [ "python3", "tools/code_verifier.py", "--fix", file_path ],
+                    [ "python3", "tools/code-verifier.py", "--fix", file_path ],
                     capture_output=True, text=True, check=True
                 )
                 fmt_result = json.loads( result_process.stdout )

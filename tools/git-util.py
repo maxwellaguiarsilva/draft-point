@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   git_util
+#   File:   git-util
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-10 23:00:52
@@ -45,7 +45,7 @@ def quick_upload( message ):
         subprocess.run( [ "git", "push" ], check=True, capture_output=True, text=True )
         
         #   5. Record success statistic
-        stats_process = subprocess.run( [ "python3", "tools/agent_statistic.py", json.dumps( { "name": "success" } ) ], check=True, capture_output=True, text=True )
+        stats_process = subprocess.run( [ "python3", "tools/agent-statistic.py", json.dumps( { "name": "success" } ) ], check=True, capture_output=True, text=True )
         
         return f"Quick upload successful: `{message}`\n\n{stats_process.stdout}"
     except subprocess.CalledProcessError as e:

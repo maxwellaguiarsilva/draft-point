@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   code_verifier
+#   File:   code-verifier
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-06 14:06:09
@@ -26,7 +26,17 @@
 import re
 import sys
 import json
-import file_generator
+import importlib.util
+import os
+
+#   Import hyphenated module
+def import_tools_module( name ):
+    spec = importlib.util.spec_from_file_location( name, os.path.join( os.path.dirname( __file__ ), f"{name}.py" ) )
+    module = importlib.util.module_from_spec( spec )
+    spec.loader.exec_module( module )
+    return module
+
+file_generator = import_tools_module( "file-generator" )
 
 class formatter:
     def __init__( self, content: str, file_path: str = None, flg_fix: bool = True ):
