@@ -18,7 +18,7 @@
  * File:   sak/geometry/line_view.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-13 14:16
+ * Created on 2026-01-13 14:29
  */
 
 

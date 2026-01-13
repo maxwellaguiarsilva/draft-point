@@ -12,12 +12,14 @@ from fastmcp import FastMCP
 mcp = FastMCP( name="project-tools-mcp" )
 
 
-_TOOL_CONFIG = {
-     "create_class":      { "script": "file-generator",   "subcommand": "create_class" }
-    ,"create_test":       { "script": "file-generator",   "subcommand": "create_test" }
-    ,"verify_formatting": { "script": "code-verifier",    "subcommand": "verify_formatting" }
-    ,"include_tree":      { "script": "include-analyzer", "subcommand": "include_tree" }
-    ,"quick_upload":      { "script": "git-util",         "args_as_json": True }
+_special_tool_config = {
+     "create_class":      { "script": "file-generator" }
+    ,"create_test":       { "script": "file-generator" }
+    ,"verify_formatting": { "script": "code-verifier" }
+    ,"include_tree":      { "script": "include-analyzer" }
+    ,"quick_upload":      { "script": "git-util" }
+    ,"compile":           { "script": "project-builder", "subcommand": "run_build" }
+    ,"analyze":           { "script": "project-builder" }
 }
 
 
@@ -27,20 +29,17 @@ def _call( args: list[ str ] ) -> subprocess.CompletedProcess:
 
 def _run_and_format( name: str, args: Any = None ) -> str:
     """Runs a command and formats the output for MCP return."""
-    config = _TOOL_CONFIG.get( name, { } )
+    config = _special_tool_config.get( name, { } )
     script = f"{config.get( 'script', name.replace( '_', '-' ) )}.py"
     label = name.replace( '_', ' ' )
     
     cmd = [ "python3", f"tools/{script}" ]
     
-    if "subcommand" in config:
-        cmd.append( config[ "subcommand" ] )
+    #   Subcommand is mandatory for our standardized script entry points
+    cmd.append( config.get( "subcommand", name ) )
     
-    if args is not None:
-        if isinstance( args, ( dict, list ) ) or config.get( "args_as_json" ):
-            cmd.append( json.dumps( args ) )
-        elif isinstance( args, str ):
-            cmd.append( args )
+    #   Arguments are always passed as a JSON string
+    cmd.append( json.dumps( args if args is not None else { } ) )
             
     try:
         process = _call( cmd )
@@ -96,7 +95,7 @@ def create_test(
 @mcp.tool( )
 def compile( ) -> str:
     """Compiles the project using project-builder.py. This command takes no arguments."""
-    return _run_and_format( "project_builder" )
+    return _run_and_format( "compile" )
 
 
 @mcp.tool( )
@@ -104,7 +103,7 @@ def analyze( ) -> str:
     """Runs static analysis (cppcheck) and automatically fixes formatting rules.
     Beyond checking, it also applies fixes for the rules verified by 'verify_formatting' (newlines, return spacing, etc.) on all .cpp and .hpp files.
     This command takes no arguments."""
-    return _run_and_format( "project_builder", "--analyze" )
+    return _run_and_format( "analyze" )
 
 
 @mcp.tool( )
@@ -146,7 +145,6 @@ def agent_statistic( name: Any = None ) -> str:
     args = { }
     if isinstance( name, str ):
         args[ "name" ] = name
-    
     return _run_and_format( "agent_statistic", args )
 
 

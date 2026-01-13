@@ -24,11 +24,9 @@
 
 
 from lib.common import run_main
-import json
-import sys
 
 
-def adhoc_tool( params ):
+def run_adhoc_tool( params ):
     """Placeholder for experimental logic.
     After the logic is validated and moved to a production script,
     this function must be cleaned up to maintain a minimal state.
@@ -42,5 +40,6 @@ def adhoc_tool( params ):
 
 
 if __name__ == "__main__":
-    
+    run_main( run_adhoc_tool )
+
 

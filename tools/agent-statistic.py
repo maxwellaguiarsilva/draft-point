@@ -106,8 +106,12 @@ def run_statistic( params ):
 if __name__ == "__main__":
     try:
         if len( sys.argv ) > 1:
-            params = json.loads( sys.argv[ 1 ] )
-            print( run_statistic( params ) )
+            command = sys.argv[ 1 ]
+            if command == "agent_statistic":
+                params = json.loads( sys.argv[ 2 ] ) if len( sys.argv ) > 2 else { }
+                print( run_statistic( params ) )
+            else:
+                print( f"Error: Unknown command '{command}'" )
         else:
             print( run_statistic( { } ) )
     except Exception as e:

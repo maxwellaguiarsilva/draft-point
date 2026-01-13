@@ -59,14 +59,18 @@ def quick_upload( message ):
 
 if __name__ == "__main__":
     if len( sys.argv ) > 1:
+        command = sys.argv[ 1 ]
         try:
-            params = json.loads( sys.argv[ 1 ] )
-            message = params.get( "message" )
-            if message:
-                print( quick_upload( message ) )
+            if command == "quick_upload":
+                params = json.loads( sys.argv[ 2 ] ) if len( sys.argv ) > 2 else { }
+                message = params.get( "message" )
+                if message:
+                    print( quick_upload( message ) )
+                else:
+                    print( "Error: 'message' parameter is required." )
             else:
-                print( "Error: 'message' parameter is required." )
+                print( f"Error: Unknown command '{command}'" )
         except json.JSONDecodeError:
             print( "Error: Invalid JSON parameters." )
     else:
-        print( "Error: No parameters provided." )
+        print( "Error: No command provided." )

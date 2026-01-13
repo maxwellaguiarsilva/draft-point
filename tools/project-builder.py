@@ -652,12 +652,11 @@ class project:
 
 if __name__ == "__main__":
     try:
-        parser = argparse.ArgumentParser( description = "Project builder" )
-        parser.add_argument( "--analyze", action = "store_true", help = "Run static analysis (cppcheck) and formatting fixes" )
-        args = parser.parse_args( )
+        command = sys.argv[ 1 ] if len( sys.argv ) > 1 else "run_build"
+        #   args = json.loads( sys.argv[ 2 ] ) if len( sys.argv ) > 2 else { }
 
         current_project = project( { } )
-        if args.analyze:
+        if command == "analyze":
             current_project.analyze( )
         else:
             current_project.run_build( )
