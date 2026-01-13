@@ -17,7 +17,6 @@ _special_tool_config = {
     ,"create_test":       { "script": "file-generator" }
     ,"verify_formatting": { "script": "code-verifier" }
     ,"include_tree":      { "script": "include-analyzer" }
-    ,"quick_upload":      { "script": "git-util" }
     ,"compile":           { "script": "project-builder", "subcommand": "run_build" }
     ,"analyze":           { "script": "project-builder" }
 }
@@ -182,7 +181,7 @@ def quick_upload( message: str ) -> str:
     This tool is intended for simple, non-conflicting changes to increase agility.
     """
     args = { "message": message }
-    return _legacy_run_and_format( "quick_upload", args )
+    return _run_and_format( "quick_upload", args )
 
 
 if __name__ == "__main__":

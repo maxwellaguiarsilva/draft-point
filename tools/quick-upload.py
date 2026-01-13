@@ -11,28 +11,30 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU General License for more details.
 #   
 #   You should have received a copy of the GNU General License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   git-util
+#   File:   quick-upload
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-10 23:00:52
+#   Created on 2026-01-13 18:00:00
 
 
 import json
-import sys
 import subprocess
+from lib.common import run_main
 
 
+def quick_upload( params ):
+    message = params.get( "message" )
+    if not message:
+        return "error: 'message' parameter is required for quick_upload"
 
-def quick_upload( message ):
     try:
         #   1. Pull latest changes
-        #   We use check=True to raise CalledProcessError on failure
         subprocess.run( [ "git", "pull" ], check=True, capture_output=True, text=True )
         
         #   2. Add all changes
@@ -47,30 +49,15 @@ def quick_upload( message ):
         #   5. Record success statistic
         stats_process = subprocess.run( [ "python3", "tools/agent-statistic.py", json.dumps( { "name": "success" } ) ], check=True, capture_output=True, text=True )
         
-        return f"Quick upload successful: `{message}`\n\n{stats_process.stdout}"
+        return f"quick upload successful: `{message}`\n\n{stats_process.stdout}"
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr if e.stderr else e.stdout
-        #   If commit fails because there's nothing to commit, we can handle it
         if "nothing to commit" in error_msg.lower( ):
-             return "Quick upload aborted: Nothing to commit."
-        return f"Quick upload failed at command: {' '.join(e.cmd)}\nError: {error_msg}"
+             return "quick upload aborted: nothing to commit"
+        return f"quick upload failed at command: {'. '.join( e.cmd )}\nerror: {error_msg}"
     except Exception as e:
-        return f"An unexpected error occurred during quick upload: {str(e)}"
+        return f"an unexpected error occurred during quick upload: {str( e )}"
+
 
 if __name__ == "__main__":
-    if len( sys.argv ) > 1:
-        command = sys.argv[ 1 ]
-        try:
-            if command == "quick_upload":
-                params = json.loads( sys.argv[ 2 ] ) if len( sys.argv ) > 2 else { }
-                message = params.get( "message" )
-                if message:
-                    print( quick_upload( message ) )
-                else:
-                    print( "Error: 'message' parameter is required." )
-            else:
-                print( f"Error: Unknown command '{command}'" )
-        except json.JSONDecodeError:
-            print( "Error: Invalid JSON parameters." )
-    else:
-        print( "Error: No command provided." )
+    run_main( quick_upload )
