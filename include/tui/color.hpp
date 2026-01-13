@@ -18,7 +18,7 @@
  * File:   tui/color.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-12 16:00
+ * Created on 2026-01-12 16:03
  */
 
 

@@ -18,7 +18,7 @@
  * File:   game/shadertoy.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-12 16:00
+ * Created on 2026-01-12 16:03
  */
 
 
@@ -48,24 +48,30 @@ shadertoy::shadertoy( renderer& renderer )
 
 auto shadertoy::run( const function< g3f::point( g3f::point ) >& shader ) -> void
 {
-	const auto start_time = high_resolution_clock::now( );
+	auto last_time = high_resolution_clock::now( );
 
 	while( true )
 	{
+		const auto current_time = high_resolution_clock::now( );
+		const duration< float > delta = current_time - last_time;
+		last_time = current_time;
+
 		char code = ::tui::terminal::read_char( );
 		if( code == 'q' or code == 'Q' or code == 27 )
 			break;
 
-		const auto current_time = high_resolution_clock::now( );
-		const duration< float > elapsed = current_time - start_time;
-		const float t = elapsed.count( );
+		if( code == 'p' or code == 'P' )
+			m_is_paused = not m_is_paused;
 
-		m_renderer.fill_with( [ &shader, t ]( g2f::point coord ) -> g3f::point
+		if( not m_is_paused )
+			m_time += delta.count( );
+
+		m_renderer.fill_with( [ &shader, time = m_time ]( g2f::point coord ) -> g3f::point
 		{
-			return	shader( { coord[ 0 ], coord[ 1 ], t } );
+			return	shader( { coord[ 0 ], coord[ 1 ], time } );
 		} );
 
-		m_renderer.print( { 1, 1 }, " | fps: " + to_string( m_fps.compute( ) ) + " | time: " + to_string( t ) + " | " );
+		m_renderer.print( { 1, 1 }, " | fps: " + to_string( m_fps.compute( ) ) + " | time: " + to_string( m_time ) + ( m_is_paused ? " [PAUSED] | " : " | " ) );
 		m_renderer.refresh( );
 	}
 

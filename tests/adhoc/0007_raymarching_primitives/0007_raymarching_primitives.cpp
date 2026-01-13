@@ -18,7 +18,7 @@
  * File:   adhoc/0007_raymarching_primitives/0007_raymarching_primitives.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-12 16:00
+ * Created on 2026-01-12 16:03
  */
 
 
@@ -59,6 +59,9 @@ constexpr auto mix( const auto& first, const auto& second, float factor ) noexce
 
 
 //	SDF Primitives
+auto sd_plane( vec3 position, float height ) { return position[ 1 ] - height; }
+
+
 auto sd_sphere( vec3 position, float radius ) { return length( position ) - radius; }
 
 
@@ -71,9 +74,12 @@ auto sd_torus( vec3 position, vec2 torus_params )
 //	Simplified map for performance in TUI
 auto map( vec3 position ) -> vec2
 {
+	//	floor
+	vec2 result{ sd_plane( position, -24.0f ), 1.0f };
+
 	//	torus (centered, doubled size, standing up)
 	float distance_torus = sd_torus( position - vec3{ 0.0f, 1.0f, 0.0f }, { 6.0f, 1.2f } );
-	vec2 result{ distance_torus, 200.0f };
+	if( distance_torus < result[ 0 ] ) result = { distance_torus, 200.0f };
 
 	//	sphere (moved away by its size: torus 4.0 + sphere 2.0 + gap 2.0)
 	float distance_sphere = sd_sphere( position - vec3{ 12.0f, 1.0f, 0.0f }, 1.6f );
@@ -95,7 +101,7 @@ auto raycast( vec3 ray_origin, vec3 ray_direction ) -> vec2
 			break;
 		}
 		distance_travelled += hit[ 0 ];
-		if( distance_travelled > 400.0f ) break;
+		if( distance_travelled > 200.0f ) break;
 	}
 	return	result;
 }
@@ -117,7 +123,7 @@ auto main( int, char*[ ] ) -> int
 {{
 	__using( ::sak::, exit_success, exit_failure, g2f, g3f, to_point )
 	__using( ::sak::math::, sin, cos, clamp, exp )
-	__using( ::std::, exception, cerr, endl )
+	__using( ::std::, exception, cerr, endl, floor )
 
 	try
 	{
@@ -162,10 +168,19 @@ auto main( int, char*[ ] ) -> int
 				float ambient = 0.3f + 0.2f * normal[ 1 ];
 				float backlight = 0.2f * clamp( dot( normal, -light_direction ), 0.0f, 1.0f );
 				
-				vec3 material_color = 0.6f + 0.4f * static_cast< vec3 >( ( vec3{ result[ 1 ], result[ 1 ] * 1.2f, result[ 1 ] * 1.5f } * 0.01f ) | sin | to_point );
+				vec3 material_color;
+				if( result[ 1 ] < 1.5f )
+				{
+					int x = static_cast< int >( floor( position[ 0 ] / 8.0f ) );
+					int z = static_cast< int >( floor( position[ 2 ] / 8.0f ) );
+					float f = static_cast< float >( ( x + z ) & 1 );
+					material_color = mix( vec3{ 0.2f, 0.2f, 0.1f }, vec3{ 0.3f, 0.3f, 0.2f }, f );
+				}
+				else
+					material_color = 0.6f + 0.4f * static_cast< vec3 >( ( vec3{ result[ 1 ], result[ 1 ] * 1.2f, result[ 1 ] * 1.5f } * 0.01f ) | sin | to_point );
 				
 				color = material_color * ( diffuse + ambient + backlight );
-				color = mix( color, vec3{ 0.0f, 0.0f, 0.0f }, 1.0f - exp( -0.0001f * distance * distance * distance ) );
+				color = mix( color, vec3{ 0.0f, 0.0f, 0.0f }, 1.0f - exp( -0.0001f * distance ) );
 			}
 
 			return	clamp_vector( color, 0.0f, 1.0f );

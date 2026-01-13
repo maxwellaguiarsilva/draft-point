@@ -18,7 +18,7 @@
  * File:   game/shadertoy.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-12 16:00
+ * Created on 2026-01-12 16:03
  */
 
 
@@ -53,6 +53,8 @@ public:
 private:
 	renderer&	m_renderer;
 	fps			m_fps;
+	bool		m_is_paused{ false };
+	float		m_time{ 0.0f };
 
 };
 
