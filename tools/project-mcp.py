@@ -163,7 +163,7 @@ def agent_statistic( name: Any = None ) -> str:
     args = { }
     if isinstance( name, str ):
         args[ "name" ] = name
-    return _legacy_run_and_format( "agent_statistic", args )
+    return _run_and_format( "agent_statistic", args )
 
 
 @mcp.tool( )
