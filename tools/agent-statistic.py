@@ -29,29 +29,16 @@ import sys
 
 STATISTIC_FILE = "/home/.gemini/statistic.json"
 
-def format_table( data ):
+def format_output( data ):
     if not data:
         return "No statistics recorded yet."
     
     # Sort by count descending
     sorted_data = sorted( data, key=lambda x: x[ "count" ], reverse=True )
     
-    # Calculate column widths
-    name_width = max( len( item[ "name" ] ) for item in sorted_data )
-    name_width = max( name_width, 4 ) # "name"
-    
-    desc_width = max( len( item[ "short-description" ] ) for item in sorted_data )
-    desc_width = max( desc_width, 17 ) # "short-description"
-    
-    count_width = max( len( str( item[ "count" ] ) ) for item in sorted_data )
-    count_width = max( count_width, 5 ) # "count"
-    
-    header = f"| {'name':<{name_width}} | {'short-description':<{desc_width}} | {'count':<{count_width}} |"
-    separator = f"|{'-' * ( name_width + 2 )}|{'-' * ( desc_width + 2 )}|{'-' * ( count_width + 2 )}|"
-    
-    lines = [ header, separator ]
+    lines = [ ]
     for item in sorted_data:
-        lines.append( f"| {item[ 'name' ]:<{name_width}} | {item[ 'short-description' ]:<{desc_width}} | {item[ 'count' ]:>{count_width}} |" )
+        lines.append( f"{item[ 'name' ]}( {item[ 'count' ]} ): {item[ 'short-description' ]}" )
     
     return "\n".join( lines )
 
@@ -109,7 +96,7 @@ def run_statistic( params ):
         with open( STATISTIC_FILE, "w" ) as f:
             json.dump( data, f, indent="\t" )
             
-    return format_table( data )
+    return format_output( data )
 
 if __name__ == "__main__":
     try:
