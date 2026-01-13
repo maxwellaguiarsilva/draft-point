@@ -50,8 +50,8 @@ __using( ::std::
 	,views::transform
 )
 __using( ::sak::ranges::views::, cartesian_product )
-__using( ::sak::math::, abs, sign, bind_back, greater_equal, between )
-__using( ::sak::, to_point )
+__using( ::sak::math::, between )
+__using( ::sak::, to_point, line_to )
 __using( ::sak::ranges::, chunk )
 __using( ::tui::color::, to_xterm )
 
@@ -91,23 +91,9 @@ auto renderer::set_color( const byte color ) noexcept -> void { m_color = color;
 
 auto renderer::draw( const g2i::line& line ) noexcept -> void
 {
-	using	point	=	g2i::point;
 	auto lock = lock_guard( m_mutex );
-	const point difference = ( line.end - line.start );
-	const point walker_step = difference | abs | to_point;
-	const point step = difference | sign | to_point;
-	const int total = max( walker_step );
-	
-	auto current = line.start;
-	auto walker = walker_step;
-
-	for( [[maybe_unused]] auto const iteration : iota( 0, total ) )
-	{
-		plot_unsafe( current[ width_index ], current[ height_index ] );
-		const point direction = walker | bind_back( greater_equal, total ) | to_point;
-		current += step * direction;
-		walker += walker_step - direction * total;
-	}
+	for( const auto& pixel : line.start | line_to( line.end ) )
+		plot_unsafe( pixel[ width_index ], pixel[ height_index ] );
 }
 
 
@@ -204,23 +190,23 @@ auto renderer::refresh( ) -> void
 	unique_lock lock( m_mutex, try_to_lock );
 	if( not lock.owns_lock( ) ) return;
 
-	byte current_foreground = 255;
-	byte current_background = 255;
-	bool force_update = true;
-	point cursor_position = { 0, 0 };
+	point cursor_position	=	{ 0, 0 };
+	byte current_foreground	=	255;
+	byte current_background	=	255;
+	bool force_update		=	true;
 
-	const int width = m_screen_size[ width_index ];
-	const int height = m_screen_size[ height_index ] / 2;
+	const int width		=	m_screen_size[ width_index ];
+	const int height	=	m_screen_size[ height_index ] / 2;
 
-	auto back_rows = chunk( m_back, width );
-	auto front_rows = chunk( m_front, width );
+	auto back_rows	=	chunk( m_back, width );
+	auto front_rows	=	chunk( m_front, width );
 
 	for( auto [ row, column ] : cartesian_product( iota( 0, height ), iota( 0, width ) ) )
 	{
-		const byte back_upper = back_rows[ 2 * row ][ column ];
-		const byte back_lower = back_rows[ 2 * row + 1 ][ column ];
-		byte& front_upper = front_rows[ 2 * row ][ column ];
-		byte& front_lower = front_rows[ 2 * row + 1 ][ column ];
+		const byte back_upper	=	back_rows[ 2 * row ][ column ];
+		const byte back_lower	=	back_rows[ 2 * row + 1 ][ column ];
+		byte& front_upper		=	front_rows[ 2 * row ][ column ];
+		byte& front_lower		=	front_rows[ 2 * row + 1 ][ column ];
 
 		if( back_upper not_eq front_upper or back_lower not_eq front_lower )
 		{
