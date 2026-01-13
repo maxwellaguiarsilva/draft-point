@@ -117,6 +117,20 @@ def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
 
 
 @mcp.tool( )
+def include_tree( file_path: str ) -> str:
+    """Displays the include tree of a C++ file (cpp or hpp).
+    It recursively analyzes includes, identifies duplicates, and shows system headers without expanding them.
+    """
+    args = {
+        "file_path": file_path
+    }
+    return _run_and_format( 
+        [ "python3", "tools/include_analyzer.py", "include_tree", json.dumps( args ) ], 
+        error_label="Error generating include tree" 
+    )
+
+
+@mcp.tool( )
 def agent_statistic( name: Any = None ) -> str:
     """Records or retrieves agent behavioral statistics.
     If 'name' is provided, increments the count for that event.

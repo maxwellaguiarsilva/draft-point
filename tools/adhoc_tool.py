@@ -26,6 +26,8 @@
 import json
 import sys
 import subprocess
+import os
+import re
 
 def quick_upload( message ):
     try:
@@ -55,6 +57,97 @@ def quick_upload( message ):
     except Exception as e:
         return f"An unexpected error occurred during quick upload: {str(e)}"
 
+def get_include_tree( target_file ):
+    include_dir = "include"
+    #   Captures both the full include (with <> or "") and the inner content
+    include_pattern = re.compile( r'#include\s*([<\"]([^>\"]+)[>\"])' )
+    
+    global_visited = set( )
+    duplicates = set( )
+    
+    def resolve_path( include_name ):
+        #   Try relative to include/
+        path = os.path.join( include_dir, include_name )
+        if os.path.exists( path ) and path.endswith( ".hpp" ):
+            return path
+        return None
+
+    def build_node( display_name, file_path, local_visited ):
+        node = { "display": display_name, "path": file_path, "children": [ ] } 
+        
+        #   Duplication check is agnostic to the type of include
+        if display_name in global_visited:
+            duplicates.add( display_name )
+            node[ "already_visited" ] = True
+            return node
+            
+        global_visited.add( display_name )
+
+        if not file_path:
+            node[ "is_system" ] = True
+            return node
+
+        #   Safety check for infinite recursion
+        if file_path in local_visited:
+            node[ "recursion" ] = True
+            return node
+        
+        new_local_visited = local_visited | { file_path }
+        
+        try:
+            with open( file_path, "r", encoding="utf-8" ) as f:
+                content = f.read( )
+            
+            matches = include_pattern.findall( content )
+            for full_match, inner_match in matches:
+                resolved = resolve_path( inner_match )
+                child_node = build_node( full_match, resolved, new_local_visited )
+                node[ "children" ].append( child_node )
+        except Exception as e:
+            node[ "error" ] = str( e )
+            
+        return node
+
+    #   Initial file is always considered a project file
+    root_node = build_node( target_file, target_file, set( ) )
+    
+    #   Formatting the tree view
+    output = [ ]
+    
+    def print_tree( node, prefix="", is_last=True ):
+        connector = "└── " if is_last else "├── "
+        line = prefix + connector + node[ "display" ]
+        
+        if node.get( "recursion" ):
+            line += " (RECURSION)"
+        elif node.get( "already_visited" ):
+            line += " (*)"
+        elif node.get( "error" ):
+            line += f" (ERROR: {node['error']})"
+
+        output.append( line )
+        
+        new_prefix = prefix + ( "    " if is_last else "│   " )
+        for i, child in enumerate( node[ "children" ] ):
+            print_tree( child, new_prefix, i == len( node[ "children" ] ) - 1 )
+
+    print_tree( root_node )
+    
+    output.append( "" )
+    output.append( "(*) Item already expanded elsewhere in the tree." )
+    
+    if duplicates:
+        output.append( "" )
+        output.append( "Duplicated Includes (indirectly included more than once):" )
+        for dup in sorted( list( duplicates ) ):
+            if dup != target_file:
+                output.append( f"  - {dup}" )
+    else:
+        output.append( "" )
+        output.append( "No duplicated includes found." )
+
+    return "\n".join( output )
+
 def run_adhoc( params ):
     action = params.get( "action" )
     
@@ -63,6 +156,12 @@ def run_adhoc( params ):
         if not message:
             return "Error: 'message' parameter is required for quick_upload action."
         return quick_upload( message )
+    
+    if action == "include_tree":
+        file_path = params.get( "file_path" )
+        if not file_path:
+            return "Error: 'file_path' parameter is required for include_tree action."
+        return get_include_tree( file_path )
     
     #   Keep support for existing adhoc functionality if needed
     files = params.get( "files", [ ] )
