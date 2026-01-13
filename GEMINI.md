@@ -29,7 +29,10 @@ Relying on these notes, models and tools saves tokens in the context of the LLM 
 - Naming:
     - Use `snake_case`.
     - Class members prefixed with `m_`, template parameters with `t_`.
-    - Use descriptive and extensive names; abbreviations such as `i`, `w`, `h` are forbidden.
+    - Use descriptive and extensive names.
+    - Forbidden names:
+        - Abbreviations such as `i`, `w`, `h` are forbidden.
+        - The `_type` suffix.
     - STL, external libraries, and macros with numeric prefixes are exempt.
 - Flow Control: No braces `{}` for single-line `if, for, while`.
 - Allowed Comments: Only to explain subtle behaviors or in tests. A good example:
