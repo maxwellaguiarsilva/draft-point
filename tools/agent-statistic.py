@@ -23,11 +23,14 @@
 #   Created on 2026-01-10 00:01:07
 
 
+
 import json
 import os
 import sys
 
+
 STATISTIC_FILE = "/home/.gemini/statistic.json"
+
 
 def format_output( data ):
     if not data:
@@ -41,6 +44,7 @@ def format_output( data ):
         lines.append( f"{item[ 'name' ]}( {item[ 'count' ]} ): {item[ 'short-description' ]}" )
     
     return "\n".join( lines )
+
 
 def run_statistic( params ):
     # Validate allowed fields
@@ -98,6 +102,7 @@ def run_statistic( params ):
             
     return format_output( data )
 
+
 if __name__ == "__main__":
     try:
         if len( sys.argv ) > 1:
@@ -107,3 +112,5 @@ if __name__ == "__main__":
             print( run_statistic( { } ) )
     except Exception as e:
         print( f"Error: {str( e )}" )
+
+

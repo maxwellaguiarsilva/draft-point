@@ -17,30 +17,24 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   adhoc-tool
+#   File:   common
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-04 20:18:54
 
 
-from lib.common import run_main
 import json
 import sys
 
 
-def adhoc_tool( params ):
-    """Placeholder for experimental logic.
-    After the logic is validated and moved to a production script,
-    this function must be cleaned up to maintain a minimal state.
-    """
-    action = params.get( "action" )
-    
-    if action == "hello":
-        return f"hello, {params.get( 'name', 'world' )}!"
-        
-    return "error: no valid action or parameters provided to adhoc_tool"
+def run_main( action ):
+    if len( sys.argv ) > 1:
+        try:
+            params = json.loads( sys.argv[ 1 ] )
+            print( action( params ) )
+        except json.JSONDecodeError:
+            print( "error: invalid json parameters" )
+    else:
+        print( "error: no parameters provided" )
 
-
-if __name__ == "__main__":
-    
 

@@ -12,20 +12,44 @@ from fastmcp import FastMCP
 mcp = FastMCP( name="project-tools-mcp" )
 
 
+_TOOL_CONFIG = {
+     "create_class":      { "script": "file-generator",   "subcommand": "create_class" }
+    ,"create_test":       { "script": "file-generator",   "subcommand": "create_test" }
+    ,"verify_formatting": { "script": "code-verifier",    "subcommand": "verify_formatting" }
+    ,"include_tree":      { "script": "include-analyzer", "subcommand": "include_tree" }
+    ,"quick_upload":      { "script": "git-util",         "args_as_json": True }
+}
+
+
 def _call( args: list[ str ] ) -> subprocess.CompletedProcess:
     """Internal helper to run subprocess with consistent parameters."""
     return subprocess.run( args, capture_output=True, text=True, check=True )
 
-def _run_and_format( args: list[ str ], success_label: str = None, error_label: str = "Error" ) -> str:
+def _run_and_format( name: str, args: Any = None ) -> str:
     """Runs a command and formats the output for MCP return."""
+    config = _TOOL_CONFIG.get( name, { } )
+    script = f"{config.get( 'script', name.replace( '_', '-' ) )}.py"
+    label = name.replace( '_', ' ' )
+    
+    cmd = [ "python3", f"tools/{script}" ]
+    
+    if "subcommand" in config:
+        cmd.append( config[ "subcommand" ] )
+    
+    if args is not None:
+        if isinstance( args, ( dict, list ) ) or config.get( "args_as_json" ):
+            cmd.append( json.dumps( args ) )
+        elif isinstance( args, str ):
+            cmd.append( args )
+            
     try:
-        process = _call( args )
-        return f"{success_label}\n{process.stdout}" if success_label else process.stdout
+        process = _call( cmd )
+        return f"{label} successful:\n{process.stdout}"
     except subprocess.CalledProcessError as e:
         details = f"{e.stdout}\n{e.stderr}".strip( )
-        return f"{error_label}\n{details}" if success_label else f"{error_label}: {details}"
+        return f"{label} failed:\n{details}"
     except Exception as e:
-        return f"{error_label}: {str( e )}"
+        return f"{label} failed: {str( e )}"
 
 
 @mcp.tool( )
@@ -47,10 +71,7 @@ def	create_class(
         "using_list": using_list,
         "create_header_only": create_header_only
     }
-    return _run_and_format( 
-        [ "python3", "tools/file-generator.py", "create_class", json.dumps( args ) ], 
-        error_label="Error creating class" 
-    )
+    return _run_and_format( "create_class", args )
 
 
 @mcp.tool( )
@@ -69,20 +90,13 @@ def create_test(
         "flg_adhoc": flg_adhoc,
         "include_list": include_list
     }
-    return _run_and_format( 
-        [ "python3", "tools/file-generator.py", "create_test", json.dumps( args ) ], 
-        error_label="Error creating test" 
-    )
+    return _run_and_format( "create_test", args )
 
 
 @mcp.tool( )
 def compile( ) -> str:
     """Compiles the project using project-builder.py. This command takes no arguments."""
-    return _run_and_format( 
-        [ "python3", "tools/project-builder.py" ], 
-        success_label="Build successful:", 
-        error_label="Build failed:" 
-    )
+    return _run_and_format( "project_builder" )
 
 
 @mcp.tool( )
@@ -90,11 +104,7 @@ def analyze( ) -> str:
     """Runs static analysis (cppcheck) and automatically fixes formatting rules.
     Beyond checking, it also applies fixes for the rules verified by 'verify_formatting' (newlines, return spacing, etc.) on all .cpp and .hpp files.
     This command takes no arguments."""
-    return _run_and_format( 
-        [ "python3", "tools/project-builder.py", "--analyze" ], 
-        success_label="Static analysis successful:", 
-        error_label="Static analysis failed:" 
-    )
+    return _run_and_format( "project_builder", "--analyze" )
 
 
 @mcp.tool( )
@@ -109,10 +119,7 @@ def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
         "files": files,
         "flg_auto_fix": flg_auto_fix
     }
-    return _run_and_format( 
-        [ "python3", "tools/code-verifier.py", "verify_formatting", json.dumps( args ) ], 
-        error_label="Error verifying formatting" 
-    )
+    return _run_and_format( "verify_formatting", args )
 
 
 @mcp.tool( )
@@ -123,10 +130,7 @@ def include_tree( file_path: str ) -> str:
     args = {
         "file_path": file_path
     }
-    return _run_and_format( 
-        [ "python3", "tools/include-analyzer.py", "include_tree", json.dumps( args ) ], 
-        error_label="Error generating include tree" 
-    )
+    return _run_and_format( "include_tree", args )
 
 
 @mcp.tool( )
@@ -143,10 +147,7 @@ def agent_statistic( name: Any = None ) -> str:
     if isinstance( name, str ):
         args[ "name" ] = name
     
-    return _run_and_format( 
-        [ "python3", "tools/agent-statistic.py", json.dumps( args ) ], 
-        error_label="Error managing agent statistics" 
-    )
+    return _run_and_format( "agent_statistic", args )
 
 
 @mcp.tool( )
@@ -155,10 +156,7 @@ def adhoc_tool( params: dict ) -> str:
     This tool is used for prototyping new functionalities.
     The 'params' dictionary is passed to the script.
     """
-    return _run_and_format( 
-        [ "python3", "tools/adhoc-tool.py", json.dumps( params ) ], 
-        error_label="Error executing adhoc tool" 
-    )
+    return _run_and_format( "adhoc_tool", params )
 
 
 @mcp.tool( )
@@ -167,11 +165,10 @@ def quick_upload( message: str ) -> str:
     This tool is intended for simple, non-conflicting changes to increase agility.
     """
     args = { "message": message }
-    return _run_and_format( 
-        [ "python3", "tools/git-util.py", json.dumps( args ) ], 
-        error_label="Error during quick upload" 
-    )
+    return _run_and_format( "quick_upload", args )
 
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run( )
+
+

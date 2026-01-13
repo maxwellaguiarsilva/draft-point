@@ -78,17 +78,17 @@ class formatter:
             return
 
         try:
-            #   1. Gera o cabeçalho ideal baseado nos metadados canônicos
+            #   1. Generates the ideal header based on canonical metadata
             data = file_generator.get_canonical_metadata( self.file_path )
             ideal_header = file_generator.render_template( "file-header", data ).strip( )
             
-            #   2. Extrai o cabeçalho atual (até o primeiro double newline)
+            #   2. Extracts the current header (up to the first double newline)
             parts = self.content.split( '\n\n', 1 )
             actual_header = parts[ 0 ].strip( )
             
             if actual_header != ideal_header:
                 if self.flg_fix:
-                    #   Restaura o cabeçalho mantendo o corpo do arquivo
+                    #   Restores the header while maintaining the file body
                     body = parts[ 1 ] if len( parts ) > 1 else ""
                     self.content = ideal_header + "\n\n" + body
                     self.messages.append( f"restored canonical license header for {self.file_path}" )

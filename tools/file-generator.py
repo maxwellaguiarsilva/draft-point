@@ -32,7 +32,7 @@ import re
 import json
 
 def strip_project_prefix( path ):
-    """Remove prefixos de diretório para exibição limpa no cabeçalho."""
+    """Remove directory prefixes for clean display in the header."""
     prefixes = [ "include/", "source/", "tests/" ]
     for p in prefixes:
         if path.startswith( p ):
@@ -40,11 +40,11 @@ def strip_project_prefix( path ):
     return path
 
 def fetch_git_first_commit( file_path ):
-    """Recupera data, nome e email do primeiro commit de um arquivo via Git."""
+    """Retrieves date, name and email from the first commit of a file via Git."""
     if not os.path.exists( file_path ):
         return None
     try:
-        #   Formato: YYYY-MM-DD HH:MM|Nome|Email
+        #   Format: YYYY-MM-DD HH:MM|Name|Email
         cmd = [
             "git", "log", "--follow", "--reverse", 
             "--date=format:%Y-%m-%d %H:%M", 
@@ -65,7 +65,7 @@ def fetch_git_first_commit( file_path ):
         return None
 
 def get_canonical_metadata( full_relative_path ):
-    """Gera o conjunto de metadados oficial para um arquivo (existente ou novo)."""
+    """Generates the official metadata set for a file (existing or new)."""
     canonical_path = strip_project_prefix( full_relative_path )
     git_info = fetch_git_first_commit( full_relative_path )
     
@@ -78,7 +78,7 @@ def get_canonical_metadata( full_relative_path ):
             ,"des_file_path": canonical_path
         }
     
-    #   Fallback para arquivos novos (ainda não commitados)
+    #   Fallback for new files (not yet committed)
     return {
          "num_year": datetime.datetime.now( ).strftime( "%Y" )
         ,"des_full_name": get_git_config_value( "user.name" )
