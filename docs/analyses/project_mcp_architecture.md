@@ -71,6 +71,8 @@ Para evoluir o sistema sem alterar o servidor MCP imediatamente:
 1.  O agente modifica `tools/adhoc-tool.py` com a nova lógica experimental.
 2.  O agente executa a ferramenta `adhoc_tool(params={...})`.
 
+**Importante (Higienização):** Após a validação de uma nova funcionalidade e sua migração para um script definitivo e registro no servidor MCP, é **obrigatório** limpar a lógica correspondente do arquivo `tools/adhoc-tool.py`, restaurando-o para um estado minimalista. Isso evita que o arquivo de prototipagem se torne um "lixão" de código legado.
+
 ### 3.3. Análise de Integridade e Estilo (`analyze`)
 A ferramenta `analyze` do MCP é um atalho para `project-builder.py --analyze`. Este fluxo garante a conformidade total:
 1.  **Formatação (`format_code`):** Invoca `code-verifier.py --fix` em todos os arquivos fonte.
