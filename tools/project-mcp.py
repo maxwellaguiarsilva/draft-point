@@ -28,7 +28,26 @@ def _call( args: list[ str ] ) -> subprocess.CompletedProcess:
     return subprocess.run( args, capture_output=True, text=True, check=True )
 
 def _run_and_format( name: str, args: Any = None ) -> str:
-    """Runs a command and formats the output for MCP return."""
+    """Gold Standard: Runs a command and formats the output for MCP return."""
+    label = name.replace( '_', ' ' )
+    script = f"{name.replace( '_', '-' )}.py"
+    
+    cmd = [ "python3", f"tools/{script}" ]
+    
+    #   Arguments are always passed as a JSON string
+    cmd.append( json.dumps( args if args is not None else { } ) )
+            
+    try:
+        process = _call( cmd )
+        return f"{label} successful:\n{process.stdout}"
+    except subprocess.CalledProcessError as e:
+        details = f"{e.stdout}\n{e.stderr}".strip( )
+        return f"{label} failed:\n{details}"
+    except Exception as e:
+        return f"{label} failed: {str( e )}"
+
+def _legacy_run_and_format( name: str, args: Any = None ) -> str:
+    """Legacy: Runs a command and formats the output for MCP return."""
     config = _special_tool_config.get( name, { } )
     script = f"{config.get( 'script', name.replace( '_', '-' ) )}.py"
     label = name.replace( '_', ' ' )
@@ -70,7 +89,7 @@ def	create_class(
         "using_list": using_list,
         "create_header_only": create_header_only
     }
-    return _run_and_format( "create_class", args )
+    return _legacy_run_and_format( "create_class", args )
 
 
 @mcp.tool( )
@@ -89,13 +108,13 @@ def create_test(
         "flg_adhoc": flg_adhoc,
         "include_list": include_list
     }
-    return _run_and_format( "create_test", args )
+    return _legacy_run_and_format( "create_test", args )
 
 
 @mcp.tool( )
 def compile( ) -> str:
     """Compiles the project using project-builder.py. This command takes no arguments."""
-    return _run_and_format( "compile" )
+    return _legacy_run_and_format( "compile" )
 
 
 @mcp.tool( )
@@ -103,7 +122,7 @@ def analyze( ) -> str:
     """Runs static analysis (cppcheck) and automatically fixes formatting rules.
     Beyond checking, it also applies fixes for the rules verified by 'verify_formatting' (newlines, return spacing, etc.) on all .cpp and .hpp files.
     This command takes no arguments."""
-    return _run_and_format( "analyze" )
+    return _legacy_run_and_format( "analyze" )
 
 
 @mcp.tool( )
@@ -118,7 +137,7 @@ def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
         "files": files,
         "flg_auto_fix": flg_auto_fix
     }
-    return _run_and_format( "verify_formatting", args )
+    return _legacy_run_and_format( "verify_formatting", args )
 
 
 @mcp.tool( )
@@ -129,7 +148,7 @@ def include_tree( file_path: str ) -> str:
     args = {
         "file_path": file_path
     }
-    return _run_and_format( "include_tree", args )
+    return _legacy_run_and_format( "include_tree", args )
 
 
 @mcp.tool( )
@@ -145,7 +164,7 @@ def agent_statistic( name: Any = None ) -> str:
     args = { }
     if isinstance( name, str ):
         args[ "name" ] = name
-    return _run_and_format( "agent_statistic", args )
+    return _legacy_run_and_format( "agent_statistic", args )
 
 
 @mcp.tool( )
@@ -163,7 +182,7 @@ def quick_upload( message: str ) -> str:
     This tool is intended for simple, non-conflicting changes to increase agility.
     """
     args = { "message": message }
-    return _run_and_format( "quick_upload", args )
+    return _legacy_run_and_format( "quick_upload", args )
 
 
 if __name__ == "__main__":
