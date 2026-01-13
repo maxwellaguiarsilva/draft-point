@@ -29,6 +29,7 @@
 
 #include <sak/sak.hpp>
 #include <sak/geometry/point.hpp>
+#include <sak/geometry/line_view.hpp>
 
 
 namespace sak {

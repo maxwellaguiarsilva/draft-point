@@ -124,22 +124,22 @@ struct __##a_name \
 inline constexpr auto a_name = __##a_name{ };
 
 
-__935812590_unary( sqrt )
-__935812590_unary( sin )
-__935812590_unary( cos )
-__935812590_unary( tan )
-__935812590_unary( asin )
 __935812590_unary( acos )
+__935812590_unary( asin )
 __935812590_unary( atan )
-__935812590_binary( atan2 )
+__935812590_unary( ceil )
+__935812590_unary( cos )
 __935812590_unary( exp )
+__935812590_unary( floor )
 __935812590_unary( log )
 __935812590_unary( log2 )
-__935812590_binary( pow )
-__935812590_unary( floor )
-__935812590_unary( ceil )
 __935812590_unary( round )
+__935812590_unary( sin )
+__935812590_unary( sqrt )
+__935812590_unary( tan )
 __935812590_unary( trunc )
+__935812590_binary( atan2 )
+__935812590_binary( pow )
 
 
 #undef __935812590_unary
@@ -149,6 +149,7 @@ __935812590_unary( trunc )
 struct __min
 {
 	constexpr auto operator ( ) ( auto left, auto right ) const noexcept { return left < right ? left : right; }
+	constexpr auto operator ( ) ( auto&& range ) const noexcept { return ::std::ranges::min( range ); }
 };
 inline constexpr auto min = __min{ };
 
@@ -156,6 +157,7 @@ inline constexpr auto min = __min{ };
 struct __max
 {
 	constexpr auto operator ( ) ( auto left, auto right ) const noexcept { return left > right ? left : right; }
+	constexpr auto operator ( ) ( auto&& range ) const noexcept { return ::std::ranges::max( range ); }
 };
 inline constexpr auto max = __max{ };
 
