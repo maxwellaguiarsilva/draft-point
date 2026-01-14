@@ -7,23 +7,27 @@ Este documento define o roteiro para a modernização das ferramentas MCP do pro
 
 ## 1. Diagnóstico: O Problema do "Subprocess"
 
-A arquitetura atual utiliza arquivos Python como scripts isolados que se comunicam via `subprocess.run`. Isso causa:
+A arquitetura atual utiliza arquivos Python como scripts isolados que se comunicam via `subprocess.run`. No entanto, é fundamental distinguir entre o uso necessário de subprocessos e as transgressões arquiteturais.
+
+### 1.1. Usos Válidos de `subprocess`
+O uso de subprocessos é permitido e encorajado nos seguintes cenários:
+*   **Dispatcher Principal (`project_mcp.py`):** Deve continuar utilizando `subprocess` para invocar as ferramentas. Isso permite que os desenvolvedores modifiquem o código das ferramentas e vejam as mudanças refletidas imediatamente sem precisar reiniciar o servidor MCP (evitando o cache de `import` do Python).
+*   **Binários Externos:** Chamar ferramentas nativas do sistema ou do compilador como `g++`, `clang++`, `make`, `cppcheck`, `git` ou `clang-format`.
+
+### 1.2. A Transgressão: Comunicação Interna "Intra-Tools"
+A verdadeira transgressão ocorre quando um script Python que compõe a inteligência das ferramentas MCP invoca outro script Python do projeto via `subprocess`. Isso gera acoplamento ineficiente e dificulta a evolução para o padrão Gold Standard.
+
+### 1.3. Transgressões Identificadas
+Após análise, as seguintes transgressões foram enumeradas:
+1.  **`tools/file-generator.py`**: Invoca `python3 tools/template.py` via `subprocess.run` para renderizar templates.
+2.  **`tools/project-builder.py`**: Invoca `python3 tools/code-verifier.py` via `_invoke_subprocess` para formatar o código durante o build.
+
+### 1.4. Impactos Negativos
 *   **Incerteza de Caminhos:** Dependência de caminhos relativos rígidos (ex: `tools/code-verifier.py`).
 *   **Overhead de Inicialização:** Cada formatação de arquivo em um build dispara um novo interpretador Python.
 *   **Dificuldade de Importação:** Nomes com hífen (`-`) impedem o uso de `import` nativo, forçando o uso de `importlib.util`.
 *   **Acoplamento Oculto:** O `project-builder.py` conhece a interface de linha de comando do `code-verifier.py`, mas não sua lógica interna.
-```
-#missing_info
-precisa esclarecer que o dispatcher principal do mcp `project_mcp` deve perpanecer usando subprocess, pois isso é importante para trabalhar nas ferramentas sem precisar reiniciar o servidor MCP
-somente as demais integrações fora do `project_mcp` entre os scripts não devem usar essa estratégia
 
-precisa esclarecer que chamar binários como `g++`, `make`, `cppcheck` ou `clang-format` também é valido para subprocess
-
-esse diagnóstico deve ser refinado para deixar claro o que realmente é a transgressão de subprocess, que seria comunicação entre os arquivos que compoem a inteligencia das ferramentas mcp
-
-analise os arquivos para enumerar de forma direta e precisa essas transgressões, além de descrever com clareza os casos de subprocess que não é uma transgressão
-
-```
 
 ## 2. Nova Arquitetura: Kernel e Ferramentas Especializadas
 
