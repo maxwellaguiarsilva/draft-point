@@ -14,10 +14,10 @@ mcp = FastMCP( name="project-mcp" )
 
 
 
-def _invoke_tool( name: str, args: Any = None ) -> str:
+def _invoke_tool( name: str, args: Any = None, script_name: str = None ) -> str:
     """runs a command and formats the output for mcp return"""
     label = name.replace( '_', ' ' )
-    script = f"{name}.py"
+    script = f"{script_name if script_name else name}.py"
     cmd = [ "python3", f"tools/{script}" ]
     cmd.append( json.dumps( args if args is not None else { } ) )
     
@@ -91,7 +91,7 @@ def	create_class(
         "using_list": using_list,
         "create_header_only": create_header_only
     }
-    return _legacy_run_and_format( "create_class", args )
+    return _invoke_tool( "create_class", args, script_name = "file_generator" )
 
 
 @mcp.tool( )
@@ -110,14 +110,14 @@ def create_test(
         "flg_adhoc": flg_adhoc,
         "include_list": include_list
     }
-    return _legacy_run_and_format( "create_test", args )
+    return _invoke_tool( "create_test", args, script_name = "file_generator" )
 
 
 @mcp.tool( )
 def compile( ) -> str:
     """compiles the project using
     this command takes no arguments"""
-    return _legacy_run_and_format( "compile" )
+    return _invoke_tool( "compile" )
 
 
 @mcp.tool( )
@@ -125,22 +125,22 @@ def analyze( ) -> str:
     """runs static analysis (cppcheck) and automatically fixes formatting rules
     beyond checking, it also applies fixes for the rules verified by 'verify_formatting' on all .cpp and .hpp files
     this command takes no arguments"""
-    return _legacy_run_and_format( "analyze" )
+    return _invoke_tool( "analyze" )
 
 
 @mcp.tool( )
-def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
+def code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
     """this tool is exclusively for cpp and hpp files
     verifies if a list of files follows the project's formatting rules
     if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
     returns a consolidated list of violations
-    to verify and process the entire project, prefer the `analyze` tool. the `verify_formatting` tool is recommended for a small group of files or just a single file
+    to verify and process the entire project, prefer the `analyze` tool. the `code_verifier` tool is recommended for a small group of files or just a single file
     """
     args = {
         "files": files,
         "flg_auto_fix": flg_auto_fix
     }
-    return _legacy_run_and_format( "verify_formatting", args )
+    return _invoke_tool( "code_verifier", args )
 
 
 if __name__ == "__main__":
