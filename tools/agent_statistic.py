@@ -46,6 +46,32 @@ def format_output( data ):
     return  "\n".join( lines )
 
 
+def increment_event( data, name, short_description ):
+    #   normalize name: lower, trim, spaces to hyphens
+    name = name.lower( ).strip( ).replace( " ", "-" )
+    
+    if short_description:
+        short_description = short_description.lower( ).strip( )
+        ensure( "." not in short_description, "short-description cannot contain periods ('.')" )
+    
+    #   find entry
+    entry = next( ( item for item in data if item[ "name" ] == name ), None )
+    
+    if entry:
+        entry[ "count" ] += 1
+        if short_description:
+            entry[ "short-description" ] = short_description
+    else:
+        ensure( short_description, f"entry '{name}' does not exist" )
+        
+        new_entry = {
+            "name": name,
+            "short-description": short_description,
+            "count": 1
+        }
+        data.append( new_entry )
+
+
 def run_agent_statistic( params ):
     #   validate allowed fields
     allowed_fields = { "name", "short-description" }
@@ -64,33 +90,17 @@ def run_agent_statistic( params ):
     else:
         data = [ ]
 
-    name = params.get( "name" )
+    name_param = params.get( "name" )
     short_description = params.get( "short-description" )
     
-    if name:
-        #   normalize name: lower, trim, spaces to hyphens
-        name = name.lower( ).strip( ).replace( " ", "-" )
-        
-        if short_description:
-            short_description = short_description.lower( ).strip( )
-            ensure( "." not in short_description, "short-description cannot contain periods ('.')" )
-        
-        #   find entry
-        entry = next( ( item for item in data if item[ "name" ] == name ), None )
-        
-        if entry:
-            entry[ "count" ] += 1
-            if short_description:
-                entry[ "short-description" ] = short_description
+    if name_param:
+        if isinstance( name_param, str ):
+            increment_event( data, name_param, short_description )
+        elif isinstance( name_param, list ):
+            for n in name_param:
+                increment_event( data, n, short_description )
         else:
-            ensure( short_description, f"entry '{name}' does not exist" )
-            
-            new_entry = {
-                "name": name,
-                "short-description": short_description,
-                "count": 1
-            }
-            data.append( new_entry )
+            ensure( False, "field 'name' must be a string or a list of strings" )
             
         #   save data
         with open( _statistic_file, "w" ) as f:
