@@ -24,40 +24,46 @@
 
 
 import subprocess
-from lib.common import run_main
+from lib.common import run_main, ensure
 from agent_statistic import run_agent_statistic
+
+
+def _invoke_subprocess( command ):
+    return  subprocess.run( command, check=True, capture_output=True, text=True )
 
 
 def run_quick_upload( params ):
     message = params.get( "message" )
-    if not message:
-        raise Exception( "'message' parameter is required for quick_upload" )
+    ensure( message, "message parameter is required for quick upload" )
 
     try:
-        #   1. Pull latest changes
-        subprocess.run( [ "git", "pull" ], check=True, capture_output=True, text=True )
+        #   pull latest changes
+        _invoke_subprocess( [ "git", "pull" ] )
         
-        #   2. Add all changes
-        subprocess.run( [ "git", "add", "." ], check=True, capture_output=True, text=True )
+        #   add all changes
+        _invoke_subprocess( [ "git", "add", "." ] )
         
-        #   3. Commit with the provided message
-        subprocess.run( [ "git", "commit", "-m", message ], check=True, capture_output=True, text=True )
+        #   commit with the provided message
+        _invoke_subprocess( [ "git", "commit", "-m", message ] )
         
-        #   4. Push to remote
-        subprocess.run( [ "git", "push" ], check=True, capture_output=True, text=True )
+        #   push to remote
+        _invoke_subprocess( [ "git", "push" ] )
         
-        #   5. Record success statistic
+        #   record success statistic
         stats_result = run_agent_statistic( { "name": "success" } )
         
-        return f"`{message}`\n\n{stats_result}"
+        return  f"`{message}`\n\n{stats_result}"
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr if e.stderr else e.stdout
         if "nothing to commit" in error_msg.lower( ):
-             return "nothing to commit"
-        raise Exception( f"failed at command: {' '.join( e.cmd )}\nerror: {error_msg}" )
+             return  "nothing to commit"
+        
+        ensure( False, f"failed at command: {' '.join( e.cmd )}\nerror: {error_msg}" )
     except Exception as e:
-        raise Exception( f"an unexpected error occurred during quick upload: {str( e )}" )
+        ensure( False, f"an unexpected error occurred during quick upload: {str( e )}" )
 
 
 if __name__ == "__main__":
     run_main( run_quick_upload )
+
+

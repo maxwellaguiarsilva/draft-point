@@ -41,6 +41,21 @@ def adhoc_tool( params: dict ) -> str:
 
 
 @mcp.tool( )
+def agent_statistic( name: Any = None ) -> str:
+    """records or retrieves agent behavioral statistics
+    if 'name' is provided, increments the count for that event
+    if no arguments are provided, returns the current statistics table
+    this tool accepts a literal call with no arguments
+    if you identify that you have made a mistake that has already been recorded previously, increment the counter
+    this is a support tool to help prioritize attention for repeat offenders
+    """
+    args = { }
+    if isinstance( name, str ):
+        args[ "name" ] = name
+    return _invoke_tool( "agent_statistic", args )
+
+
+@mcp.tool( )
 def quick_upload( message: str ) -> str:
     """performs a quick git upload: pull, add all, commit with message, and push
     this tool is intended for simple, non-conflicting changes to increase agility
@@ -93,11 +108,11 @@ def	create_class(
         ,using_list: list[ str ] = [ ]
         ,create_header_only: bool = False
     ) -> str:
-    """Creates a new C++ class with corresponding .hpp and .cpp files.
-    The class_hierarchy parameter defines the namespace and class name (e.g., "game/player" creates class 'player' in namespace 'game').
-    Optional include_list and using_list parameters allow specifying additional headers to include and 'using' declarations to add.
-    Good Example: include_list=["string", "vector"], using_list=["::std::string", "::std::vector", "item_list   =   vector< string >"]
-    Bad Example: include_list="<string>", using_list="using std::string;"
+    """creates a new c++ class with corresponding .hpp and .cpp files
+    the class_hierarchy parameter defines the namespace and class name (e.g., "game/player" creates class 'player' in namespace 'game')
+    optional include_list and using_list parameters allow specifying additional headers to include and 'using' declarations to add
+    good example: include_list=["string", "vector"], using_list=["::std::string", "::std::vector", "item_list   =   vector< string >"]
+    bad example: include_list="<string>", using_list="using std::string;"
     """
     args = {
         "class_hierarchy": class_hierarchy,
@@ -114,10 +129,10 @@ def create_test(
         ,flg_adhoc: bool = False
         ,include_list: list[ str ] = [ ]
     ) -> str:
-    """Creates a new C++ test file.
-    If flg_adhoc is True, creates an adhoc test in tests/adhoc/NNNN_hierarchy/.
-    IMPORTANT: In adhoc mode, 'hierarchy' MUST be a simple name (no slashes or paths).
-    If flg_adhoc is False, creates a structured test in tests/path/test_path_hierarchy.cpp.
+    """creates a new c++ test file
+    if flg_adhoc is true, creates an adhoc test in tests/adhoc/nnnn_hierarchy/
+    in adhoc mode, 'hierarchy' must be a simple name (no slashes or paths)
+    if flg_adhoc is false, creates a structured test in tests/path/test_path_hierarchy.cpp
     """
     args = {
         "hierarchy": hierarchy,
@@ -129,25 +144,26 @@ def create_test(
 
 @mcp.tool( )
 def compile( ) -> str:
-    """Compiles the project using project-builder.py. This command takes no arguments."""
+    """compiles the project using
+    this command takes no arguments"""
     return _legacy_run_and_format( "compile" )
 
 
 @mcp.tool( )
 def analyze( ) -> str:
-    """Runs static analysis (cppcheck) and automatically fixes formatting rules.
-    Beyond checking, it also applies fixes for the rules verified by 'verify_formatting' (newlines, return spacing, etc.) on all .cpp and .hpp files.
-    This command takes no arguments."""
+    """runs static analysis (cppcheck) and automatically fixes formatting rules
+    beyond checking, it also applies fixes for the rules verified by 'verify_formatting' on all .cpp and .hpp files
+    this command takes no arguments"""
     return _legacy_run_and_format( "analyze" )
 
 
 @mcp.tool( )
 def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
-    """Verifies if a list of files follows the project's formatting rules (newlines, return spacing, bracket spacing, etc.).
-    If flg_auto_fix is True, allows the tool to attempt to adjust automatically ( Default False ).
-    Returns a consolidated list of violations.
-    These rules are specific to hpp and cpp files.
-    To verify and process the entire project, prefer the `analyze`` tool. The `verify_formatting` tool is recommended for a small group of files or just a single file.
+    """this tool is exclusively for cpp and hpp files
+    verifies if a list of files follows the project's formatting rules
+    if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
+    returns a consolidated list of violations
+    to verify and process the entire project, prefer the `analyze` tool. the `verify_formatting` tool is recommended for a small group of files or just a single file
     """
     args = {
         "files": files,
@@ -158,29 +174,13 @@ def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
 
 @mcp.tool( )
 def include_tree( file_path: str ) -> str:
-    """Displays the include tree of a C++ file (cpp or hpp).
-    It recursively analyzes includes, identifies duplicates, and shows system headers without expanding them.
+    """displays the include tree of a c++ file (cpp or hpp)
+    it recursively analyzes includes
     """
     args = {
         "file_path": file_path
     }
     return _legacy_run_and_format( "include_tree", args )
-
-
-@mcp.tool( )
-def agent_statistic( name: Any = None ) -> str:
-    """Records or retrieves agent behavioral statistics.
-    If 'name' is provided, increments the count for that event.
-    If no arguments are provided, returns the current statistics table.
-    Check the current data at the beginning of every conversation.
-    This tool accepts a literal call with no arguments.
-    If you identify that you have made a mistake that has already been recorded previously, increment the counter.
-    This is a support tool to help prioritize attention for repeat offenders.
-    """
-    args = { }
-    if isinstance( name, str ):
-        args[ "name" ] = name
-    return _invoke_tool( "agent_statistic", args )
 
 
 
