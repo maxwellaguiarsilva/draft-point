@@ -5,15 +5,9 @@
 
 Para que a migração ocorra sem problemas, o documento de migração deveria ser mais explícito nos seguintes pontos:
 
-*   **Estado e Concorrência no Kernel:** O `project_kernel.py` usará `ThreadPoolExecutor`. O documento precisa definir se o Kernel será **stateless** (recebendo o caminho do projeto em cada chamada) ou se manterá um objeto `project_cpp`. Para evitar race conditions em builds paralelos, a gestão de escrita na tela precisa ser definida.
-    -   Veredito: a lógica atual exige a existência de um objeto `project_cpp`.
-        -   Na implementação atual já está previsto o thread-safe, só precisamos garantir que continue funcionando nessa refatoração
-        -   A refatoração tem o objetivo de modularizar e organizar e por isso deveria quebrar nenhuma regra de funcionamento do que atualmente já existe.
-        -   Se não achar que falta informações técnicas sobre esse assunto então analise os arquivos, e complemente esse documento com detalhes a mais.
-
 *   **Tratamento de Exceções em Cadeia:** Quando o `analyze.py` importar e rodar `run_verify_formatting(params)`, uma exceção lançada por este último deve ser capturada pelo orquestrador ou deixada borbulhar até o `run_main` do `analyze.py`? A recomendação sugere que o `run_main` final capture tudo, mas o Kernel precisa de granularidade para saber qual arquivo falhou sem interromper todo o processo (em caso de análise paralela).
-    -   Veredito: `run_main` é o único permitido a capturar exceções. o Kernel não terá a granularidade e "é a nosso intenção desejada de interromper sim todo o processo, assim que ocorre a primeira falha, na análise paralela". Esse é o comportamento desejado.
-        -   Se isso não estiver claro no documento de migração, então adicione as informações faltantes.
+    -   Veredito: `run_main` é o único permitido a capturar exceções. o Kernel não terá a granularidade e "é a nosso intenção desejada de interromper sim todo o processo, assim que ocorre a primeira falha, na análise paralela é interrompida". Esse é o comportamento desejado.
+        -   Se isso não estiver claro no documento de migração, então realize os detalhes explicitos sobre isso.
 
 
 ### 2. Análise Complementar e Sugestões de Refinamento

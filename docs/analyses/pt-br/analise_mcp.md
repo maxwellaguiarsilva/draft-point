@@ -37,6 +37,7 @@ A solução consiste em transformar a "lógica de negócio" do build e da geraç
 Extração das classes core de `project-builder.py`:
 *   **Classes**: `project_file`, `cpp`, `hpp`, `binary_builder`, `project`.
 *   **Responsabilidade**: Gerenciamento de metadados, grafo de dependências e **orquestração de paralelismo** (ThreadPoolExecutor).
+*   **Gestão de Estado**: O Kernel não será puramente *stateless*. Ele manterá uma instância da classe `project` que encapsula o estado atual do sistema de arquivos, configurações e grafo de dependências. Isso é essencial para evitar o custo de re-escaneamento total do projeto em operações encadeadas, permitindo que o Kernel funcione como um "cérebro" persistente durante a execução de uma tarefa complexa.
 *   **Utilitários**: `DEFAULT_CONFIG`, `deep_update` e `get_cpu_count`.
 *   **Mudança Chave:** Esta biblioteca deve ser pura e não invocar outras ferramentas Python via subprocesso.
 
@@ -67,6 +68,8 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
             -   Ele será orbrigado a tratar os erros um por vez e só verá os demais erros, após ajustar o primeiro e rodar a ferramenta novamente para ver o próximo.
         -   Por isso o sistema identifica quem falhou primeiro e lança a exceção usando "ensure".
         -   As mensagens de sucesso, são protegidas com lock para que não haja `race condition` nelas.
+        -   **Sincronização de Saída**: O objeto `project` deve obrigatoriamente possuir um `threading.Lock` para serializar todas as chamadas de impressão (`print`), garantindo que os blocos de mensagens de cada thread (compilação de um arquivo específico, por exemplo) sejam exibidos de forma atômica e legível.
+        -   **Controle de Interrupção**: O uso de `threading.Event` (como o `_stop_event`) é mandatório para propagar sinal de parada imediata para todas as threads trabalhadoras assim que um erro fatal for detectado, minimizando o desperdício de recursos.
 
 ## 4. Roteiro de Implementação em Fases
 
