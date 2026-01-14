@@ -5,6 +5,9 @@
 
 Este documento define o roteiro para a modernização das ferramentas MCP do projeto, eliminando o modelo legado e acoplamento ineficiente entre scripts Python.
 
+## Nota de Terminologia
+Para fins de clareza e conformidade com o novo padrão, a ferramenta anteriormente conhecida como `verify_formatting` (vinculada ao script `code-verifier.py`) passará a ser referida exclusivamente como `code_verifier` (vinculada ao novo módulo `code_verifier.py`) ao longo deste documento. Esta mudança visa unificar o nome da ferramenta MCP com o nome do arquivo fonte.
+
 ## 1. Diagnóstico: O Problema do "Subprocess"
 
 A arquitetura atual utiliza arquivos Python como scripts isolados que se comunicam via `subprocess.run`. No entanto, é fundamental distinguir entre o uso necessário de subprocessos e as transgressões arquiteturais.
@@ -48,7 +51,8 @@ Extração das classes core de `project-builder.py`:
 ### 2.3. Validação Atômica: `tools/code_verifier.py`
 Renomeado de `code-verifier.py`.
 *   **Interface Programática**: Expõe a classe `formatter` para uso interno pelo Kernel ou ferramentas de análise.
-*   **Padronização com outras ferramentas**: Função `run_verify_formatting(params)` para uso via MCP.
+*   **Padronização com outras ferramentas**: Função `run_code_verifier(params)` para uso via MCP.
+*   **Renomeação da Ferramenta**: O comando MCP `verify_formatting` é formalmente substituído por `code_verifier`, garantindo paridade entre o nome do comando e o módulo Python.
 *   **Integração**: Consumido por `analyze.py` via `import` direto.
 
 ## 3. Requisitos do novo padrão desejado
@@ -70,7 +74,7 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
         -   As mensagens de sucesso, são protegidas com lock para que não haja `race condition` nelas.
         -   **Sincronização de Saída**: O objeto `project` deve obrigatoriamente possuir um `threading.Lock` para serializar todas as chamadas de impressão (`print`), garantindo que os blocos de mensagens de cada thread (compilação de um arquivo específico, por exemplo) sejam exibidos de forma atômica e legível.
         -   **Controle de Interrupção**: O uso de `threading.Event` (como o `_stop_event`) é mandatório para propagar sinal de parada imediata para todas as threads trabalhadoras assim que um erro fatal for detectado, minimizando o desperdício de recursos.
-        -   **Fluxo de Exceções e Interrupção**: Todas as exceções geradas por ferramentas (como `run_verify_formatting`) ou pelo Kernel devem borbulhar livremente até o `run_main` do ponto de entrada principal (ex: `analyze.py` ou `compile.py`).
+        -   **Fluxo de Exceções e Interrupção**: Todas as exceções geradas por ferramentas (como `run_code_verifier`) ou pelo Kernel devem borbulhar livremente até o `run_main` do ponto de entrada principal (ex: `analyze.py` ou `compile.py`).
             -   É o comportamento desejado que o processo seja interrompido na primeira falha encontrada, mesmo em execuções paralelas.
             -   O Kernel não deve tentar capturar exceções internamente para prover granularidade ou continuar a execução após um erro; a primeira falha encerra a orquestração e o erro é reportado pelo `run_main`.
             -   Isso garante que o desenvolvedor foque na resolução de um problema por vez, mantendo a consistência do estado do projeto.
@@ -99,11 +103,13 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
 | :--- | :--- | :--- | :--- |
 | `compile` | `project-builder.py` | `compile.py` | Ferramenta |
 | `analyze` | `project-builder.py` | `analyze.py` | Ferramenta |
-| `verify_formatting` | `code-verifier.py` | `code_verifier.py` | Ferramenta |
+| `code_verifier` | `code-verifier.py` | `code_verifier.py` | Ferramenta |
 | `create_class` | `file-generator.py` | `file_generator.py` | Ferramenta |
 | `create_test` | `file-generator.py` | `file_generator.py` | Ferramenta |
 | N/A | `project-builder.py` | `lib/project_kernel.py` | Biblioteca |
 | N/A | `template.py` | `lib/template_engine.py`| Biblioteca |
+
+**Nota sobre a transição**: O comando anteriormente nomeado como `verify_formatting` deve ser renomeado, referido e utilizado como `code_verifier` para alinhar-se à nova estrutura de módulos e ao padrão de nomenclatura do projeto.
 
 ## 6. Conclusão Técnica
 

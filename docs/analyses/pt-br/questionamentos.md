@@ -4,10 +4,8 @@
 ### 1. Questionamento Crítico: Lacunas de Precisão Técnica
 
 Para que a migração ocorra sem problemas, o documento de migração deveria ser mais explícito nos seguintes pontos:
-
-*   **Tratamento de Exceções em Cadeia:** Quando o `analyze.py` importar e rodar `run_verify_formatting(params)`, uma exceção lançada por este último deve ser capturada pelo orquestrador ou deixada borbulhar até o `run_main` do `analyze.py`? A recomendação sugere que o `run_main` final capture tudo, mas o Kernel precisa de granularidade para saber qual arquivo falhou sem interromper todo o processo (em caso de análise paralela).
-    -   Veredito: `run_main` é o único permitido a capturar exceções. o Kernel não terá a granularidade e "é a nosso intenção desejada de interromper sim todo o processo, assim que ocorre a primeira falha, na análise paralela é interrompida". Esse é o comportamento desejado.
-        -   Se isso não estiver claro no documento de migração, então realize os detalhes explicitos sobre isso.
+-   O documento ainda se refere a ferramenta `verify_formatting` como se ela não fosse legada
+-   Ele não deixa claro que durante essa migração essa ferramenta deve ser renomeada para `code_verifier`
 
 
 ### 2. Análise Complementar e Sugestões de Refinamento
