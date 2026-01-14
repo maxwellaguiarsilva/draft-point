@@ -648,7 +648,7 @@ def main_action( params ):
     else:
         current_project.run_build( )
     
-    return "success"
+    return  ""
 
 
 if __name__ == "__main__":

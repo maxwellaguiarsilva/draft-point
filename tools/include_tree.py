@@ -17,21 +17,21 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   include-analyzer
+#   File:   include_tree
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-13 14:30:00
 
 
-import json
 import os
 import re
-import sys
+from lib.common import run_main, ensure
+
 
 class include_tree:
     def __init__( self, include_dir: str = "include" ):
         self.include_dir = include_dir
-        self.include_pattern = re.compile( r'#include\s*([<"">]([^>""]+)[>""<])' )
+        self.include_pattern = re.compile( r'#include\s*([<"">]([^>"">]+)[>""<])' )
         self.closure_cache = { }
 
     def _resolve_path( self, include_name: str ):
@@ -136,20 +136,11 @@ class include_tree:
         print_tree( root_node )
         return "\n".join( output )
 
-def run_include_tree( file_path: str ) -> str:
+def run_include_tree( params: dict ) -> str:
+    file_path = params.get( "file_path" )
+    ensure( file_path, "file_path parameter is required" )
     analyzer = include_tree( )
     return analyzer.get_report( file_path )
 
 if __name__ == "__main__":
-    if len( sys.argv ) > 2:
-        command = sys.argv[ 1 ]
-        try:
-            if command == "include_tree":
-                args = json.loads( sys.argv[ 2 ] )
-                print( run_include_tree( args[ "file_path" ] ) )
-        except Exception as e:
-            print( f"error: {e}", file=sys.stderr )
-            sys.exit( 1 )
-    else:
-        print( "usage: include-analyzer.py include_tree '{\"file_path\": \"...\"}'", file=sys.stderr )
-        sys.exit( 1 )
+    run_main( run_include_tree )

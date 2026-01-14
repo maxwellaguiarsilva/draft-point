@@ -4,6 +4,7 @@
 import json
 import os
 import subprocess
+from lib.common import _invoke_subprocess
 from typing import Any
 from fastmcp import FastMCP
 
@@ -21,7 +22,7 @@ def _invoke_tool( name: str, args: Any = None ) -> str:
     cmd.append( json.dumps( args if args is not None else { } ) )
     
     try:
-        process = subprocess.run( cmd, capture_output=True, text=True, check=True )
+        process = _invoke_subprocess( cmd )
         return f"{label} successful:\n{process.stdout}"
     except subprocess.CalledProcessError as e:
         return f"{label} failed:\n{e.stdout}\n{e.stderr}".strip( )
@@ -64,6 +65,13 @@ def quick_upload( message: str ) -> str:
     return _invoke_tool( "quick_upload", args )
 
 
+@mcp.tool( )
+def include_tree( file_path: str ) -> str:
+    """displays the include tree of a c++ file (cpp or hpp)
+    it recursively analyzes includes
+    """
+    args = { "file_path": file_path }
+    return _invoke_tool( "include_tree", args )
 
 
 #   here begins the code for tools that were created outside the correct standard
@@ -72,7 +80,6 @@ _special_tool_config = {
      "create_class":      { "script": "file-generator" }
     ,"create_test":       { "script": "file-generator" }
     ,"verify_formatting": { "script": "code-verifier" }
-    ,"include_tree":      { "script": "include-analyzer" }
     ,"compile":           { "script": "project-builder", "subcommand": "run_build" }
     ,"analyze":           { "script": "project-builder" }
 }
@@ -92,7 +99,7 @@ def _legacy_run_and_format( name: str, args: Any = None ) -> str:
     cmd.append( json.dumps( args if args is not None else { } ) )
             
     try:
-        process = _call( cmd )
+        process = _invoke_subprocess( cmd )
         return f"{label} successful:\n{process.stdout}"
     except subprocess.CalledProcessError as e:
         details = f"{e.stdout}\n{e.stderr}".strip( )
@@ -170,19 +177,6 @@ def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
         "flg_auto_fix": flg_auto_fix
     }
     return _legacy_run_and_format( "verify_formatting", args )
-
-
-@mcp.tool( )
-def include_tree( file_path: str ) -> str:
-    """displays the include tree of a c++ file (cpp or hpp)
-    it recursively analyzes includes
-    """
-    args = {
-        "file_path": file_path
-    }
-    return _legacy_run_and_format( "include_tree", args )
-
-
 
 
 if __name__ == "__main__":
