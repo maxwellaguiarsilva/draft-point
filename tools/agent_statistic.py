@@ -26,39 +26,38 @@
 
 import json
 import os
-from lib.common import run_main
+from lib.common import run_main, ensure
 
 
-STATISTIC_FILE = "/home/.gemini/statistic.json"
+_statistic_file = "/home/.gemini/statistic.json"
 
 
 def format_output( data ):
     if not data:
-        return "No statistics recorded yet."
+        return  "no statistics recorded yet"
     
-    # Sort by count descending
+    #   sort by count descending
     sorted_data = sorted( data, key=lambda x: x[ "count" ], reverse=True )
     
     lines = [ ]
     for item in sorted_data:
         lines.append( f"{item[ 'name' ]}( {item[ 'count' ]} ): {item[ 'short-description' ]}" )
     
-    return "\n".join( lines )
+    return  "\n".join( lines )
 
 
 def run_agent_statistic( params ):
-    # Validate allowed fields
+    #   validate allowed fields
     allowed_fields = { "name", "short-description" }
     for key in params:
-        if key not in allowed_fields:
-            return f"field '{key}' is not allowed. only 'name' and 'short-description' are accepted."
+        ensure( key in allowed_fields, f"field '{key}' is not allowed" )
 
-    # Ensure directory exists
-    os.makedirs( os.path.dirname( STATISTIC_FILE ), exist_ok=True )
+    #   ensure directory exists
+    os.makedirs( os.path.dirname( _statistic_file ), exist_ok=True )
     
-    if os.path.exists( STATISTIC_FILE ):
+    if os.path.exists( _statistic_file ):
         try:
-            with open( STATISTIC_FILE, "r" ) as f:
+            with open( _statistic_file, "r" ) as f:
                 data = json.load( f )
         except ( json.JSONDecodeError, IOError ):
             data = [ ]
@@ -69,16 +68,14 @@ def run_agent_statistic( params ):
     short_description = params.get( "short-description" )
     
     if name:
-        # Normalize name: lower, trim, spaces to hyphens
+        #   normalize name: lower, trim, spaces to hyphens
         name = name.lower( ).strip( ).replace( " ", "-" )
         
-        # Normalize description if provided: lower, trim, check for "."
         if short_description:
             short_description = short_description.lower( ).strip( )
-            if "." in short_description:
-                return "Error: short-description cannot contain periods ('.')."
+            ensure( "." not in short_description, "short-description cannot contain periods ('.')" )
         
-        # Find entry
+        #   find entry
         entry = next( ( item for item in data if item[ "name" ] == name ), None )
         
         if entry:
@@ -86,8 +83,7 @@ def run_agent_statistic( params ):
             if short_description:
                 entry[ "short-description" ] = short_description
         else:
-            if not short_description:
-                return f"Error: entry '{name}' does not exist. Please provide 'short-description' to create it."
+            ensure( short_description, f"entry '{name}' does not exist" )
             
             new_entry = {
                 "name": name,
@@ -96,11 +92,11 @@ def run_agent_statistic( params ):
             }
             data.append( new_entry )
             
-        # Save data
-        with open( STATISTIC_FILE, "w" ) as f:
+        #   save data
+        with open( _statistic_file, "w" ) as f:
             json.dump( data, f, indent="\t" )
             
-    return format_output( data )
+    return  format_output( data )
 
 
 if __name__ == "__main__":

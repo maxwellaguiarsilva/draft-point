@@ -27,6 +27,11 @@ import json
 import sys
 
 
+def ensure( expression, message ):
+    if not expression:
+        raise Exception( message )
+
+
 def run_main( action ):
     params  =   { }
     if len( sys.argv ) > 1:

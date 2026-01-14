@@ -9,8 +9,49 @@ from fastmcp import FastMCP
 
 
 #   create an mcp server instance
-mcp = FastMCP( name="project-tools-mcp" )
+mcp = FastMCP( name="project-mcp" )
 
+
+
+def _invoke_tool( name: str, args: Any = None ) -> str:
+    """runs a command and formats the output for mcp return"""
+    label = name.replace( '_', ' ' )
+    script = f"{name}.py"
+    cmd = [ "python3", f"tools/{script}" ]
+    cmd.append( json.dumps( args if args is not None else { } ) )
+    
+    try:
+        process = subprocess.run( cmd, capture_output=True, text=True, check=True )
+        return f"{label} successful:\n{process.stdout}"
+    except subprocess.CalledProcessError as e:
+        return f"{label} failed:\n{e.stdout}\n{e.stderr}".strip( )
+    except Exception as e:
+        return f"{label} failed: {str( e )}"
+
+
+#   here begins the code for the tools that follow the required standard
+
+@mcp.tool( )
+def adhoc_tool( params: dict ) -> str:
+    """executes experimental logic defined in tools/adhoc-tool.py
+    this tool is used for prototyping new functionalities
+    the 'params' dictionary is passed to the script
+    """
+    return _invoke_tool( "adhoc_tool", params )
+
+
+@mcp.tool( )
+def quick_upload( message: str ) -> str:
+    """performs a quick git upload: pull, add all, commit with message, and push
+    this tool is intended for simple, non-conflicting changes to increase agility
+    """
+    args = { "message": message }
+    return _invoke_tool( "quick_upload", args )
+
+
+
+
+#   here begins the code for tools that were created outside the correct standard
 
 _special_tool_config = {
      "create_class":      { "script": "file-generator" }
@@ -20,29 +61,6 @@ _special_tool_config = {
     ,"compile":           { "script": "project-builder", "subcommand": "run_build" }
     ,"analyze":           { "script": "project-builder" }
 }
-
-
-def _call( args: list[ str ] ) -> subprocess.CompletedProcess:
-    """internal helper to run subprocess with consistent parameters"""
-    return subprocess.run( args, capture_output=True, text=True, check=True )
-
-def _invoke_tool( name: str, args: Any = None ) -> str:
-    """gold standard: runs a command and formats the output for mcp return"""
-    label = name.replace( '_', ' ' )
-    script = f"{name}.py"
-    
-    cmd = [ "python3", f"tools/{script}" ]
-    
-    #   arguments are always passed as a json string
-    cmd.append( json.dumps( args if args is not None else { } ) )
-    
-    try:
-        process = _call( cmd )
-        return f"{label} successful:\n{process.stdout}"
-    except subprocess.CalledProcessError as e:
-        return f"{label} failed:\n{e.stdout}\n{e.stderr}".strip( )
-    except Exception as e:
-        return f"{label} failed: {str( e )}"
 
 def _legacy_run_and_format( name: str, args: Any = None ) -> str:
     """Legacy: Runs a command and formats the output for MCP return."""
@@ -165,22 +183,6 @@ def agent_statistic( name: Any = None ) -> str:
     return _invoke_tool( "agent_statistic", args )
 
 
-@mcp.tool( )
-def adhoc_tool( params: dict ) -> str:
-    """Executes experimental logic defined in tools/adhoc-tool.py.
-    This tool is used for prototyping new functionalities.
-    The 'params' dictionary is passed to the script.
-    """
-    return _invoke_tool( "adhoc_tool", params )
-
-
-@mcp.tool( )
-def quick_upload( message: str ) -> str:
-    """Performs a quick git upload: pull, add all, commit with message, and push.
-    This tool is intended for simple, non-conflicting changes to increase agility.
-    """
-    args = { "message": message }
-    return _invoke_tool( "quick_upload", args )
 
 
 if __name__ == "__main__":
