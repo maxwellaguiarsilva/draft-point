@@ -78,7 +78,9 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
     -   **Processamento de Argumentos**: Esta string JSON é automaticamente convertida em um dicionário Python (`params`), que é então passado como o único argumento para a função principal da ferramenta.
     -   **Paridade de Invocação**: Este design garante que a ferramenta funcione de forma idêntica seja invocada via terminal (CLI), via servidor MCP ou via integração direta (`import`) por outras ferramentas ou pelo Core.
 3.  **Interface de Função**: Função principal `run_<tool_name>(params: dict) -> str` que retorna a string com a mensagem do resultado final.
-4.  **Erros**: Usar `ensure( expression, "mensagem" )` para validações, delegando o encerramento e a formatação da mensagem de erro ao `lib.common`.
+4.  **Erros e Validações**: Usar `ensure( expression, "mensagem" )` do módulo `lib.common` como a forma primária de validação de qualquer condição no projeto, delegando o encerramento e a formatação da mensagem de erro ao `run_main`.
+    -   **Padronização**: O `ensure` deve ser utilizado para todas as verificações de sanidade, pré-condições e erros lógicos.
+    -   **Interface MCP Limpa**: Esta prática garante que o retorno para o MCP seja sempre limpo e legível. O `run_main` captura a exceção e reporta apenas a mensagem relevante, eliminando ruídos técnicos e stack traces que não contribuem para a resolução imediata do problema pelo agente.
 5.  **Thread-Safety**: O Core deve garantir que a saída de múltiplas threads não corrompa o fluxo de dados, especialmente ao rodar sob o MCP.
     -   Sobre essa questão de `thread-safety`, os seguintes pontos são importantes:
         -   O programador vai ter o fluxo completo encerrado / interrompido assim que qualquer analise, build ou link reportar o primeiro erro.
