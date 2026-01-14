@@ -28,13 +28,17 @@ import sys
 
 
 def run_main( action ):
+    params  =   { }
     if len( sys.argv ) > 1:
         try:
             params = json.loads( sys.argv[ 1 ] )
-            print( action( params ) )
         except json.JSONDecodeError:
-            print( "error: invalid json parameters" )
-    else:
-        print( "error: no parameters provided" )
+            print( "invalid json parameters" )
+            sys.exit( 1 )
+    try:
+        print( action( params ) )
+    except Exception as error:
+        print( str( error ), file = sys.stderr )
+        sys.exit( 1 )
 
 

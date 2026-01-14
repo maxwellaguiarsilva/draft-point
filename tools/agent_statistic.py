@@ -51,7 +51,7 @@ def run_agent_statistic( params ):
     allowed_fields = { "name", "short-description" }
     for key in params:
         if key not in allowed_fields:
-            return f"Error: field '{key}' is not allowed. Only 'name' and 'short-description' are accepted."
+            return f"field '{key}' is not allowed. only 'name' and 'short-description' are accepted."
 
     # Ensure directory exists
     os.makedirs( os.path.dirname( STATISTIC_FILE ), exist_ok=True )

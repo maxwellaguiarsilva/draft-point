@@ -27,16 +27,16 @@ from lib.common import run_main
 
 
 def run_adhoc_tool( params ):
-    """Placeholder for experimental logic.
-    After the logic is validated and moved to a production script,
-    this function must be cleaned up to maintain a minimal state.
+    """placeholder for experimental logic
+    after the logic is validated and moved to a production script,
+    this function must be cleaned up to maintain a minimal state
     """
     action = params.get( "action" )
     
     if action == "hello":
         return f"hello, {params.get( 'name', 'world' )}!"
-        
-    return "error: no valid action or parameters provided to adhoc_tool"
+
+    raise Exception( "no valid action or parameters provided to adhoc_tool" )
 
 
 if __name__ == "__main__":

@@ -31,7 +31,7 @@ from agent_statistic import run_agent_statistic
 def run_quick_upload( params ):
     message = params.get( "message" )
     if not message:
-        return "error: 'message' parameter is required for quick_upload"
+        raise Exception( "'message' parameter is required for quick_upload" )
 
     try:
         #   1. Pull latest changes
@@ -54,9 +54,9 @@ def run_quick_upload( params ):
         error_msg = e.stderr if e.stderr else e.stdout
         if "nothing to commit" in error_msg.lower( ):
              return "nothing to commit"
-        return f"failed at command: {' '.join( e.cmd )}\nerror: {error_msg}"
+        raise Exception( f"failed at command: {' '.join( e.cmd )}\nerror: {error_msg}" )
     except Exception as e:
-        return f"an unexpected error occurred during quick upload: {str( e )}"
+        raise Exception( f"an unexpected error occurred during quick upload: {str( e )}" )
 
 
 if __name__ == "__main__":

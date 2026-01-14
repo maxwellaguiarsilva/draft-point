@@ -13,7 +13,8 @@ To be considered Gold Standard, a tool must strictly follow these requirements:
 2.  **Header**: It must contain the `shebang` (`#!/usr/bin/python3`) followed by the project's standard license header and the `File:` field with the correct filename.
 3.  **Entry Point**: It must use the `run_main` function from the `lib.common` module.
 4.  **Main Function**: It must be named `run_<tool_name>` (e.g., `run_quick_upload`) and accept a single dictionary parameter (`params`).
-5.  **Return**: It must return only the informative content string. The responsibility for indicating "success" or "failure" at the interface level belongs to the Dispatcher (`project-mcp.py`).
+5.  **Return**: For success, it must return only the informative content string. The responsibility for indicating "success" or "failure" at the interface level belongs to the Dispatcher (`project-mcp.py`).
+6.  **Error Handling**: For failures, the tool must raise a standard `Exception` with a clear, descriptive message. This message must *not* include prefixes like "error:" or "failure:", as labeling is the Dispatcher's responsibility. This allows `lib.common` to capture the error, print the clean message to `stderr`, and exit with status 1, signaling the failure to the orchestrator.
 6.  **Process Decoupling**: If a tool needs another (e.g., `quick_upload` calling `agent_statistic`), it must perform a native `import` of the `run_` function instead of triggering a `subprocess`.
 
 ### 1.2. The Dispatcher (MCP Server)
@@ -77,6 +78,9 @@ from lib.common import run_main
 
 def run_tool_name(params):
     # Logic here
+    if not params.get( "required_key" ):
+        raise Exception( "missing required_key parameter" )
+    
     return "result"
 
 if __name__ == "__main__":

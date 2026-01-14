@@ -23,25 +23,24 @@ _special_tool_config = {
 
 
 def _call( args: list[ str ] ) -> subprocess.CompletedProcess:
-    """Internal helper to run subprocess with consistent parameters."""
+    """internal helper to run subprocess with consistent parameters"""
     return subprocess.run( args, capture_output=True, text=True, check=True )
 
 def _run_and_format( name: str, args: Any = None ) -> str:
-    """Gold Standard: Runs a command and formats the output for MCP return."""
+    """gold standard: runs a command and formats the output for mcp return"""
     label = name.replace( '_', ' ' )
     script = f"{name}.py"
     
     cmd = [ "python3", f"tools/{script}" ]
     
-    #   Arguments are always passed as a JSON string
+    #   arguments are always passed as a json string
     cmd.append( json.dumps( args if args is not None else { } ) )
-            
+    
     try:
         process = _call( cmd )
         return f"{label} successful:\n{process.stdout}"
     except subprocess.CalledProcessError as e:
-        details = f"{e.stdout}\n{e.stderr}".strip( )
-        return f"{label} failed:\n{details}"
+        return f"{label} failed:\n{e.stdout}\n{e.stderr}".strip( )
     except Exception as e:
         return f"{label} failed: {str( e )}"
 
