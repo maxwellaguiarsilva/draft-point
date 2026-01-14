@@ -78,6 +78,13 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
             -   É o comportamento desejado que o processo seja interrompido na primeira falha encontrada, mesmo em execuções paralelas.
             -   O Core não deve tentar capturar exceções internamente para prover granularidade ou continuar a execução após um erro; a primeira falha encerra a orquestração e o erro é reportado pelo `run_main`.
             -   Isso garante que o desenvolvedor foque na resolução de um problema por vez, mantendo a consistência do estado do projeto.
+6.  **Estrutura de Importação Protegida**: Para evitar efeitos colaterais durante a importação de módulos (como a execução imediata de lógica), todo script do tipo "Ferramenta" deve obrigatoriamente proteger sua execução principal.
+    -   A lógica de inicialização deve ser encapsulada dentro do bloco:
+        ```python
+        if __name__ == "__main__":
+            run_main(run_<tool_name>)
+        ```
+    -   Isso garante a isonomia das ferramentas MCP e permite que elas sejam importadas por outros módulos ou pelo Core sem disparar o `run_main` involuntariamente, reforçando a modularização do projeto.
 
 ## 4. Roteiro de Implementação em Fases
 
