@@ -1,90 +1,90 @@
-# Arquitetura e Operação do Sistema Project-Mcp-Tools
+# Project-Mcp-Tools System Architecture and Operation
 
-Este documento descreve a arquitetura técnica, os componentes e os fluxos de trabalho do sistema de ferramentas Model Context Protocol (MCP) do projeto.
+This document describes the technical architecture, components, and workflows of the project's Model Context Protocol (MCP) tool system.
 
-## 1. Filosofia de Design: Padrão Ouro (Gold Standard)
+## 1. Design Philosophy: Gold Standard
 
-O sistema está em transição de um modelo acoplado para um padrão agnóstico e idiomático denominado **Gold Standard**. O objetivo é que o servidor MCP seja apenas um orquestrador que não conhece a implementação interna das ferramentas.
+The system is transitioning from a coupled model to an agnostic and idiomatic pattern called **Gold Standard**. The goal is for the MCP server to be merely an orchestrator that does not know the internal implementation of the tools.
 
-### 1.1. Especificação de uma Ferramenta Gold Standard
-Para ser considerada Gold Standard, uma ferramenta deve seguir rigorosamente estes requisitos:
+### 1.1. Gold Standard Tool Specification
+To be considered Gold Standard, a tool must strictly follow these requirements:
 
-1.  **Nomenclatura**: O arquivo deve usar `snake_case` (ex: `quick_upload.py`). Isso permite que ferramentas importem umas às outras nativamente via Python.
-2.  **Cabeçalho**: Deve conter o `shebang` (`#!/usr/bin/python3`) seguido pelo cabeçalho de licença padrão do projeto e o campo `File:` com o nome correto do arquivo.
-3.  **Ponto de Entrada**: Deve utilizar a função `run_main` do módulo `lib.common`.
-4.  **Função Principal**: Deve ser nomeada como `run_<nome_da_ferramenta>` (ex: `run_quick_upload`) e aceitar um único parâmetro do tipo dicionário (`params`).
-5.  **Retorno**: Deve retornar apenas a string de conteúdo informativo. A responsabilidade de indicar "sucesso" ou "falha" no nível de interface é do Dispatcher (`project-mcp.py`).
-6.  **Desacoplamento de Processo**: Se uma ferramenta precisar de outra (ex: `quick_upload` chamando `agent_statistic`), ela deve fazer o `import` nativo da função `run_` em vez de disparar um `subprocess`.
+1.  **Naming**: The file must use `snake_case` (e.g., `quick_upload.py`). This allows tools to import each other natively via Python.
+2.  **Header**: It must contain the `shebang` (`#!/usr/bin/python3`) followed by the project's standard license header and the `File:` field with the correct filename.
+3.  **Entry Point**: It must use the `run_main` function from the `lib.common` module.
+4.  **Main Function**: It must be named `run_<tool_name>` (e.g., `run_quick_upload`) and accept a single dictionary parameter (`params`).
+5.  **Return**: It must return only the informative content string. The responsibility for indicating "success" or "failure" at the interface level belongs to the Dispatcher (`project-mcp.py`).
+6.  **Process Decoupling**: If a tool needs another (e.g., `quick_upload` calling `agent_statistic`), it must perform a native `import` of the `run_` function instead of triggering a `subprocess`.
 
-### 1.2. O Dispatcher (Servidor MCP)
-Localizado em `tools/project-mcp.py`, utiliza a biblioteca `FastMCP`.
-*   **Agnóstico**: Para ferramentas Gold Standard, ele utiliza a função `_run_and_format`, que assume que o nome da ferramenta MCP é idêntico ao nome do arquivo `.py` em `tools/`.
-*   **Legado**: Ferramentas que ainda não foram migradas utilizam `_legacy_run_and_format` e dependem do dicionário `_special_tool_config` para mapear subcomandos e nomes de arquivos antigos (`kebab-case`).
+### 1.2. The Dispatcher (MCP Server)
+Located in `tools/project-mcp.py`, it uses the `FastMCP` library.
+*   **Agnostic**: For Gold Standard tools, it uses the `_run_and_format` function, which assumes the MCP tool name is identical to the `.py` filename in `tools/`.
+*   **Legacy**: Tools that have not yet been migrated use `_legacy_run_and_format` and depend on the `_special_tool_config` dictionary to map subcommands and old filenames (`kebab-case`).
 
 ---
 
-## 2. Componentes e Status de Migração
+## 2. Components and Migration Status
 
-### 2.1. Ferramentas Gold Standard (Migradas)
-| Ferramenta | Arquivo | Descrição |
+### 2.1. Gold Standard Tools (Migrated)
+| Tool | File | Description |
 | :--- | :--- | :--- |
-| `adhoc_tool` | `adhoc_tool.py` | Executa lógica experimental e prototipagem. |
-| `quick_upload` | `quick_upload.py` | Ciclo git (pull, add, commit, push) e registro de estatísticas. |
-| `agent_statistic` | `agent_statistic.py` | Registro e consulta de métricas de comportamento do agente. |
+| `adhoc_tool` | `adhoc_tool.py` | Executes experimental logic and prototyping. |
+| `quick_upload` | `quick_upload.py` | Git cycle (pull, add, commit, push) and statistics recording. |
+| `agent_statistic` | `agent_statistic.py` | Recording and querying agent behavior metrics. |
 
-### 2.2. Ferramentas Legadas (Pendentes de Migração)
-Estas ferramentas ainda usam o padrão `kebab-case`, subcomandos manuais e não seguem a estrutura de função `run_`.
+### 2.2. Legacy Tools (Pending Migration)
+These tools still use the `kebab-case` pattern, manual subcommands, and do not follow the `run_` function structure.
 
-*   **`file-generator.py`**: (`create_class`, `create_test`). Gerador de boilerplate e templates.
-*   **`code-verifier.py`**: (`verify_formatting`). Validador de Hard Rules de estilo.
-*   **`project-builder.py`**: (`compile`, `analyze`). Orquestrador de build, cppcheck e formatação.
+*   **`file-generator.py`**: (`create_class`, `create_test`). Boilerplate and template generator.
+*   **`code-verifier.py`**: (`verify_formatting`). Style Hard Rules validator.
+*   **`project-builder.py`**: (`compile`, `analyze`). Build, cppcheck, and formatting orchestrator.
 
 ---
 
-## 3. Fluxos de Trabalho Gold Standard
+## 3. Gold Standard Workflows
 
-### 3.1. Execução via MCP
-O fluxo de execução segue o caminho:
-1.  **Chamada**: `mcp.quick_upload(message="...")` no `project-mcp.py`.
-2.  **Despacho**: `_run_and_format("quick_upload", {"message": "..."})`.
+### 3.1. Execution via MCP
+The execution workflow follows this path:
+1.  **Call**: `mcp.quick_upload(message="...")` in `project-mcp.py`.
+2.  **Dispatch**: `_run_and_format("quick_upload", {"message": "..."})`.
 3.  **Shell**: `python3 tools/quick_upload.py '{"message": "..."}'`.
-4.  **Lógica**: `run_main(run_quick_upload)` processa o JSON e executa a tarefa.
-5.  **Output**: O retorno limpo da ferramenta é encapsulado pelo label de sucesso do MCP.
+4.  **Logic**: `run_main(run_quick_upload)` processes the JSON and executes the task.
+5.  **Output**: The tool's clean return is encapsulated by the MCP success label.
 
-### 3.2. Integração entre Ferramentas
-Uma ferramenta Gold Standard pode invocar outra sem criar novos processos:
+### 3.2. Integration between Tools
+A Gold Standard tool can invoke another without creating new processes:
 ```python
 from agent_statistic import run_agent_statistic
 
 def run_my_tool(params):
-    # ... lógica ...
+    # ... logic ...
     return run_agent_statistic({"name": "success"})
 ```
 
 ---
 
-## 4. Guia de Implementação para Novas Ferramentas
+## 4. Implementation Guide for New Tools
 
-Ao criar uma nova ferramenta, utilize o seguinte template básico:
+When creating a new tool, use the following basic template:
 
 ```python
 #!/usr/bin/python3
 
-# [Cabeçalho de Licença Padrão]
-# File: nome_da_ferramenta
+# [Standard License Header]
+# File: tool_name
 
 from lib.common import run_main
 
-def run_nome_da_ferramenta(params):
-    # Lógica aqui
-    return "resultado"
+def run_tool_name(params):
+    # Logic here
+    return "result"
 
 if __name__ == "__main__":
-    run_main(run_nome_da_ferramenta)
+    run_main(run_tool_name)
 ```
 
 ---
 
-## 5. Notas de Manutenção
-*   **Higienização**: Após migrar uma lógica de `adhoc_tool.py` para um script definitivo, o `adhoc_tool.py` deve ser limpo.
-*   **Refatoração**: O objetivo a longo prazo é eliminar o `_special_tool_config` do `project-mcp.py` à medida que todos os scripts forem migrados para o padrão Gold Standard em `snake_case`.
+## 5. Maintenance Notes
+*   **Sanitization**: After migrating logic from `adhoc_tool.py` to a definitive script, `adhoc_tool.py` must be cleaned.
+*   **Refactoring**: The long-term goal is to eliminate `_special_tool_config` from `project-mcp.py` as all scripts are migrated to the Gold Standard `snake_case` pattern.
