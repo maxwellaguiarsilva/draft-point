@@ -1,6 +1,3 @@
-
-
-
 # Migração das ferramentas MCP do projeto
 
 Este documento define o roteiro para a modernização das ferramentas MCP do projeto, eliminando o modelo legado e acoplamento ineficiente entre scripts Python.
@@ -139,5 +136,29 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
 
 A maturidade exige que nenhuma ferramenta chame outra ferramenta Python via `subprocess.run`. A comunicação deve ser via `import`. O `project_mcp.py` torna-se um dispatcher fino, delegando a complexidade para scripts que seguem o padrão `run_<name>(params)`. O `project_core` centraliza o conhecimento sobre a estrutura do projeto, permitindo que ferramentas especializadas foquem apenas em suas tarefas.
 
+## 7. Status da Migração (Relatório Atualizado)
 
+A migração para a arquitetura **Gold Standard** está em um estágio avançado, com todo o "motor" do sistema e as ferramentas individuais já convertidos. No entanto, o Dispatcher principal (o servidor MCP) ficou em um estado inconsistente, o que impede o funcionamento das ferramentas que ainda estavam marcadas como "legadas".
 
+### 7.1. O que já foi feito (Concluído)
+*   **Centralização da Lógica (Bibliotecas):** Toda a "maquinaria" foi extraída para `tools/lib/`, garantindo que as ferramentas sejam modulares e não dependam de subprocessos Python internos.
+    *   `lib/common.py`: Contrato `run_main` e utilitários básicos.
+    *   `lib/project_core.py`: O "cérebro" do projeto (build, análise, mapeamento).
+    *   `lib/metadata_provider.py`: Provedor de metadados canônicos (Git, licenças).
+    *   `lib/template_engine.py`: Motor de renderização de templates.
+*   **Migração das Ferramentas (Scripts):** Todos os scripts em `tools/` foram convertidos para o padrão `snake_case` e implementam a interface `run_<tool_name>(params)`.
+    *   `file_generator.py`: Substitui `file-generator.py` e `template.py`.
+    *   `code_verifier.py`: Substitui `code-verifier.py`.
+    *   `compile.py` e `analyze.py`: Substituem a lógica do antigo `project-builder.py`.
+*   **Limpeza de Legado:** Os arquivos antigos com hífens (`kebab-case`) e o `template.py` foram removidos do sistema de arquivos.
+
+### 7.2. O que está pendente (Crítico)
+O arquivo `tools/project_mcp.py` (Dispatcher) está **quebrado** para as ferramentas de criação e build. As pendências exatas são:
+
+1.  **Remoção de Código Morto:** O Dispatcher tenta chamar uma função chamada `_legacy_run_and_format`, que **não existe** nem no arquivo nem nas bibliotecas, causando erro de execução.
+2.  **Mapeamento de Ferramentas:** As ferramentas abaixo precisam ser atualizadas para usar o novo padrão `_invoke_tool`:
+    *   `create_class` e `create_test`: Devem ser mapeadas para o script `file_generator.py`.
+    *   `compile`: Deve ser mapeada para o script `compile.py`.
+    *   `analyze`: Deve ser mapeada para o script `analyze.py`.
+    *   `verify_formatting`: Deve ser mapeada para o script `code_verifier.py`.
+3.  **Sincronização de Parâmetros:** Garantir que o dicionário de argumentos enviado pelo Dispatcher via `_invoke_tool` coincida com o que cada script espera em sua função `run_`.
