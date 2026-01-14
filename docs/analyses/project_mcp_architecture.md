@@ -1,78 +1,69 @@
-# Arquitetura e Operação do Sistema Project-Mcp-Tools
+# Project-Mcp-Tools Architecture and Operation
 
-Este documento descreve a arquitetura técnica, componentes e fluxos de trabalho do sistema de ferramentas Model Context Protocol (MCP) do projeto.
+This document describes the technical architecture, components, and workflows of the project's Model Context Protocol (MCP) tool system.
 
-## 1. Filosofia de Design: Gold Standard
+## 1. Tool Specification
 
-O sistema opera sob um padrão agnóstico e modularizado. O servidor MCP atua como um orquestrador que não conhece a implementação interna das ferramentas, delegando a execução para scripts especializados.
+A tool follows these requirements:
 
-### 1.1. Especificação de Ferramenta
-Para ser considerada Gold Standard, uma ferramenta segue rigorosamente estes requisitos:
+1.  **Naming**: Files use `snake_case` (e.g., `quick_upload.py`). Tools import each other via Python's `import` mechanism.
+2.  **Header**: Contains the `shebang` (`#!/usr/bin/python3`), the project license header, and the `File:` field with the filename.
+3.  **Entry Point**: Utilizes the `run_main` function from the `lib.common` module.
+    *   **JSON-CLI Bridge**: `run_main` receives the first CLI argument (`sys.argv[1]`) as a JSON string.
+    *   **Parsing**: The string is decoded and passed to the tool's main function as a `params` dictionary.
+4.  **Main Function**: Named `run_<tool_name>` (e.g., `run_quick_upload`), accepting a single `params` dictionary.
+5.  **Return Contract**: Returns a string containing the result content. The Dispatcher (`project_mcp.py`) handles the interface-level status.
+6.  **Error Handling**: Failures are handled by throwing an `Exception` (via the `ensure` utility). `lib.common` captures the exception, prints the message to `stderr`, and exits with status 1.
+7.  **Process Decoupling**: Tools interact via native `import` of the `run_` function.
 
-1.  **Naming**: O arquivo usa `snake_case` (ex: `quick_upload.py`). Isso permite que as ferramentas importem umas às outras nativamente via Python.
-2.  **Header**: Contém o `shebang` (`#!/usr/bin/python3`) seguido pelo cabeçalho de licença padrão do projeto e o campo `File:` com o nome de arquivo correto.
-3.  **Entry Point**: Utiliza a função `run_main` do módulo `lib.common`. O `run_main` estabelece um contrato onde o primeiro argumento recebido via CLI (`sys.argv[1]`) deve ser obrigatoriamente uma string JSON, que será decodificada e injetada na função principal da ferramenta.
-4.  **Main Function**: Nomeada `run_<tool_name>` (ex: `run_quick_upload`) e aceita um único parâmetro de dicionário (`params`) proveniente do JSON decodificado.
-5.  **Return**: Em caso de sucesso, retorna apenas a string de conteúdo informativo. A responsabilidade por indicar "success" ou "failure" no nível da interface pertence ao Dispatcher (`project_mcp.py`).
-6.  **Error Handling**: Para falhas, a ferramenta lança uma `Exception` (geralmente via `ensure`) com uma mensagem clara e descritiva. O `lib.common` captura o erro, imprime a mensagem limpa no `stderr` e sai com status 1, sinalizando a falha ao orquestrador.
-7.  **Process Decoupling**: Se uma ferramenta precisa de outra, ela realiza um `import` nativo da função `run_` em vez de disparar um `subprocess`.
-
-### 1.2. O Dispatcher (Servidor MCP)
-Localizado em `tools/project_mcp.py`, ele utiliza a biblioteca `FastMCP`.
-*   **Agnostic**: Utiliza a função `_invoke_tool`, que despacha a execução para os scripts em `tools/`.
-*   **Mapping**: Associa comandos MCP aos respectivos scripts, permitindo que uma única ferramenta (como `file_generator.py`) atenda a múltiplos comandos (`create_class`, `create_test`).
+### 1.2. Process Decoupling Rules
+The system architecture separates process execution types:
+*   **External Binaries**: Handled via `subprocess` (e.g., `git`, `g++`, `clang-format`, `cppcheck`).
+*   **Internal Logic**: Python scripts within the project do not invoke each other via `subprocess`. Communication is handled through `import`.
 
 ---
 
-## 2. Componentes e Ferramentas
+## 2. Core Components
 
-Todas as ferramentas foram migradas para o padrão `snake_case` e utilizam a infraestrutura modular em `tools/lib/`.
+### 2.1. The Dispatcher (project_mcp.py)
+The MCP server, utilizing `FastMCP`, acts as a dispatching layer.
+*   **Agnosticism**: It uses the `_invoke_tool` function to execute scripts in `tools/`.
+*   **Command Mapping**: Maps MCP commands to scripts. A script handles multiple commands by dispatching based on parameters.
 
-### 2.1. Ferramentas Disponíveis
-| Ferramenta | Arquivo | Descrição |
+### 2.2. The Project Engine (lib/project_core.py)
+Responsible for file mapping, dependency graphs, and build orchestration.
+*   **State Management**: Maintains an internal state of the filesystem and dependency metadata.
+*   **Parallelism**: Uses `ThreadPoolExecutor` for compilation and analysis.
+*   **Thread-Safety**: 
+    *   **Output Synchronization**: Employs a `threading.Lock` to serialize print statements.
+    *   **Interruption Control**: Uses `threading.Event` to halt worker threads when an error is detected.
+*   **Fail-Fast Rule**: Execution stops at the first encountered error.
+
+### 2.3. Support Libraries (`tools/lib/`)
+*   **`common.py`**: Contains the `run_main` entry point and the `ensure` validation utility.
+*   **`metadata_provider.py`**: Centralizes project data (Git info, licenses, dates) to prevent circular dependencies.
+*   **`template_engine.py`**: Library for rendering file templates.
+
+---
+
+## 3. Tooling Ecosystem
+
+| Tool | Script | Description |
 | :--- | :--- | :--- |
-| `analyze` | `analyze.py` | Análise estática (cppcheck) e formatação automática. |
-| `compile` | `compile.py` | Compilação e linkagem paralela com grafo de dependências. |
-| `code_verifier` | `code_verifier.py` | Validação e correção de regras de estilo e formatação. |
-| `file_generator`| `file_generator.py`| Geração de classes (`create_class`) e testes (`create_test`). |
-| `quick_upload` | `quick_upload.py` | Ciclo Git (pull, add, commit, push) e métricas. |
-| `agent_statistic`| `agent_statistic.py`| Registro de métricas de comportamento do agente. |
-| `include_tree` | `include_tree.py` | Análise recursiva da árvore de includes. |
-| `adhoc_tool` | `adhoc_tool.py` | Execução de lógica experimental. |
-
-### 2.2. Bibliotecas de Suporte (`tools/lib/`)
-*   **`common.py`**: Contrato `run_main`, `ensure` e utilitários de subprocesso.
-*   **`project_core.py`**: Motor de build, mapeamento de arquivos e grafo de dependências.
-*   **`metadata_provider.py`**: Provedor de metadados canônicos (licenças, autores, datas).
-*   **`template_engine.py`**: Renderização de templates para geração de arquivos.
+| `analyze` | `analyze.py` | Orchestrates `cppcheck` and `code_verifier`. |
+| `compile` | `compile.py` | Handles building and linking via `project_core`. |
+| `code_verifier` | `code_verifier.py` | Validates and applies formatting rules. |
+| `file_generator`| `file_generator.py`| Handles `create_class` and `create_test` commands. |
+| `quick_upload` | `quick_upload.py` | Manages the Git lifecycle. |
+| `agent_statistic`| `agent_statistic.py`| Records and retrieves behavioral metrics. |
+| `include_tree` | `include_tree.py` | Analyzes C++ include hierarchies. |
+| `adhoc_tool` | `adhoc_tool.py` | Entry point for experimental logic. |
 
 ---
 
-## 3. Workflows
+## 4. Implementation Guide for New Tools
 
-### 3.1. Execução via MCP
-1.  **Call**: O agente chama `mcp.compile( )`.
-2.  **Dispatch**: `_invoke_tool("compile")` em `project_mcp.py`.
-3.  **Shell**: Executa `python3 tools/compile.py '{}'`.
-4.  **Logic**: `run_main(run_compile)` processa a requisição e interage com o `project_core`.
-5.  **Output**: O retorno limpo é encapsulado pelo rótulo de sucesso do MCP.
-
-### 3.2. Integração entre Ferramentas
-As ferramentas agora interagem por meio de importações nativas, eliminando subprocessos Python internos:
-```python
-from code_verifier import run_code_verifier
-
-def run_analyze(params):
-    #   ...
-    run_code_verifier({"files": files, "flg_auto_fix": True})
-    #   ...
-```
-
----
-
-## 4. Guia de Implementação para Novas Ferramentas
-
-Ao criar uma nova ferramenta, utilize o template:
+New tools utilize the following structure:
 
 ```python
 #!/usr/bin/python3
@@ -80,18 +71,38 @@ Ao criar uma nova ferramenta, utilize o template:
 # [Standard License Header]
 # File: tool_name
 
-from lib.common import run_main
+from lib.common import run_main, ensure
 
 def run_tool_name(params):
-    #   logic here
-    return "result"
+    # 1. Parameter validation
+    ensure("required_param" in params, "Missing 'required_param'")
+    
+    # 2. Logic implementation
+    # ...
+    
+    return "Operation result: [details]"
 
 if __name__ == "__main__":
     run_main(run_tool_name)
 ```
 
+### 4.1. Integration Patterns
+*   Tools needing logic from another script use `import` for the corresponding `run_` function.
+*   Tools requiring project-wide file mapping use `project_core`.
+*   Tools requiring project metadata use `metadata_provider`.
+
 ---
 
-## 5. Notas de Manutenção
-*   **Refactoring**: O objetivo de eliminar o código legado e hífens nos nomes de arquivos foi atingido.
-*   **Performance**: O uso de `project_core` com paralelismo otimiza o build e a análise.
+## 5. Workflows
+
+### 5.1. The "Analyze" Workflow
+1.  **Mapping**: `project_core` scans the filesystem.
+2.  **Static Analysis**: `project_core` dispatches threads to run `cppcheck`.
+3.  **Formatting Validation**: `analyze.py` calls `code_verifier.run_code_verifier` natively.
+4.  **Reporting**: The first violation triggers `ensure`, interrupting the process and returning the error.
+
+### 5.2. The "Compile" Workflow
+1.  **Graph Generation**: `project_core` builds a dependency graph.
+2.  **Incremental Build**: Recompiles modified files or those with changed dependencies.
+3.  **Parallel Execution**: Compilation units are processed in a thread pool.
+4.  **Linking**: Final binary is linked if compilation units succeed.
