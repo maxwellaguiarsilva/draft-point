@@ -49,12 +49,12 @@ def run_quick_upload( params ):
         #   5. Record success statistic
         stats_result = run_agent_statistic( { "name": "success" } )
         
-        return f"quick upload successful: `{message}`\n\n{stats_result}"
+        return f"`{message}`\n\n{stats_result}"
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr if e.stderr else e.stdout
         if "nothing to commit" in error_msg.lower( ):
-             return "quick upload aborted: nothing to commit"
-        return f"quick upload failed at command: {" ".join( e.cmd )}\nerror: {error_msg}"
+             return "nothing to commit"
+        return f"failed at command: {' '.join( e.cmd )}\nerror: {error_msg}"
     except Exception as e:
         return f"an unexpected error occurred during quick upload: {str( e )}"
 
