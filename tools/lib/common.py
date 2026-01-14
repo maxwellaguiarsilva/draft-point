@@ -37,6 +37,12 @@ def _invoke_subprocess( command ):
     return  subprocess.run( command, check=True, capture_output=True, text=True )
 
 
+def print_line( strong = True ):
+    line_size = 50
+    char = "=" if strong else "-"
+    print( char * line_size )
+
+
 def run_main( action ):
     params  =   { }
     if len( sys.argv ) > 1:
