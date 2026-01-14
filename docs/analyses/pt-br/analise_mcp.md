@@ -70,6 +70,10 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
         -   As mensagens de sucesso, são protegidas com lock para que não haja `race condition` nelas.
         -   **Sincronização de Saída**: O objeto `project` deve obrigatoriamente possuir um `threading.Lock` para serializar todas as chamadas de impressão (`print`), garantindo que os blocos de mensagens de cada thread (compilação de um arquivo específico, por exemplo) sejam exibidos de forma atômica e legível.
         -   **Controle de Interrupção**: O uso de `threading.Event` (como o `_stop_event`) é mandatório para propagar sinal de parada imediata para todas as threads trabalhadoras assim que um erro fatal for detectado, minimizando o desperdício de recursos.
+        -   **Fluxo de Exceções e Interrupção**: Todas as exceções geradas por ferramentas (como `run_verify_formatting`) ou pelo Kernel devem borbulhar livremente até o `run_main` do ponto de entrada principal (ex: `analyze.py` ou `compile.py`).
+            -   É o comportamento desejado que o processo seja interrompido na primeira falha encontrada, mesmo em execuções paralelas.
+            -   O Kernel não deve tentar capturar exceções internamente para prover granularidade ou continuar a execução após um erro; a primeira falha encerra a orquestração e o erro é reportado pelo `run_main`.
+            -   Isso garante que o desenvolvedor foque na resolução de um problema por vez, mantendo a consistência do estado do projeto.
 
 ## 4. Roteiro de Implementação em Fases
 
