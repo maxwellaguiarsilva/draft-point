@@ -25,11 +25,16 @@
 
 import json
 import sys
+import subprocess
 
 
 def ensure( expression, message ):
     if not expression:
         raise Exception( message )
+
+
+def _invoke_subprocess( command ):
+    return  subprocess.run( command, check=True, capture_output=True, text=True )
 
 
 def run_main( action ):

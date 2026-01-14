@@ -34,6 +34,7 @@ import threading
 import subprocess
 import json
 import argparse
+from lib.common import run_main, ensure, _invoke_subprocess
 
 
 def get_cpu_count( ):
@@ -559,10 +560,7 @@ class project:
 
         def process_file( file_path ):
             try:
-                result_process = subprocess.run(
-                    [ "python3", "tools/code-verifier.py", "--fix", file_path ],
-                    capture_output=True, text=True, check=True
-                )
+                result_process = _invoke_subprocess( [ "python3", "tools/code-verifier.py", "--fix", file_path ] )
                 fmt_result = json.loads( result_process.stdout )
                 
                 if fmt_result[ "changed" ]:
@@ -650,19 +648,20 @@ class project:
         self.run_cppcheck( )
 
 
-if __name__ == "__main__":
-    try:
-        command = sys.argv[ 1 ] if len( sys.argv ) > 1 else "run_build"
-        #   args = json.loads( sys.argv[ 2 ] ) if len( sys.argv ) > 2 else { }
+def main_action( params ):
+    command = params.get( "command", "run_build" )
+    current_project = project( { } )
+    
+    if command == "analyze":
+        current_project.analyze( )
+    else:
+        current_project.run_build( )
+    
+    return "success"
 
-        current_project = project( { } )
-        if command == "analyze":
-            current_project.analyze( )
-        else:
-            current_project.run_build( )
-    except Exception as e:
-        print( f"\nError: {e}", file=sys.stderr )
-        sys.exit( 1 )
+
+if __name__ == "__main__":
+    run_main( main_action )
 
 
 

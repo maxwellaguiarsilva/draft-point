@@ -24,12 +24,8 @@
 
 
 import subprocess
-from lib.common import run_main, ensure
+from lib.common import run_main, ensure, _invoke_subprocess
 from agent_statistic import run_agent_statistic
-
-
-def _invoke_subprocess( command ):
-    return  subprocess.run( command, check=True, capture_output=True, text=True )
 
 
 def run_quick_upload( params ):
