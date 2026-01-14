@@ -17,18 +17,18 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   quick-upload
+#   File:   quick_upload
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-13 18:00:00
 
 
-import json
 import subprocess
 from lib.common import run_main
+from agent_statistic import run_agent_statistic
 
 
-def quick_upload( params ):
+def run_quick_upload( params ):
     message = params.get( "message" )
     if not message:
         return "error: 'message' parameter is required for quick_upload"
@@ -47,17 +47,17 @@ def quick_upload( params ):
         subprocess.run( [ "git", "push" ], check=True, capture_output=True, text=True )
         
         #   5. Record success statistic
-        stats_process = subprocess.run( [ "python3", "tools/agent-statistic.py", json.dumps( { "name": "success" } ) ], check=True, capture_output=True, text=True )
+        stats_result = run_agent_statistic( { "name": "success" } )
         
-        return f"quick upload successful: `{message}`\n\n{stats_process.stdout}"
+        return f"quick upload successful: `{message}`\n\n{stats_result}"
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr if e.stderr else e.stdout
         if "nothing to commit" in error_msg.lower( ):
              return "quick upload aborted: nothing to commit"
-        return f"quick upload failed at command: {'. '.join( e.cmd )}\nerror: {error_msg}"
+        return f"quick upload failed at command: {" ".join( e.cmd )}\nerror: {error_msg}"
     except Exception as e:
         return f"an unexpected error occurred during quick upload: {str( e )}"
 
 
 if __name__ == "__main__":
-    run_main( quick_upload )
+    run_main( run_quick_upload )

@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   agent-statistic
+#   File:   agent_statistic
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-10 00:01:07
@@ -46,7 +46,7 @@ def format_output( data ):
     return "\n".join( lines )
 
 
-def run_statistic( params ):
+def run_agent_statistic( params ):
     # Validate allowed fields
     allowed_fields = { "name", "short-description" }
     for key in params:
@@ -104,6 +104,6 @@ def run_statistic( params ):
 
 
 if __name__ == "__main__":
-    run_main( run_statistic )
+    run_main( run_agent_statistic )
 
 

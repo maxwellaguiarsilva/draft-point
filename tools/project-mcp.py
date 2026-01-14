@@ -29,7 +29,7 @@ def _call( args: list[ str ] ) -> subprocess.CompletedProcess:
 def _run_and_format( name: str, args: Any = None ) -> str:
     """Gold Standard: Runs a command and formats the output for MCP return."""
     label = name.replace( '_', ' ' )
-    script = f"{name.replace( '_', '-' )}.py"
+    script = f"{name}.py"
     
     cmd = [ "python3", f"tools/{script}" ]
     
