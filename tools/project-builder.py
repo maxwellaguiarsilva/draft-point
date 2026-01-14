@@ -45,37 +45,37 @@ def get_cpu_count( ):
 
 
 DEFAULT_CONFIG = {
-    # Compiler information
+    #   compiler information
     "compiler": {
-        "executable": "clang++"        # Options: "g++", "clang++" or full path
-        ,"standard": "c++23"           # Examples: "c++17", "c++20", "c++23"
-        ,"use_64_bits": True           # Abstraction for -m64 (64-bit)
+        "executable": "clang++"        #   options: "g++", "clang++" or full path
+        ,"standard": "c++23"           #   examples: "c++17", "c++20", "c++23"
+        ,"use_64_bits": True           #   abstraction for -m64 (64-bit)
         ,"extra_compile_flags": [
-            "-ffunction-sections"      # Place each function into its own section
-            ,"-fdata-sections"         # Place each data item into its own section
-            ,"-flto"                   # Enable Link Time Optimization
+            "-ffunction-sections"      #   place each function into its own section
+            ,"-fdata-sections"         #   place each data item into its own section
+            ,"-flto"                   #   enable link time optimization
         ]
         ,"extra_link_flags": [
-            "-flto"                    # Enable Link Time Optimization during linking
+            "-flto"                    #   enable link time optimization during linking
         ]
         ,"linker_direct_options": [
-            "--as-needed"              # Only link libraries that satisfy undefined symbols
-            ,"--gc-sections"           # Remove unused sections (dead code elimination)
+            "--as-needed"              #   only link libraries that satisfy undefined symbols
+            ,"--gc-sections"           #   remove unused sections (dead code elimination)
         ]
     }
 
-    # Folder organization
+    #   folder organization
     ,"paths": {
-        "source": "source"             # Project source directory containing .cpp files
-        ,"include": "include"          # Project include directory containing .hpp files
-        ,"tests": "tests"              # Test source directory containing .cpp files
-        ,"build": "build"              # Build directory for object files (.o)
-        ,"output": "dist"              # Output directory for the final binaries
+        "source": "source"             #   project source directory containing .cpp files
+        ,"include": "include"          #   project include directory containing .hpp files
+        ,"tests": "tests"              #   test source directory containing .cpp files
+        ,"build": "build"              #   build directory for object files (.o)
+        ,"output": "dist"              #   output directory for the final binaries
     }
 
-    # Build rules (How to compile)
+    #   build rules (how to compile)
     ,"build_behavior": {
-        # Options: "none" (-O0), "balanced" (-O2), "aggressive" (-O3), "debug" (-Og)
+        #   options: "none" (-O0), "balanced" (-O2), "aggressive" (-O3), "debug" (-Og)
         "optimization": "balanced"
         ,"optimization_levels": {
             "none": "-O0"
@@ -83,27 +83,27 @@ DEFAULT_CONFIG = {
             ,"aggressive": "-O3"
             ,"debug": "-Og"
         }
-        ,"debug_symbols": False         # Generates symbols for GDB (-g)
-        ,"generate_dependencies": False # Generates .d files (intelligent recompilation)
-        ,"experimental_library": True   # Enables -fexperimental-library
+        ,"debug_symbols": False         #   generates symbols for gdb (-g)
+        ,"generate_dependencies": False #   generates .d files (intelligent recompilation)
+        ,"experimental_library": True   #   enables -fexperimental-library
         ,"max_threads": get_cpu_count( )
     }
 
-    # Quality Control (Warning and analysis flags)
+    #   quality control (warning and analysis flags)
     ,"quality_control": {
-        # Options: "minimal", "high" (-Wall -Wextra), "pedantic"
+        #   options: "minimal", "high" (-Wall -Wextra), "pedantic"
         "warning_level": "high"
         ,"warning_levels": {
             "minimal": ["-Wall"]
             ,"high": ["-Wall", "-Wextra"]
             ,"pedantic": ["-Wall", "-Wextra", "-Wpedantic"]
         }
-        ,"treat_warnings_as_errors": True # -Werror
-        ,"stop_on_first_error": True      # -Wfatal-errors
+        ,"treat_warnings_as_errors": True #   -Werror
+        ,"stop_on_first_error": True      #   -Wfatal-errors
         ,"static_analysis": {
             "enabled": True
             ,"tool": "cppcheck"
-            ,"strictness": "exhaustive"    # Options: "normal", "exhaustive"
+            ,"strictness": "exhaustive"    #   options: "normal", "exhaustive"
             ,"suppressions": [
                 "missingIncludeSystem"
                 ,"checkersReport"
@@ -111,14 +111,14 @@ DEFAULT_CONFIG = {
         }
     }
 
-    # External dependencies (No -l or -I prefixes)
+    #   external dependencies (no -l or -I prefixes)
     ,"dependencies": {
-        "libraries": []                # Example: ["ncurses", "pthread"]
-        ,"include_dirs": []            # Additional paths for header search
-        ,"library_dirs": []             # Additional paths for library search
+        "libraries": []                #   example: ["ncurses", "pthread"]
+        ,"include_dirs": []            #   additional paths for header search
+        ,"library_dirs": []             #   additional paths for library search
     }
 
-    # File search patterns
+    #   file search patterns
     ,"patterns": {
         "source_extension": "cpp"
         ,"header_extension": "hpp"
@@ -165,7 +165,7 @@ class cpp( project_file ):
 
         super().__init__( path, project, base_folder )
         
-        # Build directory paths
+        #   build directory paths
         build_base = os.path.join( build_folder, base_folder )
         self.object_path = os.path.join( build_base, self.hierarchy + ".o" )
 
@@ -229,7 +229,7 @@ class binary_builder:
         self.cpp = cpp
         dist_folder  = self.cpp.project.config["paths"]["output"]
         
-        # The binary will only have the filename, without the extension and without the hierarchy
+        #   the binary will only have the filename, without the extension and without the hierarchy
         binary_name = os.path.basename( self.cpp.path )
         binary_name = os.path.splitext( binary_name )[0]
         self.binary_path = os.path.join( dist_folder, binary_name )
@@ -257,7 +257,7 @@ class binary_builder:
             if cpp_obj:
                 self.dependencies_list.append( cpp_obj )
             
-            # Combine includes from both cpp and hpp (if they exist)
+            #   combine includes from both cpp and hpp (if they exist)
             all_includes = set()
             if cpp_obj:
                 all_includes.update( cpp_obj.included_items.keys() )
@@ -365,7 +365,7 @@ class project:
 
             print( *args, **kwargs )
 
-        # Check for binary name collisions
+        #   check for binary name collisions
         binaries_by_path = { }
         for b in self.binary_list:
             if b.binary_path in binaries_by_path:
@@ -519,7 +519,7 @@ class project:
         
         cppcheck_params = self._get_cppcheck_params
         
-        # Builds the list of all .cpp and .hpp files
+        #   builds the list of all .cpp and .hpp files
         source_dir = self.config['paths']['source']
         tests_dir = self.config['paths']['tests']
         
@@ -601,17 +601,17 @@ class project:
 
         self.analyze( )
 
-        # 1. Collect all unique CPP files to build
+        #   1. collect all unique cpp files to build
         all_cpps = { }
         for b in self.binary_list:
             for c in b.dependencies_list:
                 all_cpps[ c.path ] = c
 
-        # 2. Ensure build directories exist
+        #   2. ensure build directories exist
         for c in all_cpps.values( ):
             os.makedirs( os.path.dirname( c.object_path ), exist_ok=True )
 
-        # 3. Parallel compilation
+        #   3. parallel compilation
         max_workers = self.config[ "build_behavior" ].get( "max_threads", get_cpu_count( ) )
         print( f"\nCompiling {len(all_cpps)} files using {max_workers} threads..." )
         
@@ -624,7 +624,7 @@ class project:
                 self._stop_event.set( )
                 ensure( False, str( e ) )
 
-        # 4. Parallel linking
+        #   4. parallel linking
         print( f"\nLinking {len(self.binary_list)} binaries using {max_workers} threads..." )
         with concurrent.futures.ThreadPoolExecutor( max_workers = max_workers ) as executor:
             futures = [ executor.submit( b.link ) for b in self.binary_list ]
