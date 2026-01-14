@@ -47,6 +47,10 @@ Extração das classes core de `project-builder.py`:
 ### 2.2. O Motor de Metadados e Templates
 *   **`tools/lib/template_engine.py`**: O atual `tools/template.py` deve ser refatorado para expor uma função `render(template_name, data)` importável.
 *   **`tools/file_generator.py`**: Além de ser uma ferramenta, deve expor a lógica de Git (`get_canonical_metadata`) para que o `code_verifier` possa validar licenças sem subprocessos.
+*   **Refinamento para Prevenção de Dependência Circular**: Para garantir que o `template_engine.py` permaneça uma "Pure Library" e evitar acoplamento, a lógica de `get_canonical_metadata` será extraída para uma biblioteca dedicada em `tools/lib/metadata_provider.py`. Desta forma:
+    1.  O `template_engine.py` foca exclusivamente no processamento de strings e arquivos, sem conhecer a estrutura do projeto ou regras de metadados.
+    2.  O `metadata_provider.py` centraliza a inteligência de negócio sobre o projeto (Git, datas, licenças).
+    3.  As ferramentas (`file_generator`, `code_verifier`, etc.) consomem o provedor de metadados de forma independente, eliminando a necessidade de uma ferramenta importar outra ou disparar subprocessos para obter informações canônicas do projeto.
 
 ### 2.3. Validação Atômica: `tools/code_verifier.py`
 Renomeado de `code-verifier.py`.
@@ -100,8 +104,9 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
 ### Fase 1: Fundação (Infraestrutura Base)
 1.  Renomear `file-generator.py` -> `file_generator.py` e `code-verifier.py` -> `code_verifier.py`.
 2.  Criar `tools/lib/project_core.py` extraindo a lógica de `project-builder.py`.
-3.  Refatorar `tools/template.py` para ser importável.
-4.  Ajustar `project_mcp.py` para apontar para os novos nomes (Legacy Mode).
+3.  Criar `tools/lib/metadata_provider.py` extraindo a lógica de metadados de `file-generator.py`.
+4.  Refatorar `tools/template.py` para ser importável.
+5.  Ajustar `project_mcp.py` para apontar para os novos nomes (Legacy Mode).
 
 ### Fase 2: Desacoplamento e Analizadores
 1.  Substituir o uso de `importlib` em `code_verifier.py` por `import file_generator`.
@@ -123,6 +128,7 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
 | `create_class` | `file-generator.py` | `file_generator.py` | Ferramenta |
 | `create_test` | `file-generator.py` | `file_generator.py` | Ferramenta |
 | N/A | `project-builder.py` | `lib/project_core.py` | Biblioteca |
+| N/A | `file-generator.py` | `lib/metadata_provider.py` | Biblioteca |
 | N/A | `template.py` | `lib/template_engine.py`| Biblioteca |
 
 **Nota sobre a transição**: O comando anteriormente nomeado como `verify_formatting` deve ser renomeado, referido e utilizado como `code_verifier` para alinhar-se à nova estrutura de módulos e ao padrão de nomenclatura do projeto.
