@@ -55,6 +55,15 @@ Renomeado de `code-verifier.py`.
 *   **Renomeação da Ferramenta**: O comando MCP `verify_formatting` é formalmente substituído por `code_verifier`, garantindo paridade entre o nome do comando e o módulo Python.
 *   **Integração**: Consumido por `analyze.py` via `import` direto.
 
+### 2.4. Orquestração de Análise: `tools/analyze.py`
+A ferramenta `analyze` é a mais complexa, pois combina análise estática (`cppcheck`) e validação de formatação (`code_verifier`). Na nova arquitetura, ela deixa de ser um modo de operação acoplado do antigo `project-builder.py` para se tornar uma ferramenta independente que consome o `project_core.py`.
+
+*   **Fluxo de Execução Desejado:**
+    1.  **Mapeamento**: O Core realiza o escaneamento do sistema de arquivos e mapeia todos os arquivos relevantes do projeto.
+    2.  **Análise Estática (Paralela)**: O Core despacha threads trabalhadoras para executar o `cppcheck` (invocado como subprocesso de binário externo) para os arquivos identificados.
+    3.  **Validação de Formatação (Nativa)**: O Core despacha chamadas nativas para a função `code_verifier.run_code_verifier`, integrando a validação de estilo e regras de formatação diretamente no fluxo de execução, sem o overhead de novos processos Python.
+    4.  **Interrupção e Reporte**: O sistema segue a regra de falha imediata; a primeira violação (seja de análise estática ou formatação) interrompe a orquestração e reporta o erro através do `run_main`.
+
 ## 3. Requisitos do novo padrão desejado
 
 Para que a migração siga o padrão de qualidade do projeto, os novos arquivos devem:
