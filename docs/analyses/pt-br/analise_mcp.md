@@ -32,15 +32,15 @@ Após análise, as seguintes transgressões foram enumeradas:
 *   **Acoplamento Oculto:** O `project-builder.py` conhece a interface de linha de comando do `code-verifier.py`, mas não sua lógica interna.
 
 
-## 2. Nova Arquitetura: Core e Ferramentas Especializadas
+## 2. Nova Arquitetura: project_core e Ferramentas Especializadas
 
 A solução consiste em transformar a "lógica de negócio" do build e da geração de arquivos em bibliotecas (`lib/`) e as ferramentas MCP em orquestradores que as consomem nativamente via `import`.
 
 ### 2.1. O Motor: `tools/lib/project_core.py`
-Extração das classes core de `project-builder.py`:
-*   **Classes**: `project_file`, `cpp`, `hpp`, `binary_builder`, `project`.
+Extração das classes project_core de `project-builder.py`:
+*   **Classes**: `project_file`, `cpp`, `hpp`, `binary_builder`, `project_core`.
 *   **Responsabilidade**: Gerenciamento de metadados, grafo de dependências e **orquestração de paralelismo** (ThreadPoolExecutor).
-*   **Gestão de Estado**: O Core não será puramente *stateless*. Ele manterá uma instância da classe `project` que encapsula o estado atual do sistema de arquivos, configurações e grafo de dependências. Isso é essencial para evitar o custo de re-escaneamento total do projeto em operações encadeadas, permitindo que o Core funcione como um "cérebro" persistente durante a execução de uma tarefa complexa.
+*   **Gestão de Estado**: O project_core não será puramente *stateless*. Ele manterá uma instância da classe `project_core` que encapsula o estado atual do sistema de arquivos, configurações e grafo de dependências. Isso é essencial para evitar o custo de re-escaneamento total do projeto em operações encadeadas, permitindo que o project_core funcione como um "cérebro" persistente durante a execução de uma tarefa complexa.
 *   **Utilitários**: `DEFAULT_CONFIG`, `deep_update` e `get_cpu_count`.
 *   **Mudança Chave:** Esta biblioteca deve ser pura e não invocar outras ferramentas Python via subprocesso.
 
@@ -54,7 +54,7 @@ Extração das classes core de `project-builder.py`:
 
 ### 2.3. Validação Atômica: `tools/code_verifier.py`
 Renomeado de `code-verifier.py`.
-*   **Interface Programática**: Expõe a classe `formatter` para uso interno pelo Core ou ferramentas de análise.
+*   **Interface Programática**: Expõe a classe `formatter` para uso interno pelo project_core ou ferramentas de análise.
 *   **Padronização com outras ferramentas**: Função `run_code_verifier(params)` para uso via MCP.
 *   **Renomeação da Ferramenta**: O comando MCP `verify_formatting` é formalmente substituído por `code_verifier`, garantindo paridade entre o nome do comando e o módulo Python.
 *   **Integração**: Consumido por `analyze.py` via `import` direto.
@@ -63,9 +63,9 @@ Renomeado de `code-verifier.py`.
 A ferramenta `analyze` é a mais complexa, pois combina análise estática (`cppcheck`) e validação de formatação (`code_verifier`). Na nova arquitetura, ela deixa de ser um modo de operação acoplado do antigo `project-builder.py` para se tornar uma ferramenta independente que consome o `project_core.py`.
 
 *   **Fluxo de Execução Desejado:**
-    1.  **Mapeamento**: O Core realiza o escaneamento do sistema de arquivos e mapeia todos os arquivos relevantes do projeto.
-    2.  **Análise Estática (Paralela)**: O Core despacha threads trabalhadoras para executar o `cppcheck` (invocado como subprocesso de binário externo) para os arquivos identificados.
-    3.  **Validação de Formatação (Nativa)**: O Core despacha chamadas nativas para a função `code_verifier.run_code_verifier`, integrando a validação de estilo e regras de formatação diretamente no fluxo de execução, sem o overhead de novos processos Python.
+    1.  **Mapeamento**: O project_core realiza o escaneamento do sistema de arquivos e mapeia todos os arquivos relevantes do projeto.
+    2.  **Análise Estática (Paralela)**: O project_core despacha threads trabalhadoras para executar o `cppcheck` (invocado como subprocesso de binário externo) para os arquivos identificados.
+    3.  **Validação de Formatação (Nativa)**: O project_core despacha chamadas nativas para a função `code_verifier.run_code_verifier`, integrando a validação de estilo e regras de formatação diretamente no fluxo de execução, sem o overhead de novos processos Python.
     4.  **Interrupção e Reporte**: O sistema segue a regra de falha imediata; a primeira violação (seja de análise estática ou formatação) interrompe a orquestração e reporta o erro através do `run_main`.
 
 ## 3. Requisitos do novo padrão desejado
@@ -76,22 +76,22 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
 2.  **Ponto de Entrada**: Uso obrigatório de `run_main` do módulo `lib.common`.
     -   **Contrato de Interface CLI**: O `run_main` espera que o primeiro argumento da linha de comando (`sys.argv[1]`) seja uma string formatada em JSON.
     -   **Processamento de Argumentos**: Esta string JSON é automaticamente convertida em um dicionário Python (`params`), que é então passado como o único argumento para a função principal da ferramenta.
-    -   **Paridade de Invocação**: Este design garante que a ferramenta funcione de forma idêntica seja invocada via terminal (CLI), via servidor MCP ou via integração direta (`import`) por outras ferramentas ou pelo Core.
+    -   **Paridade de Invocação**: Este design garante que a ferramenta funcione de forma idêntica seja invocada via terminal (CLI), via servidor MCP ou via integração direta (`import`) por outras ferramentas ou pelo project_core.
 3.  **Interface de Função**: Função principal `run_<tool_name>(params: dict) -> str` que retorna a string com a mensagem do resultado final.
 4.  **Erros e Validações**: Usar `ensure( expression, "mensagem" )` do módulo `lib.common` como a forma primária de validação de qualquer condição no projeto, delegando o encerramento e a formatação da mensagem de erro ao `run_main`.
     -   **Padronização**: O `ensure` deve ser utilizado para todas as verificações de sanidade, pré-condições e erros lógicos.
     -   **Interface MCP Limpa**: Esta prática garante que o retorno para o MCP seja sempre limpo e legível. O `run_main` captura a exceção e reporta apenas a mensagem relevante, eliminando ruídos técnicos e stack traces que não contribuem para a resolução imediata do problema pelo agente.
-5.  **Thread-Safety**: O Core deve garantir que a saída de múltiplas threads não corrompa o fluxo de dados, especialmente ao rodar sob o MCP.
+5.  **Thread-Safety**: O project_core deve garantir que a saída de múltiplas threads não corrompa o fluxo de dados, especialmente ao rodar sob o MCP.
     -   Sobre essa questão de `thread-safety`, os seguintes pontos são importantes:
         -   O programador vai ter o fluxo completo encerrado / interrompido assim que qualquer analise, build ou link reportar o primeiro erro.
             -   Ele será orbrigado a tratar os erros um por vez e só verá os demais erros, após ajustar o primeiro e rodar a ferramenta novamente para ver o próximo.
         -   Por isso o sistema identifica quem falhou primeiro e lança a exceção usando "ensure".
         -   As mensagens de sucesso, são protegidas com lock para que não haja `race condition` nelas.
-        -   **Sincronização de Saída**: O objeto `project` deve obrigatoriamente possuir um `threading.Lock` para serializar todas as chamadas de impressão (`print`), garantindo que os blocos de mensagens de cada thread (compilação de um arquivo específico, por exemplo) sejam exibidos de forma atômica e legível.
+        -   **Sincronização de Saída**: O objeto `project_core` deve obrigatoriamente possuir um `threading.Lock` para serializar todas as chamadas de impressão (`print`), garantindo que os blocos de mensagens de cada thread (compilação de um arquivo específico, por exemplo) sejam exibidos de forma atômica e legível.
         -   **Controle de Interrupção**: O uso de `threading.Event` (como o `_stop_event`) é mandatório para propagar sinal de parada imediata para todas as threads trabalhadoras assim que um erro fatal for detectado, minimizando o desperdício de recursos.
-        -   **Fluxo de Exceções e Interrupção**: Todas as exceções geradas por ferramentas (como `run_code_verifier`) ou pelo Core devem borbulhar livremente até o `run_main` do ponto de entrada principal (ex: `analyze.py` ou `compile.py`).
+        -   **Fluxo de Exceções e Interrupção**: Todas as exceções geradas por ferramentas (como `run_code_verifier`) ou pelo project_core devem borbulhar livremente até o `run_main` do ponto de entrada principal (ex: `analyze.py` ou `compile.py`).
             -   É o comportamento desejado que o processo seja interrompido na primeira falha encontrada, mesmo em execuções paralelas.
-            -   O Core não deve tentar capturar exceções internamente para prover granularidade ou continuar a execução após um erro; a primeira falha encerra a orquestração e o erro é reportado pelo `run_main`.
+            -   O project_core não deve tentar capturar exceções internamente para prover granularidade ou continuar a execução após um erro; a primeira falha encerra a orquestração e o erro é reportado pelo `run_main`.
             -   Isso garante que o desenvolvedor foque na resolução de um problema por vez, mantendo a consistência do estado do projeto.
 6.  **Estrutura de Importação Protegida**: Para evitar efeitos colaterais durante a importação de módulos (como a execução imediata de lógica), todo script do tipo "Ferramenta" deve obrigatoriamente proteger sua execução principal.
     -   A lógica de inicialização deve ser encapsulada dentro do bloco:
@@ -99,7 +99,7 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
         if __name__ == "__main__":
             run_main(run_<tool_name>)
         ```
-    -   Isso garante a isonomia das ferramentas MCP e permite que elas sejam importadas por outros módulos ou pelo Core sem disparar o `run_main` involuntariamente, reforçando a modularização do projeto.
+    -   Isso garante a isonomia das ferramentas MCP e permite que elas sejam importadas por outros módulos ou pelo project_core sem disparar o `run_main` involuntariamente, reforçando a modularização do projeto.
 
 ## 4. Roteiro de Implementação em Fases
 
@@ -113,10 +113,10 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
 ### Fase 2: Desacoplamento e Analizadores
 1.  Substituir o uso de `importlib` em `code_verifier.py` por `import file_generator`.
 2.  Substituir chamadas de subprocesso do `template.py` por chamadas de função direta.
-3.  Criar `tools/analyze.py`, que importa o Core e o `code_verifier` para executar a análise total sem disparar novos processos Python.
+3.  Criar `tools/analyze.py`, que importa o project_core e o `code_verifier` para executar a análise total sem disparar novos processos Python.
 
 ### Fase 3: Orquestração de Build e Limpeza
-1.  Criar `tools/compile.py` como entry-point para o Core.
+1.  Criar `tools/compile.py` como entry-point para o project_core.
 2.  Remover `project-builder.py`.
 3.  Em `project_mcp.py`, migrar todos os `@mcp.tool` para o padrão de invocação direta de módulos.
 
@@ -137,7 +137,7 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
 
 ## 6. Conclusão Técnica
 
-A maturidade exige que nenhuma ferramenta chame outra ferramenta Python via `subprocess.run`. A comunicação deve ser via `import`. O `project_mcp.py` torna-se um dispatcher fino, delegando a complexidade para scripts que seguem o padrão `run_<name>(params)`. O Core centraliza o conhecimento sobre a estrutura do projeto, permitindo que ferramentas especializadas foquem apenas em suas tarefas.
+A maturidade exige que nenhuma ferramenta chame outra ferramenta Python via `subprocess.run`. A comunicação deve ser via `import`. O `project_mcp.py` torna-se um dispatcher fino, delegando a complexidade para scripts que seguem o padrão `run_<name>(params)`. O project_core centraliza o conhecimento sobre a estrutura do projeto, permitindo que ferramentas especializadas foquem apenas em suas tarefas.
 
 
 
