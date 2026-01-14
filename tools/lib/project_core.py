@@ -17,10 +17,10 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   project-builder
+#   File:   project_core
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2025-12-25 16:09:39
+#   Created on 2026-01-14 18:00:00
 
 
 import copy
@@ -29,12 +29,9 @@ import datetime
 import glob
 import os
 import re
-import sys
 import threading
 import subprocess
-import json
-import argparse
-from lib.common import run_main, ensure, _invoke_subprocess, print_line
+from lib.common import ensure
 
 
 def get_cpu_count( ):
@@ -148,10 +145,6 @@ class project_file:
         with open( path, "r" ) as f:
             self.content = f.read( )
 
-    def _repr_included_items( self ):
-        included_keys = [ f"\"{k}\"" for k in self.included_items.keys( ) ] if hasattr( self, "included_items" ) else [ ]
-        return "[" + ", ".join( included_keys ) + "]"
-
 
 class cpp( project_file ):
     def __init__( self, path, project ):
@@ -165,7 +158,6 @@ class cpp( project_file ):
 
         super().__init__( path, project, base_folder )
         
-        #   build directory paths
         build_base = os.path.join( build_folder, base_folder )
         self.object_path = os.path.join( build_base, self.hierarchy + ".o" )
 
@@ -206,20 +198,10 @@ class cpp( project_file ):
         self.compiled_at = self._get_compiled_at( )
 
 
-    def __repr__( self ):
-        compiled_at_str = f"\"{self.compiled_at.isoformat()}\"" if self.compiled_at else "null"
-        return ( f"{{"
-            f"\"hierarchy\": \"{self.hierarchy}\""
-            f", \"is_main\": {str(self.is_main).lower()}"
-            f", \"is_test\": {str(self.is_test).lower()}"
-            f", \"cpp_path\": \"{self.path}\""
-            f", \"object_path\": \"{self.object_path}\""
-            f", \"modified_at\": \"{self.modified_at.isoformat()}\""
-            f", \"dependencies_modified_at\": \"{self.dependencies_modified_at.isoformat()}\""
-            f", \"compiled_at\": {compiled_at_str}"
-            f", \"included_items\": {self._repr_included_items()}"
-            f"}}"
-        )
+class hpp( project_file ):
+    def __init__( self, path, project ):
+        base_folder = project.config["paths"]["include"]
+        super().__init__( path, project, base_folder )
 
 
 class binary_builder:
@@ -229,7 +211,6 @@ class binary_builder:
         self.cpp = cpp
         dist_folder  = self.cpp.project.config["paths"]["output"]
         
-        #   the binary will only have the filename, without the extension and without the hierarchy
         binary_name = os.path.basename( self.cpp.path )
         binary_name = os.path.splitext( binary_name )[0]
         self.binary_path = os.path.join( dist_folder, binary_name )
@@ -257,7 +238,6 @@ class binary_builder:
             if cpp_obj:
                 self.dependencies_list.append( cpp_obj )
             
-            #   combine includes from both cpp and hpp (if they exist)
             all_includes = set()
             if cpp_obj:
                 all_includes.update( cpp_obj.included_items.keys() )
@@ -289,54 +269,19 @@ class binary_builder:
             result = subprocess.run( linker_command, shell=True, capture_output=True, text=True )
 
             if result.returncode != 0:
-                print_line( True )
-                print( self.binary_path )
-                print_line( False )
                 self.cpp.project.print( f"    [link]: {os.path.basename( self.binary_path )} (failed)", flg_check_stop = True, flg_set_stop = True )
-                if result.stderr: print( result.stderr.rstrip( "\n" ) )
-                if result.stdout: print( result.stdout.rstrip( "\n" ) )
-                print_line( False )
-                print( f"linker: {linker_command}" )
-                print_line( False )
-                print_line( True )
+                if result.stderr: self.cpp.project.print( result.stderr.rstrip( "\n" ) )
+                if result.stdout: self.cpp.project.print( result.stdout.rstrip( "\n" ) )
+                self.cpp.project.print( f"linker: {linker_command}" )
                 ensure( False, f"linking failed for {self.binary_path}" )
             else:
-                print_line( True )
-                print( self.binary_path )
-                print_line( False )
                 self.cpp.project.print( f"    [link]: {os.path.basename( self.binary_path )}", flg_check_stop = True )
-                if result.stderr: print( result.stderr.rstrip( "\n" ) )
-                if result.stdout: print( result.stdout.rstrip( "\n" ) )
-                print_line( True )
-
-    def __repr__( self ):
-        modified_at_str = f"\"{self.modified_at.isoformat()}\"" if self.modified_at else "null"
-        dependencies_json = [ f"\"{d.hierarchy}\"" for d in self.dependencies_list ]
-        return ( f"{{"
-            f"\"hierarchy\": \"{self.cpp.hierarchy}\""
-            f", \"binary_path\": \"{self.binary_path}\""
-            f", \"modified_at\": {modified_at_str}"
-            f", \"dependencies_list\": [{", ".join(dependencies_json)}]"
-            f"}}"
-        )
+                if result.stderr: self.cpp.project.print( result.stderr.rstrip( "\n" ) )
+                if result.stdout: self.cpp.project.print( result.stdout.rstrip( "\n" ) )
 
 
-class hpp( project_file ):
-    def __init__( self, path, project ):
-        base_folder = project.config["paths"]["include"]
-        super().__init__( path, project, base_folder )
-
-    def __repr__( self ):
-        return ( f"{{"
-            f"\"hierarchy\": \"{self.hierarchy}\""
-            f", \"hpp_path\": \"{self.path}\""
-            f", \"modified_at\": \"{self.modified_at.isoformat()}\""
-            f", \"included_items\": {self._repr_included_items()}"
-            f"}}"
-        )
-
-class project:
-    def __init__( self, config ):
+class project_core:
+    def __init__( self, config = { } ):
         self.config = deep_update( copy.deepcopy( DEFAULT_CONFIG ), config )
         
         include_ext = self.config["patterns"]["header_extension"]
@@ -355,6 +300,15 @@ class project:
 
         self._stabilize_dependencies( )
         self.binary_list = [binary_builder( c ) for c in self.cpp_list if c.is_main]
+        
+        #   check for binary name collisions
+        binaries_by_path = { }
+        for b in self.binary_list:
+            if b.binary_path in binaries_by_path:
+                other_cpp = binaries_by_path[ b.binary_path ].cpp.path
+                this_cpp = b.cpp.path
+                ensure( False, f"binary name collision: '{os.path.basename( b.binary_path )}' is generated by both '{other_cpp}' and '{this_cpp}'" )
+            binaries_by_path[ b.binary_path ] = b
 
     def print( self, *args, flg_check_stop = False, flg_set_stop = False, **kwargs ):
         with self._lock:
@@ -365,15 +319,6 @@ class project:
                 self._stop_event.set( )
 
             print( *args, **kwargs )
-
-        #   check for binary name collisions
-        binaries_by_path = { }
-        for b in self.binary_list:
-            if b.binary_path in binaries_by_path:
-                other_cpp = binaries_by_path[ b.binary_path ].cpp.path
-                this_cpp = b.cpp.path
-                ensure( False, f"binary name collision: '{os.path.basename( b.binary_path )}' is generated by both '{other_cpp}' and '{this_cpp}'" )
-            binaries_by_path[ b.binary_path ] = b
 
     def _get_hierarchy_items( self ):
         hierarchy_items = {}
@@ -394,7 +339,7 @@ class project:
 
     def _update_included_items( self ):
         self._update_pair_info( )
-        include_pattern = re.compile( r'#include\s*[<"]([^>"]+)[>"]' )
+        include_pattern = re.compile( r'#include\s*[<\"]([^>\"]+)[>\"]' )
         for obj in self.hpp_list + self.cpp_list:
             obj.included_items = {}
             matches = include_pattern.findall( obj.content )
@@ -498,10 +443,8 @@ class project:
             f"-j {config['build_behavior']['max_threads']}"
         ]
         
-        # Mapping strictness directly to --check-level
         params.append( f"--check-level={analysis_config['strictness']}" )
             
-        # Add suppressions from config
         for suppression in analysis_config.get( 'suppressions', [ ] ):
             params.append( f"--suppress={suppression}" )
 
@@ -520,139 +463,14 @@ class project:
         
         cppcheck_params = self._get_cppcheck_params
         
-        #   builds the list of all .cpp and .hpp files
         source_dir = self.config['paths']['source']
         tests_dir = self.config['paths']['tests']
         
         cppcheck_command = f"cppcheck {cppcheck_params} \"{source_dir}\" \"{tests_dir}\""
         
-        print( "running static analysis (cppcheck)..." )
+        self.print( "running static analysis (cppcheck)..." )
         result = subprocess.run( cppcheck_command, shell=True )
         if result.returncode != 0:
-            print( f"cppcheck: {cppcheck_command}" )
+            self.print( f"cppcheck: {cppcheck_command}" )
         ensure( result.returncode == 0, "cppcheck failed for the project" )
-        print( "static analysis completed successfully" )
-
-    def format_code( self ):
-        include_ext = self.config["patterns"]["header_extension"]
-        source_ext  = self.config["patterns"]["source_extension"]
-        
-        search_paths = [
-            os.path.join( self.config["paths"]["include"], f"**/*.{include_ext}" ),
-            os.path.join( self.config["paths"]["source"], f"**/*.{source_ext}" ),
-            os.path.join( self.config["paths"]["tests"], f"**/*.{source_ext}" )
-        ]
-        
-        files_to_check = []
-        for path in search_paths:
-            files_to_check.extend( glob.glob( path, recursive=True ) )
-            
-        print_line( True )
-        print( f"checking code formatting for {len(files_to_check)} files..." )
-        
-        max_workers = self.config[ "build_behavior" ].get( "max_threads", get_cpu_count( ) )
-
-        def process_file( file_path ):
-            try:
-                result_process = _invoke_subprocess( [ "python3", "tools/code-verifier.py", "--fix", file_path ] )
-                fmt_result = json.loads( result_process.stdout )
-                
-                if fmt_result[ "changed" ]:
-                    with open( file_path, "w", encoding="utf-8" ) as f:
-                        f.write( fmt_result[ "content" ] )
-                    
-                    print_line( False )
-                    self.print(
-                         f"    [fixed]: {file_path}"
-                        ,*[ f"        {msg}" for msg in fmt_result[ "messages" ] ]
-                        ,sep = "\n"
-                    )
-                    return True
-            except Exception as e:
-                with self._lock:
-                    print( f"    [error]: failed to format {file_path}: {e}" )
-            return False
-
-        with concurrent.futures.ThreadPoolExecutor( max_workers = max_workers ) as executor:
-            results = list( executor.map( process_file, files_to_check ) )
-            modified_count = sum( results )
-        
-        print( f"done: modified {modified_count} files" )
-        print_line( True )
-
-    def __repr__( self ):
-        items = [ ]
-        for key, value in self.hierarchy_items.items( ):
-            cpp_json = str( value[ "cpp" ] ) if value[ "cpp" ] else "null"
-            hpp_json = str( value[ "hpp" ] ) if value[ "hpp" ] else "null"
-            items.append( f"\"{key}\": {{ \"cpp\": {cpp_json}, \"hpp\": {hpp_json} }}" )
-        return "{\n " + "\n ,".join( items ) + "\n}"
-
-    def run_build( self ):
-        start_time = datetime.datetime.now( )
-
-        print( f"build started at: {start_time.strftime( '%Y-%m-%d %H:%M:%S' )}" )
-
-        self.analyze( )
-
-        #   1. collect all unique cpp files to build
-        all_cpps = { }
-        for b in self.binary_list:
-            for c in b.dependencies_list:
-                all_cpps[ c.path ] = c
-
-        #   2. ensure build directories exist
-        for c in all_cpps.values( ):
-            os.makedirs( os.path.dirname( c.object_path ), exist_ok=True )
-
-        #   3. parallel compilation
-        max_workers = self.config[ "build_behavior" ].get( "max_threads", get_cpu_count( ) )
-        print( f"\ncompiling {len(all_cpps)} files using {max_workers} threads..." )
-        
-        with concurrent.futures.ThreadPoolExecutor( max_workers = max_workers ) as executor:
-            futures = [ executor.submit( c.build ) for c in all_cpps.values( ) ]
-            try:
-                for future in concurrent.futures.as_completed( futures ):
-                    future.result( )
-            except Exception as e:
-                self._stop_event.set( )
-                ensure( False, str( e ) )
-
-        #   4. parallel linking
-        print( f"\nlinking {len(self.binary_list)} binaries using {max_workers} threads..." )
-        with concurrent.futures.ThreadPoolExecutor( max_workers = max_workers ) as executor:
-            futures = [ executor.submit( b.link ) for b in self.binary_list ]
-            try:
-                for future in concurrent.futures.as_completed( futures ):
-                    future.result( )
-            except Exception as e:
-                self._stop_event.set( )
-                ensure( False, str( e ) )
-
-        end_time = datetime.datetime.now( )
-        elapsed_time = end_time - start_time
-        print( f"\nbuild ended at: {end_time.strftime( '%Y-%m-%d %H:%M:%S' )}" )
-        print( f"elapsed time: {elapsed_time}" )
-
-    def analyze( self ):
-        self.format_code( )
-        self.run_cppcheck( )
-
-
-def main_action( params ):
-    command = params.get( "command", "run_build" )
-    current_project = project( { } )
-    
-    if command == "analyze":
-        current_project.analyze( )
-    else:
-        current_project.run_build( )
-    
-    return  ""
-
-
-if __name__ == "__main__":
-    run_main( main_action )
-
-
-
+        self.print( "static analysis completed successfully" )

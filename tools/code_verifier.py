@@ -17,26 +17,18 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   code-verifier
+#   File:   code_verifier
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-06 14:06:09
 
 
 import re
-import sys
-import json
-import importlib.util
 import os
+from lib.common import run_main
+from lib import metadata_provider
+from lib import template_engine
 
-#   Import hyphenated module
-def import_tools_module( name ):
-    spec = importlib.util.spec_from_file_location( name, os.path.join( os.path.dirname( __file__ ), f"{name}.py" ) )
-    module = importlib.util.module_from_spec( spec )
-    spec.loader.exec_module( module )
-    return module
-
-file_generator = import_tools_module( "file-generator" )
 
 class formatter:
     def __init__( self, content: str, file_path: str = None, flg_fix: bool = True ):
@@ -70,7 +62,7 @@ class formatter:
                 old_text = match.group( 0 )
                 new_text = re.sub( pattern, replacement, old_text, flags = flags )
                 if old_text != new_text:
-                    line_no = self.content.count( '\n', 0, match.start( ) ) + 1
+                    line_no = self.content.count( "\n", 0, match.start( ) ) + 1
                     self.messages.append( ( line_no, message ) )
 
     def _validate_license( self ):
@@ -78,17 +70,14 @@ class formatter:
             return
 
         try:
-            #   1. Generates the ideal header based on canonical metadata
-            data = file_generator.get_canonical_metadata( self.file_path )
-            ideal_header = file_generator.render_template( "file-header", data ).strip( )
+            data = metadata_provider.get_canonical_metadata( self.file_path )
+            ideal_header = template_engine.render( "file-header", data ).strip( )
             
-            #   2. Extracts the current header (up to the first double newline)
-            parts = self.content.split( '\n\n', 1 )
+            parts = self.content.split( "\n\n", 1 )
             actual_header = parts[ 0 ].strip( )
             
             if actual_header != ideal_header:
                 if self.flg_fix:
-                    #   Restores the header while maintaining the file body
                     body = parts[ 1 ] if len( parts ) > 1 else ""
                     self.content = ideal_header + "\n\n" + body
                     self.messages.append( f"restored canonical license header for {self.file_path}" )
@@ -99,15 +88,15 @@ class formatter:
 
     def _consecutive_newlines( self ):
         self._apply( 
-            r'\n{4,}', 
-            '\n\n\n', 
+            r"\n{4,}", 
+            "\n\n\n", 
             "too many consecutive empty lines (maximum 2 allowed)" 
         )
 
     def _return_spacing( self ):
         self._apply( 
-            r'([ \t])return\b(?![ \t]*;)[ \t]*', 
-            r'\1return\1', 
+            r"([ \t])return\b(?![ \t]*;)[ \t]*", 
+            r"\1return\1", 
             "return must be followed by exactly one space or tab (matching the preceding indentation character)" 
         )
 
@@ -118,36 +107,32 @@ class formatter:
                 self.content = new_content
                 self.messages.append( "file must end with exactly 2 empty lines and no trailing whitespace" )
             else:
-                line_no = self.content.count( '\n' ) + 1
+                line_no = self.content.count( "\n" ) + 1
                 self.messages.append( ( line_no, "file must end with exactly 2 empty lines and no trailing whitespace" ) )
 
     def _include_spacing( self ):
-        #   1. Remove empty lines between includes
         self._apply( 
-            r'(^#include\s+.*)\n(?:[ \t]*\n)+(?=#include\s+.*)', 
-            r'\1\n', 
+            r"(^#include\s+.*)\n(?:[ \t]*\n)+(?=#include\s+.*)", 
+            r"\1\n", 
             "include directives must not be separated by empty lines" ,
             flags = re.MULTILINE 
         )
 
-        #   2. Exactly two empty lines before the first include
         self._apply(
-            r'^((?!#include).+)\n+(#include\s+.*)',
-            r'\1\n\n\n\2',
+            r"^((?!#include).+)\n+(#include\s+.*)",
+            r"\1\n\n\n\2",
             "there must be exactly two empty lines before the first include",
             flags = re.MULTILINE
         )
 
-        #   3. Exactly two empty lines after the last include
         self._apply(
-            r'(^#include\s+.*)\n+((?!#include).+)',
-            r'\1\n\n\n\2',
+            r"(^#include\s+.*)\n+((?!#include).+)",
+            r"\1\n\n\n\2",
             "there must be exactly two empty lines after the last include",
             flags = re.MULTILINE
         )
 
     def _bracket_spacing( self ):
-        #   We apply spacing rules only to the body (after the license header)
         split_index = self.content.find( "\n\n" )
         if split_index == -1:
             return
@@ -155,12 +140,8 @@ class formatter:
         header = self.content[ :split_index + 2 ]
         body = self.content[ split_index + 2 : ]
 
-        #   Regex to identify strings, comments and attributes to be ignored
-        ignore_pattern = r"//.*|/\*[\s\S]*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\\n])'|\[\[[\s\S]*?\]\]"
+        ignore_pattern = r"//.*|/\*[\s\S]*?\*/|\"(?:\\.|[^\"\\])*\"|' (?:\\.|[^'\\\n])*' |\\[\\[[\s\S]*?\\]\\]"
         
-        #   Regex patterns for ( space ) and [ space ]
-        #   1. (not_space -> ( space
-        #   2. not_space) -> space )
         patterns = [
              ( r"\((?![ \t\n\)])", r"( ", "missing space after '('" )
             ,( r"(?<![ \t\n\(])\)", r" )", "missing space before ')'" )
@@ -187,8 +168,10 @@ class formatter:
             self.messages.append( "fixed bracket spacing ( ( space ) and [ space ] rules )" )
 
 
-def verify_formatting( files: list[ str ], flg_fix: bool = False ) -> str:
-    """Iterates over files and returns a formatted report of violations."""
+def run_code_verifier( params: dict ) -> str:
+    files = params.get( "files", [ ] )
+    flg_fix = params.get( "flg_auto_fix", False )
+    
     results = [ ]
     for file_path in files:
         try:
@@ -216,37 +199,8 @@ def verify_formatting( files: list[ str ], flg_fix: bool = False ) -> str:
         except Exception as e:
             results.append( f"Error verifying {file_path}: {str( e )}" )
     
-    label = "formatting"
-    return "\n".join( results ).strip( ) or f"No {label} violations found in the provided files."
+    return "\n".join( results ).strip( ) or f"No formatting violations found in the provided files."
 
 
 if __name__ == "__main__":
-    if len( sys.argv ) > 2:
-        command = sys.argv[ 1 ]
-        try:
-            if command == "verify_formatting":
-                args = json.loads( sys.argv[ 2 ] )
-                print( verify_formatting( args[ "files" ], args.get( "flg_auto_fix", False ) ) )
-            else:
-                file_path = sys.argv[ 2 ]
-                with open( file_path, 'r' ) as f:
-                    content = f.read( )
-                
-                if command == "--formatting":
-                    fmt = formatter( content, file_path = file_path )
-                    violations = fmt.verify( )
-                    print( json.dumps( violations ) )
-                elif command == "--fix":
-                    fmt = formatter( content, file_path = file_path )
-                    new_content = fmt.run( )
-                    result = {
-                         "changed": content != new_content
-                        ,"content": new_content
-                        ,"messages": fmt.messages
-                    }
-                    print( json.dumps( result ) )
-        except Exception as e:
-            print( f"Error: {e}", file=sys.stderr )
-            sys.exit( 1 )
-
-
+    run_main( run_code_verifier )

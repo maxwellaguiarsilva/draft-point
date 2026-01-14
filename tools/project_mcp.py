@@ -30,8 +30,6 @@ def _invoke_tool( name: str, args: Any = None ) -> str:
         return f"{label} failed: {str( e )}"
 
 
-#   here begins the code for the tools that follow the required standard
-
 @mcp.tool( )
 def adhoc_tool( params: dict ) -> str:
     """executes experimental logic defined in tools/adhoc-tool.py
@@ -74,40 +72,6 @@ def include_tree( file_path: str ) -> str:
     return _invoke_tool( "include_tree", args )
 
 
-#   here begins the code for tools that were created outside the correct standard
-
-_special_tool_config = {
-     "create_class":      { "script": "file-generator" }
-    ,"create_test":       { "script": "file-generator" }
-    ,"verify_formatting": { "script": "code-verifier" }
-    ,"compile":           { "script": "project-builder", "subcommand": "run_build" }
-    ,"analyze":           { "script": "project-builder" }
-}
-
-def _legacy_run_and_format( name: str, args: Any = None ) -> str:
-    """Legacy: Runs a command and formats the output for MCP return."""
-    config = _special_tool_config.get( name, { } )
-    script = f"{config.get( 'script', name.replace( '_', '-' ) )}.py"
-    label = name.replace( '_', ' ' )
-    
-    cmd = [ "python3", f"tools/{script}" ]
-    
-    #   Subcommand is mandatory for our standardized script entry points
-    cmd.append( config.get( "subcommand", name ) )
-    
-    #   Arguments are always passed as a JSON string
-    cmd.append( json.dumps( args if args is not None else { } ) )
-            
-    try:
-        process = _invoke_subprocess( cmd )
-        return f"{label} successful:\n{process.stdout}"
-    except subprocess.CalledProcessError as e:
-        details = f"{e.stdout}\n{e.stderr}".strip( )
-        return f"{label} failed:\n{details}"
-    except Exception as e:
-        return f"{label} failed: {str( e )}"
-
-
 @mcp.tool( )
 def	create_class(
          class_hierarchy : str
@@ -118,7 +82,7 @@ def	create_class(
     """creates a new c++ class with corresponding .hpp and .cpp files
     the class_hierarchy parameter defines the namespace and class name (e.g., "game/player" creates class 'player' in namespace 'game')
     optional include_list and using_list parameters allow specifying additional headers to include and 'using' declarations to add
-    good example: include_list=["string", "vector"], using_list=["::std::string", "::std::vector", "item_list   =   vector< string >"]
+    good example: include_list=["string", "vector"], using_list=[ "::std::string", "::std::vector", "item_list   =   vector< string >"]
     bad example: include_list="<string>", using_list="using std::string;"
     """
     args = {
@@ -181,5 +145,3 @@ def verify_formatting( files: list[ str ], flg_auto_fix: bool = False ) -> str:
 
 if __name__ == "__main__":
     mcp.run( )
-
-

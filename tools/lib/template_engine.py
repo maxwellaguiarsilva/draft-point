@@ -17,20 +17,21 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   template
+#   File:   template_engine
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2025-10-04 15:55:17
+#   Created on 2026-01-14 18:00:00
 
 
 import re
-import sys
-import json
+import os
+
 
 r_import        =   r"\{\{import\s+([a-zA-Z0-9_-]+)\}\}"
 r_list_open     =   r"\{\{list_open\s+([a-zA-Z0-9_-]+)\}\}"
 r_list_close    =   r"\{\{list_close\s+([a-zA-Z0-9_-]+)\}\}"
 r_list_item     =   r"\{\{list_item\s+([a-zA-Z0-9_-]+)\}\}"
+
 
 class template:
     def __init__( self, name, path = "docs/templates" ):
@@ -71,16 +72,6 @@ class template:
         return  text
 
 
-if __name__ == "__main__":
-    if len( sys.argv ) > 2:
-        template_name = sys.argv[ 1 ]
-        try:
-            data = json.loads( sys.argv[ 2 ] )
-            t = template( template_name )
-            print( t.run( data ), end="" )
-        except Exception as e:
-            print( f"Error: {e}", file=sys.stderr )
-            sys.exit( 1 )
-    
-
-
+def render( template_name, data ):
+    t = template( template_name )
+    return t.run( data )
