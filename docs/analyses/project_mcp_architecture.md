@@ -14,8 +14,8 @@ Para ser considerada Gold Standard, uma ferramenta deve seguir rigorosamente est
 
 1.  **Naming**: O arquivo deve usar `snake_case` (ex: `quick_upload.py`). Isso permite que as ferramentas importem umas às outras nativamente via Python.
 2.  **Header**: Deve conter o `shebang` (`#!/usr/bin/python3`) seguido pelo cabeçalho de licença padrão do projeto e o campo `File:` com o nome de arquivo correto.
-3.  **Entry Point**: Deve usar a função `run_main` do módulo `lib.common`.
-4.  **Main Function**: Deve ser nomeada `run_<tool_name>` (ex: `run_quick_upload`) e aceitar um único parâmetro de dicionário (`params`).
+3.  **Entry Point**: Deve usar a função `run_main` do módulo `lib.common`. O `run_main` estabelece um contrato onde o primeiro argumento recebido via CLI (`sys.argv[1]`) deve ser obrigatoriamente uma string JSON, que será decodificada e injetada na função principal da ferramenta.
+4.  **Main Function**: Deve ser nomeada `run_<tool_name>` (ex: `run_quick_upload`) e aceitar um único parâmetro de dicionário (`params`) proveniente do JSON decodificado.
 5.  **Return**: Em caso de sucesso, deve retornar apenas a string de conteúdo informativo. A responsabilidade por indicar "success" ou "failure" no nível da interface pertence ao Dispatcher (`project-mcp.py`).
 6.  **Error Handling**: Para falhas, a ferramenta deve lançar uma `Exception` padrão com uma mensagem clara e descritiva. Esta mensagem *não* deve incluir prefixos como "error:" ou "failure:", pois a rotulagem é responsabilidade do Dispatcher. Isso permite que o `lib.common` capture o erro, imprima a mensagem limpa no `stderr` e saia com status 1, sinalizando a falha ao orquestrador.
 7.  **Process Decoupling**: Se uma ferramenta precisar de outra (ex: `quick_upload` chamando `agent_statistic`), ela deve realizar um `import` nativo da função `run_` em vez de disparar um `subprocess`.
@@ -51,8 +51,8 @@ Estas ferramentas ainda usam o padrão `kebab-case`, subcomandos manuais e não 
 O fluxo de execução segue este caminho:
 1.  **Call**: `mcp.quick_upload(message="...")` em `project-mcp.py`.
 2.  **Dispatch**: `_invoke_tool("quick_upload", {"message": "..."})`.
-3.  **Shell**: `python3 tools/quick_upload.py '{"message": "..."}'`.
-4.  **Logic**: `run_main(run_quick_upload)` processa o JSON e executa a tarefa.
+3.  **Shell**: `python3 tools/quick_upload.py '{"message": "..."}'`. (O Dispatcher envia o dicionário de parâmetros como uma string JSON no primeiro argumento).
+4.  **Logic**: `run_main(run_quick_upload)` captura o JSON da CLI, converte para dicionário e executa a tarefa.
 5.  **Output**: O retorno limpo da ferramenta é encapsulado pelo rótulo de sucesso do MCP.
 
 ### 3.2. Integração entre Ferramentas

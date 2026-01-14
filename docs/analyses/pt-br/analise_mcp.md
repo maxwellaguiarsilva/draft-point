@@ -56,6 +56,9 @@ Para que a migração siga o padrão de qualidade do projeto, os novos arquivos 
 
 1.  **Nomenclatura**: Uso estrito de `snake_case` em todos os arquivos e símbolos.
 2.  **Ponto de Entrada**: Uso obrigatório de `run_main` do módulo `lib.common`.
+    -   **Contrato de Interface CLI**: O `run_main` espera que o primeiro argumento da linha de comando (`sys.argv[1]`) seja uma string formatada em JSON.
+    -   **Processamento de Argumentos**: Esta string JSON é automaticamente convertida em um dicionário Python (`params`), que é então passado como o único argumento para a função principal da ferramenta.
+    -   **Paridade de Invocação**: Este design garante que a ferramenta funcione de forma idêntica seja invocada via terminal (CLI), via servidor MCP ou via integração direta (`import`) por outras ferramentas ou pelo Kernel.
 3.  **Interface de Função**: Função principal `run_<tool_name>(params: dict) -> str` que retorna a string com a mensagem do resultado final.
 4.  **Erros**: Usar `ensure( expression, "mensagem" )` para validações, delegando o encerramento e a formatação da mensagem de erro ao `lib.common`.
 5.  **Thread-Safety**: O Kernel deve garantir que a saída de múltiplas threads não corrompa o fluxo de dados, especialmente ao rodar sob o MCP.

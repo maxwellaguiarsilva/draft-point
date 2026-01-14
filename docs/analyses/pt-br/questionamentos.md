@@ -4,8 +4,6 @@
 ### 1. Questionamento Crítico: Lacunas de Precisão Técnica
 
 Para que a migração ocorra sem problemas, o documento de migração deveria ser mais explícito nos seguintes pontos:
-*   **Contrato de Interface do `lib.common`:** O documento menciona o uso de `run_main`, mas não detalha como ele trata os argumentos. No `run_main`, espera que o primeiro argumento da CLI seja uma string JSON que será convertida no dicionário `params`. Isso é crucial para que ferramentas chamadas via Kernel funcionem da mesma forma que quando chamadas via CLI/MCP.
-    -   Veredito: esse questionamento está aprovado, essas informações devem ser adicionadas de forma detalhada no documento atual e no plano de migração, sem remover nada do que já foi escrito.
 
 *   **Estado e Concorrência no Kernel:** O `project_kernel.py` usará `ThreadPoolExecutor`. O documento precisa definir se o Kernel será **stateless** (recebendo o caminho do projeto em cada chamada) ou se manterá um objeto `project_cpp`. Para evitar race conditions em builds paralelos, a gestão de escrita na tela precisa ser definida.
     -   Veredito: a lógica atual exige a existência de um objeto `project_cpp`.
