@@ -26,7 +26,7 @@ def _call( args: list[ str ] ) -> subprocess.CompletedProcess:
     """internal helper to run subprocess with consistent parameters"""
     return subprocess.run( args, capture_output=True, text=True, check=True )
 
-def _run_and_format( name: str, args: Any = None ) -> str:
+def _invoke_tool( name: str, args: Any = None ) -> str:
     """gold standard: runs a command and formats the output for mcp return"""
     label = name.replace( '_', ' ' )
     script = f"{name}.py"
@@ -162,7 +162,7 @@ def agent_statistic( name: Any = None ) -> str:
     args = { }
     if isinstance( name, str ):
         args[ "name" ] = name
-    return _run_and_format( "agent_statistic", args )
+    return _invoke_tool( "agent_statistic", args )
 
 
 @mcp.tool( )
@@ -171,7 +171,7 @@ def adhoc_tool( params: dict ) -> str:
     This tool is used for prototyping new functionalities.
     The 'params' dictionary is passed to the script.
     """
-    return _run_and_format( "adhoc_tool", params )
+    return _invoke_tool( "adhoc_tool", params )
 
 
 @mcp.tool( )
@@ -180,7 +180,7 @@ def quick_upload( message: str ) -> str:
     This tool is intended for simple, non-conflicting changes to increase agility.
     """
     args = { "message": message }
-    return _run_and_format( "quick_upload", args )
+    return _invoke_tool( "quick_upload", args )
 
 
 if __name__ == "__main__":

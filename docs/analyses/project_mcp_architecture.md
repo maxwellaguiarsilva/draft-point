@@ -19,7 +19,7 @@ To be considered Gold Standard, a tool must strictly follow these requirements:
 
 ### 1.2. The Dispatcher (MCP Server)
 Located in `tools/project-mcp.py`, it uses the `FastMCP` library.
-*   **Agnostic**: For Gold Standard tools, it uses the `_run_and_format` function, which assumes the MCP tool name is identical to the `.py` filename in `tools/`.
+*   **Agnostic**: For Gold Standard tools, it uses the `_invoke_tool` function, which assumes the MCP tool name is identical to the `.py` filename in `tools/`.
 *   **Legacy**: Tools that have not yet been migrated use `_legacy_run_and_format` and depend on the `_special_tool_config` dictionary to map subcommands and old filenames (`kebab-case`).
 
 ---
@@ -47,7 +47,7 @@ These tools still use the `kebab-case` pattern, manual subcommands, and do not f
 ### 3.1. Execution via MCP
 The execution workflow follows this path:
 1.  **Call**: `mcp.quick_upload(message="...")` in `project-mcp.py`.
-2.  **Dispatch**: `_run_and_format("quick_upload", {"message": "..."})`.
+2.  **Dispatch**: `_invoke_tool("quick_upload", {"message": "..."})`.
 3.  **Shell**: `python3 tools/quick_upload.py '{"message": "..."}'`.
 4.  **Logic**: `run_main(run_quick_upload)` processes the JSON and executes the task.
 5.  **Output**: The tool's clean return is encapsulated by the MCP success label.
