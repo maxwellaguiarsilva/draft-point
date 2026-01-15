@@ -40,7 +40,7 @@ def run_quick_upload( params ):
         
         stats_result = run_agent_statistic( { "name": "success" } )
         
-        return  f"`{message}`\n\n{stats_result}"
+        return  f"`{stats_result}`\n\n{message}"
     except subprocess.CalledProcessError as e:
         error_msg = e.stderr if e.stderr else e.stdout
         if "nothing to commit" in error_msg.lower( ):
