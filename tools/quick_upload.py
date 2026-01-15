@@ -33,19 +33,11 @@ def run_quick_upload( params ):
     ensure( message, "message parameter is required for quick upload" )
 
     try:
-        #   pull latest changes
         _invoke_subprocess( [ "git", "pull" ] )
-        
-        #   add all changes
         _invoke_subprocess( [ "git", "add", "." ] )
-        
-        #   commit with the provided message
         _invoke_subprocess( [ "git", "commit", "-m", message ] )
-        
-        #   push to remote
         _invoke_subprocess( [ "git", "push" ] )
         
-        #   record success statistic
         stats_result = run_agent_statistic( { "name": "success" } )
         
         return  f"`{message}`\n\n{stats_result}"
