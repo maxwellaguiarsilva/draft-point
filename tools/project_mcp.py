@@ -16,18 +16,15 @@ mcp = FastMCP( name="project-mcp" )
 
 def _invoke_tool( name: str, args: Any = None, script_name: str = None ) -> str:
     """runs a command and formats the output for mcp return"""
-    label = name.replace( '_', ' ' )
     script = f"{script_name if script_name else name}.py"
-    cmd = [ "python3", f"tools/{script}" ]
-    cmd.append( json.dumps( args if args is not None else { } ) )
     
     try:
-        process = _invoke_subprocess( cmd )
-        return f"{label} successful:\n{process.stdout}"
+        process = _invoke_subprocess( [ "python3", f"tools/{script}", json.dumps( args if args is not None else { } ) ] )
+        return f"{name} successful:\n{process.stdout}"
     except subprocess.CalledProcessError as e:
-        return f"{label} failed:\n{e.stdout}\n{e.stderr}".strip( )
+        return f"{name} failed:\n{e.stdout}\n{e.stderr}".strip( )
     except Exception as e:
-        return f"{label} failed: {str( e )}"
+        return f"{name} failed: {str( e )}"
 
 
 @mcp.tool( )
@@ -91,7 +88,7 @@ def	create_class(
         "using_list": using_list,
         "create_header_only": create_header_only
     }
-    return _invoke_tool( "create_class", args, script_name = "file_generator" )
+    return _invoke_tool( "create_class", args )
 
 
 @mcp.tool( )
@@ -110,7 +107,7 @@ def create_test(
         "flg_adhoc": flg_adhoc,
         "include_list": include_list
     }
-    return _invoke_tool( "create_test", args, script_name = "file_generator" )
+    return _invoke_tool( "create_test", args )
 
 
 @mcp.tool( )

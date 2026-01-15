@@ -53,7 +53,8 @@ Responsible for file mapping, dependency graphs, and build orchestration.
 | `analyze` | `analyze.py` | Orchestrates `cppcheck` and `code_verifier`. |
 | `compile` | `compile.py` | Handles building and linking via `project_core`. |
 | `code_verifier` | `code_verifier.py` | Validates and applies formatting rules. |
-| `file_generator`| `file_generator.py`| Handles `create_class` and `create_test` commands. |
+| `create_class` | `create_class.py` | Creates a new C++ class with .hpp and .cpp files. |
+| `create_test` | `create_test.py` | Creates a new C++ test file. |
 | `quick_upload` | `quick_upload.py` | Manages the Git lifecycle. |
 | `agent_statistic`| `agent_statistic.py`| Records and retrieves behavioral metrics. |
 | `include_tree` | `include_tree.py` | Analyzes C++ include hierarchies. |
