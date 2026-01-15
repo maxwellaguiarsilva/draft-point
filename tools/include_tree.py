@@ -29,6 +29,10 @@ from lib.common import run_main, ensure
 from lib.project_core import project_core
 
 
+#   project_core: r'#include\\s*[<\\"]([^>\\"]+)[>\\"]'
+#   include_tree: r'#include\s*([<"">]([^>"">]+)[>""<])'
+
+
 class include_tree:
     def __init__( self, include_dir: str ):
         self.include_dir = include_dir

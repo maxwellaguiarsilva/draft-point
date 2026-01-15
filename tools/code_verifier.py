@@ -31,11 +31,11 @@ from lib import template_engine
 
 
 class formatter:
-    def __init__( self, content: str, file_path: str = None, flg_fix: bool = True ):
+    def __init__( self, content: str, file_path: str = None, flg_auto_fix: bool = True ):
         self.content = content
         self.file_path = file_path
         self.messages = []
-        self.flg_fix = flg_fix
+        self.flg_auto_fix = flg_auto_fix
 
     def run( self ):
         self._validate_license( )
@@ -47,12 +47,12 @@ class formatter:
         return self.content
 
     def verify( self ):
-        self.flg_fix = False
+        self.flg_auto_fix = False
         self.run( )
         return self.messages
 
     def _apply( self, pattern: str, replacement: str, message: str, flags: int = 0 ):
-        if self.flg_fix:
+        if self.flg_auto_fix:
             new_content = re.sub( pattern, replacement, self.content, flags = flags )
             if new_content != self.content:
                 self.content = new_content
@@ -77,7 +77,7 @@ class formatter:
             actual_header = parts[ 0 ].strip( )
             
             if actual_header != ideal_header:
-                if self.flg_fix:
+                if self.flg_auto_fix:
                     body = parts[ 1 ] if len( parts ) > 1 else ""
                     self.content = ideal_header + "\n\n" + body
                     self.messages.append( f"restored canonical license header for {self.file_path}" )
@@ -103,7 +103,7 @@ class formatter:
     def _trailing_newlines( self ):
         new_content = self.content.rstrip( ) + "\n\n\n"
         if new_content != self.content:
-            if self.flg_fix:
+            if self.flg_auto_fix:
                 self.content = new_content
                 self.messages.append( "file must end with exactly 2 empty lines and no trailing whitespace" )
             else:
@@ -152,7 +152,7 @@ class formatter:
         original_body = body
         for pattern, replacement, message in patterns:
             combined = f"({ignore_pattern})|({pattern})"
-            if self.flg_fix:
+            if self.flg_auto_fix:
                 def sub_func( m ):
                     if m.group( 1 ): return m.group( 1 )
                     return replacement
@@ -163,14 +163,14 @@ class formatter:
                     line_no = header.count( "\n" ) + original_body.count( "\n", 0, match.start( ) ) + 1
                     self.messages.append( ( line_no, message ) )
 
-        if self.flg_fix and body != original_body:
+        if self.flg_auto_fix and body != original_body:
             self.content = header + body
             self.messages.append( "fixed bracket spacing ( ( space ) and [ space ] rules )" )
 
 
 def run_code_verifier( params: dict ) -> str:
     files = params.get( "files", [ ] )
-    flg_fix = params.get( "flg_auto_fix", False )
+    flg_auto_fix = params.get( "flg_auto_fix", False )
     
     results = [ ]
     for file_path in files:
@@ -178,8 +178,8 @@ def run_code_verifier( params: dict ) -> str:
             with open( file_path, 'r' ) as f:
                 content = f.read( )
             
-            fmt = formatter( content, file_path = file_path, flg_fix = flg_fix )
-            if flg_fix:
+            fmt = formatter( content, file_path = file_path, flg_auto_fix = flg_auto_fix )
+            if flg_auto_fix:
                 new_content = fmt.run( )
                 if content != new_content:
                     with open( file_path, 'w' ) as f:
