@@ -14,12 +14,10 @@ mcp = FastMCP( name="project-mcp" )
 
 
 
-def _invoke_tool( name: str, args: Any = None, script_name: str = None ) -> str:
+def _invoke_tool( name: str, args: Any = None ) -> str:
     """runs a command and formats the output for mcp return"""
-    script = f"{script_name if script_name else name}.py"
-    
     try:
-        process = _invoke_subprocess( [ "python3", f"tools/{script}", json.dumps( args if args is not None else { } ) ] )
+        process = _invoke_subprocess( [ "python3", f"tools/{name}.py", json.dumps( args if args is not None else { } ) ] )
         return f"{name} successful:\n{process.stdout}"
     except subprocess.CalledProcessError as e:
         return f"{name} failed:\n{e.stdout}\n{e.stderr}".strip( )
