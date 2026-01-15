@@ -32,9 +32,11 @@ import re
 import threading
 import subprocess
 from lib.common import ensure
+from lib.project_tree import project_tree
 
 
 def get_cpu_count( ):
+# ... (rest of get_cpu_count and DEFAULT_CONFIG)
     try:
         return  len( os.sched_getaffinity( 0 ) )
     except AttributeError:
@@ -134,29 +136,33 @@ def deep_update( source, overrides ):
 
 
 class project_file:
-    def __init__( self, path, project, base_folder ):
+    def __init__( self, node, project ):
         self.project = project
-        self.path = path
-        self.modified_at = datetime.datetime.fromtimestamp( os.path.getmtime( path ) )
+        self.node = node
+        self.path = node.path
+        self.modified_at = node.modified_at
+        self.hierarchy = node.hierarchy
+        self.content = node.content
+        
         self.dependencies_modified_at = self.modified_at
-        relative_path = os.path.relpath( path, base_folder )
-        self.hierarchy = os.path.splitext( relative_path )[0]
-
-        with open( path, "r" ) as f:
-            self.content = f.read( )
+        if self.node.closure:
+            self.dependencies_modified_at = max( 
+                [ self.modified_at ] + 
+                [ dep.modified_at for dep in self.node.closure ] 
+            )
 
 
 class cpp( project_file ):
-    def __init__( self, path, project ):
+    def __init__( self, node, project ):
         source_folder = project.config["paths"]["source"]
         tests_folder  = project.config["paths"]["tests"]
         build_folder  = project.config["paths"]["build"]
         main_regexp   = project.config["patterns"]["main_function"]
 
-        self.is_test = path.startswith( tests_folder )
+        self.is_test = node.path.startswith( tests_folder )
         base_folder  = tests_folder if self.is_test else source_folder
 
-        super().__init__( path, project, base_folder )
+        super().__init__( node, project )
         
         build_base = os.path.join( build_folder, base_folder )
         self.object_path = os.path.join( build_base, self.hierarchy + ".o" )
@@ -199,9 +205,8 @@ class cpp( project_file ):
 
 
 class hpp( project_file ):
-    def __init__( self, path, project ):
-        base_folder = project.config["paths"]["include"]
-        super().__init__( path, project, base_folder )
+    def __init__( self, node, project ):
+        super().__init__( node, project )
 
 
 class binary_builder:
@@ -224,30 +229,17 @@ class binary_builder:
         self._resolve_dependencies()
 
     def _resolve_dependencies( self ):
-        visited = set()
+        self.dependencies_list = [ self.cpp ]
+        visited_hierarchies = { self.cpp.hierarchy }
         
-        def walk( hierarchy_name ):
-            if hierarchy_name in visited:
-                return
-            visited.add( hierarchy_name )
-            
-            item = self.cpp.project.hierarchy_items[ hierarchy_name ]
-            cpp_obj = item[ "cpp" ]
-            hpp_obj = item[ "hpp" ]
-            
-            if cpp_obj:
-                self.dependencies_list.append( cpp_obj )
-            
-            all_includes = set()
-            if cpp_obj:
-                all_includes.update( cpp_obj.included_items.keys() )
-            if hpp_obj:
-                all_includes.update( hpp_obj.included_items.keys() )
+        for dep_node in self.cpp.node.closure:
+            if dep_node.hierarchy in visited_hierarchies:
+                continue
                 
-            for incl_hierarchy in all_includes:
-                walk( incl_hierarchy )
-
-        walk( self.cpp.hierarchy )
+            visited_hierarchies.add( dep_node.hierarchy )
+            item = self.cpp.project.hierarchy_items.get( dep_node.hierarchy )
+            if item and item[ "cpp" ]:
+                self.dependencies_list.append( item[ "cpp" ] )
 
     def link( self ):
         if self.cpp.project._stop_event.is_set( ):
@@ -284,22 +276,29 @@ class project_core:
     def __init__( self, config = { } ):
         self.config = deep_update( copy.deepcopy( DEFAULT_CONFIG ), config )
         
-        include_ext = self.config["patterns"]["header_extension"]
-        source_ext  = self.config["patterns"]["source_extension"]
-
-        include_list    =   glob.glob( os.path.join( self.config["paths"]["include"], f"**/*.{include_ext}" ), recursive=True )
-        source_list     =   glob.glob( os.path.join( self.config["paths"]["source"], f"**/*.{source_ext}" ), recursive=True )
-        tests_list      =   glob.glob( os.path.join( self.config["paths"]["tests"], f"**/*.{source_ext}" ), recursive=True )
-
-        self.hpp_list = [hpp( p, self ) for p in include_list]
-        self.cpp_list = [cpp( p, self ) for p in source_list + tests_list]
-        self.hierarchy_items = self._get_hierarchy_items( )
+        self.tree = project_tree( self.config )
+        
+        self.hpp_list = [ ]
+        self.cpp_list = [ ]
+        self.hierarchy_items = { }
+        
+        for node in self.tree.nodes.values( ):
+            if not node.path:
+                continue
+            
+            if node.path.endswith( ".hpp" ):
+                obj = hpp( node, self )
+                self.hpp_list.append( obj )
+                self.hierarchy_items.setdefault( node.hierarchy, { "cpp": None, "hpp": None } )[ "hpp" ] = obj
+            elif node.path.endswith( ".cpp" ):
+                obj = cpp( node, self )
+                self.cpp_list.append( obj )
+                self.hierarchy_items.setdefault( node.hierarchy, { "cpp": None, "hpp": None } )[ "cpp" ] = obj
 
         self._lock = threading.Lock( )
         self._stop_event = threading.Event( )
 
-        self._stabilize_dependencies( )
-        self.binary_list = [binary_builder( c ) for c in self.cpp_list if c.is_main]
+        self.binary_list = [ binary_builder( c ) for c in self.cpp_list if c.is_main ]
         
         #   check for binary name collisions
         binaries_by_path = { }
@@ -319,49 +318,6 @@ class project_core:
                 self._stop_event.set( )
 
             print( *args, **kwargs )
-
-    def _get_hierarchy_items( self ):
-        hierarchy_items = {}
-        for h in self.hpp_list:
-            hierarchy_items.setdefault( h.hierarchy, { "cpp": None, "hpp": None } )[ "hpp" ] = h
-        for c in self.cpp_list:
-            hierarchy_items.setdefault( c.hierarchy, { "cpp": None, "hpp": None } )[ "cpp" ] = c
-        return hierarchy_items
-
-    def _update_pair_info( self ):
-        for item in self.hierarchy_items.values( ):
-            cpp_obj = item[ "cpp" ]
-            hpp_obj = item[ "hpp" ]
-            if cpp_obj:
-                cpp_obj.hpp = hpp_obj
-            if hpp_obj:
-                hpp_obj.cpp = cpp_obj
-
-    def _update_included_items( self ):
-        self._update_pair_info( )
-        include_pattern = re.compile( r'#include\s*[<\"]([^>\"]+)[>\"]' )
-        for obj in self.hpp_list + self.cpp_list:
-            obj.included_items = {}
-            matches = include_pattern.findall( obj.content )
-            for match in matches:
-                included_hierarchy = os.path.splitext( match )[0]
-                if included_hierarchy in self.hierarchy_items:
-                    obj.included_items[included_hierarchy] = self.hierarchy_items[included_hierarchy]
-
-    def _stabilize_dependencies( self ):
-        self._update_included_items( )
-        has_changes = True
-        while has_changes:
-            has_changes = False
-            for obj in self.hpp_list + self.cpp_list:
-                current_max = max( datetime.datetime.min, obj.dependencies_modified_at )
-                old_max = current_max
-                for dep_item in obj.included_items.values( ):
-                    if dep_item[ "hpp" ]:
-                        current_max = max( current_max, dep_item[ "hpp" ].dependencies_modified_at )
-                if current_max > old_max:
-                    has_changes = True
-                    obj.dependencies_modified_at = current_max
 
     @property
     def _get_compile_params( self ):

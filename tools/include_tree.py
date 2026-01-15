@@ -34,111 +34,71 @@ from lib.project_core import project_core
 
 
 class include_tree:
-    def __init__( self, include_dir: str ):
-        self.include_dir = include_dir
-        self.include_pattern = re.compile( r'#include\s*([<"">]([^>"">]+)[>""<])' )
-        self.closure_cache = { }
-
-    def _resolve_path( self, include_name: str ):
-        path = os.path.join( self.include_dir, include_name )
-        if os.path.exists( path ) and path.endswith( ".hpp" ):
-            return path
-        return None
-
-    def _get_closure( self, file_path: str, visited: set ) -> set:
-        if not file_path or file_path in visited:
-            return set( )
-        if file_path in self.closure_cache:
-            return self.closure_cache[ file_path ]
-            
-        closure = set( )
-        try:
-            with open( file_path, "r", encoding="utf-8" ) as f:
-                content = f.read( )
-            
-            matches = self.include_pattern.findall( content )
-            for full_match, inner_match in matches:
-                closure.add( full_match )
-                resolved = self._resolve_path( inner_match )
-                closure |= self._get_closure( resolved, visited | { file_path } )
-        except:
-            pass
-            
-        self.closure_cache[ file_path ] = closure
-        return closure
-
-    def _build_node( self, display_name: str, file_path: str, local_visited: set, is_redundant: bool = False ):
-        node = { "display": display_name, "path": file_path, "children": [ ], "is_redundant": is_redundant }
-        
-        if is_redundant:
-            return node
-
-        if not file_path:
-            node[ "is_system" ] = True
-            return node
-
-        if file_path in local_visited:
-            node[ "recursion" ] = True
-            return node
-        
-        new_local_visited = local_visited | { file_path }
-        
-        try:
-            with open( file_path, "r", encoding="utf-8" ) as f:
-                content = f.read( )
-            
-            matches = self.include_pattern.findall( content )
-            
-            children_info = [ ]
-            for full_match, inner_match in matches:
-                resolved = self._resolve_path( inner_match )
-                closure = self._get_closure( resolved, new_local_visited )
-                children_info.append( {
-                    "full": full_match,
-                    "resolved": resolved,
-                    "closure": closure | { full_match }
-                } )
-                
-            for i, info in enumerate( children_info ):
-                redundant = False
-                for j, other in enumerate( children_info ):
-                    if i != j and info[ "full" ] in other[ "closure" ]:
-                        redundant = True
-                        break
-                
-                child_node = self._build_node( info[ "full" ], info[ "resolved" ], new_local_visited, redundant )
-                node[ "children" ].append( child_node )
-                
-        except Exception as e:
-            node[ "error" ] = str( e )
-            
-        return node
+    def __init__( self, tree ):
+        self.tree = tree
 
     def get_report( self, target_file: str ) -> str:
-        self.closure_cache.clear( )
+        abs_path = os.path.abspath( target_file )
+        node = self.tree.nodes.get( abs_path )
         
-        root_node = self._build_node( target_file, target_file, set( ) )
+        ensure( node, f"file {target_file} not found in project tree" )
         
         output = [ ]
         
-        def print_tree( node, prefix="", is_last=True ):
-            connector = "└── " if is_last else "├── "
-            line = prefix + connector + node[ "display" ]
+        def print_tree( current_node, prefix="", is_last=True, visited=None, is_redundant=False ):
+            if visited is None:
+                visited = set( )
             
-            if node.get( "recursion" ):
-                line += " (recursion)"
-            elif node.get( "is_redundant" ):
-                line += " (redundant)"
-            elif node.get( "error" ):
-                line += f" (error: {node['error']})"
+            connector = "└── " if is_last else "├── "
+            
+            display_name = current_node.hierarchy
+            if current_node.is_external:
+                display_name = f"<{display_name}>"
+            elif current_node.path and current_node.path.endswith( ".hpp" ):
+                display_name = f"\"{current_node.hierarchy}.hpp\""
+            elif current_node.path and current_node.path.endswith( ".cpp" ):
+                display_name = f"\"{current_node.hierarchy}.cpp\""
 
+            line = prefix + connector + display_name
+            
+            if is_redundant:
+                line += " (redundant)"
+            elif current_node in visited:
+                line += " (recursion)"
+            
             output.append( line )
             
-            new_prefix = prefix + ( "    " if is_last else "│   " )
-            for i, child in enumerate( node[ "children" ] ):
-                print_tree( child, new_prefix, i == len( node[ "children" ] ) - 1 )
+            if is_redundant or current_node in visited:
+                return
 
-        print_tree( root_node )
+            new_visited = visited | { current_node }
+            new_prefix = prefix + ( "    " if is_last else "│   " )
+            
+            for i, ref in enumerate( current_node.direct_includes ):
+                print_tree( 
+                    ref.target_node, 
+                    new_prefix, 
+                    i == len( current_node.direct_includes ) - 1, 
+                    new_visited,
+                    ref.is_redundant
+                )
+
+        #   Special case for root node to match original display style if possible
+        #   Original used target_file as display name for root.
+        #   We'll use a slightly different approach to start the tree.
+        
+        def print_root( root_node ):
+            output.append( root_node.path if root_node.path else root_node.hierarchy )
+            for i, ref in enumerate( root_node.direct_includes ):
+                print_tree( 
+                    ref.target_node, 
+                    "", 
+                    i == len( root_node.direct_includes ) - 1, 
+                    { root_node },
+                    ref.is_redundant
+                )
+
+        print_root( node )
         return "\n".join( output )
 
 def run_include_tree( params: dict ) -> str:
@@ -153,7 +113,7 @@ def run_include_tree( params: dict ) -> str:
     
     ensure( file_path, "could not determine a target file for include_tree analysis" )
     
-    analyzer = include_tree( core.config[ "paths" ][ "include" ] )
+    analyzer = include_tree( core.tree )
     return analyzer.get_report( file_path )
 
 if __name__ == "__main__":
