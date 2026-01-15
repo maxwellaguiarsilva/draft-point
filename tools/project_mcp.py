@@ -43,10 +43,7 @@ def agent_statistic( name: Any = None ) -> str:
     if you identify that you have made a mistake that has already been recorded previously, increment the counter
     this is a support tool to help prioritize attention for repeat offenders
     """
-    args = { }
-    if name is not None:
-        args[ "name" ] = name
-    return _invoke_tool( "agent_statistic", args )
+    return _invoke_tool( "agent_statistic", locals( ).copy( ) )
 
 
 @mcp.tool( )
@@ -54,8 +51,7 @@ def quick_upload( message: str ) -> str:
     """performs a quick git upload: pull, add all, commit with message, and push
     this tool is intended for simple, non-conflicting changes to increase agility
     """
-    args = { "message": message }
-    return _invoke_tool( "quick_upload", args )
+    return _invoke_tool( "quick_upload", locals( ).copy( ) )
 
 
 @mcp.tool( )
@@ -63,8 +59,7 @@ def include_tree( file_path: str ) -> str:
     """displays the include tree of a c++ file (cpp or hpp)
     it recursively analyzes includes
     """
-    args = { "file_path": file_path }
-    return _invoke_tool( "include_tree", args )
+    return _invoke_tool( "include_tree", locals( ).copy( ) )
 
 
 @mcp.tool( )
@@ -80,13 +75,7 @@ def	create_class(
     good example: include_list=["string", "vector"], using_list=[ "::std::string", "::std::vector", "item_list   =   vector< string >"]
     bad example: include_list="<string>", using_list="using std::string;"
     """
-    args = {
-        "class_hierarchy": class_hierarchy,
-        "include_list": include_list,
-        "using_list": using_list,
-        "create_header_only": create_header_only
-    }
-    return _invoke_tool( "create_class", args )
+    return _invoke_tool( "create_class", locals( ).copy( ) )
 
 
 @mcp.tool( )
@@ -100,12 +89,7 @@ def create_test(
     in adhoc mode, 'hierarchy' must be a simple name (no slashes or paths)
     if flg_adhoc is false, creates a structured test in tests/path/test_path_hierarchy.cpp
     """
-    args = {
-        "hierarchy": hierarchy,
-        "flg_adhoc": flg_adhoc,
-        "include_list": include_list
-    }
-    return _invoke_tool( "create_test", args )
+    return _invoke_tool( "create_test", locals( ).copy( ) )
 
 
 @mcp.tool( )
@@ -131,11 +115,7 @@ def code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
     returns a consolidated list of violations
     to verify and process the entire project, prefer the `analyze` tool. the `code_verifier` tool is recommended for a small group of files or just a single file
     """
-    args = {
-        "files": files,
-        "flg_auto_fix": flg_auto_fix
-    }
-    return _invoke_tool( "code_verifier", args )
+    return _invoke_tool( "code_verifier", locals( ).copy( ) )
 
 
 if __name__ == "__main__":
