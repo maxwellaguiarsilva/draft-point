@@ -55,7 +55,7 @@ def quick_upload( message: str ) -> str:
 
 
 @mcp.tool( )
-def include_tree( file_path: str ) -> str:
+def include_tree( file_path: str = None ) -> str:
     """displays the include tree of a c++ file (cpp or hpp)
     it recursively analyzes includes
     """

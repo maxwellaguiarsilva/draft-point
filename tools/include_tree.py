@@ -26,10 +26,11 @@
 import os
 import re
 from lib.common import run_main, ensure
+from lib.project_core import project_core
 
 
 class include_tree:
-    def __init__( self, include_dir: str = "include" ):
+    def __init__( self, include_dir: str ):
         self.include_dir = include_dir
         self.include_pattern = re.compile( r'#include\s*([<"">]([^>"">]+)[>""<])' )
         self.closure_cache = { }
@@ -137,9 +138,18 @@ class include_tree:
         return "\n".join( output )
 
 def run_include_tree( params: dict ) -> str:
+    core = project_core( params.get( "config", { } ) )
     file_path = params.get( "file_path" )
-    ensure( file_path, "file_path parameter is required" )
-    analyzer = include_tree( )
+    
+    if not file_path:
+        for c in core.cpp_list:
+            if c.is_main and not c.is_test:
+                file_path = c.path
+                break
+    
+    ensure( file_path, "could not determine a target file for include_tree analysis" )
+    
+    analyzer = include_tree( core.config[ "paths" ][ "include" ] )
     return analyzer.get_report( file_path )
 
 if __name__ == "__main__":
