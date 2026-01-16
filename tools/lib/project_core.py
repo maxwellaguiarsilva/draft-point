@@ -68,8 +68,12 @@ DEFAULT_CONFIG = {
         "source": "source"             #   project source directory containing .cpp files
         ,"include": "include"          #   project include directory containing .hpp files
         ,"tests": "tests"              #   test source directory containing .cpp files
+        ,"adhoc": "tests/adhoc"        #   adhoc tests directory
         ,"build": "build"              #   build directory for object files (.o)
         ,"output": "dist"              #   output directory for the final binaries
+        ,"tools": "tools"              #   project tools directory
+        ,"docs": "docs"                #   project documentation directory
+        ,"templates": "docs/templates" #   project templates directory
     }
 
     #   build rules (how to compile)

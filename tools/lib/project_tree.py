@@ -80,13 +80,12 @@ class project_tree:
         pattern = os.path.join( root_path, "**", "*" )
         for path in glob.glob( pattern, recursive=True ):
             if os.path.isfile( path ) and path.endswith( ( ".hpp", ".cpp" ) ):
-                abs_path = os.path.abspath( path )
-                relative_path = os.path.relpath( path, base_path )
-                hierarchy = os.path.splitext( relative_path )[ 0 ]
+                relative_path_from_base = os.path.relpath( path, base_path )
+                hierarchy = os.path.splitext( relative_path_from_base )[ 0 ]
                 
-                node = tree_node( abs_path, hierarchy )
-                self.nodes[ abs_path ] = node
-                self.relative_path_map[ relative_path ] = node
+                node = tree_node( path, hierarchy )
+                self.nodes[ path ] = node
+                self.relative_path_map[ relative_path_from_base ] = node
                 
                 #   hierarchy_map can still be used, but it's ambiguous if both .hpp and .cpp exist.
                 #   We'll prefer .hpp for hierarchy_map if it exists.

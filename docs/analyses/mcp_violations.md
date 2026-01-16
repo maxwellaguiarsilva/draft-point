@@ -2,12 +2,9 @@
 
 This document lists violations of the Model Context Protocol (MCP) architectural rules regarding path management.
 
+
 ## 1. Absolute Paths Violations
 **Rule:** Absolute paths are forbidden; only relative paths must be used.
-
-### `tools/agent_statistic.py`
-- **Line 32:** `_statistic_file = "/home/.gemini/statistic.json"`
-  - **Violation:** Uses a hardcoded absolute path to a system directory.
 
 ### `tools/include_tree.py`
 - **Line 35:** `abs_path = os.path.abspath( target_file )`
@@ -51,10 +48,6 @@ This document lists violations of the Model Context Protocol (MCP) architectural
 ### `tools/lib/metadata_provider.py`
 - **Line 35:** `prefixes = [ "include/", "source/", "tests/" ]`
   - **Violation:** Directory prefixes are hardcoded instead of being read from `project_core` config.
-
-### `tools/agent_statistic.py`
-- **Line 32:** `_statistic_file = "/home/.gemini/statistic.json"`
-  - **Violation:** The entire file path is hardcoded.
 
 ### `tools/lib/project_core.py`
 - **Architectural Omission:** The `DEFAULT_CONFIG["paths"]` lacks definitions for `tools`, `docs`, and `templates` directories, forcing other tools to hardcode these values.

@@ -27,6 +27,9 @@ import re
 import os
 
 
+from lib.project_core import DEFAULT_CONFIG
+
+
 r_import        =   r"\{\{import\s+([a-zA-Z0-9_-]+)\}\}"
 r_list_open     =   r"\{\{list_open\s+([a-zA-Z0-9_-]+)\}\}"
 r_list_close    =   r"\{\{list_close\s+([a-zA-Z0-9_-]+)\}\}"
@@ -34,9 +37,9 @@ r_list_item     =   r"\{\{list_item\s+([a-zA-Z0-9_-]+)\}\}"
 
 
 class template:
-    def __init__( self, name, path = "docs/templates" ):
+    def __init__( self, name, path = None ):
         assert( name != "" )
-        self.path = path
+        self.path = path if path is not None else DEFAULT_CONFIG[ "paths" ][ "templates" ]
         self.text = self.load( name )
     
     def load( self, name ):

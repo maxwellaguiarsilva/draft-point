@@ -27,6 +27,7 @@ import os
 import time
 import re
 from lib.common import run_main
+from lib.project_core import DEFAULT_CONFIG
 from lib import metadata_provider
 from lib import template_engine
 
@@ -41,40 +42,42 @@ def write_file( file_path, content ):
 def create_class( class_hierarchy, include_list=[], using_list=[], create_header_only=False ):
     message = ""
     hierarchy_list = re.split( r"[/:\\.]+", class_hierarchy )
+    include_dir = DEFAULT_CONFIG[ "paths" ][ "include" ]
 
-    file_path_hpp = f"include/{ '/'.join( hierarchy_list ) }.hpp"
+    file_path_hpp = f"{include_dir}/{ '/'.join( hierarchy_list ) }.hpp"
     data = metadata_provider.get_canonical_metadata( file_path_hpp )
     data.update( {
-         "class_name": hierarchy_list[ -1 ]
-        ,"namespace_list": hierarchy_list[ :-1 ]
+         "header_guard": f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
+        ,"class_name": hierarchy_list[ -1 ]
         ,"include_list": include_list
+        ,"namespace_list": hierarchy_list[ :-1 ]
         ,"using_list": using_list
-        ,"header_guard": f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
     } )
 
     content_hpp = template_engine.render( "class-hpp", data )
     message += write_file( file_path_hpp, content_hpp )
 
-    if not create_header_only:
-        file_path_cpp = f"source/{ '/'.join( hierarchy_list ) }.cpp"
-        data = metadata_provider.get_canonical_metadata( file_path_cpp )
-        data.update( {
-             "include_list": [ metadata_provider.strip_project_prefix( file_path_hpp ) ]
-            ,"class_name": hierarchy_list[ -1 ]
-            ,"namespace_list": hierarchy_list[ :-1 ]
-            ,"using_list": using_list
-        } )
-        content_cpp = template_engine.render( "class-cpp", data )
-        message += write_file( file_path_cpp, content_cpp )
+    if create_header_only:
+        return  message
+
+    source_dir = DEFAULT_CONFIG[ "paths" ][ "source" ]
+    file_path_cpp = f"{source_dir}/{ '/'.join( hierarchy_list ) }.cpp"
+    data = metadata_provider.get_canonical_metadata( file_path_cpp )
+    data.update( {
+         "include_list": [ metadata_provider.strip_project_prefix( file_path_hpp ) ]
+    } )
+    content_cpp = template_engine.render( "class-cpp", data )
+    message += write_file( file_path_cpp, content_cpp )
 
     return message
 
 
 def create_test( hierarchy, flg_adhoc=False, include_list=[] ):
     message = ""
+    paths = DEFAULT_CONFIG[ "paths" ]
     
     if flg_adhoc:
-        adhoc_dir = "tests/adhoc"
+        adhoc_dir = paths[ "adhoc" ]
         os.makedirs( adhoc_dir, exist_ok=True )
         
         existing_adhocs = [ d for d in os.listdir( adhoc_dir ) if os.path.isdir( os.path.join( adhoc_dir, d ) ) ]
@@ -93,14 +96,15 @@ def create_test( hierarchy, flg_adhoc=False, include_list=[] ):
         file_path = f"{adhoc_dir}/{test_folder}/{prefix}_{hierarchy}.cpp"
         display_hierarchy = hierarchy
     else:
+        tests_dir = paths[ "tests" ]
         hierarchy_list = re.split( r"[/:\\.]+", hierarchy )
         path = "/".join( hierarchy_list[ :-1 ] )
         filename = "test_" + "_".join( hierarchy_list ) + ".cpp"
         
         if path:
-            file_path = f"tests/{path}/{filename}"
+            file_path = f"{tests_dir}/{path}/{filename}"
         else:
-            file_path = f"tests/{filename}"
+            file_path = f"{tests_dir}/{filename}"
         display_hierarchy = hierarchy
 
     data = metadata_provider.get_canonical_metadata( file_path )

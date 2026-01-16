@@ -38,8 +38,7 @@ class include_tree:
         self.tree = tree
 
     def get_report( self, target_file: str ) -> str:
-        abs_path = os.path.abspath( target_file )
-        node = self.tree.nodes.get( abs_path )
+        node = self.tree.nodes.get( target_file )
         
         ensure( node, f"file {target_file} not found in project tree" )
         

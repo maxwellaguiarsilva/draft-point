@@ -27,11 +27,13 @@ import os
 import subprocess
 import datetime
 from lib.common import ensure
+from lib.project_core import DEFAULT_CONFIG
 
 
 def strip_project_prefix( path ):
     """Remove directory prefixes for clean display in the header."""
-    prefixes = [ "include/", "source/", "tests/" ]
+    paths = DEFAULT_CONFIG[ "paths" ]
+    prefixes = [ f"{paths['include']}/", f"{paths['source']}/", f"{paths['tests']}/" ]
     for p in prefixes:
         if path.startswith( p ):
             return path[ len( p ) : ]
