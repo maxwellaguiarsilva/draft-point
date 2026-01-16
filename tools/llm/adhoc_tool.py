@@ -23,7 +23,7 @@
 #   Created on 2026-01-04 20:18:54
 
 
-from lib.common import run_main
+from ..lib.common import run_main
 
 
 def run_adhoc_tool( params ):
@@ -34,7 +34,6 @@ def run_adhoc_tool( params ):
     this function must be cleaned up to maintain a minimal state
     """
     action = params.get( "action" )
-    print( "wrong target" )
     
     if action == "hello":
         return f"hello, {params.get( 'name', 'world' )}!"
