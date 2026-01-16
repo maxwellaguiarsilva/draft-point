@@ -66,11 +66,11 @@ def llm_statistic( name: Any = None ) -> str:
 
 
 @mcp.tool( )
-def quick_upload( message: str ) -> str:
+def git_upload( message: str ) -> str:
     """performs a quick git upload: pull, add all, commit with message, and push
     this tool is intended for simple, non-conflicting changes to increase agility
     """
-    return _legacy_invoke_tool( "quick_upload", locals( ).copy( ) )
+    return _invoke_tool( "git", "upload", locals( ).copy( ) )
 
 
 @mcp.tool( )
