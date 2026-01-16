@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 
-#   Copyright (C) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+#   Copyright (C)   2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   compile
+#   File:   tools/cpp/compile.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-14 18:00:00

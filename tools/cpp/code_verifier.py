@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   code_verifier
+#   File:   tools/cpp/code_verifier.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-06 14:06:09
@@ -140,13 +140,17 @@ class formatter:
         header = self.content[ :split_index + 2 ]
         body = self.content[ split_index + 2 : ]
 
-        ignore_pattern = r"//.*|/\*[\s\S]*?\*/|\"(?:\\.|[^\"\\])*\"|' (?:\\.|[^'\\\n])*' |\\[\\[[\s\S]*?\\]\\]"
+        ignore_pattern = r"//.*|/\*[
+
+	 ]*\*/|"(?:\\.|[^"\\])*"|' (?:\\.|[^'\\\n])*' |\\[\[[
+
+	 ]*\]\]"
         
         patterns = [
              ( r"\((?![ \t\n\)])", r"( ", "missing space after '('" )
             ,( r"(?<![ \t\n\(])\)", r" )", "missing space before ')'" )
             ,( r"\[(?![ \t\n\]])", r"[ ", "missing space after '['" )
-            ,( r"(?<![ \t\n\[])\]", r" ]", "missing space before ']'" )
+            ,( r"(?<![ \t\n\[])\]", r" ]", "missing space before ']" )
         ]
 
         original_body = body

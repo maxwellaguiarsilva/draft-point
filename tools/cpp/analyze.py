@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   analyze
+#   File:   tools/cpp/analyze.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-14 18:00:00
@@ -26,7 +26,7 @@
 import concurrent.futures
 from lib.common import run_main
 from lib.project_core import project_core, get_cpu_count
-from code_verifier import run_code_verifier
+from cpp.code_verifier import run_code_verifier
 
 
 def run_analyze( params ):

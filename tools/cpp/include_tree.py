@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   include_tree
+#   File:   tools/cpp/include_tree.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-13 14:30:00
@@ -29,7 +29,7 @@ from lib.common import run_main, ensure
 from lib.project_core import project_core
 
 
-#   project_core: r'#include\\s*[<\\"]([^>\\"]+)[>\\"]'
+#   project_core: r'#include\s*[<\\"]([^>\\"]+)[>\\"]'
 #   include_tree: r'#include\s*([<"">]([^>"">]+)[>""<])'
 
 

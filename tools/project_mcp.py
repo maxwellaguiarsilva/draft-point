@@ -32,18 +32,6 @@ def _invoke_tool( group: str, name: str, args: Any = None ) -> str:
         return f"{name} failed: {str( e )}"
 
 
-def _legacy_invoke_tool( name: str, args: Any = None ) -> str:
-    """runs a command and formats the output for mcp return"""
-    tools_dir = DEFAULT_CONFIG[ "paths" ][ "tools" ]
-    try:
-        process = _invoke_subprocess( [ "python3", f"{tools_dir}/{name}.py", json.dumps( args if args is not None else { } ) ] )
-        return f"{name} successful:\n{process.stdout}"
-    except subprocess.CalledProcessError as e:
-        return f"{name} failed:\n{e.stdout}\n{e.stderr}".strip( )
-    except Exception as e:
-        return f"{name} failed: {str( e )}"
-
-
 @mcp.tool( )
 def llm_adhoc_tool( params: dict ) -> str:
     """executes experimental logic defined in tools/adhoc-tool.py
@@ -74,15 +62,15 @@ def git_quick_upload( message: str ) -> str:
 
 
 @mcp.tool( )
-def include_tree( file_path: str = None ) -> str:
+def cpp_include_tree( file_path: str = None ) -> str:
     """displays the include tree of a c++ file (cpp or hpp)
     it recursively analyzes includes
     """
-    return _legacy_invoke_tool( "include_tree", locals( ).copy( ) )
+    return _invoke_tool( "cpp", "include_tree", locals( ).copy( ) )
 
 
 @mcp.tool( )
-def	create_class(
+def	cpp_create_class(
          class_hierarchy : str
         ,include_list: list[ str ] = [ ]
         ,using_list: list[ str ] = [ ]
@@ -94,11 +82,11 @@ def	create_class(
     good example: include_list=["string", "vector"], using_list=[ "::std::string", "::std::vector", "item_list   =   vector< string >"]
     bad example: include_list="<string>", using_list="using std::string;"
     """
-    return _legacy_invoke_tool( "create_class", locals( ).copy( ) )
+    return _invoke_tool( "cpp", "create_class", locals( ).copy( ) )
 
 
 @mcp.tool( )
-def create_test(
+def cpp_create_test(
          hierarchy: str
         ,flg_adhoc: bool = False
         ,include_list: list[ str ] = [ ]
@@ -108,33 +96,33 @@ def create_test(
     in adhoc mode, 'hierarchy' must be a simple name (no slashes or paths)
     if flg_adhoc is false, creates a structured test in tests/path/test_path_hierarchy.cpp
     """
-    return _legacy_invoke_tool( "create_test", locals( ).copy( ) )
+    return _invoke_tool( "cpp", "create_test", locals( ).copy( ) )
 
 
 @mcp.tool( )
-def compile( ) -> str:
+def cpp_compile( ) -> str:
     """compiles the project using
     this command takes no arguments"""
-    return _legacy_invoke_tool( "compile" )
+    return _invoke_tool( "cpp", "compile" )
 
 
 @mcp.tool( )
-def analyze( ) -> str:
+def cpp_analyze( ) -> str:
     """runs static analysis (cppcheck) and automatically fixes formatting rules
     beyond checking, it also applies fixes for the rules verified by 'verify_formatting' on all .cpp and .hpp files
     this command takes no arguments"""
-    return _legacy_invoke_tool( "analyze" )
+    return _invoke_tool( "cpp", "analyze" )
 
 
 @mcp.tool( )
-def code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
+def cpp_code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
     """this tool is exclusively for cpp and hpp files
     verifies if a list of files follows the project's formatting rules
     if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
     returns a consolidated list of violations
     to verify and process the entire project, prefer the `analyze` tool. the `code_verifier` tool is recommended for a small group of files or just a single file
     """
-    return _legacy_invoke_tool( "code_verifier", locals( ).copy( ) )
+    return _invoke_tool( "cpp", "code_verifier", locals( ).copy( ) )
 
 
 if __name__ == "__main__":
