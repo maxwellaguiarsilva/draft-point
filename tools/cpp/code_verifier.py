@@ -26,8 +26,9 @@
 import re
 import os
 from lib.common import run_main
-from cpp_lib import metadata_provider
-from cpp_lib import template_engine
+from lib.config import DEFAULT_CONFIG
+from lib import metadata_provider
+from lib import template_engine
 
 
 class formatter:
@@ -36,6 +37,15 @@ class formatter:
         self.file_path = file_path
         self.messages = []
         self.flg_auto_fix = flg_auto_fix
+
+    def _strip_project_prefix( self, path ):
+        """C++ specific prefix stripping for license header."""
+        paths = DEFAULT_CONFIG[ "paths" ]
+        prefixes = [ f"{paths['include']}/", f"{paths['source']}/", f"{paths['tests']}/" ]
+        for p in prefixes:
+            if path.startswith( p ):
+                return path[ len( p ) : ]
+        return path
 
     def run( self ):
         self._validate_license( )
@@ -71,6 +81,7 @@ class formatter:
 
         try:
             data = metadata_provider.get_canonical_metadata( self.file_path )
+            data[ "des_file_path" ] = self._strip_project_prefix( self.file_path )
             ideal_header = template_engine.render( "file-header", data ).strip( )
             
             parts = self.content.split( "\n\n", 1 )
@@ -140,11 +151,7 @@ class formatter:
         header = self.content[ :split_index + 2 ]
         body = self.content[ split_index + 2 : ]
 
-        ignore_pattern = r"//.*|/\*[
-
-	 ]*\*/|"(?:\\.|[^"\\])*"|' (?:\\.|[^'\\\n])*' |\\[\[[
-
-	 ]*\]\]"
+        ignore_pattern = r"//.*|/\*[\s\S]*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'"
         
         patterns = [
              ( r"\((?![ \t\n\)])", r"( ", "missing space after '('" )

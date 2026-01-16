@@ -52,6 +52,7 @@ def create_class( class_hierarchy, include_list=[], using_list=[], create_header
         ,"include_list": include_list
         ,"namespace_list": hierarchy_list[ :-1 ]
         ,"using_list": using_list
+        ,"des_file_path": f"{ '/'.join( hierarchy_list ) }.hpp"
     } )
 
     content_hpp = template_engine.render( "class-hpp", data )
@@ -64,7 +65,8 @@ def create_class( class_hierarchy, include_list=[], using_list=[], create_header
     file_path_cpp = f"{source_dir}/{ '/'.join( hierarchy_list ) }.cpp"
     data = metadata_provider.get_canonical_metadata( file_path_cpp )
     data.update( {
-         "include_list": [ metadata_provider.strip_project_prefix( file_path_hpp ) ]
+         "include_list": [ f"{ '/'.join( hierarchy_list ) }.hpp" ]
+        ,"des_file_path": f"{ '/'.join( hierarchy_list ) }.cpp"
     } )
     content_cpp = template_engine.render( "class-cpp", data )
     message += write_file( file_path_cpp, content_cpp )
@@ -107,10 +109,22 @@ def create_test( hierarchy, flg_adhoc=False, include_list=[] ):
             file_path = f"{tests_dir}/{filename}"
         display_hierarchy = hierarchy
 
+    #   Calculate canonical path for the header (relative to the base directory)
+    #   For tests, we want the path relative to the project root, but stripped of common prefixes if they match.
+    #   However, since we are being agnostic, let's just use a simple relative path logic here.
+    #   Given the requirements, the generator knows the paths.
+    
+    #   Actually, the simplest way is to use what we know:
+    if flg_adhoc:
+        des_file_path = f"{paths['adhoc']}/{test_folder}/{prefix}_{hierarchy}.cpp"
+    else:
+        des_file_path = f"{tests_dir}/{path}/{filename}" if path else f"{tests_dir}/{filename}"
+
     data = metadata_provider.get_canonical_metadata( file_path )
     data.update( {
          "hierarchy": display_hierarchy
         ,"include_list": include_list
+        ,"des_file_path": des_file_path
     } )
 
     content_test = template_engine.render( "test-cpp", data )

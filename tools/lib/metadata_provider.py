@@ -26,18 +26,6 @@
 import os
 import subprocess
 import datetime
-from lib.common import ensure
-from lib.config import DEFAULT_CONFIG
-
-
-def strip_project_prefix( path ):
-    """Remove directory prefixes for clean display in the header."""
-    paths = DEFAULT_CONFIG[ "paths" ]
-    prefixes = [ f"{paths['include']}/", f"{paths['source']}/", f"{paths['tests']}/" ]
-    for p in prefixes:
-        if path.startswith( p ):
-            return path[ len( p ) : ]
-    return path
 
 
 def fetch_git_first_commit( file_path ):
@@ -77,7 +65,6 @@ def get_git_config_value( configuration_name ):
 
 def get_canonical_metadata( full_relative_path ):
     """Generates the official metadata set for a file (existing or new)."""
-    canonical_path = strip_project_prefix( full_relative_path )
     git_info = fetch_git_first_commit( full_relative_path )
     
     if git_info:
@@ -86,7 +73,6 @@ def get_canonical_metadata( full_relative_path ):
             ,"des_full_name": git_info[ "name" ]
             ,"des_email": git_info[ "email" ]
             ,"des_formatted_datetime": git_info[ "datetime" ]
-            ,"des_file_path": canonical_path
         }
     
     #   Fallback for new files (not yet committed)
@@ -95,5 +81,4 @@ def get_canonical_metadata( full_relative_path ):
         ,"des_full_name": get_git_config_value( "user.name" )
         ,"des_email": get_git_config_value( "user.email" )
         ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
-        ,"des_file_path": canonical_path
     }

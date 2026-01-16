@@ -26,7 +26,7 @@
 import os
 import copy
 from lib.common import get_cpu_count, deep_update
-from ..lib.config import DEFAULT_CONFIG
+from lib.config import DEFAULT_CONFIG
 
 
 DEFAULT_CPP_CONFIG = {
