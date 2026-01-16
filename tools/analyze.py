@@ -30,6 +30,9 @@ from code_verifier import run_code_verifier
 
 
 def run_analyze( params ):
+    """runs static analysis (cppcheck) and automatically fixes formatting rules
+    beyond checking, it also applies fixes for the rules verified by 'verify_formatting' on all .cpp and .hpp files
+    this command takes no arguments"""
     core = project_core( params.get( "config", { } ) )
     
     #   1. Format code (Verificação de estilo nativa)

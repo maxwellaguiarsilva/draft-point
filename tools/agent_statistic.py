@@ -73,6 +73,14 @@ def increment_event( data, name, short_description ):
 
 
 def run_agent_statistic( params ):
+    """records or retrieves agent behavioral statistics
+    if 'name' is provided, increments the count for that event ( can be a string or a list of strings )
+    if no arguments are provided, returns the current statistics table
+    this tool accepts a literal call with no arguments
+    if you identify that you have made a mistake that has already been recorded previously, increment the counter
+    this is a support tool to help prioritize attention for repeat offenders
+    """
+
     #   validate allowed fields
     allowed_fields = { "name", "short-description" }
     for key in params:
