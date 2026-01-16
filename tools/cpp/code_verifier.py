@@ -26,8 +26,8 @@
 import re
 import os
 from lib.common import run_main
-from lib import metadata_provider
-from lib import template_engine
+from cpp_lib import metadata_provider
+from cpp_lib import template_engine
 
 
 class formatter:

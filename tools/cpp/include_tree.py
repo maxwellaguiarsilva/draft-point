@@ -29,7 +29,7 @@ import sys
 
 
 from lib.common import run_main
-from cpp.lib.project_core import project_core
+from cpp_lib.project_core import project_core
 
 
 #   project_core: r'#include\s*[<\\"]([^>\\"]+)[>\\"]'

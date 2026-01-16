@@ -24,7 +24,7 @@
 
 
 from lib.common import run_main, ensure
-from file_generator import create_test
+from cpp_lib.file_generator import create_test
 
 
 def run_create_test( params ):

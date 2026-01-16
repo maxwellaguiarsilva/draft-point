@@ -31,7 +31,7 @@ import subprocess
 import sys
 
 
-from cpp.lib.project_core import project_core
+from cpp_lib.project_core import project_core
 from cpp.code_verifier import run_code_verifier
 
 

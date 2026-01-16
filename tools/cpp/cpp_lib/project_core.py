@@ -28,8 +28,8 @@ import threading
 import subprocess
 from lib.common import ensure
 from lib.common import deep_update
-from cpp.lib.config import DEFAULT_CPP_CONFIG
-from cpp.lib.project_tree import project_tree
+from cpp_lib.config import DEFAULT_CPP_CONFIG
+from cpp_lib.project_tree import project_tree
 
 
 class project_file:

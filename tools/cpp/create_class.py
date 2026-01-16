@@ -24,7 +24,7 @@
 
 
 from lib.common import run_main, ensure
-from file_generator import create_class
+from cpp_lib.file_generator import create_class
 
 
 def run_create_class( params ):
