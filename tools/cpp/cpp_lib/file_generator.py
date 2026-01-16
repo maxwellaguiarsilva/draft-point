@@ -45,15 +45,14 @@ def create_class( class_hierarchy, include_list=[], using_list=[], create_header
     include_dir = DEFAULT_CPP_CONFIG[ "paths" ][ "include" ]
 
     file_path_hpp = f"{include_dir}/{ '/'.join( hierarchy_list ) }.hpp"
-    data = metadata_provider.get_canonical_metadata( file_path_hpp )
-    data.update( {
+    data = metadata_provider.get_canonical_metadata( file_path_hpp ) | {
          "header_guard": f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
         ,"class_name": hierarchy_list[ -1 ]
         ,"include_list": include_list
         ,"namespace_list": hierarchy_list[ :-1 ]
         ,"using_list": using_list
         ,"des_file_path": f"{ '/'.join( hierarchy_list ) }.hpp"
-    } )
+    }
 
     content_hpp = template_engine.render( "class-hpp", data )
     message += write_file( file_path_hpp, content_hpp )
@@ -63,11 +62,10 @@ def create_class( class_hierarchy, include_list=[], using_list=[], create_header
 
     source_dir = DEFAULT_CPP_CONFIG[ "paths" ][ "source" ]
     file_path_cpp = f"{source_dir}/{ '/'.join( hierarchy_list ) }.cpp"
-    data = metadata_provider.get_canonical_metadata( file_path_cpp )
-    data.update( {
+    data = metadata_provider.get_canonical_metadata( file_path_cpp ) | {
          "include_list": [ f"{ '/'.join( hierarchy_list ) }.hpp" ]
         ,"des_file_path": f"{ '/'.join( hierarchy_list ) }.cpp"
-    } )
+    }
     content_cpp = template_engine.render( "class-cpp", data )
     message += write_file( file_path_cpp, content_cpp )
 
@@ -120,12 +118,11 @@ def create_test( hierarchy, flg_adhoc=False, include_list=[] ):
     else:
         des_file_path = f"{tests_dir}/{path}/{filename}" if path else f"{tests_dir}/{filename}"
 
-    data = metadata_provider.get_canonical_metadata( file_path )
-    data.update( {
+    data = metadata_provider.get_canonical_metadata( file_path ) | {
          "hierarchy": display_hierarchy
         ,"include_list": include_list
         ,"des_file_path": des_file_path
-    } )
+    }
 
     content_test = template_engine.render( "test-cpp", data )
     message += write_file( file_path, content_test )

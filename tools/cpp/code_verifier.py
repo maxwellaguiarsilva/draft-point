@@ -80,8 +80,9 @@ class formatter:
             return
 
         try:
-            data = metadata_provider.get_canonical_metadata( self.file_path )
-            data[ "des_file_path" ] = self._strip_project_prefix( self.file_path )
+            data = metadata_provider.get_canonical_metadata( self.file_path ) | {
+                "des_file_path": self._strip_project_prefix( self.file_path )
+            }
             ideal_header = template_engine.render( "file-header", data ).strip( )
             
             parts = self.content.split( "\n\n", 1 )

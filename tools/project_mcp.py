@@ -21,10 +21,11 @@ mcp = FastMCP( name="project-mcp" )
 def _invoke_tool( group: str, name: str, args: Any = None ) -> str:
     """runs a command and formats the output for mcp return"""
     tools_dir = DEFAULT_CONFIG[ "paths" ][ "tools" ]
-    env = os.environ.copy( )
-    env[ "PYTHONPATH" ] = tools_dir
     try:
-        process = _invoke_subprocess( [ "python3", f"{tools_dir}/{group}/{name}.py", json.dumps( args if args is not None else { } ) ], env=env )
+        process = _invoke_subprocess( 
+             [ "python3", f"{tools_dir}/{group}/{name}.py", json.dumps( args if args is not None else { } ) ]
+            ,env = os.environ | { "PYTHONPATH" : tools_dir } 
+        )
         return f"{name} successful:\n{process.stdout}"
     except subprocess.CalledProcessError as e:
         return f"{name} failed:\n{e.stdout}\n{e.stderr}".strip( )
