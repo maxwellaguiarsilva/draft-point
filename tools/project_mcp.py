@@ -19,7 +19,7 @@ mcp = FastMCP( name="project-mcp" )
 
 
 
-def _legacy_invoke( name: str, args: Any = None ) -> str:
+def _invoke_tool( name: str, args: Any = None ) -> str:
     """runs a command and formats the output for mcp return"""
     tools_dir = DEFAULT_CONFIG[ "paths" ][ "tools" ]
     try:
@@ -37,7 +37,7 @@ def adhoc_tool( params: dict ) -> str:
     this tool is used for prototyping new functionalities
     the 'params' dictionary is passed to the script
     """
-    return _legacy_invoke( "adhoc_tool", params )
+    return _invoke_tool( "adhoc_tool", params )
 
 
 @mcp.tool( )
@@ -49,7 +49,7 @@ def agent_statistic( name: Any = None ) -> str:
     if you identify that you have made a mistake that has already been recorded previously, increment the counter
     this is a support tool to help prioritize attention for repeat offenders
     """
-    return _legacy_invoke( "agent_statistic", locals( ).copy( ) )
+    return _invoke_tool( "agent_statistic", locals( ).copy( ) )
 
 
 @mcp.tool( )
@@ -57,7 +57,7 @@ def quick_upload( message: str ) -> str:
     """performs a quick git upload: pull, add all, commit with message, and push
     this tool is intended for simple, non-conflicting changes to increase agility
     """
-    return _legacy_invoke( "quick_upload", locals( ).copy( ) )
+    return _invoke_tool( "quick_upload", locals( ).copy( ) )
 
 
 @mcp.tool( )
@@ -65,7 +65,7 @@ def include_tree( file_path: str = None ) -> str:
     """displays the include tree of a c++ file (cpp or hpp)
     it recursively analyzes includes
     """
-    return _legacy_invoke( "include_tree", locals( ).copy( ) )
+    return _invoke_tool( "include_tree", locals( ).copy( ) )
 
 
 @mcp.tool( )
@@ -81,7 +81,7 @@ def	create_class(
     good example: include_list=["string", "vector"], using_list=[ "::std::string", "::std::vector", "item_list   =   vector< string >"]
     bad example: include_list="<string>", using_list="using std::string;"
     """
-    return _legacy_invoke( "create_class", locals( ).copy( ) )
+    return _invoke_tool( "create_class", locals( ).copy( ) )
 
 
 @mcp.tool( )
@@ -95,14 +95,14 @@ def create_test(
     in adhoc mode, 'hierarchy' must be a simple name (no slashes or paths)
     if flg_adhoc is false, creates a structured test in tests/path/test_path_hierarchy.cpp
     """
-    return _legacy_invoke( "create_test", locals( ).copy( ) )
+    return _invoke_tool( "create_test", locals( ).copy( ) )
 
 
 @mcp.tool( )
 def compile( ) -> str:
     """compiles the project using
     this command takes no arguments"""
-    return _legacy_invoke( "compile" )
+    return _invoke_tool( "compile" )
 
 
 @mcp.tool( )
@@ -110,7 +110,7 @@ def analyze( ) -> str:
     """runs static analysis (cppcheck) and automatically fixes formatting rules
     beyond checking, it also applies fixes for the rules verified by 'verify_formatting' on all .cpp and .hpp files
     this command takes no arguments"""
-    return _legacy_invoke( "analyze" )
+    return _invoke_tool( "analyze" )
 
 
 @mcp.tool( )
@@ -121,28 +121,10 @@ def code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
     returns a consolidated list of violations
     to verify and process the entire project, prefer the `analyze` tool. the `code_verifier` tool is recommended for a small group of files or just a single file
     """
-    return _legacy_invoke( "code_verifier", locals( ).copy( ) )
-
-
-def _invoke__tool( group: str, name: str, args: dict = { } )
-    """runs a command and formats the output for mcp return"""
-    tools_dir = DEFAULT_CONFIG[ "paths" ][ "tools" ]
-    try:
-        process = _invoke_subprocess( [ "python3", f"{tools_dir}/{group}/{name}.py", json.dumps( args ) ] )
-        return f"{name} successful:\n{process.stdout}"
-    except subprocess.CalledProcessError as e:
-        return f"{name} failed:\n{e.stdout}\n{e.stderr}".strip( )
-    except Exception as e:
-        return f"{name} failed: {str( e )}"
-
-
-def _register_dynamic_tools( mcp_instance: FastMCP ) -> None:
-    """dynamically registers tools from subdirectories in the tools folder"""
-    return
+    return _invoke_tool( "code_verifier", locals( ).copy( ) )
 
 
 if __name__ == "__main__":
-    _register_dynamic_tools( mcp )
     mcp.run( )
 
 
