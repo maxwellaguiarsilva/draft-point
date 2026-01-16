@@ -3,12 +3,14 @@
 
 venv_dir="./.gemini/venv-fast-mcp"
 python_script="./tools/project_mcp.py"
+settings_template="./tools/resources/gemini-cli/settings.json"
+settings_production="./.gemini/settings.json"
 
 #	check if the virtual environment exists
-if [[ ! -d "${venv_dir}" ]];
+if [[ ! -d "${venv_dir}" ]]
 then
 	echo "creating virtual environment in ${venv_dir}..."
-	if ! python3 -m venv "${venv_dir}";
+	if ! python3 -m venv "${venv_dir}"
 	then
 		echo "failed to create virtual environment"
 		exit 1
@@ -23,10 +25,10 @@ source "${venv_dir}/bin/activate"
 install_inside_venv( )
 {
 	local package_name="${1}"
-	if ! "${venv_dir}/bin/pip" show "${package_name}" &>/dev/null;
+	if ! "${venv_dir}/bin/pip" show "${package_name}" &>/dev/null
 	then
 		echo "installing ${package_name}..."
-		if ! env -u LD_PRELOAD "${venv_dir}/bin/pip" install "${package_name}";
+		if ! env -u LD_PRELOAD "${venv_dir}/bin/pip" install "${package_name}"
 		then
 			echo "failed to install ${package_name}"
 			deactivate #	deactivate venv before exiting
@@ -35,13 +37,41 @@ install_inside_venv( )
 	fi
 }
 
-for package in "fastmcp" "pydantic";
+for package in "fastmcp" "pydantic"
 do
 	install_inside_venv "${package}"
 done
 
-#	execute the original python script with all arguments
-env -u LD_PRELOAD "${venv_dir}/bin/python" "${python_script}" "${@}"
+#	ensure settings template exists
+if [[ ! -f "${settings_template}" ]]
+then
+	mkdir -p "$( dirname "${settings_template}" )"
+	printf '{
+  "mcpServers": {
+    "project-mcp": {
+      "command": "tools/start-project-mcp-server",
+      "args": [
+        "--run"
+      ]
+    }
+  }
+}
+' > "${settings_template}"
+fi
+
+#	ensure production settings exists
+if [[ ! -f "${settings_production}" ]]
+then
+	mkdir -p "$( dirname "${settings_production}" )"
+	cp "${settings_template}" "${settings_production}"
+fi
+
+#	execute the original python script only if --run is provided
+if [[ "${1}" == "--run" ]]
+then
+	shift
+	env -u LD_PRELOAD "${venv_dir}/bin/python" "${python_script}" "${@}"
+fi
 
 #	deactivate the virtual environment
 deactivate

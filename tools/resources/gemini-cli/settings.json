@@ -1,7 +1,10 @@
 {
   "mcpServers": {
     "project-mcp": {
-      "command": "tools/start-project-mcp-server"
+      "command": "tools/start-project-mcp-server",
+      "args": [
+        "--run"
+      ]
     }
   }
 }
