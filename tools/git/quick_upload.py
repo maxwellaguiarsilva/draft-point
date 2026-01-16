@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   upload
+#   File:   quick_upload
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-13 18:00:00
@@ -28,7 +28,7 @@ from lib.common import run_main, ensure, _invoke_subprocess
 from llm.statistic import run_statistic
 
 
-def run_upload( params ):
+def run_quick_upload( params ):
     message = params.get( "message" )
     ensure( message, "message parameter is required for quick upload" )
 
