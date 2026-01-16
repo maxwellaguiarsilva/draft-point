@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   agent_statistic
+#   File:   statistic
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-10 00:01:07
@@ -26,7 +26,7 @@
 
 import json
 import os
-from ..lib.common import run_main, ensure
+from lib.common import run_main, ensure
 
 
 _statistic_file = "/home/.gemini/statistic.json"
@@ -72,15 +72,7 @@ def increment_event( data, name, short_description ):
         data.append( new_entry )
 
 
-def run_agent_statistic( params ):
-    """records or retrieves agent behavioral statistics
-    if 'name' is provided, increments the count for that event ( can be a string or a list of strings )
-    if no arguments are provided, returns the current statistics table
-    this tool accepts a literal call with no arguments
-    if you identify that you have made a mistake that has already been recorded previously, increment the counter
-    this is a support tool to help prioritize attention for repeat offenders
-    """
-
+def run_statistic( params ):
     #   validate allowed fields
     allowed_fields = { "name", "short-description" }
     for key in params:
@@ -118,6 +110,6 @@ def run_agent_statistic( params ):
 
 
 if __name__ == "__main__":
-    run_main( run_agent_statistic )
+    run_main( run_statistic )
 
 

@@ -25,7 +25,7 @@
 
 import subprocess
 from lib.common import run_main, ensure, _invoke_subprocess
-from agent_statistic import run_agent_statistic
+from llm.statistic import run_statistic
 
 
 def run_quick_upload( params ):
@@ -38,7 +38,7 @@ def run_quick_upload( params ):
         _invoke_subprocess( [ "git", "commit", "-m", message ] )
         _invoke_subprocess( [ "git", "push" ] )
         
-        stats_result = run_agent_statistic( { "name": "success" } )
+        stats_result = run_statistic( { "name": "success" } )
         
         return  f"`{stats_result}`\n\n{message}"
     except subprocess.CalledProcessError as e:

@@ -23,16 +23,10 @@
 #   Created on 2026-01-04 20:18:54
 
 
-from ..lib.common import run_main
+from lib.common import run_main
 
 
 def run_adhoc_tool( params ):
-    """executes experimental logic defined in tools/adhoc-tool.py
-    this tool is used for prototyping new functionalities
-    the 'params' dictionary is passed to the script
-    after the logic is validated and moved to a production script,
-    this function must be cleaned up to maintain a minimal state
-    """
     action = params.get( "action" )
     
     if action == "hello":

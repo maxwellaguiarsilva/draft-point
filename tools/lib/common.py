@@ -33,8 +33,8 @@ def ensure( expression, message ):
         raise Exception( message )
 
 
-def _invoke_subprocess( command ):
-    return  subprocess.run( command, check=True, capture_output=True, text=True )
+def _invoke_subprocess( command, **kwargs ):
+    return  subprocess.run( command, check=True, capture_output=True, text=True, **kwargs )
 
 
 def print_line( strong = True ):
