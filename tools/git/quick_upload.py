@@ -52,6 +52,6 @@ def run_quick_upload( params ):
 
 
 if __name__ == "__main__":
-    run_main( run_upload )
+    run_main( run_quick_upload )
 
 
