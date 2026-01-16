@@ -5,7 +5,7 @@ import json
 import os
 import subprocess
 from lib.common import _invoke_subprocess
-from lib.project_core import DEFAULT_CONFIG
+from lib.config import DEFAULT_CONFIG
 from typing import Any
 from fastmcp import FastMCP
 

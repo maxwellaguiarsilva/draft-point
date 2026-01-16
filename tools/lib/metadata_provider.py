@@ -27,7 +27,7 @@ import os
 import subprocess
 import datetime
 from lib.common import ensure
-from lib.project_core import DEFAULT_CONFIG
+from lib.config import DEFAULT_CONFIG
 
 
 def strip_project_prefix( path ):

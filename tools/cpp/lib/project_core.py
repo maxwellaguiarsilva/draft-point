@@ -1,6 +1,3 @@
-#!/usr/bin/python3
-
-
 #   Copyright (C) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   This program is free software: you can redistribute it and/or modify
@@ -24,119 +21,15 @@
 
 
 import copy
-import concurrent.futures
 import datetime
-import glob
 import os
 import re
 import threading
 import subprocess
 from lib.common import ensure
-from lib.project_tree import project_tree
-
-
-def get_cpu_count( ):
-# ... (rest of get_cpu_count and DEFAULT_CONFIG)
-    try:
-        return  len( os.sched_getaffinity( 0 ) )
-    except AttributeError:
-        return  os.cpu_count( ) or 1
-
-
-DEFAULT_CONFIG = {
-    #   compiler information
-    "compiler": {
-        "executable": "clang++"        #   options: "g++", "clang++" or full path
-        ,"standard": "c++23"           #   examples: "c++17", "c++20", "c++23"
-        ,"use_64_bits": True           #   abstraction for -m64 (64-bit)
-        ,"extra_compile_flags": [
-            "-ffunction-sections"      #   place each function into its own section
-            ,"-fdata-sections"         #   place each data item into its own section
-            ,"-flto"                   #   enable link time optimization
-        ]
-        ,"extra_link_flags": [
-            "-flto"                    #   enable link time optimization during linking
-        ]
-        ,"linker_direct_options": [
-            "--as-needed"              #   only link libraries that satisfy undefined symbols
-            ,"--gc-sections"           #   remove unused sections (dead code elimination)
-        ]
-    }
-
-    #   folder organization
-    ,"paths": {
-        "source": "source"             #   project source directory containing .cpp files
-        ,"include": "include"          #   project include directory containing .hpp files
-        ,"tests": "tests"              #   test source directory containing .cpp files
-        ,"adhoc": "tests/adhoc"        #   adhoc tests directory
-        ,"build": "build"              #   build directory for object files (.o)
-        ,"output": "dist"              #   output directory for the final binaries
-        ,"tools": "tools"              #   project tools directory
-        ,"docs": "docs"                #   project documentation directory
-        ,"templates": "docs/templates" #   project templates directory
-    }
-
-    #   build rules (how to compile)
-    ,"build_behavior": {
-        #   options: "none" (-O0), "balanced" (-O2), "aggressive" (-O3), "debug" (-Og)
-        "optimization": "balanced"
-        ,"optimization_levels": {
-            "none": "-O0"
-            ,"balanced": "-O2"
-            ,"aggressive": "-O3"
-            ,"debug": "-Og"
-        }
-        ,"debug_symbols": False         #   generates symbols for gdb (-g)
-        ,"generate_dependencies": False #   generates .d files (intelligent recompilation)
-        ,"experimental_library": True   #   enables -fexperimental-library
-        ,"max_threads": get_cpu_count( )
-    }
-
-    #   quality control (warning and analysis flags)
-    ,"quality_control": {
-        #   options: "minimal", "high" (-Wall -Wextra), "pedantic"
-        "warning_level": "high"
-        ,"warning_levels": {
-            "minimal": ["-Wall"]
-            ,"high": ["-Wall", "-Wextra"]
-            ,"pedantic": ["-Wall", "-Wextra", "-Wpedantic"]
-        }
-        ,"treat_warnings_as_errors": True #   -Werror
-        ,"stop_on_first_error": True      #   -Wfatal-errors
-        ,"static_analysis": {
-            "enabled": True
-            ,"tool": "cppcheck"
-            ,"strictness": "exhaustive"    #   options: "normal", "exhaustive"
-            ,"suppressions": [
-                "missingIncludeSystem"
-                ,"checkersReport"
-            ]
-        }
-    }
-
-    #   external dependencies (no -l or -I prefixes)
-    ,"dependencies": {
-        "libraries": []                #   example: ["ncurses", "pthread"]
-        ,"include_dirs": []            #   additional paths for header search
-        ,"library_dirs": []             #   additional paths for library search
-    }
-
-    #   file search patterns
-    ,"patterns": {
-        "source_extension": "cpp"
-        ,"header_extension": "hpp"
-        ,"main_function": r"\b(int|auto)\s+main\s*\("
-    }
-}
-
-
-def deep_update( source, overrides ):
-    for key, value in overrides.items( ):
-        if isinstance( value, dict ) and key in source and isinstance( source[ key ], dict ):
-            deep_update( source[ key ], value )
-        else:
-            source[ key ] = value
-    return source
+from lib.common import deep_update
+from cpp.lib.config import DEFAULT_CPP_CONFIG
+from cpp.lib.project_tree import project_tree
 
 
 class project_file:
@@ -278,7 +171,7 @@ class binary_builder:
 
 class project_core:
     def __init__( self, config = { } ):
-        self.config = deep_update( copy.deepcopy( DEFAULT_CONFIG ), config )
+        self.config = deep_update( copy.deepcopy( DEFAULT_CPP_CONFIG ), config )
         
         self.tree = project_tree( self.config )
         

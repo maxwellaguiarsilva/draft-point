@@ -23,10 +23,13 @@
 #   Created on 2026-01-13 14:30:00
 
 
+import json
 import os
-import re
-from lib.common import run_main, ensure
-from lib.project_core import project_core
+import sys
+
+
+from lib.common import run_main
+from cpp.lib.project_core import project_core
 
 
 #   project_core: r'#include\s*[<\\"]([^>\\"]+)[>\\"]'

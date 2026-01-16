@@ -24,8 +24,14 @@
 
 
 import concurrent.futures
-from lib.common import run_main
-from lib.project_core import project_core, get_cpu_count
+from lib.common import run_main, get_cpu_count
+import json
+import os
+import subprocess
+import sys
+
+
+from cpp.lib.project_core import project_core
 from cpp.code_verifier import run_code_verifier
 
 

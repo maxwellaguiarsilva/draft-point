@@ -25,12 +25,29 @@
 
 import json
 import sys
+import os
 import subprocess
 
 
 def ensure( expression, message ):
     if not expression:
         raise Exception( message )
+
+
+def get_cpu_count( ):
+    try:
+        return  len( os.sched_getaffinity( 0 ) )
+    except AttributeError:
+        return  os.cpu_count( ) or 1
+
+
+def deep_update( source, overrides ):
+    for key, value in overrides.items( ):
+        if isinstance( value, dict ) and key in source and isinstance( source[ key ], dict ):
+            deep_update( source[ key ], value )
+        else:
+            source[ key ] = value
+    return source
 
 
 def _invoke_subprocess( command, **kwargs ):

@@ -27,7 +27,7 @@ import os
 import time
 import re
 from lib.common import run_main
-from lib.project_core import DEFAULT_CONFIG
+from cpp.lib.config import DEFAULT_CPP_CONFIG
 from lib import metadata_provider
 from lib import template_engine
 
@@ -42,7 +42,7 @@ def write_file( file_path, content ):
 def create_class( class_hierarchy, include_list=[], using_list=[], create_header_only=False ):
     message = ""
     hierarchy_list = re.split( r"[/:\\.]+", class_hierarchy )
-    include_dir = DEFAULT_CONFIG[ "paths" ][ "include" ]
+    include_dir = DEFAULT_CPP_CONFIG[ "paths" ][ "include" ]
 
     file_path_hpp = f"{include_dir}/{ '/'.join( hierarchy_list ) }.hpp"
     data = metadata_provider.get_canonical_metadata( file_path_hpp )
@@ -60,7 +60,7 @@ def create_class( class_hierarchy, include_list=[], using_list=[], create_header
     if create_header_only:
         return  message
 
-    source_dir = DEFAULT_CONFIG[ "paths" ][ "source" ]
+    source_dir = DEFAULT_CPP_CONFIG[ "paths" ][ "source" ]
     file_path_cpp = f"{source_dir}/{ '/'.join( hierarchy_list ) }.cpp"
     data = metadata_provider.get_canonical_metadata( file_path_cpp )
     data.update( {
@@ -74,7 +74,7 @@ def create_class( class_hierarchy, include_list=[], using_list=[], create_header
 
 def create_test( hierarchy, flg_adhoc=False, include_list=[] ):
     message = ""
-    paths = DEFAULT_CONFIG[ "paths" ]
+    paths = DEFAULT_CPP_CONFIG[ "paths" ]
     
     if flg_adhoc:
         adhoc_dir = paths[ "adhoc" ]

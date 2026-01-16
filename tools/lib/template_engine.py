@@ -27,7 +27,7 @@ import re
 import os
 
 
-from lib.project_core import DEFAULT_CONFIG
+from lib.config import DEFAULT_CONFIG
 
 
 r_import        =   r"\{\{import\s+([a-zA-Z0-9_-]+)\}\}"
