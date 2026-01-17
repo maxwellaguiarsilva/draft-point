@@ -26,17 +26,10 @@
 import os
 import time
 import re
-from lib.common import run_main
+from lib.common import run_main, write_file
 from cpp.lib.config import DEFAULT_CPP_CONFIG
 from lib import metadata_provider
 from lib import template_engine
-
-
-def write_file( file_path, content ):
-    os.makedirs( os.path.dirname( file_path ), exist_ok=True )
-    with open( file_path, "w" ) as f:
-        f.write( content )
-    return f"created file: {file_path}\n"
 
 
 def parse_hierarchy( hierarchy ):
