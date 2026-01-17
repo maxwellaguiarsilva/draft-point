@@ -63,6 +63,14 @@ def git_quick_upload( message: str ) -> str:
 
 
 @mcp.tool( )
+def git_discard_changes( ) -> str:
+    """discards all uncommitted changes and removes untracked files
+    this tool reverts the repository to the state of the last commit (HEAD)
+    """
+    return _invoke_tool( "git", "discard_changes" )
+
+
+@mcp.tool( )
 def cpp_include_tree( file_path: str = None ) -> str:
     """displays the include tree of a c++ file (cpp or hpp)
     it recursively analyzes includes
