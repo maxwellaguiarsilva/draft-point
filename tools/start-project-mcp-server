@@ -69,6 +69,7 @@ fi
 #	execute the original python script only if --run is provided
 if [[ "${1}" == "--run" ]]
 then
+	rm -rf /home/.gemini/tmp
 	find ./tools -type f -name *.py -exec chmod +x {} \;
 	find ./tools -type d -name __pycache__ -exec rm -rf {} \;
 	shift

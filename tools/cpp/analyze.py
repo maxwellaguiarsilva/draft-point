@@ -24,11 +24,7 @@
 
 
 import concurrent.futures
-from lib.common import run_main, get_cpu_count
-import json
-import os
-import subprocess
-import sys
+from lib.common import run_main, get_cpu_count, print_line
 
 
 from cpp_lib.project_core import project_core
@@ -49,7 +45,7 @@ def run_analyze( params ):
     for obj in core.hpp_list + core.cpp_list:
         files_to_check.append( obj.path )
             
-    core.print( "=" * 50 )
+    print_line( )
     core.print( f"checking code formatting for {len(files_to_check)} files..." )
     
     max_workers = core.config[ "build_behavior" ].get( "max_threads", get_cpu_count( ) )
@@ -66,7 +62,7 @@ def run_analyze( params ):
         core.print( result_fmt )
     
     core.print( "done formatting" )
-    core.print( "=" * 50 )
+    print_line( )
 
     #   2. Static Analysis (cppcheck)
     core.run_cppcheck( )

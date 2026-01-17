@@ -28,7 +28,7 @@ import os
 import sys
 
 
-from lib.common import run_main
+from lib.common import run_main, ensure
 from cpp_lib.project_core import project_core
 
 
