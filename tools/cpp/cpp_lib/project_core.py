@@ -28,7 +28,7 @@ import threading
 from lib.common import ensure
 from lib.common import deep_update
 from lib.common import create_process
-from cpp_lib.config import DEFAULT_CPP_CONFIG
+from cpp_lib.config import default_cpp_config
 from cpp_lib.project_tree import project_tree
 
 
@@ -171,7 +171,7 @@ class binary_builder:
 
 class project_core:
     def __init__( self, config = { } ):
-        self.config = deep_update( copy.deepcopy( DEFAULT_CPP_CONFIG ), config )
+        self.config = deep_update( copy.deepcopy( default_cpp_config ), config )
         
         self.tree = project_tree( self.config )
         

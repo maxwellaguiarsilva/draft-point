@@ -27,7 +27,7 @@ import re
 import os
 
 
-from lib.config import DEFAULT_CONFIG
+from lib.config import default_config
 from lib.common import read_file
 
 
@@ -40,7 +40,7 @@ r_list_item     =   r"\{\{list_item\s+([a-zA-Z0-9_-]+)\}\}"
 class template:
     def __init__( self, name, path = None ):
         assert( name != "" )
-        self.path = path if path is not None else DEFAULT_CONFIG[ "paths" ][ "templates" ]
+        self.path = path if path is not None else default_config[ "paths" ][ "templates" ]
         self.text = self.load( name )
     
     def load( self, name ):

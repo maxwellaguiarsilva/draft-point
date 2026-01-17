@@ -85,9 +85,9 @@ class include_tree:
                     ref.is_redundant
                 )
 
-        #   Special case for root node to match original display style if possible
-        #   Original used target_file as display name for root.
-        #   We'll use a slightly different approach to start the tree.
+        #   special case for root node to match original display style if possible
+        #   original used target_file as display name for root
+        #   we'll use a slightly different approach to start the tree
         
         def print_root( root_node ):
             output.append( root_node.path if root_node.path else root_node.hierarchy )

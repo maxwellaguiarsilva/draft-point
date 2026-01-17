@@ -27,7 +27,7 @@ import os
 import time
 import re
 from lib.common import run_mcp_tool, write_file
-from cpp.lib.config import DEFAULT_CPP_CONFIG
+from cpp.lib.config import default_cpp_config
 from lib import metadata_provider
 from lib import template_engine
 
@@ -62,7 +62,7 @@ def create_class( class_hierarchy, include_list=[ ], using_list=[ ], create_head
     hierarchy_list = parse_hierarchy( class_hierarchy )
     rel_path = "/".join( hierarchy_list )
     
-    include_dir = DEFAULT_CPP_CONFIG[ "paths" ][ "include" ]
+    include_dir = default_cpp_config[ "paths" ][ "include" ]
     file_path_hpp = f"{include_dir}/{rel_path}.hpp"
     message += render_and_write( file_path_hpp, "class-hpp", {
          "header_guard": generate_header_guard( )
@@ -76,7 +76,7 @@ def create_class( class_hierarchy, include_list=[ ], using_list=[ ], create_head
     if( create_header_only ):
         return message
 
-    source_dir = DEFAULT_CPP_CONFIG[ "paths" ][ "source" ]
+    source_dir = default_cpp_config[ "paths" ][ "source" ]
     file_path_cpp = f"{source_dir}/{rel_path}.cpp"
     message += render_and_write( file_path_cpp, "class-cpp", {
          "include_list": [ f"{rel_path}.hpp" ]
@@ -86,7 +86,7 @@ def create_class( class_hierarchy, include_list=[ ], using_list=[ ], create_head
     return message
 
 def create_test( hierarchy, flg_adhoc=False, include_list=[ ] ):
-    paths = DEFAULT_CPP_CONFIG[ "paths" ]
+    paths = default_cpp_config[ "paths" ]
     
     if( flg_adhoc ):
         adhoc_dir = paths[ "adhoc" ]

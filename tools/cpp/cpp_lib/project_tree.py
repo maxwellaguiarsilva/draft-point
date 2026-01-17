@@ -86,8 +86,8 @@ class project_tree:
                 self.nodes[ path ] = node
                 self.relative_path_map[ relative_path_from_base ] = node
                 
-                #   hierarchy_map can still be used, but it's ambiguous if both .hpp and .cpp exist.
-                #   We'll prefer .hpp for hierarchy_map if it exists.
+                #   hierarchy_map can still be used, but it's ambiguous if both .hpp and .cpp exist
+                #   we'll prefer .hpp for hierarchy_map if it exists
                 if hierarchy not in self.hierarchy_map or path.endswith( ".hpp" ):
                     self.hierarchy_map[ hierarchy ] = node
 

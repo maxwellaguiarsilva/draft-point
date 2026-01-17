@@ -29,7 +29,7 @@ from lib.common import create_process
 
 
 def fetch_git_first_commit( file_path ):
-    """Retrieves date, name and email from the first commit of a file via Git."""
+    """retrieves date, name and email from the first commit of a file via git."""
     if not os.path.exists( file_path ):
         return None
     #   Format: YYYY-MM-DD HH:MM|Name|Email
@@ -58,7 +58,7 @@ def get_git_config_value( configuration_name ):
 
 
 def get_canonical_metadata( full_relative_path ):
-    """Generates the official metadata set for a file (existing or new)."""
+    """generates the official metadata set for a file (existing or new)."""
     git_info = fetch_git_first_commit( full_relative_path )
     
     if git_info:

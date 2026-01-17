@@ -26,10 +26,10 @@
 import os
 import copy
 from lib.common import get_cpu_count, deep_update
-from lib.config import DEFAULT_CONFIG
+from lib.config import default_config
 
 
-DEFAULT_CPP_CONFIG = {
+default_cpp_config = {
     #   compiler information
     "compiler": {
         "executable": "clang++"        #   options: "g++", "clang++" or full path
@@ -102,5 +102,5 @@ DEFAULT_CPP_CONFIG = {
     }
 }
 
-#   The cpp config performs a deep_update on the generic config
-DEFAULT_CPP_CONFIG = deep_update( copy.deepcopy( DEFAULT_CONFIG ), DEFAULT_CPP_CONFIG )
+#   the cpp config performs a deep_update on the generic config
+default_cpp_config = deep_update( copy.deepcopy( default_config ), default_cpp_config )

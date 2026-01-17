@@ -26,7 +26,7 @@
 import re
 import os
 from lib.common import run_mcp_tool, ensure, get_path_parts, write_file, read_file
-from cpp_lib.config import DEFAULT_CPP_CONFIG
+from cpp_lib.config import default_cpp_config
 from lib import metadata_provider
 from lib import template_engine
 
@@ -39,8 +39,8 @@ class formatter:
         self.flg_auto_fix = flg_auto_fix
 
     def _strip_project_prefix( self, path ):
-        """C++ specific prefix stripping for license header."""
-        paths = DEFAULT_CPP_CONFIG[ "paths" ]
+        """c++ specific prefix stripping for license header."""
+        paths = default_cpp_config[ "paths" ]
         prefixes = [ f"{paths['include']}/", f"{paths['source']}/", f"{paths['tests']}/" ]
         for p in prefixes:
             if path.startswith( p ):
@@ -195,16 +195,17 @@ def run_code_verifier( params: dict ) -> str:
             fmt.verify( )
         
         if fmt.messages:
-            message = f"File: {file_path}\n"
+            message = f"file: {file_path}\n"
             for violation in fmt.messages:
                 if isinstance( violation, ( list, tuple ) ):
                     line, text = violation
-                    message += f"  Line {line}: {text}\n"
+                    message += f"  line {line}: {text}\n"
                 else:
                     message += f"  {violation}\n"
             results.append( message )
     
-    return "\n".join( results ).strip( ) or f"No formatting violations found in the provided files."
+    return "\n".join( results ).strip( ) or f"no formatting violations found in the provided files."
+
 
 
 if __name__ == "__main__":

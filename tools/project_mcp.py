@@ -4,7 +4,7 @@
 import json
 import os
 from lib.common import create_process
-from lib.config import DEFAULT_CONFIG
+from lib.config import default_config
 from typing import Any
 from fastmcp import FastMCP
 
@@ -12,14 +12,14 @@ from fastmcp import FastMCP
 #   create an mcp server instance
 mcp = FastMCP( name="project-mcp" )
 
-#   IMPORTANT: This file manages the MCP server configuration.
-#   Whenever this file is modified, you MUST ask the user to manually restart the MCP server
-#   to apply and verify the changes. Do not attempt to verify it automatically.
+#   important: this file manages the mcp server configuration
+#   whenever this file is modified, you must ask the user to manually restart the mcp server
+#   to apply and verify the changes. do not attempt to verify it automatically
 
 
 def _invoke_tool( group: str, name: str, args: Any = None ) -> str:
     """runs a command and formats the output for mcp return"""
-    tools_dir = DEFAULT_CONFIG[ "paths" ][ "tools" ]
+    tools_dir = default_config[ "paths" ][ "tools" ]
     try:
         process = create_process( 
              [ "python3", f"{tools_dir}/{group}/{name}.py", json.dumps( args if args is not None else { } ) ]
@@ -62,7 +62,7 @@ def git_quick_upload( message: str ) -> str:
 @mcp.tool( )
 def git_discard_changes( ) -> str:
     """discards all uncommitted changes and removes untracked files
-    this tool reverts the repository to the state of the last commit (HEAD)
+    this tool reverts the repository to the state of the last commit (head)
     """
     return _invoke_tool( "git", "discard_changes" )
 
@@ -128,6 +128,7 @@ def cpp_code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
     to verify and process the entire project, prefer the `analyze` tool. the `code_verifier` tool is recommended for a small group of files or just a single file
     """
     return _invoke_tool( "cpp", "code_verifier", locals( ).copy( ) )
+
 
 
 if __name__ == "__main__":

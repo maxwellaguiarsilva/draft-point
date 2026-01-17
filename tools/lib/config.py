@@ -26,7 +26,7 @@
 from lib.common import get_cpu_count, deep_update
 
 
-DEFAULT_CONFIG = {
+default_config = {
     #   folder organization
     "paths": {
         "source": "source"             #   project source directory containing .cpp files

@@ -37,7 +37,6 @@ def run_analyze( params ):
     this command takes no arguments"""
     core = project_core( params.get( "config", { } ) )
     
-    #   1. Format code (Verificação de estilo nativa)
     include_ext = core.config["patterns"]["header_extension"]
     source_ext  = core.config["patterns"]["source_extension"]
     
@@ -50,21 +49,18 @@ def run_analyze( params ):
     
     max_workers = core.config[ "build_behavior" ].get( "max_threads", get_cpu_count( ) )
 
-    #   chamada nativa para a função code_verifier.run_code_verifier
-    #   note que passamos flg_auto_fix=True por padrão na ferramenta analyze
     fmt_params = {
          "files": files_to_check
         ,"flg_auto_fix": True
     }
     
     result_fmt = run_code_verifier( fmt_params )
-    if "File:" in result_fmt:
+    if "file:" in result_fmt:
         core.print( result_fmt )
     
     core.print( "done formatting" )
     print_line( )
 
-    #   2. Static Analysis (cppcheck)
     core.run_cppcheck( )
     
     return "analysis completed successfully"
@@ -72,3 +68,5 @@ def run_analyze( params ):
 
 if __name__ == "__main__":
     run_mcp_tool( run_analyze )
+
+
