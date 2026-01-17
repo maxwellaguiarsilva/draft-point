@@ -1,0 +1,6 @@
+#!/bin/bash
+
+
+PYTHONPATH=tools tools/git/discard_changes.py "{ }"
+
+
