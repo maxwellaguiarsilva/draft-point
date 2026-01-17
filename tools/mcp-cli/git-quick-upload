@@ -1,0 +1,9 @@
+#!/bin/bash
+
+
+PYTHONPATH=tools tools/git/quick_upload.py "$( cat <<-EOF
+{ "message": "$( translate "$@" )" }
+EOF
+)"
+
+
