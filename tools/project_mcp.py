@@ -117,8 +117,7 @@ def cpp_analyze( ) -> str:
 
 @mcp.tool( )
 def cpp_code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
-    """this tool is exclusively for cpp and hpp files
-    verifies if a list of files follows the project's formatting rules
+    """verifies if a list of files follows the project's formatting rules
     if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
     returns a consolidated list of violations
     to verify and process the entire project, prefer the `analyze` tool. the `code_verifier` tool is recommended for a small group of files or just a single file

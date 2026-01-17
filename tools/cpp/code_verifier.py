@@ -25,8 +25,8 @@
 
 import re
 import os
-from lib.common import run_main
-from lib.config import DEFAULT_CONFIG
+from lib.common import run_main, ensure, get_path_parts
+from cpp_lib.config import DEFAULT_CPP_CONFIG
 from lib import metadata_provider
 from lib import template_engine
 
@@ -40,7 +40,7 @@ class formatter:
 
     def _strip_project_prefix( self, path ):
         """C++ specific prefix stripping for license header."""
-        paths = DEFAULT_CONFIG[ "paths" ]
+        paths = DEFAULT_CPP_CONFIG[ "paths" ]
         prefixes = [ f"{paths['include']}/", f"{paths['source']}/", f"{paths['tests']}/" ]
         for p in prefixes:
             if path.startswith( p ):
@@ -187,6 +187,7 @@ def run_code_verifier( params: dict ) -> str:
     results = [ ]
     for file_path in files:
         try:
+            ensure( get_path_parts( file_path )[ "extension" ] in [ "hpp", "cpp" ], "this tool is exclusively for cpp and hpp files" )
             with open( file_path, 'r' ) as f:
                 content = f.read( )
             

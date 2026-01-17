@@ -60,6 +60,19 @@ def print_line( strong = True ):
     print( char * line_size )
 
 
+def get_path_parts( path ):
+    base = os.path.dirname( path )
+    folder = os.path.basename( base )
+    name, extension = os.path.splitext( os.path.basename( path ) )
+    return  {
+         "base": base
+        ,"folder": folder
+        ,"name": name
+        ,"extension": extension
+    }
+
+
+
 def run_main( action ):
     params  =   { }
     if len( sys.argv ) > 1:
