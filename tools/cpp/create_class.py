@@ -23,9 +23,54 @@
 #   Created on 2026-01-15 15:00:00
 
 
-from lib.common import run_mcp_tool, ensure
-from cpp_lib.file_generator import create_class
+import time
+from lib.common import run_mcp_tool, ensure, write_file
+from lib import metadata_provider
+from lib import template_engine
+from cpp_lib.config import default_cpp_config
+from cpp_lib.project_tree import parse_hierarchy
 
+
+def generate_header_guard( ):
+    return f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
+
+def create_class( class_hierarchy, include_list=[ ], using_list=[ ], create_header_only=False ):
+    message = ""
+    hierarchy_list = parse_hierarchy( class_hierarchy )
+    rel_path = "/".join( hierarchy_list )
+    
+    include_dir = default_cpp_config[ "paths" ][ "include" ]
+    file_path = f"{include_dir}/{rel_path}.hpp"
+    data = {
+         "header_guard": generate_header_guard( )
+        ,"class_name": hierarchy_list[ -1 ]
+        ,"include_list": include_list
+        ,"namespace_list": hierarchy_list[ :-1 ]
+        ,"using_list": using_list
+        ,"des_file_path": f"{rel_path}.hpp"
+    }
+    message += write_file( file_path
+        ,template_engine.render( "class-hpp"
+            ,metadata_provider.get_canonical_metadata( file_path ) | data
+        )
+    )
+
+    if( create_header_only ):
+        return message
+
+    source_dir = default_cpp_config[ "paths" ][ "source" ]
+    file_path = f"{source_dir}/{rel_path}.cpp"
+    data = {
+         "include_list": [ f"{rel_path}.hpp" ]
+        ,"des_file_path": f"{rel_path}.cpp"
+    }
+    message += write_file( file_path
+        ,template_engine.render( "class-cpp"
+            ,metadata_provider.get_canonical_metadata( file_path ) | data
+        )
+    )
+
+    return message
 
 def run_create_class( params ):
     ensure( "class_hierarchy" in params, "missing 'class_hierarchy' parameter" )

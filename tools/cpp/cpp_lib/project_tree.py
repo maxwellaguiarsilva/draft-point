@@ -30,6 +30,10 @@ import datetime
 from lib.common import ensure, read_file
 
 
+def parse_hierarchy( hierarchy ):
+    return re.split( r"[/:\\.]+", hierarchy )
+
+
 class include_reference:
     def __init__( self, raw_text, display_text, target_node ):
         self.raw_text = raw_text
