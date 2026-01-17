@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ -z "${1}" ]; then
+    PYTHONPATH=tools tools/llm/statistic.py
+else
+    PYTHONPATH=tools tools/llm/statistic.py "$( cat <<-EOF
+{ "name": "${1}" }
+EOF
+    )"
+fi
+
+

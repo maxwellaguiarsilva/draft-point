@@ -72,6 +72,7 @@ then
 	rm -rf /home/.gemini/tmp
 	find ./tools -type f -name *.py -exec chmod +x {} \;
 	find ./tools -type d -name __pycache__ -exec rm -rf {} \;
+	chmod +x -R ./tools/mcp-cli/
 	shift
 	env -u LD_PRELOAD "${venv_dir}/bin/python" "${python_script}" "${@}"
 fi
