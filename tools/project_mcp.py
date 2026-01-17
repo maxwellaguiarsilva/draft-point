@@ -3,7 +3,6 @@
 
 import json
 import os
-import subprocess
 from lib.common import create_process
 from lib.config import DEFAULT_CONFIG
 from typing import Any
@@ -27,8 +26,6 @@ def _invoke_tool( group: str, name: str, args: Any = None ) -> str:
             ,env = os.environ | { "PYTHONPATH" : tools_dir } 
         )
         return f"{name} successful:\n{process.stdout}"
-    except subprocess.CalledProcessError as e:
-        return f"{name} failed:\n{e.stdout}\n{e.stderr}".strip( )
     except Exception as e:
         return f"{name} failed: {str( e )}"
 

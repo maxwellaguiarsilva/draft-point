@@ -79,10 +79,7 @@ def run_statistic( params ):
         ensure( key in allowed_fields, f"field '{key}' is not allowed" )
     
     if os.path.exists( _statistic_file ):
-        try:
-            data = json.loads( read_file( _statistic_file ) )
-        except ( json.JSONDecodeError, IOError ):
-            data = [ ]
+        data = json.loads( read_file( _statistic_file ) )
     else:
         data = [ ]
 

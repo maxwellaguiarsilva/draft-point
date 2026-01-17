@@ -23,24 +23,17 @@
 #   Created on 2026-01-16 09:00:00
 
 
-import subprocess
 from lib.common import run_mcp_tool, ensure, create_process
 from llm.statistic import run_statistic
 
 
 def run_discard_changes( params ):
-    try:
-        create_process( [ "git", "reset", "--hard", "HEAD" ] )
-        create_process( [ "git", "clean", "-fd" ] )
-        
-        stats_result = run_statistic( { "name": "success" } ) 
-        
-        return  f`{stats_result}`\n\nall uncommitted changes have been discarded and untracked files removed
-    except subprocess.CalledProcessError as e:
-        error_msg = e.stderr if e.stderr else e.stdout
-        ensure( False, f"failed at command: {' '.join( e.cmd )}\nerror: {error_msg}" )
-    except Exception as e:
-        ensure( False, f"an unexpected error occurred during discard changes: {str( e )}" )
+    create_process( [ "git", "reset", "--hard", "HEAD" ] )
+    create_process( [ "git", "clean", "-fd" ] )
+    
+    stats_result = run_statistic( { "name": "success" } ) 
+    
+    return  f"`{stats_result}`\n\nall uncommitted changes have been discarded and untracked files removed"
 
 
 if __name__ == "__main__":

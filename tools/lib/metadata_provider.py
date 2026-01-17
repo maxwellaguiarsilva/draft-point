@@ -24,7 +24,6 @@
 
 
 import os
-import subprocess
 import datetime
 from lib.common import create_process
 
@@ -33,35 +32,29 @@ def fetch_git_first_commit( file_path ):
     """Retrieves date, name and email from the first commit of a file via Git."""
     if not os.path.exists( file_path ):
         return None
-    try:
-        #   Format: YYYY-MM-DD HH:MM|Name|Email
-        cmd = [
-            "git", "log", "--follow", "--reverse", 
-            "--date=format:%Y-%m-%d %H:%M", 
-            "--format=%ad|%an|%ae", "--", file_path
-        ]
-        result = create_process( cmd )
-        if not result.stdout.strip( ):
-            return None
-        first_line = result.stdout.splitlines( )[ 0 ]
-        dt, name, email = first_line.split( '|' )
-        return {
-            "year": dt.split( '-' )[ 0 ],
-            "datetime": dt,
-            "name": name,
-            "email": email
-        }
-    except Exception:
+    #   Format: YYYY-MM-DD HH:MM|Name|Email
+    cmd = [
+        "git", "log", "--follow", "--reverse", 
+        "--date=format:%Y-%m-%d %H:%M", 
+        "--format=%ad|%an|%ae", "--", file_path
+    ]
+    result = create_process( cmd )
+    if not result.stdout.strip( ):
         return None
+    first_line = result.stdout.splitlines( )[ 0 ]
+    dt, name, email = first_line.split( '|' )
+    return {
+        "year": dt.split( '-' )[ 0 ],
+        "datetime": dt,
+        "name": name,
+        "email": email
+    }
 
 
 def get_git_config_value( configuration_name ):
-    try:
-        command = [ "git", "config", "--global", configuration_name ]
-        process = create_process( command )
-        return process.stdout.strip( )
-    except subprocess.CalledProcessError:
-        return "value not found"
+    command = [ "git", "config", "--global", configuration_name ]
+    process = create_process( command )
+    return process.stdout.strip( )
 
 
 def get_canonical_metadata( full_relative_path ):

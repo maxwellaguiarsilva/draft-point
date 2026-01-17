@@ -79,24 +79,21 @@ class formatter:
         if not self.file_path:
             return
 
-        try:
-            data = metadata_provider.get_canonical_metadata( self.file_path ) | {
-                "des_file_path": self._strip_project_prefix( self.file_path )
-            }
-            ideal_header = template_engine.render( "file-header", data ).strip( )
-            
-            parts = self.content.split( "\n\n", 1 )
-            actual_header = parts[ 0 ].strip( )
-            
-            if actual_header != ideal_header:
-                if self.flg_auto_fix:
-                    body = parts[ 1 ] if len( parts ) > 1 else ""
-                    self.content = ideal_header + "\n\n" + body
-                    self.messages.append( f"restored canonical license header for {self.file_path}" )
-                else:
-                    self.messages.append( ( 1, f"license header mismatch in {self.file_path}" ) )
-        except Exception as e:
-            self.messages.append( ( 0, f"license validation skipped: {e}" ) )
+        data = metadata_provider.get_canonical_metadata( self.file_path ) | {
+            "des_file_path": self._strip_project_prefix( self.file_path )
+        }
+        ideal_header = template_engine.render( "file-header", data ).strip( )
+        
+        parts = self.content.split( "\n\n", 1 )
+        actual_header = parts[ 0 ].strip( )
+        
+        if actual_header != ideal_header:
+            if self.flg_auto_fix:
+                body = parts[ 1 ] if len( parts ) > 1 else ""
+                self.content = ideal_header + "\n\n" + body
+                self.messages.append( f"restored canonical license header for {self.file_path}" )
+            else:
+                self.messages.append( ( 1, f"license header mismatch in {self.file_path}" ) )
 
     def _consecutive_newlines( self ):
         self._apply( 
@@ -186,29 +183,26 @@ def run_code_verifier( params: dict ) -> str:
     
     results = [ ]
     for file_path in files:
-        try:
-            ensure( get_path_parts( file_path )[ "extension" ] in [ "hpp", "cpp" ], "this tool is exclusively for cpp and hpp files" )
-            content = read_file( file_path )
-            
-            fmt = formatter( content, file_path = file_path, flg_auto_fix = flg_auto_fix )
-            if flg_auto_fix:
-                new_content = fmt.run( )
-                if content != new_content:
-                    write_file( file_path, new_content )
-            else:
-                fmt.verify( )
-            
-            if fmt.messages:
-                message = f"File: {file_path}\n"
-                for violation in fmt.messages:
-                    if isinstance( violation, ( list, tuple ) ):
-                        line, text = violation
-                        message += f"  Line {line}: {text}\n"
-                    else:
-                        message += f"  {violation}\n"
-                results.append( message )
-        except Exception as e:
-            results.append( f"Error verifying {file_path}: {str( e )}" )
+        ensure( get_path_parts( file_path )[ "extension" ] in [ "hpp", "cpp" ], "this tool is exclusively for cpp and hpp files" )
+        content = read_file( file_path )
+        
+        fmt = formatter( content, file_path = file_path, flg_auto_fix = flg_auto_fix )
+        if flg_auto_fix:
+            new_content = fmt.run( )
+            if content != new_content:
+                write_file( file_path, new_content )
+        else:
+            fmt.verify( )
+        
+        if fmt.messages:
+            message = f"File: {file_path}\n"
+            for violation in fmt.messages:
+                if isinstance( violation, ( list, tuple ) ):
+                    line, text = violation
+                    message += f"  Line {line}: {text}\n"
+                else:
+                    message += f"  {violation}\n"
+            results.append( message )
     
     return "\n".join( results ).strip( ) or f"No formatting violations found in the provided files."
 

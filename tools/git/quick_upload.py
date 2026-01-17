@@ -23,7 +23,6 @@
 #   Created on 2026-01-13 18:00:00
 
 
-import subprocess
 from lib.common import run_mcp_tool, ensure, create_process
 from llm.statistic import run_statistic
 
@@ -32,23 +31,14 @@ def run_quick_upload( params ):
     message = params.get( "message" )
     ensure( message, "message parameter is required for quick upload" )
 
-    try:
-        create_process( [ "git", "pull" ] )
-        create_process( [ "git", "add", "." ] )
-        create_process( [ "git", "commit", "-m", message ] )
-        create_process( [ "git", "push" ] )
-        
-        stats_result = run_statistic( { "name": "success" } )
-        
-        return  f"`{stats_result}`\n\n{message}"
-    except subprocess.CalledProcessError as e:
-        error_msg = e.stderr if e.stderr else e.stdout
-        if "nothing to commit" in error_msg.lower( ):
-             return  "nothing to commit"
-        
-        ensure( False, f"failed at command: {' '.join( e.cmd )}\nerror: {error_msg}" )
-    except Exception as e:
-        ensure( False, f"an unexpected error occurred during quick upload: {str( e )}" )
+    create_process( [ "git", "pull" ] )
+    create_process( [ "git", "add", "." ] )
+    create_process( [ "git", "commit", "-m", message ] )
+    create_process( [ "git", "push" ] )
+    
+    stats_result = run_statistic( { "name": "success" } )
+    
+    return  f"`{stats_result}`\n\n{message}"
 
 
 if __name__ == "__main__":

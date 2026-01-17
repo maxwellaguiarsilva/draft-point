@@ -57,7 +57,18 @@ def create_process( command, **kwargs ):
         ,"text": True
     }
     params.update( kwargs )
-    return  subprocess.run( command, **params )
+    try:
+        return  subprocess.run( command, **params )
+    except subprocess.CalledProcessError as e:
+        stdout = ( e.stdout or "" ).strip( )
+        stderr = ( e.stderr or "" ).strip( )
+        
+        error_msg = f"{stdout}\n{stderr}".strip( )
+        if not error_msg:
+             error_msg = str( e )
+             
+        cmd_str = ' '.join( e.cmd ) if isinstance( e.cmd, list ) else str( e.cmd )
+        raise Exception( f"failed at command: {cmd_str}\nerror: {error_msg}" ) from None
 
 
 def print_line( strong = True ):
