@@ -39,107 +39,93 @@ def write_file( file_path, content ):
     return f"created file: {file_path}\n"
 
 
-def create_class( class_hierarchy, include_list=[], using_list=[], create_header_only=False ):
-    message = ""
-    hierarchy_list = re.split( r"[/:\\.]+", class_hierarchy )
-    include_dir = DEFAULT_CPP_CONFIG[ "paths" ][ "include" ]
+def parse_hierarchy( hierarchy ):
+    return re.split( r"[/:\\.]+", hierarchy )
 
-    file_path_hpp = f"{include_dir}/{ '/'.join( hierarchy_list ) }.hpp"
-    data = metadata_provider.get_canonical_metadata( file_path_hpp ) | {
-         "header_guard": f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
+def generate_header_guard( ):
+    return f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
+
+def get_next_adhoc_prefix( adhoc_dir ):
+    os.makedirs( adhoc_dir, exist_ok=True )
+    existing_adhocs = [ d for d in os.listdir( adhoc_dir ) if os.path.isdir( os.path.join( adhoc_dir, d ) ) ]
+    existing_counters = set( )
+    for d in existing_adhocs:
+        match = re.match( r"(\d+)_", d )
+        if( match ):
+            existing_counters.add( int( match.group( 1 ) ) )
+    
+    next_counter = 1
+    while( next_counter in existing_counters ):
+        next_counter += 1
+    return f"{next_counter:04d}"
+
+def render_and_write( file_path, template_name, extra_data ):
+    data = metadata_provider.get_canonical_metadata( file_path ) | extra_data
+    content = template_engine.render( template_name, data )
+    return write_file( file_path, content )
+
+def create_class( class_hierarchy, include_list=[ ], using_list=[ ], create_header_only=False ):
+    message = ""
+    hierarchy_list = parse_hierarchy( class_hierarchy )
+    rel_path = "/".join( hierarchy_list )
+    
+    include_dir = DEFAULT_CPP_CONFIG[ "paths" ][ "include" ]
+    file_path_hpp = f"{include_dir}/{rel_path}.hpp"
+    message += render_and_write( file_path_hpp, "class-hpp", {
+         "header_guard": generate_header_guard( )
         ,"class_name": hierarchy_list[ -1 ]
         ,"include_list": include_list
         ,"namespace_list": hierarchy_list[ :-1 ]
         ,"using_list": using_list
-        ,"des_file_path": f"{ '/'.join( hierarchy_list ) }.hpp"
-    }
+        ,"des_file_path": f"{rel_path}.hpp"
+    } )
 
-    content_hpp = template_engine.render( "class-hpp", data )
-    message += write_file( file_path_hpp, content_hpp )
-
-    if create_header_only:
-        return  message
+    if( create_header_only ):
+        return message
 
     source_dir = DEFAULT_CPP_CONFIG[ "paths" ][ "source" ]
-    file_path_cpp = f"{source_dir}/{ '/'.join( hierarchy_list ) }.cpp"
-    data = metadata_provider.get_canonical_metadata( file_path_cpp ) | {
-         "include_list": [ f"{ '/'.join( hierarchy_list ) }.hpp" ]
-        ,"des_file_path": f"{ '/'.join( hierarchy_list ) }.cpp"
-    }
-    content_cpp = template_engine.render( "class-cpp", data )
-    message += write_file( file_path_cpp, content_cpp )
+    file_path_cpp = f"{source_dir}/{rel_path}.cpp"
+    message += render_and_write( file_path_cpp, "class-cpp", {
+         "include_list": [ f"{rel_path}.hpp" ]
+        ,"des_file_path": f"{rel_path}.cpp"
+    } )
 
     return message
 
-
-def create_test( hierarchy, flg_adhoc=False, include_list=[] ):
-    message = ""
+def create_test( hierarchy, flg_adhoc=False, include_list=[ ] ):
     paths = DEFAULT_CPP_CONFIG[ "paths" ]
     
-    if flg_adhoc:
+    if( flg_adhoc ):
         adhoc_dir = paths[ "adhoc" ]
-        os.makedirs( adhoc_dir, exist_ok=True )
-        
-        existing_adhocs = [ d for d in os.listdir( adhoc_dir ) if os.path.isdir( os.path.join( adhoc_dir, d ) ) ]
-        existing_counters = set( )
-        for d in existing_adhocs:
-            match = re.match( r"(\d+)_", d )
-            if match:
-                existing_counters.add( int( match.group( 1 ) ) )
-        
-        next_counter = 1
-        while next_counter in existing_counters:
-            next_counter += 1
-        
-        prefix = f"{next_counter:04d}"
+        prefix = get_next_adhoc_prefix( adhoc_dir )
         test_folder = f"{prefix}_{hierarchy}"
-        file_path = f"{adhoc_dir}/{test_folder}/{prefix}_{hierarchy}.cpp"
+        rel_path = f"{test_folder}/{prefix}_{hierarchy}.cpp"
+        file_path = f"{adhoc_dir}/{rel_path}"
         display_hierarchy = hierarchy
     else:
         tests_dir = paths[ "tests" ]
-        hierarchy_list = re.split( r"[/:\\.]+", hierarchy )
+        hierarchy_list = parse_hierarchy( hierarchy )
         path = "/".join( hierarchy_list[ :-1 ] )
-        filename = "test_" + "_".join( hierarchy_list ) + ".cpp"
-        
-        if path:
-            file_path = f"{tests_dir}/{path}/{filename}"
-        else:
-            file_path = f"{tests_dir}/{filename}"
+        filename = f"test_{ '_'.join( hierarchy_list ) }.cpp"
+        rel_path = f"{path}/{filename}" if path else filename
+        file_path = f"{tests_dir}/{rel_path}"
         display_hierarchy = hierarchy
 
-    #   Calculate canonical path for the header (relative to the base directory)
-    #   For tests, we want the path relative to the project root, but stripped of common prefixes if they match.
-    #   However, since we are being agnostic, let's just use a simple relative path logic here.
-    #   Given the requirements, the generator knows the paths.
-    
-    #   Actually, the simplest way is to use what we know:
-    if flg_adhoc:
-        des_file_path = f"{paths['adhoc']}/{test_folder}/{prefix}_{hierarchy}.cpp"
-    else:
-        des_file_path = f"{tests_dir}/{path}/{filename}" if path else f"{tests_dir}/{filename}"
-
-    data = metadata_provider.get_canonical_metadata( file_path ) | {
+    return render_and_write( file_path, "test-cpp", {
          "hierarchy": display_hierarchy
         ,"include_list": include_list
-        ,"des_file_path": des_file_path
-    }
-
-    content_test = template_engine.render( "test-cpp", data )
-    message += write_file( file_path, content_test )
-    return message
-
+        ,"des_file_path": file_path
+    } )
 
 def run_file_generator( params ):
-    #   this tool can be called via different mcp tool names
-    #   but here it handles the logic based on parameters
-    if "class_hierarchy" in params:
+    if( "class_hierarchy" in params ):
         return create_class( 
              params[ "class_hierarchy" ]
             ,params.get( "include_list", [ ] )
             ,params.get( "using_list", [ ] )
             ,params.get( "create_header_only", False )
         )
-    elif "hierarchy" in params:
+    elif( "hierarchy" in params ):
         return create_test(
              params[ "hierarchy" ]
             ,params.get( "flg_adhoc", False )
@@ -148,5 +134,5 @@ def run_file_generator( params ):
     return "invalid parameters for file_generator"
 
 
-if __name__ == "__main__":
+if( __name__ == "__main__" ):
     run_main( run_file_generator )

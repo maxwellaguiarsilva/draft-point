@@ -50,7 +50,7 @@ def deep_update( source, overrides ):
     return source
 
 
-def _invoke_subprocess( command, **kwargs ):
+def create_process( command, **kwargs ):
     return  subprocess.run( command, check=True, capture_output=True, text=True, **kwargs )
 
 

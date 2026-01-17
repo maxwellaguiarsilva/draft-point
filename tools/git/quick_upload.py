@@ -24,7 +24,7 @@
 
 
 import subprocess
-from lib.common import run_main, ensure, _invoke_subprocess
+from lib.common import run_main, ensure, create_process
 from llm.statistic import run_statistic
 
 
@@ -33,10 +33,10 @@ def run_quick_upload( params ):
     ensure( message, "message parameter is required for quick upload" )
 
     try:
-        _invoke_subprocess( [ "git", "pull" ] )
-        _invoke_subprocess( [ "git", "add", "." ] )
-        _invoke_subprocess( [ "git", "commit", "-m", message ] )
-        _invoke_subprocess( [ "git", "push" ] )
+        create_process( [ "git", "pull" ] )
+        create_process( [ "git", "add", "." ] )
+        create_process( [ "git", "commit", "-m", message ] )
+        create_process( [ "git", "push" ] )
         
         stats_result = run_statistic( { "name": "success" } )
         

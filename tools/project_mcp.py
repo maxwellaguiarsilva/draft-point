@@ -4,7 +4,7 @@
 import json
 import os
 import subprocess
-from lib.common import _invoke_subprocess
+from lib.common import create_process
 from lib.config import DEFAULT_CONFIG
 from typing import Any
 from fastmcp import FastMCP
@@ -22,7 +22,7 @@ def _invoke_tool( group: str, name: str, args: Any = None ) -> str:
     """runs a command and formats the output for mcp return"""
     tools_dir = DEFAULT_CONFIG[ "paths" ][ "tools" ]
     try:
-        process = _invoke_subprocess( 
+        process = create_process( 
              [ "python3", f"{tools_dir}/{group}/{name}.py", json.dumps( args if args is not None else { } ) ]
             ,env = os.environ | { "PYTHONPATH" : tools_dir } 
         )
