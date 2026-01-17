@@ -23,7 +23,7 @@
 #   Created on 2026-01-15 15:00:00
 
 
-from lib.common import run_main, ensure
+from lib.common import run_mcp_tool, ensure
 from cpp_lib.file_generator import create_test
 
 
@@ -38,4 +38,4 @@ def run_create_test( params ):
 
 
 if __name__ == "__main__":
-    run_main( run_create_test )
+    run_mcp_tool( run_create_test )

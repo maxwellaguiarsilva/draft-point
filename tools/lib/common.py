@@ -101,7 +101,7 @@ def get_json_args( ):
     return  params
 
 
-def run_main( action ):
+def run_mcp_tool( action ):
     try:
         print( action( get_json_args( ) ) )
     except Exception as error:

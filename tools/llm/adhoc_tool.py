@@ -23,7 +23,7 @@
 #   Created on 2026-01-04 20:18:54
 
 
-from lib.common import run_main
+from lib.common import run_mcp_tool
 
 
 def run_adhoc_tool( params ):
@@ -36,6 +36,6 @@ def run_adhoc_tool( params ):
 
 
 if __name__ == "__main__":
-    run_main( run_adhoc_tool )
+    run_mcp_tool( run_adhoc_tool )
 
 

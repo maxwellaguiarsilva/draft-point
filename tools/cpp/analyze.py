@@ -24,7 +24,7 @@
 
 
 import concurrent.futures
-from lib.common import run_main, get_cpu_count, print_line
+from lib.common import run_mcp_tool, get_cpu_count, print_line
 
 
 from cpp_lib.project_core import project_core
@@ -71,4 +71,4 @@ def run_analyze( params ):
 
 
 if __name__ == "__main__":
-    run_main( run_analyze )
+    run_mcp_tool( run_analyze )

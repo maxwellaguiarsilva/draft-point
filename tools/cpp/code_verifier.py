@@ -25,7 +25,7 @@
 
 import re
 import os
-from lib.common import run_main, ensure, get_path_parts, write_file, read_file
+from lib.common import run_mcp_tool, ensure, get_path_parts, write_file, read_file
 from cpp_lib.config import DEFAULT_CPP_CONFIG
 from lib import metadata_provider
 from lib import template_engine
@@ -214,4 +214,4 @@ def run_code_verifier( params: dict ) -> str:
 
 
 if __name__ == "__main__":
-    run_main( run_code_verifier )
+    run_mcp_tool( run_code_verifier )

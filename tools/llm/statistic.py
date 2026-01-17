@@ -26,7 +26,7 @@
 
 import json
 import os
-from lib.common import run_main, ensure, write_file, read_file
+from lib.common import run_mcp_tool, ensure, write_file, read_file
 
 
 _statistic_file = "/home/.gemini/statistic.json"
@@ -105,6 +105,6 @@ def run_statistic( params ):
 
 
 if __name__ == "__main__":
-    run_main( run_statistic )
+    run_mcp_tool( run_statistic )
 
 

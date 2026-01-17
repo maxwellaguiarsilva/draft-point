@@ -26,7 +26,7 @@
 import os
 import time
 import re
-from lib.common import run_main, write_file
+from lib.common import run_mcp_tool, write_file
 from cpp.lib.config import DEFAULT_CPP_CONFIG
 from lib import metadata_provider
 from lib import template_engine
@@ -128,4 +128,4 @@ def run_file_generator( params ):
 
 
 if( __name__ == "__main__" ):
-    run_main( run_file_generator )
+    run_mcp_tool( run_file_generator )

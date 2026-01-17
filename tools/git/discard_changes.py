@@ -24,7 +24,7 @@
 
 
 import subprocess
-from lib.common import run_main, ensure, create_process
+from lib.common import run_mcp_tool, ensure, create_process
 from llm.statistic import run_statistic
 
 
@@ -44,4 +44,4 @@ def run_discard_changes( params ):
 
 
 if __name__ == "__main__":
-    run_main( run_discard_changes )
+    run_mcp_tool( run_discard_changes )

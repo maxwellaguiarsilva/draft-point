@@ -26,7 +26,7 @@
 import datetime
 import os
 import concurrent.futures
-from lib.common import run_main, ensure, get_cpu_count
+from lib.common import run_mcp_tool, ensure, get_cpu_count
 from cpp_lib.project_core import project_core
 
 
@@ -79,4 +79,4 @@ def run_compile( params ):
 
 
 if __name__ == "__main__":
-    run_main( run_compile )
+    run_mcp_tool( run_compile )

@@ -28,7 +28,7 @@ import os
 import sys
 
 
-from lib.common import run_main, ensure
+from lib.common import run_mcp_tool, ensure
 from cpp_lib.project_core import project_core
 
 
@@ -119,4 +119,4 @@ def run_include_tree( params: dict ) -> str:
     return analyzer.get_report( file_path )
 
 if __name__ == "__main__":
-    run_main( run_include_tree )
+    run_mcp_tool( run_include_tree )
