@@ -27,7 +27,7 @@ import os
 import re
 import glob
 import datetime
-from lib.common import ensure
+from lib.common import ensure, read_file
 
 
 class include_reference:
@@ -50,8 +50,7 @@ class tree_node:
 
         if self.path and os.path.exists( self.path ):
             self.modified_at = datetime.datetime.fromtimestamp( os.path.getmtime( self.path ) )
-            with open( self.path, "r", encoding="utf-8" ) as f:
-                self.content = f.read( )
+            self.content = read_file( self.path )
 
 
 class project_tree:

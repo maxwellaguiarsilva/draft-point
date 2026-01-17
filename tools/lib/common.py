@@ -79,6 +79,11 @@ def write_file( file_path, content ):
     return f"created file: {file_path}\n"
 
 
+def read_file( file_path ):
+    with open( file_path, "r" ) as f:
+        return  f.read( )
+
+
 def run_main( action ):
     params  =   { }
     if len( sys.argv ) > 1:

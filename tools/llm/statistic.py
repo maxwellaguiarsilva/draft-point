@@ -26,7 +26,7 @@
 
 import json
 import os
-from lib.common import run_main, ensure
+from lib.common import run_main, ensure, write_file
 
 
 _statistic_file = "/home/.gemini/statistic.json"
@@ -77,14 +77,10 @@ def run_statistic( params ):
     allowed_fields = { "name", "short-description" }
     for key in params:
         ensure( key in allowed_fields, f"field '{key}' is not allowed" )
-
-    #   ensure directory exists
-    os.makedirs( os.path.dirname( _statistic_file ), exist_ok=True )
     
     if os.path.exists( _statistic_file ):
         try:
-            with open( _statistic_file, "r" ) as f:
-                data = json.load( f )
+            data = json.loads( read_file( _statistic_file ) )
         except ( json.JSONDecodeError, IOError ):
             data = [ ]
     else:
@@ -103,8 +99,7 @@ def run_statistic( params ):
             ensure( False, "field 'name' must be a string or a list of strings" )
             
         #   save data
-        with open( _statistic_file, "w" ) as f:
-            json.dump( data, f, indent="\t" )
+        write_file( _statistic_file, json.dumps( data, indent="\t" ) )
             
     return  format_output( data )
 

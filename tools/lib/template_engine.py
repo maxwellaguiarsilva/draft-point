@@ -28,6 +28,7 @@ import os
 
 
 from lib.config import DEFAULT_CONFIG
+from lib.common import read_file
 
 
 r_import        =   r"\{\{import\s+([a-zA-Z0-9_-]+)\}\}"
@@ -43,8 +44,7 @@ class template:
         self.text = self.load( name )
     
     def load( self, name ):
-        with open( f"{self.path}/{name}.txt", "r" ) as file:
-            text = file.read( )
+        text = read_file( f"{self.path}/{name}.txt" )
         text = re.sub( r_import, lambda match: self.load( match.group( 1 ) ), text )
         return  text
     
