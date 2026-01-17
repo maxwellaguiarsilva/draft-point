@@ -1,12 +1,16 @@
 #!/bin/bash
 
-if [ -z "${1}" ]; then
+if [ "$#" -eq 0 ]; then
     PYTHONPATH=tools tools/llm/statistic.py
 else
+    JSON_NAMES="["
+    for arg in "$@"; do
+        JSON_NAMES="${JSON_NAMES}\"${arg}\","
+    done
+    JSON_NAMES="${JSON_NAMES%,}]"
+
     PYTHONPATH=tools tools/llm/statistic.py "$( cat <<-EOF
-{ "name": "${1}" }
+{ "name": ${JSON_NAMES} }
 EOF
-    )"
+)"
 fi
-
-
