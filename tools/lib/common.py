@@ -51,7 +51,13 @@ def deep_update( source, overrides ):
 
 
 def create_process( command, **kwargs ):
-    return  subprocess.run( command, check=True, capture_output=True, text=True, **kwargs )
+    params = {
+         "check": True
+        ,"capture_output": True
+        ,"text": True
+    }
+    params.update( kwargs )
+    return  subprocess.run( command, **params )
 
 
 def print_line( strong = True ):

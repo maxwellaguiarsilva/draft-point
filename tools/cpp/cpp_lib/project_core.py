@@ -25,9 +25,9 @@ import datetime
 import os
 import re
 import threading
-import subprocess
 from lib.common import ensure
 from lib.common import deep_update
+from lib.common import create_process
 from cpp_lib.config import DEFAULT_CPP_CONFIG
 from cpp_lib.project_tree import project_tree
 
@@ -83,7 +83,7 @@ class cpp( project_file ):
         compile_params = self.project._get_compile_params
         compiler_command = f"{self.project.config['compiler']['executable']} {compile_params} -c {self.path} -o {self.object_path}"
 
-        result = subprocess.run( compiler_command, shell=True, capture_output=True, text=True )
+        result = create_process( compiler_command, shell = True, check = False )
 
         lines = [ f"    [build]: {self.hierarchy}" ]
         if result.returncode != 0:
@@ -155,7 +155,7 @@ class binary_builder:
             object_files_str = " ".join( object_files )
             linker_command = f"{self.cpp.project.config['compiler']['executable']} {object_files_str} {self.cpp.project._get_link_params} -o {self.binary_path}"
             
-            result = subprocess.run( linker_command, shell=True, capture_output=True, text=True )
+            result = create_process( linker_command, shell = True, check = False )
 
             if result.returncode != 0:
                 self.cpp.project.print( f"    [link]: {os.path.basename( self.binary_path )} (failed)", flg_check_stop = True, flg_set_stop = True )
@@ -322,7 +322,7 @@ class project_core:
         cppcheck_command = f"cppcheck {cppcheck_params} \"{source_dir}\" \"{tests_dir}\""
         
         self.print( "running static analysis (cppcheck)..." )
-        result = subprocess.run( cppcheck_command, shell=True )
+        result = create_process( cppcheck_command, shell = True, check = False, capture_output = False, text = False )
         if result.returncode != 0:
             self.print( f"cppcheck: {cppcheck_command}" )
         ensure( result.returncode == 0, "cppcheck failed for the project" )
