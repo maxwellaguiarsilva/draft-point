@@ -90,7 +90,7 @@ def read_file( file_path ):
         return  f.read( )
 
 
-def run_main( action ):
+def get_json_args( ):
     params  =   { }
     if len( sys.argv ) > 1:
         try:
@@ -98,8 +98,12 @@ def run_main( action ):
         except json.JSONDecodeError:
             print( "invalid json parameters" )
             sys.exit( 1 )
+    return  params
+
+
+def run_main( action ):
     try:
-        print( action( params ) )
+        print( action( get_json_args( ) ) )
     except Exception as error:
         print( str( error ), file = sys.stderr )
         sys.exit( 1 )
