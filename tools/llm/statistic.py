@@ -26,7 +26,7 @@
 
 import json
 import os
-from lib.common import run_main, ensure, write_file
+from lib.common import run_main, ensure, write_file, read_file
 
 
 _statistic_file = "/home/.gemini/statistic.json"
