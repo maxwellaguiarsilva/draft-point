@@ -27,9 +27,9 @@ import os
 import time
 import re
 from lib.common import run_mcp_tool, write_file
-from cpp.lib.config import default_cpp_config
 from lib import metadata_provider
 from lib import template_engine
+from cpp_lib.config import default_cpp_config
 
 
 def parse_hierarchy( hierarchy ):
