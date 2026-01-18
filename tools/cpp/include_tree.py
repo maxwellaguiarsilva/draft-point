@@ -54,12 +54,13 @@ class include_tree:
             connector = "└── " if is_last else "├── "
             
             display_name = current_node.hierarchy
-            if current_node.is_external:
-                display_name = f"<{display_name}>"
-            elif current_node.path and current_node.path.endswith( ".hpp" ):
-                display_name = f"\"{current_node.hierarchy}.hpp\""
-            elif current_node.path and current_node.path.endswith( ".cpp" ):
-                display_name = f"\"{current_node.hierarchy}.cpp\""
+            if not current_node.is_external:
+                if current_node.path and current_node.path.endswith( ".hpp" ):
+                    display_name += ".hpp"
+                elif current_node.path and current_node.path.endswith( ".cpp" ):
+                    display_name += ".cpp"
+            
+            display_name = f"<{display_name}>"
 
             line = prefix + connector + display_name
             

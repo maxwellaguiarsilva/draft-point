@@ -71,6 +71,7 @@ def git_discard_changes( ) -> str:
 def cpp_include_tree( file_path: str = None ) -> str:
     """displays the include tree of a c++ file (cpp or hpp)
     it recursively analyzes includes
+    call this tool without any arguments to use the project's main file
     """
     return _invoke_tool( "cpp", "include_tree", locals( ).copy( ) )
 
