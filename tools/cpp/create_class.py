@@ -31,9 +31,11 @@ from cpp_lib.config import default_cpp_config
 from cpp_lib.project_tree import parse_hierarchy
 
 
-def generate_header_guard( ):
-    return f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
-
+def create_file_from_template( file_path, template_name, extra_data ):
+    return  write_file(
+         file_path
+        ,template_engine.render( template_name, metadata_provider.get_canonical_metadata( file_path ) | extra_data )
+    )
 
 def run_create_class( params ):
     ensure( "class_hierarchy" in params, "missing 'class_hierarchy' parameter" )
@@ -42,35 +44,29 @@ def run_create_class( params ):
     hierarchy_list = parse_hierarchy( params[ "class_hierarchy" ] )
     rel_path = "/".join( hierarchy_list )
     
-    include_dir = default_cpp_config[ "paths" ][ "include" ]
-    file_path = f"{include_dir}/{rel_path}.hpp"
-    data = {
-         "header_guard": generate_header_guard( )
-        ,"class_name": hierarchy_list[ -1 ]
-        ,"include_list": params.get( "include_list", [ ] )
-        ,"namespace_list": hierarchy_list[ :-1 ]
-        ,"using_list": params.get( "using_list", [ ] )
-        ,"des_file_path": f"{rel_path}.hpp"
-    }
-    message += write_file( file_path
-        ,template_engine.render( "class-hpp"
-            ,metadata_provider.get_canonical_metadata( file_path ) | data
-        )
+    message += create_file_from_template( 
+         f"{default_cpp_config[ 'paths' ][ 'include' ]}/{rel_path}.hpp"
+        ,"class-hpp"
+        ,{
+             "header_guard": f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
+            ,"class_name": hierarchy_list[ -1 ]
+            ,"include_list": params.get( "include_list", [ ] )
+            ,"namespace_list": hierarchy_list[ :-1 ]
+            ,"using_list": params.get( "using_list", [ ] )
+            ,"des_file_path": f"{rel_path}.hpp"
+        }
     )
 
     if( params.get( "create_header_only", False ) ):
         return  message
 
-    source_dir = default_cpp_config[ "paths" ][ "source" ]
-    file_path = f"{source_dir}/{rel_path}.cpp"
-    data = {
-         "include_list": [ f"{rel_path}.hpp" ]
-        ,"des_file_path": f"{rel_path}.cpp"
-    }
-    message += write_file( file_path
-        ,template_engine.render( "class-cpp"
-            ,metadata_provider.get_canonical_metadata( file_path ) | data
-        )
+    message += create_file_from_template( 
+         f"{default_cpp_config[ 'paths' ][ 'source' ]}/{rel_path}.cpp"
+        ,"class-cpp"
+        ,{
+             "include_list": [ f"{rel_path}.hpp" ]
+            ,"des_file_path": f"{rel_path}.cpp"
+        }
     )
 
     return  message
