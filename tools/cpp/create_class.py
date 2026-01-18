@@ -34,9 +34,12 @@ from cpp_lib.project_tree import parse_hierarchy
 def generate_header_guard( ):
     return f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
 
-def create_class( class_hierarchy, include_list=[ ], using_list=[ ], create_header_only=False ):
+
+def run_create_class( params ):
+    ensure( "class_hierarchy" in params, "missing 'class_hierarchy' parameter" )
+
     message = ""
-    hierarchy_list = parse_hierarchy( class_hierarchy )
+    hierarchy_list = parse_hierarchy( params[ "class_hierarchy" ] )
     rel_path = "/".join( hierarchy_list )
     
     include_dir = default_cpp_config[ "paths" ][ "include" ]
@@ -44,9 +47,9 @@ def create_class( class_hierarchy, include_list=[ ], using_list=[ ], create_head
     data = {
          "header_guard": generate_header_guard( )
         ,"class_name": hierarchy_list[ -1 ]
-        ,"include_list": include_list
+        ,"include_list": params.get( "include_list", [ ] )
         ,"namespace_list": hierarchy_list[ :-1 ]
-        ,"using_list": using_list
+        ,"using_list": params.get( "using_list", [ ] )
         ,"des_file_path": f"{rel_path}.hpp"
     }
     message += write_file( file_path
@@ -55,8 +58,8 @@ def create_class( class_hierarchy, include_list=[ ], using_list=[ ], create_head
         )
     )
 
-    if( create_header_only ):
-        return message
+    if( params.get( "create_header_only", False ) ):
+        return  message
 
     source_dir = default_cpp_config[ "paths" ][ "source" ]
     file_path = f"{source_dir}/{rel_path}.cpp"
@@ -70,18 +73,10 @@ def create_class( class_hierarchy, include_list=[ ], using_list=[ ], create_head
         )
     )
 
-    return message
-
-def run_create_class( params ):
-    ensure( "class_hierarchy" in params, "missing 'class_hierarchy' parameter" )
-    
-    return create_class( 
-         params[ "class_hierarchy" ]
-        ,params.get( "include_list", [ ] )
-        ,params.get( "using_list", [ ] )
-        ,params.get( "create_header_only", False )
-    )
+    return  message
 
 
 if __name__ == "__main__":
     run_mcp_tool( run_create_class )
+
+

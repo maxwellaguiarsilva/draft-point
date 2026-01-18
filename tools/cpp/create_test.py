@@ -23,39 +23,43 @@
 #   Created on 2026-01-15 15:00:00
 
 
-import os
-import re
-from lib.common import run_mcp_tool, ensure, write_file
+from pathlib import Path
 from lib import metadata_provider
 from lib import template_engine
+from lib.common import run_mcp_tool, ensure, write_file
 from cpp_lib.config import default_cpp_config
 from cpp_lib.project_tree import parse_hierarchy
 
 
 def get_next_adhoc_prefix( adhoc_dir ):
-    os.makedirs( adhoc_dir, exist_ok=True )
-    existing_adhocs = [ d for d in os.listdir( adhoc_dir ) if os.path.isdir( os.path.join( adhoc_dir, d ) ) ]
-    existing_counters = set( )
-    for d in existing_adhocs:
-        match = re.match( r"(\d+)_", d )
-        if( match ):
-            existing_counters.add( int( match.group( 1 ) ) )
+    path = Path( adhoc_dir )
+    path.mkdir( exist_ok = True )
+    
+    ids = {
+        int( p.name.split( "_" )[ 0 ] )
+        for p in path.iterdir( )
+        if p.is_dir( ) and p.name.split( "_" )[ 0 ].isdigit( )
+    }
     
     next_counter = 1
-    while( next_counter in existing_counters ):
+    while next_counter in ids:
         next_counter += 1
-    return f"{next_counter:04d}"
-
-
-def create_test( hierarchy, flg_adhoc=False, include_list=[ ] ):
-    paths = default_cpp_config[ "paths" ]
     
-    if( flg_adhoc ):
-        tests_dir = paths[ "adhoc" ]
+    return  f"{next_counter:04d}"
+
+
+
+def run_create_test( params ):
+    ensure( "hierarchy" in params, "missing 'hierarchy' parameter" )
+
+    hierarchy = params[ "hierarchy" ]
+    
+    if( params.get( "flg_adhoc", False ) ):
+        tests_dir = default_cpp_config[ "paths" ][ "adhoc" ]
         prefix = get_next_adhoc_prefix( tests_dir )
         rel_path = f"{prefix}_{hierarchy}/{prefix}_{hierarchy}.cpp"
     else:
-        tests_dir = paths[ "tests" ]
+        tests_dir = default_cpp_config[ "paths" ][ "tests" ]
         hierarchy_list = parse_hierarchy( hierarchy )
         path = "/".join( hierarchy_list[ :-1 ] )
         filename = f"test_{ '_'.join( hierarchy_list ) }.cpp"
@@ -63,25 +67,16 @@ def create_test( hierarchy, flg_adhoc=False, include_list=[ ] ):
 
     file_path = f"{tests_dir}/{rel_path}"
 
-    return write_file( file_path
+    return  write_file( file_path
         ,template_engine.render( "test-cpp"
             ,metadata_provider.get_canonical_metadata( file_path ) | {
                  "hierarchy": hierarchy
-                ,"include_list": include_list
+                ,"include_list": params.get( "include_list", [ ] )
                 ,"des_file_path": file_path
             }
         )
     )
 
-
-def run_create_test( params ):
-    ensure( "hierarchy" in params, "missing 'hierarchy' parameter" )
-    
-    return create_test(
-         params[ "hierarchy" ]
-        ,params.get( "flg_adhoc", False )
-        ,params.get( "include_list", [ ] )
-    )
 
 
 if __name__ == "__main__":
