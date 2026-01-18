@@ -37,7 +37,7 @@ def run_create_class( params ):
     hierarchy_list = parse_hierarchy( params[ "class_hierarchy" ] )
     rel_path = "/".join( hierarchy_list )
     
-    message += create_file_from_template( 
+    message += template_engine.create_file_from_template( 
          f"{default_cpp_config[ 'paths' ][ 'include' ]}/{rel_path}.hpp"
         ,"class-hpp"
         ,{
@@ -46,19 +46,17 @@ def run_create_class( params ):
             ,"include_list": params.get( "include_list", [ ] )
             ,"namespace_list": hierarchy_list[ :-1 ]
             ,"using_list": params.get( "using_list", [ ] )
-            ,"des_file_path": f"{rel_path}.hpp"
         }
     )
 
     if( params.get( "create_header_only", False ) ):
         return  message
 
-    message += create_file_from_template( 
+    message += template_engine.create_file_from_template( 
          f"{default_cpp_config[ 'paths' ][ 'source' ]}/{rel_path}.cpp"
         ,"class-cpp"
         ,{
              "include_list": [ f"{rel_path}.hpp" ]
-            ,"des_file_path": f"{rel_path}.cpp"
         }
     )
 

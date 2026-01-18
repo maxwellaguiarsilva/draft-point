@@ -70,7 +70,6 @@ def run_create_test( params ):
         ,{
              "hierarchy": hierarchy
             ,"include_list": params.get( "include_list", [ ] )
-            ,"des_file_path": file_path
         }
     )
 
