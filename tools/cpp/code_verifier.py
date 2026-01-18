@@ -27,7 +27,7 @@ import re
 import os
 from lib.common import run_mcp_tool, ensure, get_path_parts, write_file, read_file
 from cpp_lib.config import default_cpp_config
-from lib import metadata_provider
+from lib import file_info
 from lib import template_engine
 
 
@@ -79,7 +79,7 @@ class formatter:
         if not self.file_path:
             return
 
-        data = metadata_provider.get_canonical_metadata( self.file_path ) | {
+        data = file_info.get_info( self.file_path ) | {
             "des_file_path": self._strip_project_prefix( self.file_path )
         }
         ideal_header = template_engine.render( "file-header", data ).strip( )

@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   metadata_provider
+#   File:   file_info
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-14 18:00:00
@@ -54,7 +54,7 @@ def get_git_config_value( configuration_name ):
     return  create_process( [ "git", "config", "--global", configuration_name ] ).stdout.strip( )
 
 
-def get_canonical_metadata( full_relative_path ):
+def get_info( full_relative_path ):
     """generates the official metadata set for a file (existing or new)."""
     git_info = fetch_git_first_commit( full_relative_path )
     
