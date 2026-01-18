@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   tui/terminal.cpp
+ * File:   source/tui/terminal.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-08-24 11:29
+ * Created on 2025-08-24 11:29:53
  */
 
 //	ignore-no-comments-rule

@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   game/renderer.hpp
+ * File:   include/game/renderer.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-10 15:44
+ * Created on 2026-01-10 15:44:21
  */
 
 

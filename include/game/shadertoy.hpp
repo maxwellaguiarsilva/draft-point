@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   game/shadertoy.hpp
+ * File:   include/game/shadertoy.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-12 16:03
+ * Created on 2026-01-12 16:03:05
  */
 
 

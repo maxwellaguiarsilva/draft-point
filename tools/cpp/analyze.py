@@ -28,7 +28,7 @@ from lib.common import run_mcp_tool, get_cpu_count, print_line
 
 
 from cpp_lib.project_core import project_core
-from cpp.code_verifier import run_code_verifier
+from code_verifier import run_code_verifier
 
 
 def run_analyze( params ):

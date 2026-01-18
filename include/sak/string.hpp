@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   sak/string.hpp
+ * File:   include/sak/string.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-12-23 22:21
+ * Created on 2025-12-23 22:21:00
  */
 
 

@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   tui/renderer.hpp
+ * File:   include/tui/renderer.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-03 15:28
+ * Created on 2026-01-03 15:28:53
  */
 
 

@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   sak/math/test_sak_math_sum.cpp
+ * File:   tests/sak/math/test_sak_math_sum.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-12-31 12:30
+ * Created on 2025-12-31 12:30:11
  */
 
 

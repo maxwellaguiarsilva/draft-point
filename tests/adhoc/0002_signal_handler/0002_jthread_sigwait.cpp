@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   adhoc/0002_signal_handler/0002_jthread_sigwait.cpp
+ * File:   tests/adhoc/0002_signal_handler/0002_jthread_sigwait.cpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-12-30 23:45
+ * Created on 2025-12-30 23:45:57
  */
 
 

@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   sak/ranges/chunk.hpp
+ * File:   include/sak/ranges/chunk.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-05 20:32
+ * Created on 2026-01-05 20:32:14
  */
 
 

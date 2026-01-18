@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   sak/ranges/views/join_with.hpp
+ * File:   include/sak/ranges/views/join_with.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-09 17:07
+ * Created on 2026-01-09 17:07:16
  */
 
 

@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   sak/pattern/tupled.hpp
+ * File:   include/sak/pattern/tupled.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-12-23 19:05
+ * Created on 2025-12-23 19:05:44
  */
 
 

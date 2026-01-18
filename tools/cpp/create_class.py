@@ -25,7 +25,7 @@
 
 import time
 from lib.common import run_mcp_tool, ensure
-from lib import template
+from lib.template import template
 from cpp_lib.config import default_cpp_config
 from cpp_lib.project_tree import parse_hierarchy
 

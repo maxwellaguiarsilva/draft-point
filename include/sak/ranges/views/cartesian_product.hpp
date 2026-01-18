@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   sak/ranges/views/cartesian_product.hpp
+ * File:   include/sak/ranges/views/cartesian_product.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2026-01-05 21:09
+ * Created on 2026-01-05 21:09:03
  */
 
 

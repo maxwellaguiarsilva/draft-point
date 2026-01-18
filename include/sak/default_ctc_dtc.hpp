@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 /* 
- * File:   sak/default_ctc_dtc.hpp
+ * File:   include/sak/default_ctc_dtc.hpp
  * Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
  * 
- * Created on 2025-11-16 15:09
+ * Created on 2025-11-16 15:09:42
  */
 
 

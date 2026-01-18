@@ -28,7 +28,7 @@ import os
 from lib.common import run_mcp_tool, ensure, get_path_parts, write_file, read_file
 from cpp_lib.config import default_cpp_config
 from lib import file_info
-from lib import template
+from lib.template import template
 
 
 class formatter:
