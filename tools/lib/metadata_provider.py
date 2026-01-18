@@ -32,18 +32,17 @@ def fetch_git_first_commit( file_path ):
     """retrieves date, name and email from the first commit of a file via git."""
     if not os.path.exists( file_path ):
         return None
-    #   Format: YYYY-MM-DD HH:MM|Name|Email
-    cmd = [
+    
+    result = create_process( [
         "git", "log", "--follow", "--reverse", 
         "--date=format:%Y-%m-%d %H:%M", 
         "--format=%ad|%an|%ae", "--", file_path
-    ]
-    result = create_process( cmd )
+    ] )
     if not result.stdout.strip( ):
         return None
     first_line = result.stdout.splitlines( )[ 0 ]
     dt, name, email = first_line.split( '|' )
-    return {
+    return  {
         "year": dt.split( '-' )[ 0 ],
         "datetime": dt,
         "name": name,
@@ -52,9 +51,7 @@ def fetch_git_first_commit( file_path ):
 
 
 def get_git_config_value( configuration_name ):
-    command = [ "git", "config", "--global", configuration_name ]
-    process = create_process( command )
-    return process.stdout.strip( )
+    return  create_process( [ "git", "config", "--global", configuration_name ] ).stdout.strip( )
 
 
 def get_canonical_metadata( full_relative_path ):
@@ -62,17 +59,19 @@ def get_canonical_metadata( full_relative_path ):
     git_info = fetch_git_first_commit( full_relative_path )
     
     if git_info:
-        return {
+        return  {
              "num_year": git_info[ "year" ]
             ,"des_full_name": git_info[ "name" ]
             ,"des_email": git_info[ "email" ]
             ,"des_formatted_datetime": git_info[ "datetime" ]
         }
     
-    #   Fallback for new files (not yet committed)
-    return {
+    #   fallback for new files (not yet committed)
+    return  {
          "num_year": datetime.datetime.now( ).strftime( "%Y" )
         ,"des_full_name": get_git_config_value( "user.name" )
         ,"des_email": get_git_config_value( "user.email" )
         ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
     }
+
+
