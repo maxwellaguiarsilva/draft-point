@@ -130,6 +130,14 @@ def cpp_code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
     return _invoke_tool( "cpp", "code_verifier", locals( ).copy( ) )
 
 
+@mcp.tool( )
+def python_code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
+    """verifies if a list of python files follows the project's formatting rules
+    if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
+    returns a consolidated list of violations
+    """
+    return _invoke_tool( "python", "code_verifier", locals( ).copy( ) )
+
 
 if __name__ == "__main__":
     mcp.run( )

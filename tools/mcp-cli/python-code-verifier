@@ -1,0 +1,20 @@
+#!/bin/bash
+
+
+# constructs a json list of files from arguments
+JSON_FILES="[]"
+if [ "$#" -gt 0 ]; then
+    JSON_FILES="["
+    for arg in "$@"; do
+        JSON_FILES="${JSON_FILES}\"${arg}\","
+    done
+    JSON_FILES="${JSON_FILES%,}]"
+fi
+
+PYTHONPATH=tools tools/python/code_verifier.py "$( cat <<-EOF
+{
+  "files": ${JSON_FILES}
+}
+EOF
+)"
+

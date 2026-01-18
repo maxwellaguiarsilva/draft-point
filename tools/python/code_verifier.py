@@ -1,0 +1,93 @@
+#!/usr/bin/python3
+
+
+#   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+#   
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#   
+#   
+#   File:   tools/python/code_verifier.py
+#   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+#   
+#   Created on 2026-01-18 14:00:00
+
+
+import re
+import os
+from lib.common import run_mcp_tool, ensure, get_path_parts, write_file, read_file
+from lib import file_info
+
+
+class formatter:
+    def __init__( self, content: str, file_path: str = None, flg_auto_fix: bool = True ):
+        self.content = content
+        self.file_path = file_path
+        self.messages = []
+        self.flg_auto_fix = flg_auto_fix
+
+    def run( self ):
+        self._trailing_newlines( )
+        return self.content
+
+    def verify( self ):
+        self.flg_auto_fix = False
+        self.run( )
+        return self.messages
+
+    def _trailing_newlines( self ):
+        new_content = self.content.rstrip( ) + "\n\n\n"
+        if new_content != self.content:
+            if self.flg_auto_fix:
+                self.content = new_content
+                self.messages.append( "file must end with exactly 2 empty lines and no trailing whitespace" )
+            else:
+                line_no = self.content.count( "\n" ) + 1
+                self.messages.append( ( line_no, "file must end with exactly 2 empty lines and no trailing whitespace" ) )
+
+
+def run_code_verifier( params: dict ) -> str:
+    files = params.get( "files", [ ] )
+    flg_auto_fix = params.get( "flg_auto_fix", False )
+    
+    results = [ ]
+    for file_path in files:
+        ensure( get_path_parts( file_path )[ "extension" ] == "py", "this tool is exclusively for python files" )
+        content = read_file( file_path )
+        
+        fmt = formatter( content, file_path = file_path, flg_auto_fix = flg_auto_fix )
+        if flg_auto_fix:
+            new_content = fmt.run( )
+            if content != new_content:
+                write_file( file_path, new_content )
+        else:
+            fmt.verify( )
+        
+        if fmt.messages:
+            message = f"file: {file_path}\n"
+            for violation in fmt.messages:
+                if isinstance( violation, ( list, tuple ) ):
+                    line, text = violation
+                    message += f"  line {line}: {text}\n"
+                else:
+                    message += f"  {violation}\n"
+            results.append( message )
+    
+    return "\n".join( results ).strip( ) or f"no formatting violations found in the provided files."
+
+
+
+if __name__ == "__main__":
+    run_mcp_tool( run_code_verifier )
+
+
