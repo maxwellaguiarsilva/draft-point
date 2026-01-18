@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   template_engine
+#   File:   template
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-14 18:00:00
@@ -48,9 +48,8 @@ class template:
         text = read_file( f"{self.path}/{name}.txt" )
         text = re.sub( r_import, lambda match: self.load( match.group( 1 ) ), text )
         return  text
-    
-    def run( self, data: dict ) -> str:
-        text = self.text
+
+    def _render_dict( self, data: dict, text: str ) -> str:
         for key, value in data.items( ):
             if isinstance( value, str ):
                 text = text.replace( f"{{{{{key}}}}}", str( value ) )
@@ -73,18 +72,17 @@ class template:
                     ,text
                     ,flags = re.DOTALL
                 )
+            elif isinstance( value, dict ):
+                text = self._render_dict( value, text )
         return  text
 
-
-def render( template_name, data ):
-    t = template( template_name )
-    return t.run( data )
-
-
-def create_file_from_template( file_path, template_name, extra_data ):
-    return  write_file(
-         file_path
-        ,render( template_name, file_info.get_info( file_path ) | { "des_file_path": os.path.basename( file_path ) } | extra_data )
-    )
+    
+    def render( self, data: dict, file_path: str = None ) -> str:
+        if file_path:
+            data    =   file_info.get_info( file_path ) | data
+        return  self._render_dict( data, self.text )
+    
+    def create_file( self, file_path, data ):
+        return  write_file( file_path, self.render( data, file_path ) )
 
 

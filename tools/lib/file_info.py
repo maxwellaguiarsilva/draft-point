@@ -28,50 +28,39 @@ import datetime
 from lib.common import create_process
 
 
-def fetch_git_first_commit( file_path ):
-    """retrieves date, name and email from the first commit of a file via git."""
-    if not os.path.exists( file_path ):
-        return None
-    
-    result = create_process( [
-        "git", "log", "--follow", "--reverse", 
-        "--date=format:%Y-%m-%d %H:%M", 
-        "--format=%ad|%an|%ae", "--", file_path
-    ] )
-    if not result.stdout.strip( ):
-        return None
-    first_line = result.stdout.splitlines( )[ 0 ]
-    dt, name, email = first_line.split( '|' )
-    return  {
-        "year": dt.split( '-' )[ 0 ],
-        "datetime": dt,
-        "name": name,
-        "email": email
-    }
-
 
 def get_git_config_value( configuration_name ):
     return  create_process( [ "git", "config", "--global", configuration_name ] ).stdout.strip( )
 
 
-def get_info( full_relative_path ):
+def get_info( file_path ):
     """generates the official metadata set for a file (existing or new)."""
-    git_info = fetch_git_first_commit( full_relative_path )
-    
-    if git_info:
-        return  {
-             "num_year": git_info[ "year" ]
-            ,"des_full_name": git_info[ "name" ]
-            ,"des_email": git_info[ "email" ]
-            ,"des_formatted_datetime": git_info[ "datetime" ]
-        }
-    
-    #   fallback for new files (not yet committed)
-    return  {
+    #   fallback
+    data    =   {
          "num_year": datetime.datetime.now( ).strftime( "%Y" )
         ,"des_full_name": get_git_config_value( "user.name" )
         ,"des_email": get_git_config_value( "user.email" )
-        ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M" )
+        ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M:%S" )
+        ,"des_file_path": file_path
+    }
+
+    if not os.path.exists( file_path ):
+        return  data
+    process =   create_process( [
+        "git", "log", "--follow", "--reverse", 
+        "--date=format:%Y-%m-%d %H:%M:%S", 
+        "--format=%ad|%an|%ae", "--", file_path
+    ] )
+    if not process.stdout.strip( ):
+        return  data
+
+    dat_full, des_full_name, des_email  =   process.stdout.splitlines( )[ 0 ].split( "|" )
+    
+    return  data | {
+         "num_year": dat_full.split( "-" )[ 0 ]
+        ,"des_full_name": des_full_name
+        ,"des_email": des_email
+        ,"des_formatted_datetime": dat_full
     }
 
 
