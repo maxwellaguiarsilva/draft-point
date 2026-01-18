@@ -28,7 +28,7 @@ import os
 from lib.common import run_mcp_tool, ensure, get_path_parts, write_file, read_file
 from cpp_lib.config import default_cpp_config
 from lib import file_info
-from lib import template_engine
+from lib import template
 
 
 class formatter:
@@ -37,15 +37,6 @@ class formatter:
         self.file_path = file_path
         self.messages = []
         self.flg_auto_fix = flg_auto_fix
-
-    def _strip_project_prefix( self, path ):
-        """c++ specific prefix stripping for license header."""
-        paths = default_cpp_config[ "paths" ]
-        prefixes = [ f"{paths['include']}/", f"{paths['source']}/", f"{paths['tests']}/" ]
-        for p in prefixes:
-            if path.startswith( p ):
-                return path[ len( p ) : ]
-        return path
 
     def run( self ):
         self._validate_license( )
@@ -78,11 +69,8 @@ class formatter:
     def _validate_license( self ):
         if not self.file_path:
             return
-
-        data = file_info.get_info( self.file_path ) | {
-            "des_file_path": self._strip_project_prefix( self.file_path )
-        }
-        ideal_header = template_engine.render( "file-header", data ).strip( )
+        model   =   template( "file-header" )
+        ideal_header = model.render( file_info.get_info( self.file_path ) ).strip( )
         
         parts = self.content.split( "\n\n", 1 )
         actual_header = parts[ 0 ].strip( )

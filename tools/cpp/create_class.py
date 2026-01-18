@@ -25,7 +25,7 @@
 
 import time
 from lib.common import run_mcp_tool, ensure
-from lib import template_engine
+from lib import template
 from cpp_lib.config import default_cpp_config
 from cpp_lib.project_tree import parse_hierarchy
 
@@ -36,10 +36,9 @@ def run_create_class( params ):
     message = ""
     hierarchy_list = parse_hierarchy( params[ "class_hierarchy" ] )
     rel_path = "/".join( hierarchy_list )
-    
-    message += template_engine.create_file_from_template( 
+
+    message +=  template( "class-hpp" ).create_file( 
          f"{default_cpp_config[ 'paths' ][ 'include' ]}/{rel_path}.hpp"
-        ,"class-hpp"
         ,{
              "header_guard": f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
             ,"class_name": hierarchy_list[ -1 ]
@@ -51,13 +50,10 @@ def run_create_class( params ):
 
     if( params.get( "create_header_only", False ) ):
         return  message
-
-    message += template_engine.create_file_from_template( 
+    
+    message +=  template( "class-cpp" ).create_file( 
          f"{default_cpp_config[ 'paths' ][ 'source' ]}/{rel_path}.cpp"
-        ,"class-cpp"
-        ,{
-             "include_list": [ f"{rel_path}.hpp" ]
-        }
+        ,{ "include_list": [ f"{rel_path}.hpp" ] }
     )
 
     return  message
