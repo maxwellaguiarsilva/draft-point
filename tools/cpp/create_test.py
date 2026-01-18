@@ -60,9 +60,7 @@ def run_create_test( params ):
     else:
         tests_dir = default_cpp_config[ "paths" ][ "tests" ]
         hierarchy_list = parse_hierarchy( hierarchy )
-        path = "/".join( hierarchy_list[ :-1 ] )
-        filename = f"test_{ '_'.join( hierarchy_list ) }.cpp"
-        rel_path = f"{path}/{filename}" if path else filename
+        rel_path = "/".join( hierarchy_list[ :-1 ] + [ f"test_{ '_'.join( hierarchy_list ) }.cpp" ] )
 
     file_path = f"{tests_dir}/{rel_path}"
 
