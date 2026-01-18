@@ -85,7 +85,7 @@ def get_path_parts( path ):
          "base": base
         ,"folder": folder
         ,"name": name
-        ,"extension": extension
+        ,"extension": extension[ 1: ]
     }
 
 
