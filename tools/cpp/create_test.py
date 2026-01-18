@@ -46,35 +46,33 @@ def get_next_adhoc_prefix( adhoc_dir ):
         next_counter += 1
     return f"{next_counter:04d}"
 
+
 def create_test( hierarchy, flg_adhoc=False, include_list=[ ] ):
     paths = default_cpp_config[ "paths" ]
     
     if( flg_adhoc ):
-        adhoc_dir = paths[ "adhoc" ]
-        prefix = get_next_adhoc_prefix( adhoc_dir )
-        test_folder = f"{prefix}_{hierarchy}"
-        rel_path = f"{test_folder}/{prefix}_{hierarchy}.cpp"
-        file_path = f"{adhoc_dir}/{rel_path}"
-        display_hierarchy = hierarchy
+        tests_dir = paths[ "adhoc" ]
+        prefix = get_next_adhoc_prefix( tests_dir )
+        rel_path = f"{prefix}_{hierarchy}/{prefix}_{hierarchy}.cpp"
     else:
         tests_dir = paths[ "tests" ]
         hierarchy_list = parse_hierarchy( hierarchy )
         path = "/".join( hierarchy_list[ :-1 ] )
         filename = f"test_{ '_'.join( hierarchy_list ) }.cpp"
         rel_path = f"{path}/{filename}" if path else filename
-        file_path = f"{tests_dir}/{rel_path}"
-        display_hierarchy = hierarchy
 
-    data = {
-         "hierarchy": display_hierarchy
-        ,"include_list": include_list
-        ,"des_file_path": file_path
-    }
+    file_path = f"{tests_dir}/{rel_path}"
+
     return write_file( file_path
         ,template_engine.render( "test-cpp"
-            ,metadata_provider.get_canonical_metadata( file_path ) | data
+            ,metadata_provider.get_canonical_metadata( file_path ) | {
+                 "hierarchy": hierarchy
+                ,"include_list": include_list
+                ,"des_file_path": file_path
+            }
         )
     )
+
 
 def run_create_test( params ):
     ensure( "hierarchy" in params, "missing 'hierarchy' parameter" )
@@ -88,3 +86,5 @@ def run_create_test( params ):
 
 if __name__ == "__main__":
     run_mcp_tool( run_create_test )
+
+
