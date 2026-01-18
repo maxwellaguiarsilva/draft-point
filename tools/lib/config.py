@@ -34,3 +34,5 @@ default_config = {
         ,"templates": "docs/templates" #   project templates directory
     }
 }
+
+

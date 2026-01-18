@@ -192,7 +192,11 @@ def run_code_verifier( params: dict ) -> str:
                     message += f"  {violation}\n"
             results.append( message )
     
-    return "\n".join( results ).strip( ) or f"no formatting violations found in the provided files."
+    res = "\n".join( results ).strip( )
+    if res and flg_auto_fix:
+        res += "\n\nthe files were adjusted automatically, no action necessary"
+
+    return res or f"no formatting violations found in the provided files."
 
 
 

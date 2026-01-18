@@ -327,3 +327,5 @@ class project_core:
             self.print( f"cppcheck: {cppcheck_command}" )
         ensure( result.returncode == 0, "cppcheck failed for the project" )
         self.print( "static analysis completed successfully" )
+
+

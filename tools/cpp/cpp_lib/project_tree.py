@@ -153,3 +153,5 @@ class project_tree:
                     if target in other_ref.target_node.closure:
                         ref.is_redundant = True
                         break
+
+
