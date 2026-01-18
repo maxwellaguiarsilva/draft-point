@@ -82,10 +82,9 @@ def render( template_name, data ):
 
 
 def create_file_from_template( file_path, template_name, extra_data ):
-    data = { "des_file_path": os.path.basename( file_path ) }
     return  write_file(
          file_path
-        ,render( template_name, metadata_provider.get_canonical_metadata( file_path ) | data | extra_data )
+        ,render( template_name, metadata_provider.get_canonical_metadata( file_path ) | { "des_file_path": os.path.basename( file_path ) } | extra_data )
     )
 
 
