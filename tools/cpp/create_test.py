@@ -24,9 +24,8 @@
 
 
 from pathlib import Path
-from lib import metadata_provider
 from lib import template_engine
-from lib.common import run_mcp_tool, ensure, write_file
+from lib.common import run_mcp_tool, ensure
 from cpp_lib.config import default_cpp_config
 from cpp_lib.project_tree import parse_hierarchy
 
@@ -67,14 +66,14 @@ def run_create_test( params ):
 
     file_path = f"{tests_dir}/{rel_path}"
 
-    return  write_file( file_path
-        ,template_engine.render( "test-cpp"
-            ,metadata_provider.get_canonical_metadata( file_path ) | {
-                 "hierarchy": hierarchy
-                ,"include_list": params.get( "include_list", [ ] )
-                ,"des_file_path": file_path
-            }
-        )
+    return  template_engine.create_file_from_template( 
+         file_path
+        ,"test-cpp"
+        ,{
+             "hierarchy": hierarchy
+            ,"include_list": params.get( "include_list", [ ] )
+            ,"des_file_path": file_path
+        }
     )
 
 

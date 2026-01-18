@@ -24,18 +24,11 @@
 
 
 import time
-from lib.common import run_mcp_tool, ensure, write_file
-from lib import metadata_provider
+from lib.common import run_mcp_tool, ensure
 from lib import template_engine
 from cpp_lib.config import default_cpp_config
 from cpp_lib.project_tree import parse_hierarchy
 
-
-def create_file_from_template( file_path, template_name, extra_data ):
-    return  write_file(
-         file_path
-        ,template_engine.render( template_name, metadata_provider.get_canonical_metadata( file_path ) | extra_data )
-    )
 
 def run_create_class( params ):
     ensure( "class_hierarchy" in params, "missing 'class_hierarchy' parameter" )
