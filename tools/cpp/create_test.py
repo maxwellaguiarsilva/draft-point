@@ -56,11 +56,11 @@ def run_create_test( params ):
     if( params.get( "flg_adhoc", False ) ):
         tests_dir = default_cpp_config[ "paths" ][ "adhoc" ]
         prefix = get_next_adhoc_prefix( tests_dir )
-        rel_path = f"{prefix}_{hierarchy}/{prefix}_{hierarchy}.cpp"
+        rel_path = f"{prefix}_{hierarchy}/{prefix}_{hierarchy}.{default_cpp_config[ 'language' ][ 'source_extension' ]}"
     else:
         tests_dir = default_cpp_config[ "paths" ][ "tests" ]
         hierarchy_list = parse_hierarchy( hierarchy )
-        rel_path = "/".join( hierarchy_list[ :-1 ] + [ f"test_{ '_'.join( hierarchy_list ) }.cpp" ] )
+        rel_path = "/".join( hierarchy_list[ :-1 ] + [ f"test_{ '_'.join( hierarchy_list ) }.{default_cpp_config[ 'language' ][ 'source_extension' ]}" ] )
 
     file_path = f"{tests_dir}/{rel_path}"
 

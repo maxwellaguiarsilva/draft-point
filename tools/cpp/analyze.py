@@ -37,8 +37,8 @@ def run_analyze( params ):
     this command takes no arguments"""
     core = project_core( params.get( "config", { } ) )
     
-    include_ext = core.config["patterns"]["header_extension"]
-    source_ext  = core.config["patterns"]["source_extension"]
+    include_ext = core.config["language"]["header_extension"]
+    source_ext  = core.config["language"]["source_extension"]
     
     files_to_check = [ ]
     for obj in core.hpp_list + core.cpp_list:

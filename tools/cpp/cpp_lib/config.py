@@ -83,12 +83,14 @@ default_cpp_config = {
         ,"library_dirs": []             #   additional paths for library search
     }
 
-    #   file search patterns
-    ,"patterns": {
+    #   language information
+    ,"language": {
         "source_extension": "cpp"
         ,"header_extension": "hpp"
-        ,"main_function": r"\b(int|auto)\s+main\s*\("
-        ,"comment_string":  "//\t"
+        ,"patterns": {
+            "main_function": r"\b(int|auto)\s+main\s*\("
+            ,"comment_string":  "//\t"
+        }
     }
 
     #   folder organization

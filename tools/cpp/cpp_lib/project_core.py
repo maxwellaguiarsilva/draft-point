@@ -55,7 +55,7 @@ class cpp( project_file ):
         source_folder = project.config["paths"]["source"]
         tests_folder  = project.config["paths"]["tests"]
         build_folder  = project.config["paths"]["build"]
-        main_regexp   = project.config["patterns"]["main_function"]
+        main_regexp   = project.config["language"]["patterns"]["main_function"]
 
         self.is_test = node.path.startswith( tests_folder )
         base_folder  = tests_folder if self.is_test else source_folder

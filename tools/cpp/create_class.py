@@ -38,7 +38,7 @@ def run_create_class( params ):
     rel_path = "/".join( hierarchy_list )
 
     message +=  template( "class-hpp" ).create_file( 
-         f"{default_cpp_config[ 'paths' ][ 'include' ]}/{rel_path}.hpp"
+         f"{default_cpp_config[ 'paths' ][ 'include' ]}/{rel_path}.{default_cpp_config[ 'language' ][ 'header_extension' ]}"
         ,{
              "header_guard": f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
             ,"class_name": hierarchy_list[ -1 ]
@@ -52,8 +52,8 @@ def run_create_class( params ):
         return  message
     
     message +=  template( "class-cpp" ).create_file( 
-         f"{default_cpp_config[ 'paths' ][ 'source' ]}/{rel_path}.cpp"
-        ,{ "include_list": [ f"{rel_path}.hpp" ] }
+         f"{default_cpp_config[ 'paths' ][ 'source' ]}/{rel_path}.{default_cpp_config[ 'language' ][ 'source_extension' ]}"
+        ,{ "include_list": [ f"{rel_path}.{default_cpp_config[ 'language' ][ 'header_extension' ]}" ] }
     )
 
     return  message

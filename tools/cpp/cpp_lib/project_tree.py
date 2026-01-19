@@ -80,9 +80,13 @@ class project_tree:
         self._scan_dir( tests_dir, tests_dir )
 
     def _scan_dir( self, root_path, base_path ):
+        exts = ( 
+             f".{self.config[ 'language' ][ 'header_extension' ]}"
+            ,f".{self.config[ 'language' ][ 'source_extension' ]}" 
+        )
         pattern = os.path.join( root_path, "**", "*" )
         for path in glob.glob( pattern, recursive=True ):
-            if os.path.isfile( path ) and path.endswith( ( ".hpp", ".cpp" ) ):
+            if os.path.isfile( path ) and path.endswith( exts ):
                 relative_path_from_base = os.path.relpath( path, base_path )
                 hierarchy = os.path.splitext( relative_path_from_base )[ 0 ]
                 
@@ -92,7 +96,7 @@ class project_tree:
                 
                 #   hierarchy_map can still be used, but it's ambiguous if both .hpp and .cpp exist
                 #   we'll prefer .hpp for hierarchy_map if it exists
-                if hierarchy not in self.hierarchy_map or path.endswith( ".hpp" ):
+                if hierarchy not in self.hierarchy_map or path.endswith( f".{self.config[ 'language' ][ 'header_extension' ]}" ):
                     self.hierarchy_map[ hierarchy ] = node
 
     def _resolve_include( self, include_path ):
