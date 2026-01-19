@@ -21,6 +21,19 @@
 
 
 class clang:
+    optimization_levels = {
+        "none": "-O0"
+        ,"balanced": "-O2"
+        ,"aggressive": "-O3"
+        ,"debug": "-Og"
+    }
+
+    warning_levels = {
+        "minimal": ["-Wall"]
+        ,"high": ["-Wall", "-Wextra"]
+        ,"pedantic": ["-Wall", "-Wextra", "-Wpedantic"]
+    }
+
     def __init__( self, config ):
         self.config = config
 
@@ -43,9 +56,8 @@ class clang:
         if config[ 'compiler' ][ 'use_64_bits' ]:
             params.append( "-m64" )
             
-        opt_map = config[ 'build_behavior' ].get( 'optimization_levels', { } )
         opt_level = config[ 'build_behavior' ][ 'optimization' ]
-        params.append( opt_map.get( opt_level, opt_level ) )
+        params.append( self.optimization_levels.get( opt_level, opt_level ) )
         
         if config[ 'build_behavior' ][ 'debug_symbols' ]:
             params.append( "-g" )
@@ -54,9 +66,8 @@ class clang:
         if config[ 'build_behavior' ][ 'experimental_library' ]:
             params.append( "-fexperimental-library" )
             
-        warn_map = config[ 'quality_control' ].get( 'warning_levels', { } )
         warn_level = config[ 'quality_control' ][ 'warning_level' ]
-        params.extend( warn_map.get( warn_level, [ warn_level ] ) )
+        params.extend( self.warning_levels.get( warn_level, [ warn_level ] ) )
         
         if config[ 'quality_control' ][ 'treat_warnings_as_errors' ]:
             params.append( "-Werror" )
@@ -78,9 +89,8 @@ class clang:
         if config[ 'compiler' ][ 'use_64_bits' ]:
             params.append( "-m64" )
             
-        opt_map = config[ 'build_behavior' ].get( 'optimization_levels', { } )
         opt_level = config[ 'build_behavior' ][ 'optimization' ]
-        params.append( opt_map.get( opt_level, opt_level ) )
+        params.append( self.optimization_levels.get( opt_level, opt_level ) )
 
         if config[ 'build_behavior' ][ 'debug_symbols' ]:
             params.append( "-g" )

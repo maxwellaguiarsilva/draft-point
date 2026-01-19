@@ -53,12 +53,6 @@ default_cpp_config = {
     ,"build_behavior": {
         #   options: "none" (-O0), "balanced" (-O2), "aggressive" (-O3), "debug" (-Og)
         "optimization": "balanced"
-        ,"optimization_levels": {
-            "none": "-O0"
-            ,"balanced": "-O2"
-            ,"aggressive": "-O3"
-            ,"debug": "-Og"
-        }
         ,"debug_symbols": False         #   generates symbols for gdb (-g)
         ,"generate_dependencies": False #   generates .d files (intelligent recompilation)
         ,"experimental_library": True   #   enables -fexperimental-library
@@ -69,11 +63,6 @@ default_cpp_config = {
     ,"quality_control": {
         #   options: "minimal", "high" (-Wall -Wextra), "pedantic"
         "warning_level": "high"
-        ,"warning_levels": {
-            "minimal": ["-Wall"]
-            ,"high": ["-Wall", "-Wextra"]
-            ,"pedantic": ["-Wall", "-Wextra", "-Wpedantic"]
-        }
         ,"treat_warnings_as_errors": True #   -Werror
         ,"stop_on_first_error": True      #   -Wfatal-errors
         ,"static_analysis": {
