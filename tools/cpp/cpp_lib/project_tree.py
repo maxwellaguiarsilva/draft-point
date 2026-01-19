@@ -63,7 +63,7 @@ class project_tree:
         self.nodes = { }
         self.hierarchy_map = { }
         self.relative_path_map = { }
-        self.include_pattern = re.compile( r'#include\s*(?P<full>(?P<open>[<"])(?P<path>[^>"]+)(?P<close>[>"]))' )
+        self.include_pattern = re.compile( self.config[ "language" ][ "patterns" ][ "include_directive" ] )
         
         self._scan_project( )
         self._resolve_all_includes( )

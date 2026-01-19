@@ -32,10 +32,6 @@ from lib.common import run_mcp_tool, ensure
 from cpp_lib.project_core import project_core
 
 
-#   project_core: r'#include\s*[<\\"]([^>\\"]+)[>\\"]'
-#   include_tree: r'#include\s*([<"">]([^>"">]+)[>""<])'
-
-
 class include_tree:
     def __init__( self, tree ):
         self.tree = tree

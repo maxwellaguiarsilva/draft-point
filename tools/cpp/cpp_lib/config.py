@@ -87,9 +87,10 @@ default_cpp_config = {
     ,"language": {
         "source_extension": "cpp"
         ,"header_extension": "hpp"
+        ,"comment_string":  "//\t"
         ,"patterns": {
             "main_function": r"\b(int|auto)\s+main\s*\("
-            ,"comment_string":  "//\t"
+            ,"include_directive": r'#include\s*(?P<full>(?P<open>[<"])(?P<path>[^>"]+)(?P<close>[>"]))'
         }
     }
 
