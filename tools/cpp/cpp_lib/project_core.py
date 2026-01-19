@@ -30,6 +30,7 @@ from lib.common import deep_update
 from lib.common import create_process
 from cpp_lib.config import default_cpp_config
 from cpp_lib.project_tree import project_tree
+from cpp_lib.clang import clang
 
 
 class project_file:
@@ -80,8 +81,7 @@ class cpp( project_file ):
             self.project.print( f"    [cached]: {self.hierarchy}", flg_check_stop = True )
             return
 
-        compile_params = self.project._get_compile_params
-        compiler_command = f"{self.project.config['compiler']['executable']} {compile_params} -c {self.path} -o {self.object_path}"
+        compiler_command = self.project.compiler.get_compile_command( self.path, self.object_path )
 
         result = create_process( compiler_command, shell = True, check = False )
 
@@ -152,8 +152,7 @@ class binary_builder:
                 flg_link = True
         
         if flg_link:
-            object_files_str = " ".join( object_files )
-            linker_command = f"{self.cpp.project.config['compiler']['executable']} {object_files_str} {self.cpp.project._get_link_params} -o {self.binary_path}"
+            linker_command = self.cpp.project.compiler.get_link_command( object_files, self.binary_path )
             
             result = create_process( linker_command, shell = True, check = False )
 
@@ -194,6 +193,7 @@ class project_core:
 
         self._lock = threading.Lock( )
         self._stop_event = threading.Event( )
+        self.compiler = clang( self.config )
 
         self.binary_list = [ binary_builder( c ) for c in self.cpp_list if c.is_main ]
         
@@ -215,71 +215,6 @@ class project_core:
                 self._stop_event.set( )
 
             print( *args, **kwargs )
-
-    @property
-    def _get_compile_params( self ):
-        config = self.config
-        params = []
-        
-        params.append( f"-std={config['compiler']['standard']}" )
-        if config['compiler']['use_64_bits']:
-            params.append( "-m64" )
-            
-        opt_map = config['build_behavior'].get( 'optimization_levels', { } )
-        opt_level = config['build_behavior']['optimization']
-        params.append( opt_map.get( opt_level, opt_level ) )
-        
-        if config['build_behavior']['debug_symbols']:
-            params.append( "-g" )
-        if config['build_behavior']['generate_dependencies']:
-            params.append( "-MMD -MP" )
-        if config['build_behavior']['experimental_library']:
-            params.append( "-fexperimental-library" )
-            
-        warn_map = config['quality_control'].get( 'warning_levels', { } )
-        warn_level = config['quality_control']['warning_level']
-        params.extend( warn_map.get( warn_level, [ warn_level ] ) )
-        
-        if config['quality_control']['treat_warnings_as_errors']:
-            params.append( "-Werror" )
-        if config['quality_control']['stop_on_first_error']:
-            params.append( "-Wfatal-errors" )
-            
-        params.append( f"-I{config['paths']['include']}" )
-        for d in config['dependencies']['include_dirs']:
-            params.append( f"-I{d}" )
-            
-        params.extend( config['compiler'].get( 'extra_compile_flags', [ ] ) )
-
-        return " ".join( params )
-
-    @property
-    def _get_link_params( self ):
-        config = self.config
-        params = []
-        
-        if config['compiler']['use_64_bits']:
-            params.append( "-m64" )
-            
-        opt_map = config['build_behavior'].get( 'optimization_levels', { } )
-        opt_level = config['build_behavior']['optimization']
-        params.append( opt_map.get( opt_level, opt_level ) )
-
-        if config['build_behavior']['debug_symbols']:
-            params.append( "-g" )
-
-        for d in config['dependencies'].get( 'library_dirs', [ ] ):
-            params.append( f"-L{d}" )
-
-        for opt in config['compiler'].get( 'linker_direct_options', [ ] ):
-            params.append( f"-Wl,{opt}" )
-
-        params.extend( config['compiler'].get( 'extra_link_flags', [ ] ) )
-
-        for lib in config['dependencies']['libraries']:
-            params.append( f"-l{lib}" )
-
-        return " ".join( params )
 
     @property
     def _get_cppcheck_params( self ):
