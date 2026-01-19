@@ -19,7 +19,7 @@
 //	Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 //	
 //	Created on 2026-01-02 00:33:19
-//
+//	
 
 
 #include <print>

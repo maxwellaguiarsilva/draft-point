@@ -19,7 +19,7 @@
 //	Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 //	
 //	Created on 2025-08-26 20:27:11
-//
+//	
 
 
 #include <game/fps.hpp>

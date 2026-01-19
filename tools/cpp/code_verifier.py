@@ -70,10 +70,10 @@ class formatter:
         if not self.file_path:
             return
         model   =   template( "file-header" )
-        ideal_header = model.render( file_info.get_info( self.file_path ) ).strip( )
+        ideal_header = model.render( file_info.get_info( self.file_path ) ).strip( " \n\r" )
         
         parts = self.content.split( "\n\n", 1 )
-        actual_header = parts[ 0 ].strip( )
+        actual_header = parts[ 0 ].strip( " \n\r" )
         
         if actual_header != ideal_header:
             if self.flg_auto_fix:
