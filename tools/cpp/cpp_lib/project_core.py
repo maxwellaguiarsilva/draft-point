@@ -31,6 +31,7 @@ from lib.common import create_process
 from cpp_lib.config import default_cpp_config
 from cpp_lib.project_tree import project_tree
 from cpp_lib.clang import clang
+from cpp_lib.cppcheck import cppcheck
 
 
 class project_file:
@@ -194,6 +195,7 @@ class project_core:
         self._lock = threading.Lock( )
         self._stop_event = threading.Event( )
         self.compiler = clang( self.config )
+        self.analyzer = cppcheck( self.config )
 
         self.binary_list = [ binary_builder( c ) for c in self.cpp_list if c.is_main ]
         
@@ -216,45 +218,17 @@ class project_core:
 
             print( *args, **kwargs )
 
-    @property
-    def _get_cppcheck_params( self ):
-        config = self.config
-        analysis_config = config['quality_control']['static_analysis']
-        
-        params = [
-            "--quiet",
-            "--enable=all",
-            f"--cppcheck-build-dir={config['paths']['build']}",
-            "--inline-suppr",
-            f"--std={config['compiler']['standard']}",
-            "--error-exitcode=1",
-            f"-j {config['build_behavior']['max_threads']}"
-        ]
-        
-        params.append( f"--check-level={analysis_config['strictness']}" )
-            
-        for suppression in analysis_config.get( 'suppressions', [ ] ):
-            params.append( f"--suppress={suppression}" )
-
-        params.append( f"-I{config['paths']['include']}" )
-        for d in config['dependencies']['include_dirs']:
-            params.append( f"-I{d}" )
-            
-        return " ".join( params )
-
     def run_cppcheck( self ):
-        if not self.config['quality_control']['static_analysis']['enabled']:
+        if not self.config[ 'quality_control' ][ 'static_analysis' ][ 'enabled' ]:
             return
 
-        build_dir = self.config['paths']['build']
-        os.makedirs( build_dir, exist_ok=True )
+        build_dir = self.config[ 'paths' ][ 'build' ]
+        os.makedirs( build_dir, exist_ok = True )
         
-        cppcheck_params = self._get_cppcheck_params
+        source_dir = self.config[ 'paths' ][ 'source' ]
+        tests_dir = self.config[ 'paths' ][ 'tests' ]
         
-        source_dir = self.config['paths']['source']
-        tests_dir = self.config['paths']['tests']
-        
-        cppcheck_command = f"cppcheck {cppcheck_params} \"{source_dir}\" \"{tests_dir}\""
+        cppcheck_command = self.analyzer.get_command( [ source_dir, tests_dir ] )
         
         self.print( "running static analysis (cppcheck)..." )
         result = create_process( cppcheck_command, shell = True, check = False, capture_output = False, text = False )
