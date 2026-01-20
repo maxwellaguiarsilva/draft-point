@@ -25,6 +25,7 @@
 
 import datetime
 import os
+from lib.common import generate_json
 
 
 class file:
@@ -48,6 +49,9 @@ class file:
     def refresh( self ):
         self.exists =   os.path.exists( self.path )
         self.modified_at    =   datetime.datetime.fromtimestamp( os.path.getmtime( self.path ) ) if self.exists else None
+
+    def __repr__( self, extra = [ ] ):
+        return  generate_json( self, [ "path", "base", "folder", "name", "extension", "exists", "modified_at" ] + extra )
 
 
 class text_file( file ):

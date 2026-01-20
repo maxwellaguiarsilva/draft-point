@@ -54,7 +54,7 @@ def deep_update( source, overrides ):
             deep_update( source[ key ], value )
         else:
             source[ key ] = value
-    return source
+    return  source
 
 
 def create_process( command, **kwargs ):
@@ -82,7 +82,7 @@ def get_process_text( result ):
     lines = [ ]
     if result.stderr: lines.append( result.stderr.rstrip( "\n" ) )
     if result.stdout: lines.append( result.stdout.rstrip( "\n" ) )
-    return "\n".join( lines )
+    return  "\n".join( lines )
 
 
 def print_line( strong = True ):
@@ -107,7 +107,7 @@ def write_file( file_path, content ):
     os.makedirs( os.path.dirname( file_path ), exist_ok=True )
     with open( file_path, "w" ) as f:
         f.write( content )
-    return f"created file: {file_path}\n"
+    return  f"created file: {file_path}\n"
 
 
 def read_file( file_path ):
@@ -124,6 +124,11 @@ def get_json_args( ):
             print( "invalid json parameters" )
             sys.exit( 1 )
     return  params
+
+
+def generate_json( obj, members ):
+    data    =   { member: getattr( obj, member ) for member in members }
+    return  json.dumps( data, indent = 4, default = str )
 
 
 def run_mcp_tool( action ):

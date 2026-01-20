@@ -24,6 +24,7 @@
 
 
 from lib.fso import text_file
+from lib.common import generate_json
 import re
 import os
 import glob
@@ -39,6 +40,9 @@ class project_file( text_file ):
     def refresh( self ):
         super( ).refresh( )
 
+    def __repr__( self, extra = [ ] ):
+        return  super( ).__repr__( [ "includes" ] + extra )
+
 
 class hpp( project_file ):
     def __init__( self, file_path ):
@@ -46,8 +50,14 @@ class hpp( project_file ):
 
 
 class cpp( project_file ):
+    main_regex  =   r"\b(int|auto)\s+main\s*\("
+
     def __init__( self, file_path ):
         super( ).__init__( file_path )
+        self.is_main = bool( re.search( self.main_regex, self.content ) ) if self.content else False
+
+    def __repr__( self, extra = [ ] ):
+        return  super( ).__repr__( [ "is_main" ] + extra )
 
 
 class project_model:
