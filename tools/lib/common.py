@@ -126,8 +126,20 @@ def get_json_args( ):
     return  params
 
 
-def generate_json( obj, members ):
-    data    =   { member: getattr( obj, member ) for member in members }
+def get_json_dict( obj, members ):
+    def to_json( value ):
+        if hasattr( value, "json" ):
+            return  value.json
+        if isinstance( value, dict ):
+            return  { key: to_json( val ) for key, val in value.items( ) }
+        if isinstance( value, list ):
+            return  [ to_json( val ) for val in value ]
+        return  value
+
+    return  { member: to_json( getattr( obj, member ) ) for member in members }
+
+
+def get_json_str( data ):
     return  json.dumps( data, indent = 4, default = str )
 
 

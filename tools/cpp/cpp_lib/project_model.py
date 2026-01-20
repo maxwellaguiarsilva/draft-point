@@ -24,7 +24,7 @@
 
 
 from lib.fso import text_file
-from lib.common import generate_json
+from lib.common import get_json_dict, get_json_str
 import re
 import os
 import glob
@@ -41,8 +41,9 @@ class project_file( text_file ):
         super( ).refresh( )
         self.includes   =   [ match.group( "path" ) for match in self.include_regex.finditer( self.content ) ] if self.content else [ ]
 
-    def __repr__( self, extra = [ ] ):
-        return  super( ).__repr__( [ "includes" ] + extra )
+    @property
+    def json( self ):
+        return  super( ).json | get_json_dict( self, [ "includes" ] )
 
 
 class hpp( project_file ):
@@ -57,35 +58,53 @@ class cpp( project_file ):
         super( ).__init__( file_path )
         self.is_main = bool( re.search( self.main_regex, self.content ) ) if self.content else False
 
-    def __repr__( self, extra = [ ] ):
-        return  super( ).__repr__( [ "is_main" ] + extra )
+    @property
+    def json( self ):
+        return  super( ).json | get_json_dict( self, [ "is_main" ] )
 
 
 class project_model:
 
     def __init__( self, config ):
         self.config =   config
+
+        paths   =   self.config[ "paths" ]
+        self.include_dir    =   paths[ "include" ]
+        self.source_dir     =   paths[ "source" ]
+        self.tests_dir      =   paths[ "tests" ]
+
+        language    =   self.config[ "language" ]
+        self.source_ext  =   language[ "source_extension" ]
+        self.header_ext  =   language[ "header_extension" ]
+
         self.files  =   { }
-        
-        self.scan_dir( [ 
-             self.config[ "paths" ][ "include" ]
-            ,self.config[ "paths" ][ "source" ]
-            ,self.config[ "paths" ][ "tests" ]
-        ] )
+        self.files.update( self.scan_dir( [ self.include_dir, self.source_dir, self.tests_dir ] ) )
 
     def scan_dir( self, dir_path ):
         if isinstance( dir_path, list ):
+            files   =   { }
             for path in dir_path:
-                self.scan_dir( path )
-            return
+                files.update( self.scan_dir( path ) )
+            return  files
+        
+        return  {
+            file_path: cpp( file_path ) if file_path.endswith( f".{self.source_ext}" ) else hpp( file_path )
+            for file_path in glob.glob( os.path.join( dir_path, "**", "*" ), recursive = True )
+            if os.path.isfile( file_path ) and file_path.endswith( ( f".{self.header_ext}", f".{self.source_ext}" ) )
+        }
 
-        source_ext = self.config[ "language" ][ "source_extension" ]
-        header_ext = self.config[ "language" ][ "header_extension" ]
+    @property
+    def json( self ):
+        return  get_json_dict( self, [ "files" ] )
 
-        exts = ( f".{header_ext}", f".{source_ext}" )
-        pattern = os.path.join( dir_path, "**", "*" )
-        for path in glob.glob( pattern, recursive = True ):
-            if os.path.isfile( path ) and path.endswith( exts ):
-                self.files[ path ]  =   cpp( path ) if path.endswith( source_ext ) else hpp( path )
+    def __repr__( self ):
+        return  get_json_str( self.json )
+                                      
+
+if __name__ == "__main__":
+    import sys
+    if len( sys.argv ) > 1 and sys.argv[ 1 ] == "--run-test":
+        from cpp.cpp_lib.config import default_cpp_config
+        print( project_model( default_cpp_config ) )
 
 
