@@ -25,6 +25,8 @@
 
 from lib.fso import text_file
 import re
+import os
+import glob
 
 
 class project_file( text_file ):
@@ -39,13 +41,13 @@ class project_file( text_file ):
 
 
 class hpp( project_file ):
-    def __init__( self, path ):
-        super( ).__init__( path )
+    def __init__( self, file_path ):
+        super( ).__init__( file_path )
 
 
 class cpp( project_file ):
-    def __init__( self, path ):
-        super( ).__init__( path )
+    def __init__( self, file_path ):
+        super( ).__init__( file_path )
 
 
 class project_model:
@@ -63,7 +65,7 @@ class project_model:
     def scan_dir( self, dir_path ):
         if isinstance( dir_path, list ):
             for path in dir_path:
-                self._scan_dir( path )
+                self.scan_dir( path )
             return
 
         source_ext = self.config[ "language" ][ "source_extension" ]
