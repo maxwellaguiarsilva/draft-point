@@ -27,7 +27,7 @@ import os
 import re
 import glob
 import datetime
-from lib.common import ensure, read_file, get_modification_time
+from lib.common import ensure, read_file, get_modification_time, get_path_parts
 
 
 def parse_hierarchy( hierarchy ):
@@ -94,31 +94,32 @@ class project_map:
         self.path_map = { }
         self.include_pattern = re.compile( self.config[ "language" ][ "patterns" ][ "include_directive" ] )
         
-        self._scan_project( )
+        self._scan_dir( [ 
+             self.config[ "paths" ][ "include" ]
+            ,self.config[ "paths" ][ "source" ]
+            ,self.config[ "paths" ][ "tests" ]
+        ] )
         self._resolve_all_includes( )
         self._calculate_all_dependencies( )
 
-    def _scan_project( self ):
-        include_dir = self.config[ "paths" ][ "include" ]
-        source_dir = self.config[ "paths" ][ "source" ]
-        tests_dir = self.config[ "paths" ][ "tests" ]
+    def _scan_dir( self, dir_path ):
+        if isinstance( dir_path, list ):
+            for path in dir_path:
+                self._scan_dir( path )
+            return
 
-        self._scan_dir( include_dir, include_dir, hpp )
-        self._scan_dir( source_dir, source_dir, cpp )
-        self._scan_dir( tests_dir, tests_dir, cpp )
+        source_ext = self.config[ "language" ][ "source_extension" ]
+        header_ext = self.config[ "language" ][ "header_extension" ]
 
-    def _scan_dir( self, root_path, base_path, file_class ):
-        exts = ( 
-             f".{self.config[ 'language' ][ 'header_extension' ]}"
-            ,f".{self.config[ 'language' ][ 'source_extension' ]}" 
-        )
-        pattern = os.path.join( root_path, "**", "*" )
+        exts = ( f".{header_ext}", f".{source_ext}" )
+        pattern = os.path.join( dir_path, "**", "*" )
         for path in glob.glob( pattern, recursive = True ):
             if os.path.isfile( path ) and path.endswith( exts ):
-                path_from_base = os.path.relpath( path, base_path )
+                path_from_base = os.path.relpath( path, dir_path )
                 hierarchy = os.path.splitext( path_from_base )[ 0 ]
                 
-                if file_class == cpp:
+                parts = get_path_parts( path )
+                if parts[ "extension" ] == source_ext:
                     file_obj = cpp( path, hierarchy, self.config )
                 else:
                     file_obj = hpp( path, hierarchy )
