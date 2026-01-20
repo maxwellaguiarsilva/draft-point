@@ -35,10 +35,11 @@ class project_file( text_file ):
 
     def __init__( self, file_path ):
         super( ).__init__( file_path )
-        self.includes   =   set( )
+        self.refresh( )
     
     def refresh( self ):
         super( ).refresh( )
+        self.includes   =   [ match.group( "path" ) for match in self.include_regex.finditer( self.content ) ] if self.content else [ ]
 
     def __repr__( self, extra = [ ] ):
         return  super( ).__repr__( [ "includes" ] + extra )
