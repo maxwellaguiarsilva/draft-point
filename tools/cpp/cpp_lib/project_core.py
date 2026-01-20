@@ -58,19 +58,20 @@ class cpp( project_file ):
         self.is_test = node.path.startswith( tests_folder )
         base_folder  = tests_folder if self.is_test else source_folder
 
-        super().__init__( node, project )
+        super( ).__init__( node, project )
         
         build_base = os.path.join( build_folder, base_folder )
         self.object_path = os.path.join( build_base, self.hierarchy + ".o" )
 
         self.is_main = bool( re.search( main_regexp, self.content ) )
-        self.compiled_at = self._get_compiled_at( )
+        self.update_compiled_at( )
  
-    def _get_compiled_at( self ):
-        return  get_modification_time( self.object_path )
+    def update_compiled_at( self ):
+        self.compiled_at = get_modification_time( self.object_path )
+        return  self.compiled_at
 
     def build( self ):
-        if self.project.flg_stop.is_set( ):
+        if self.project.is_stopped:
             return
 
         if self.compiled_at and self.dependencies_modified_at <= self.compiled_at:
@@ -81,27 +82,20 @@ class cpp( project_file ):
 
         process = create_process( compiler_command, shell = True, check = False )
 
-        lines = [ f"    [build]: {self.hierarchy}" ]
-        if process.returncode != 0:
-            lines[ 0 ] += " (failed)"
-        
-        lines.append( get_process_text( process ) )
-            
-        if process.returncode != 0:
-            lines.append( f"compiler: {compiler_command}" )
-            
-        self.project.print( *lines, sep = "\n" )
+        lines = [ f"    [build]: {self.hierarchy}", get_process_text( process ) ]
 
         if process.returncode != 0:
             self.project.stop( )
-        
-        ensure( process.returncode == 0, f"compilation failed for {self.path}" )
-        self.compiled_at = self._get_compiled_at( )
+            ensure( False, f"""compiler: {compiler_command}\nfailed: {"\n".join( lines )}\ncompilation failed for {self.path}""" )
+        else:
+            self.project.print( *lines, sep = "\n" )
+
+        self.update_compiled_at( )
 
 
 class hpp( project_file ):
     def __init__( self, node, project ):
-        super().__init__( node, project )
+        super( ).__init__( node, project )
 
 
 class binary_builder:
@@ -134,7 +128,7 @@ class binary_builder:
                 self.dependencies_list.append( item[ "cpp" ] )
 
     def link( self ):
-        if self.cpp.project.flg_stop.is_set( ):
+        if self.cpp.project.is_stopped:
             return
 
         log = self.cpp.project.print
@@ -205,13 +199,17 @@ class project_core:
     def stop( self ):
         self.flg_stop.set( )
 
+    @property
+    def is_stopped( self ):
+        return self.flg_stop.is_set( )
+
     def print( self, *args, **kwargs ):
         args = [ a for a in args if a ]
         if not args:
             return
 
         with self._lock:
-            if self.flg_stop.is_set( ):
+            if self.is_stopped:
                 return
 
             print( *args, **kwargs )
