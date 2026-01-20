@@ -40,9 +40,7 @@ def run_analyze( params ):
     include_ext = core.config["language"]["header_extension"]
     source_ext  = core.config["language"]["source_extension"]
     
-    files_to_check = [ ]
-    for obj in core.hpp_list + core.cpp_list:
-        files_to_check.append( obj.path )
+    files_to_check = [ f.path for f in core.map.files.values( ) if f.path ]
             
     print_line( )
     core.print( f"checking code formatting for {len(files_to_check)} files..." )

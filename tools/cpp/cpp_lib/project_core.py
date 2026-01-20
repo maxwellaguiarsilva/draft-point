@@ -22,88 +22,21 @@
 
 import copy
 import os
-import re
 import threading
 from lib.common import create_process, deep_update, ensure, get_modification_time, get_process_text
 from cpp_lib.config import default_cpp_config
-from cpp_lib.project_tree import project_tree
+from cpp_lib.project_map import project_map, cpp, hpp
 from cpp_lib.clang import clang
 from cpp_lib.cppcheck import cppcheck
 
 
-class project_file:
-    def __init__( self, node, project ):
-        self.project = project
-        self.node = node
-        self.path = node.path
-        self.modified_at = node.modified_at
-        self.hierarchy = node.hierarchy
-        self.content = node.content
-        
-        self.dependencies_modified_at = self.modified_at
-        if self.node.closure:
-            self.dependencies_modified_at = max( 
-                [ self.modified_at ] + 
-                [ dep.modified_at for dep in self.node.closure ] 
-            )
-
-
-class cpp( project_file ):
-    def __init__( self, node, project ):
-        source_folder = project.config["paths"]["source"]
-        tests_folder  = project.config["paths"]["tests"]
-        build_folder  = project.config["paths"]["build"]
-        main_regexp   = project.config["language"]["patterns"]["main_function"]
-
-        self.is_test = node.path.startswith( tests_folder )
-        base_folder  = tests_folder if self.is_test else source_folder
-
-        super( ).__init__( node, project )
-        
-        build_base = os.path.join( build_folder, base_folder )
-        self.object_path = os.path.join( build_base, self.hierarchy + ".o" )
-
-        self.is_main = bool( re.search( main_regexp, self.content ) )
-        self.update_compiled_at( )
- 
-    def update_compiled_at( self ):
-        self.compiled_at = get_modification_time( self.object_path )
-        return  self.compiled_at
-
-    def build( self ):
-        if self.project.is_stopped:
-            return
-
-        if self.compiled_at and self.dependencies_modified_at <= self.compiled_at:
-            self.project.print( f"    [cached]: {self.hierarchy}" )
-            return
-
-        compiler_command = self.project.compiler.get_compile_command( self.path, self.object_path )
-
-        process = create_process( compiler_command, shell = True, check = False )
-
-        lines = [ f"    [build]: {self.hierarchy}", get_process_text( process ) ]
-
-        if process.returncode != 0:
-            self.project.stop( )
-            ensure( False, f"""compiler: {compiler_command}\nfailed: {"\n".join( lines )}\ncompilation failed for {self.path}""" )
-        else:
-            self.project.print( *lines, sep = "\n" )
-
-        self.update_compiled_at( )
-
-
-class hpp( project_file ):
-    def __init__( self, node, project ):
-        super( ).__init__( node, project )
-
-
 class binary_builder:
-    def __init__( self, cpp ):
-        ensure( cpp.is_main, f"file {cpp.path} does not contain a main function" )
+    def __init__( self, cpp_file, project ):
+        ensure( cpp_file.is_main, f"file {cpp_file.path} does not contain a main function" )
         
-        self.cpp = cpp
-        dist_folder  = self.cpp.project.config["paths"]["output"]
+        self.cpp = cpp_file
+        self.project = project
+        dist_folder  = self.project.config["paths"]["output"]
         
         binary_name = os.path.basename( self.cpp.path )
         binary_name = os.path.splitext( binary_name )[0]
@@ -118,20 +51,20 @@ class binary_builder:
         self.dependencies_list = [ self.cpp ]
         visited_hierarchies = { self.cpp.hierarchy }
         
-        for dep_node in self.cpp.node.closure:
+        for dep_node in self.cpp.dependencies:
             if dep_node.hierarchy in visited_hierarchies:
                 continue
                 
             visited_hierarchies.add( dep_node.hierarchy )
-            item = self.cpp.project.hierarchy_items.get( dep_node.hierarchy )
-            if item and item[ "cpp" ]:
-                self.dependencies_list.append( item[ "cpp" ] )
+            items = self.project.map.hierarchy_items.get( dep_node.hierarchy )
+            if items and items[ "cpp" ]:
+                self.dependencies_list.append( items[ "cpp" ] )
 
     def link( self ):
-        if self.cpp.project.is_stopped:
+        if self.project.is_stopped:
             return
 
-        log = self.cpp.project.print
+        log = self.project.print
         os.makedirs( os.path.dirname( self.binary_path ), exist_ok=True )
         
         object_files = []
@@ -142,7 +75,7 @@ class binary_builder:
                 flg_link = True
         
         if flg_link:
-            linker_command = self.cpp.project.compiler.get_link_command( object_files, self.binary_path )
+            linker_command = self.project.compiler.get_link_command( object_files, self.binary_path )
             
             process = create_process( linker_command, shell = True, check = False )
 
@@ -150,7 +83,7 @@ class binary_builder:
                 log( f"    [link]: {os.path.basename( self.binary_path )} (failed)" )
                 log( get_process_text( process ) )
                 log( f"linker: {linker_command}" )
-                self.cpp.project.stop( )
+                self.project.stop( )
                 ensure( False, f"linking failed for {self.binary_path}" )
             else:
                 log( f"    [link]: {os.path.basename( self.binary_path )}" )
@@ -161,31 +94,14 @@ class project_core:
     def __init__( self, config = { } ):
         self.config = deep_update( copy.deepcopy( default_cpp_config ), config )
         
-        self.tree = project_tree( self.config )
+        self.map = project_map( self.config )
         
-        self.hpp_list = [ ]
-        self.cpp_list = [ ]
-        self.hierarchy_items = { }
-        
-        for node in self.tree.nodes.values( ):
-            if not node.path:
-                continue
-            
-            if node.path.endswith( ".hpp" ):
-                obj = hpp( node, self )
-                self.hpp_list.append( obj )
-                self.hierarchy_items.setdefault( node.hierarchy, { "cpp": None, "hpp": None } )[ "hpp" ] = obj
-            elif node.path.endswith( ".cpp" ):
-                obj = cpp( node, self )
-                self.cpp_list.append( obj )
-                self.hierarchy_items.setdefault( node.hierarchy, { "cpp": None, "hpp": None } )[ "cpp" ] = obj
-
         self._lock = threading.Lock( )
         self.flg_stop = threading.Event( )
         self.compiler = clang( self.config )
         self.analyzer = cppcheck( self.config )
 
-        self.binary_list = [ binary_builder( c ) for c in self.cpp_list if c.is_main ]
+        self.binary_list = [ binary_builder( c, self ) for c in self.map.files.values( ) if isinstance( c, cpp ) and c.is_main ]
         
         #   check for binary name collisions
         binaries_by_path = { }
@@ -214,6 +130,28 @@ class project_core:
 
             print( *args, **kwargs )
 
+    def build( self, cpp_file ):
+        if self.is_stopped:
+            return
+
+        if cpp_file.compiled_at and cpp_file.dependencies_modified_at <= cpp_file.compiled_at:
+            self.print( f"    [cached]: {cpp_file.hierarchy}" )
+            return
+
+        compiler_command = self.compiler.get_compile_command( cpp_file.path, cpp_file.object_path )
+
+        process = create_process( compiler_command, shell = True, check = False )
+
+        lines = [ f"    [build]: {cpp_file.hierarchy}", get_process_text( process ) ]
+
+        if process.returncode != 0:
+            self.stop( )
+            ensure( False, f"""compiler: {compiler_command}\nfailed: {"\n".join( lines )}\ncompilation failed for {cpp_file.path}""" )
+        else:
+            self.print( *lines, sep = "\n" )
+
+        cpp_file.update_compiled_at( )
+
     def run_cppcheck( self ):
         if not self.config[ 'quality_control' ][ 'static_analysis' ][ 'enabled' ]:
             return
@@ -232,5 +170,3 @@ class project_core:
             self.print( f"cppcheck: {cppcheck_command}" )
         ensure( process.returncode == 0, "cppcheck failed for the project" )
         self.print( "static analysis completed successfully" )
-
-

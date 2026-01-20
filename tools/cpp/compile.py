@@ -51,7 +51,7 @@ def run_compile( params ):
     core.print( f"\ncompiling {len(all_cpps)} files using {max_workers} threads..." )
     
     with concurrent.futures.ThreadPoolExecutor( max_workers = max_workers ) as executor:
-        futures = [ executor.submit( c.build ) for c in all_cpps.values( ) ]
+        futures = [ executor.submit( core.build, c ) for c in all_cpps.values( ) ]
         try:
             for future in concurrent.futures.as_completed( futures ):
                 future.result( )

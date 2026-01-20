@@ -11,7 +11,6 @@ To reduce visual noise and improve intent, the following terms are redefined:
 | `tree_node` | `project_file` | The base entity representing any file in the project. |
 | `nodes` | `files` | The collection of all tracked entities. |
 | `closure` | `dependencies` | The transitive set of files required by a source. |
-| `target_node` | `target` | The destination file of an include directive. |
 | `project_tree` | `project_map` | The component that tracks the static state of the project. |
 
 ## 3. The Static Layer (`project_map`)
@@ -24,16 +23,16 @@ This layer is responsible for discovery, classification, and dependency resoluti
   - `is_external`: Boolean indicating if the file is outside the project (e.g., system headers).
   - `modified_at`: Last modification timestamp (min value for external files).
   - `content`: Lazy-loaded file content (None for external files).
-  - `direct_includes`: List of immediate `include_reference` objects.
+  - `includes`: Set of immediate `project_file` objects.
   - `dependencies`: Set of all transitive `project_file` dependencies.
+
+- **`hpp` (Specialization)**: A header file.
+  - Note: External dependencies (like `<vector>` or `<string>`) are instantiated as `hpp` objects with `is_external = True`.
 
 - **`cpp` (Specialization)**: A source file with specific compilation needs.
   - `is_main`: Boolean identified via regex in content (pre-computed knowledge).
   - `is_test`: Boolean identified via path (e.g., starts with `tests/`).
   - `object_path`: Computed path for the `.o` file in the build directory.
-
-- **`hpp` (Specialization)**: A header file.
-  - Note: External dependencies (like `<vector>` or `<string>`) are instantiated as `hpp` objects with `is_external = True`.
 
 ### 3.2. Data Intelligence
 Properties like `is_main`, `is_test`, and `object_path` are computed during discovery within `project_map`. This removes the need for the runtime layer to "investigate" files, allowing it to act on pre-computed knowledge.
@@ -60,3 +59,66 @@ Entities in the map no longer hold a reference to the `project` object. Runtime-
 - **Ambiguity Resolution**: `project_map` maintains a `hierarchy_items` map (formerly managed by `project_core`) to correctly group `.cpp` and `.hpp` files that share the same hierarchy.
 - **Dependency Inversion**: Instead of files asking the project for the compiler, the project (or a specialized builder) passes the necessary data to the compiler to act on the files.
 - **Transitive Integrity**: The `dependencies` (transitive closure) calculation remains in the static layer, as it represents the structural relationship between files, regardless of whether they are being compiled or not.
+
+## 6. Refactoring Log (State Reference)
+**This section is the primary reference for the current state of the refactoring. If context is lost, start here.**
+
+### 6.1. Progress (What has been done)
+
+- **File Renaming**: `tools/cpp/cpp_lib/project_tree.py` was renamed to `tools/cpp/cpp_lib/project_map.py`.
+
+- **Semantic Elevation**:
+
+  - `tree_node` renamed to `project_file`.
+
+  - `nodes` renamed to `files`.
+
+  - `closure` renamed to `dependencies`.
+
+  - `project_tree` renamed to `project_map`.
+
+- **Static Layer Implementation**: 
+
+  - `hpp` and `cpp` specializations were moved from `project_core` to `project_map`.
+
+  - Logic for `is_main`, `is_test`, and `object_path` was moved to the `cpp` entity in `project_map`.
+
+  - `project_map` now handles `hierarchy_items` and `path_map`.
+
+- **Runtime Layer Refactoring**:
+
+  - `project_core.py` was refactored to remove redundant entity definitions.
+
+  - `build()` logic moved from `cpp` entity to `project_core.build_file()`.
+
+  - `binary_builder` updated to consume `project_map` data.
+
+- **Tool Integration**:
+
+  - `compile.py`, `analyze.py`, `create_class.py`, and `create_test.py` were updated to the new architecture.
+
+- **Verification**:
+
+  - Both `analyze` and `compile` were executed successfully, confirming the stability of the refactored system.
+
+
+
+### 6.2. Decisions Made
+
+- **JIT Time-stamping**: `dependencies_modified_at` is a `@property` in `project_file` that calculates the maximum `modified_at` of the file and its dependencies on the fly. This ensures data freshness without manual updates.
+
+- **Dependency Deletion**: Entities in `project_map` MUST NOT hold references to the `project` or `project_core` objects. They are pure data carriers.
+
+- **Path Purity**: All paths are project-centric (no leading `/`). The terms `absolute` and `relative` are forbidden in names.
+
+- **Entity State**: `update_compiled_at()` and `compiled_at` remain in the `cpp` entity within `project_map.py`, as they represent file-state knowledge.
+
+- **Time Comparison**: Use `get_modification_time` consistently to return `datetime` objects for comparison, avoiding mixing with `float` from `os.path.getmtime`.
+
+
+
+### 6.3. Next Steps
+
+- **Refactoring Complete**: No immediate next steps required for this task. The static and runtime layers are now decoupled and semantically elevated.
+
+
