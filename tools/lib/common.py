@@ -78,6 +78,13 @@ def create_process( command, **kwargs ):
         raise Exception( f"failed at command: {cmd_str}\nerror: {error_msg}" ) from None
 
 
+def get_process_text( result ):
+    lines = [ ]
+    if result.stderr: lines.append( result.stderr.rstrip( "\n" ) )
+    if result.stdout: lines.append( result.stdout.rstrip( "\n" ) )
+    return "\n".join( lines )
+
+
 def print_line( strong = True ):
     line_size = 50
     char = "=" if strong else "-"

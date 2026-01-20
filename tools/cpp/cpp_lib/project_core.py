@@ -28,6 +28,7 @@ from lib.common import ensure
 from lib.common import deep_update
 from lib.common import create_process
 from lib.common import get_modification_time
+from lib.common import get_process_text
 from cpp_lib.config import default_cpp_config
 from cpp_lib.project_tree import project_tree
 from cpp_lib.clang import clang
@@ -88,8 +89,7 @@ class cpp( project_file ):
         if result.returncode != 0:
             lines[ 0 ] += " (failed)"
         
-        if result.stderr: lines.append( result.stderr.rstrip( "\n" ) )
-        if result.stdout: lines.append( result.stdout.rstrip( "\n" ) )
+        lines.append( get_process_text( result ) )
             
         if result.returncode != 0:
             lines.append( f"compiler: {compiler_command}" )
@@ -154,14 +154,12 @@ class binary_builder:
 
             if result.returncode != 0:
                 self.cpp.project.print( f"    [link]: {os.path.basename( self.binary_path )} (failed)", flg_check_stop = True, flg_set_stop = True )
-                if result.stderr: self.cpp.project.print( result.stderr.rstrip( "\n" ) )
-                if result.stdout: self.cpp.project.print( result.stdout.rstrip( "\n" ) )
+                self.cpp.project.print( get_process_text( result ) )
                 self.cpp.project.print( f"linker: {linker_command}" )
                 ensure( False, f"linking failed for {self.binary_path}" )
             else:
                 self.cpp.project.print( f"    [link]: {os.path.basename( self.binary_path )}", flg_check_stop = True )
-                if result.stderr: self.cpp.project.print( result.stderr.rstrip( "\n" ) )
-                if result.stdout: self.cpp.project.print( result.stdout.rstrip( "\n" ) )
+                self.cpp.project.print( get_process_text( result ) )
 
 
 class project_core:
@@ -204,6 +202,10 @@ class project_core:
             binaries_by_path[ b.binary_path ] = b
 
     def print( self, *args, flg_check_stop = False, flg_set_stop = False, **kwargs ):
+        args = [ a for a in args if a ]
+        if not args:
+            return
+
         with self._lock:
             if flg_check_stop and self._stop_event.is_set( ):
                 return
