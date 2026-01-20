@@ -38,12 +38,27 @@ class formatter:
 
     def run( self ):
         self._trailing_newlines( )
-        return self.content
+        self._return_spacing( )
+        return  self.content
 
     def verify( self ):
         self.flg_auto_fix = False
         self.run( )
-        return self.messages
+        return  self.messages
+
+    def _return_spacing( self ):
+        pattern = r'^(\s*return)\s+(\S)'
+        replacement = r'\1  \2'
+        
+        if self.flg_auto_fix:
+            new_content = re.sub( pattern, replacement, self.content, flags = re.MULTILINE )
+            if new_content != self.content:
+                self.content = new_content
+                self.messages.append( "return must be followed by exactly 2 spaces" )
+        else:
+            for i, line in enumerate( self.content.splitlines( ) ):
+                if re.match( r'^\s*return\s+\S', line ) and not re.match( r'^\s*return  \S', line ):
+                    self.messages.append( ( i + 1, "return must be followed by exactly 2 spaces" ) )
 
     def _trailing_newlines( self ):
         new_content = self.content.rstrip( ) + "\n\n\n"
@@ -87,7 +102,7 @@ def run_code_verifier( params: dict ) -> str:
     if res and flg_auto_fix:
         res += "\n\nthe files were adjusted automatically, no action necessary"
 
-    return res or f"no formatting violations found in the provided files."
+    return  res or f"no formatting violations found in the provided files."
 
 
 

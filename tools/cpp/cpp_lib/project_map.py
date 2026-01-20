@@ -31,7 +31,7 @@ from lib.common import ensure, read_file, get_modification_time
 
 
 def parse_hierarchy( hierarchy ):
-    return re.split( r"[/:\\.]+", hierarchy )
+    return  re.split( r"[/:\\.]+", hierarchy )
 
 
 class project_file:
@@ -52,7 +52,7 @@ class project_file:
 
     @property
     def dependencies_modified_at( self ):
-        return max( [ self.modified_at ] + [ dep.modified_at for dep in self.dependencies ], default = self.modified_at )
+        return  max( [ self.modified_at ] + [ dep.modified_at for dep in self.dependencies ], default = self.modified_at )
 
 
 class hpp( project_file ):
@@ -83,7 +83,7 @@ class cpp( project_file ):
 
     def update_compiled_at( self ):
         self.compiled_at = get_modification_time( self.object_path )
-        return self.compiled_at
+        return  self.compiled_at
 
 
 class project_map:
@@ -134,20 +134,20 @@ class project_map:
 
     def _resolve_include( self, include_path ):
         if include_path in self.path_map:
-            return self.path_map[ include_path ]
+            return  self.path_map[ include_path ]
 
         hierarchy = os.path.splitext( include_path )[ 0 ]
         if hierarchy in self.hierarchy_items:
             items = self.hierarchy_items[ hierarchy ]
             if items[ "hpp" ]:
-                return items[ "hpp" ]
+                return  items[ "hpp" ]
             if items[ "cpp" ]:
-                return items[ "cpp" ]
+                return  items[ "cpp" ]
         
         if include_path not in self.files:
             file_obj = hpp( None, include_path, is_external = True )
             self.files[ include_path ] = file_obj
-        return self.files[ include_path ]
+        return  self.files[ include_path ]
 
     def _resolve_all_includes( self ):
         for file_obj in list( self.files.values( ) ):
@@ -161,10 +161,10 @@ class project_map:
 
     def _calculate_dependencies( self, file_obj, visited ):
         if file_obj in visited:
-            return set( )
+            return  set( )
         
         if file_obj.dependencies:
-            return file_obj.dependencies
+            return  file_obj.dependencies
             
         new_visited = visited | { file_obj }
         dependencies = set( )
@@ -173,8 +173,10 @@ class project_map:
             dependencies |= self._calculate_dependencies( target, new_visited )
             
         file_obj.dependencies = dependencies
-        return dependencies
+        return  dependencies
 
     def _calculate_all_dependencies( self ):
         for file_obj in self.files.values( ):
             self._calculate_dependencies( file_obj, set( ) )
+
+
