@@ -47,7 +47,7 @@ class formatter:
         return  self.messages
 
     def _return_spacing( self ):
-        pattern = r'^(\s*return)\s+(\S)'
+        pattern = r'^(\s*return) +(\S)'
         replacement = r'\1  \2'
         
         if self.flg_auto_fix:
@@ -57,7 +57,7 @@ class formatter:
                 self.messages.append( "return must be followed by exactly 2 spaces" )
         else:
             for i, line in enumerate( self.content.splitlines( ) ):
-                if re.match( r'^\s*return\s+\S', line ) and not re.match( r'^\s*return  \S', line ):
+                if re.match( r'^\s*return +\S', line ) and not re.match( r'^\s*return  \S', line ):
                     self.messages.append( ( i + 1, "return must be followed by exactly 2 spaces" ) )
 
     def _trailing_newlines( self ):
