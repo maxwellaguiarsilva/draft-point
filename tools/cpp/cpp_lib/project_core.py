@@ -24,11 +24,7 @@ import copy
 import os
 import re
 import threading
-from lib.common import ensure
-from lib.common import deep_update
-from lib.common import create_process
-from lib.common import get_modification_time
-from lib.common import get_process_text
+from lib.common import create_process, deep_update, ensure, get_modification_time, get_process_text
 from cpp_lib.config import default_cpp_config
 from cpp_lib.project_tree import project_tree
 from cpp_lib.clang import clang
@@ -83,23 +79,23 @@ class cpp( project_file ):
 
         compiler_command = self.project.compiler.get_compile_command( self.path, self.object_path )
 
-        result = create_process( compiler_command, shell = True, check = False )
+        process = create_process( compiler_command, shell = True, check = False )
 
         lines = [ f"    [build]: {self.hierarchy}" ]
-        if result.returncode != 0:
+        if process.returncode != 0:
             lines[ 0 ] += " (failed)"
         
-        lines.append( get_process_text( result ) )
+        lines.append( get_process_text( process ) )
             
-        if result.returncode != 0:
+        if process.returncode != 0:
             lines.append( f"compiler: {compiler_command}" )
             
         self.project.print( *lines, sep = "\n" )
 
-        if result.returncode != 0:
+        if process.returncode != 0:
             self.project.stop( )
         
-        ensure( result.returncode == 0, f"compilation failed for {self.path}" )
+        ensure( process.returncode == 0, f"compilation failed for {self.path}" )
         self.compiled_at = self._get_compiled_at( )
 
 
@@ -154,17 +150,17 @@ class binary_builder:
         if flg_link:
             linker_command = self.cpp.project.compiler.get_link_command( object_files, self.binary_path )
             
-            result = create_process( linker_command, shell = True, check = False )
+            process = create_process( linker_command, shell = True, check = False )
 
-            if result.returncode != 0:
+            if process.returncode != 0:
                 log( f"    [link]: {os.path.basename( self.binary_path )} (failed)" )
-                log( get_process_text( result ) )
+                log( get_process_text( process ) )
                 log( f"linker: {linker_command}" )
                 self.cpp.project.stop( )
                 ensure( False, f"linking failed for {self.binary_path}" )
             else:
                 log( f"    [link]: {os.path.basename( self.binary_path )}" )
-                log( get_process_text( result ) )
+                log( get_process_text( process ) )
 
 
 class project_core:
@@ -233,10 +229,10 @@ class project_core:
         cppcheck_command = self.analyzer.get_command( [ source_dir, tests_dir ] )
         
         self.print( "running static analysis (cppcheck)..." )
-        result = create_process( cppcheck_command, shell = True, check = False, capture_output = False, text = False )
-        if result.returncode != 0:
+        process = create_process( cppcheck_command, shell = True, check = False, capture_output = False, text = False )
+        if process.returncode != 0:
             self.print( f"cppcheck: {cppcheck_command}" )
-        ensure( result.returncode == 0, "cppcheck failed for the project" )
+        ensure( process.returncode == 0, "cppcheck failed for the project" )
         self.print( "static analysis completed successfully" )
 
 
