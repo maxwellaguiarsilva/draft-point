@@ -47,8 +47,7 @@ class file:
     
     def refresh( self ):
         self.exists =   os.path.exists( self.path )
-        if self.exists:
-            self.modified_at    =   datetime.datetime.fromtimestamp( os.path.getmtime( self.path ) )
+        self.modified_at    =   datetime.datetime.fromtimestamp( os.path.getmtime( self.path ) ) if self.exists else None
 
 
 class text_file( file ):
@@ -60,10 +59,10 @@ class text_file( file ):
     
     def read( self ):
         super( ).refresh( )
-        if not self.exists:
-            return  None
-        with open( self.path, "r" ) as f:
-            return  f.read( )
+        if self.exists:
+            with open( self.path, "r" ) as f:
+                return  f.read( )
+        return  None
     
     def write( self, content ):
         os.makedirs( os.path.dirname( self.path ), exist_ok=True )
