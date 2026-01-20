@@ -21,13 +21,13 @@
 
 
 import copy
-import datetime
 import os
 import re
 import threading
 from lib.common import ensure
 from lib.common import deep_update
 from lib.common import create_process
+from lib.common import get_modification_time
 from cpp_lib.config import default_cpp_config
 from cpp_lib.project_tree import project_tree
 from cpp_lib.clang import clang
@@ -70,9 +70,7 @@ class cpp( project_file ):
         self.compiled_at = self._get_compiled_at( )
  
     def _get_compiled_at( self ):
-        if os.path.exists( self.object_path ):
-            return  datetime.datetime.fromtimestamp( os.path.getmtime( self.object_path ) )
-        return  None
+        return  get_modification_time( self.object_path )
 
     def build( self ):
         if self.project._stop_event.is_set( ):
@@ -118,10 +116,7 @@ class binary_builder:
         binary_name = os.path.splitext( binary_name )[0]
         self.binary_path = os.path.join( dist_folder, binary_name )
         
-        if os.path.exists( self.binary_path ):
-            self.modified_at = datetime.datetime.fromtimestamp( os.path.getmtime( self.binary_path ) )
-        else:
-            self.modified_at = None
+        self.modified_at = get_modification_time( self.binary_path )
 
         self.dependencies_list = []
         self._resolve_dependencies()

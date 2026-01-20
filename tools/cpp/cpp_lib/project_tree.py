@@ -27,7 +27,7 @@ import os
 import re
 import glob
 import datetime
-from lib.common import ensure, read_file
+from lib.common import ensure, read_file, get_modification_time
 
 
 def parse_hierarchy( hierarchy ):
@@ -52,9 +52,11 @@ class tree_node:
         self.closure = set( )
         self.modified_at = datetime.datetime.min
 
-        if self.path and os.path.exists( self.path ):
-            self.modified_at = datetime.datetime.fromtimestamp( os.path.getmtime( self.path ) )
-            self.content = read_file( self.path )
+        if self.path:
+            mtime = get_modification_time( self.path )
+            if mtime:
+                self.modified_at = mtime
+                self.content = read_file( self.path )
 
 
 class project_tree:

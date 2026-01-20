@@ -23,6 +23,7 @@
 #   Created on 2026-01-04 20:18:54
 
 
+import datetime
 import json
 import sys
 import os
@@ -39,6 +40,12 @@ def get_cpu_count( ):
         return  len( os.sched_getaffinity( 0 ) )
     except AttributeError:
         return  os.cpu_count( ) or 1
+
+
+def get_modification_time( file_path ):
+    if os.path.exists( file_path ):
+        return  datetime.datetime.fromtimestamp( os.path.getmtime( file_path ) )
+    return  None
 
 
 def deep_update( source, overrides ):
