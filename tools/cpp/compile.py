@@ -56,7 +56,7 @@ def run_compile( params ):
             for future in concurrent.futures.as_completed( futures ):
                 future.result( )
         except Exception as e:
-            core._stop_event.set( )
+            core.stop( )
             raise e
 
     #   4. parallel linking
@@ -67,7 +67,7 @@ def run_compile( params ):
             for future in concurrent.futures.as_completed( futures ):
                 future.result( )
         except Exception as e:
-            core._stop_event.set( )
+            core.stop( )
             raise e
 
     end_time = datetime.datetime.now( )
