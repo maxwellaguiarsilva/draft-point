@@ -27,8 +27,6 @@
 #define header_guard_578639205
 
 
-#include <sak/sak.hpp>
-#include <game/renderer.hpp>
 #include <game/player.hpp>
 #include <game/fps.hpp>
 

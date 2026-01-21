@@ -27,7 +27,6 @@
 #define header_guard_048673562
 
 
-#include <sak/sak.hpp>
 #include <sak/geometry/geometry.hpp>
 
 

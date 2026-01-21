@@ -27,12 +27,8 @@
 #define header_guard_794521060
 
 
-#include <sak/sak.hpp>
-#include <sak/pattern/dispatcher.hpp>
 #include <tui/terminal.hpp>
 #include <game/renderer.hpp>
-#include <vector>
-#include <mutex>
 
 
 namespace tui {

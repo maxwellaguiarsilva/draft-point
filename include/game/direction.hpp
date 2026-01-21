@@ -27,7 +27,6 @@
 #define header_guard_399468167
 
 
-#include <sak/sak.hpp>
 #include <game/geometry.hpp>
 
 

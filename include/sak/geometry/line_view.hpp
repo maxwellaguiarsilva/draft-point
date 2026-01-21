@@ -27,11 +27,8 @@
 #define header_guard_107605823
 
 
-#include <ranges>
 #include <iterator>
-#include <sak/using.hpp>
 #include <sak/geometry/point.hpp>
-#include <sak/math/math.hpp>
 
 
 namespace sak {

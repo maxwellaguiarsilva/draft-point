@@ -27,8 +27,6 @@
 #define header_guard_356592464
 
 
-#include <sak/sak.hpp>
-#include <sak/geometry/point.hpp>
 #include <sak/geometry/line_view.hpp>
 
 

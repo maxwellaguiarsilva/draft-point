@@ -23,9 +23,7 @@
 
 
 #include <iostream>
-#include <sak/sak.hpp>
 #include <game/game.hpp>
-#include <tui/terminal.hpp>
 #include <tui/renderer.hpp>
 
 

@@ -28,12 +28,9 @@
 
 
 #include <array>
-#include <ranges>
 #include <cstddef>
-#include <concepts>
 #include <sak/math/math.hpp>
 #include <sak/pattern/tupled.hpp>
-#include <sak/using.hpp>
 
 
 namespace sak {

@@ -28,8 +28,6 @@
 
 
 #include <game/renderer.hpp>
-#include <sak/sak.hpp>
-#include <game/geometry.hpp>
 #include <game/direction.hpp>
 
 

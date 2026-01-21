@@ -27,10 +27,7 @@
 #define header_guard_260786294
 
 
-#include <sak/sak.hpp>
 #include <game/geometry.hpp>
-#include <memory>
-#include <functional>
 
 
 namespace game {

@@ -27,17 +27,12 @@
 #define header_guard_278153203
 
 
-#include <sak/sak.hpp>
 #include <sak/pattern/dispatcher.hpp>
 #include <tui/geometry.hpp>
 #include <termios.h>
-#include <array>
 #include <ostream>
 #include <sstream>
-#include <expected>
 #include <thread>
-#include <mutex>
-#include <atomic>
 #include <unordered_map>
 
 
