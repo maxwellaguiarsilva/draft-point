@@ -41,11 +41,7 @@ class project_file( text_file ):
     def refresh( self ):
         super( ).refresh( )
         self.includes   =   [ match.group( "path" ) for match in self.include_regex.finditer( self.content ) ] if self.content else [ ]
-
-    @property
-    def json( self ):
-        return  super( ).json | get_json_dict( self, [ "includes" ] )
-
+    
     @property
     def dependencies( self ):
         visited =   { self }
@@ -59,6 +55,15 @@ class project_file( text_file ):
                     stack.append( header )
 
         return  { dep for dep in visited if isinstance( dep, hpp ) and dep is not self }
+    
+    @property
+    def dependencies_modified_at( self ):
+        return  max( [ self.modified_at ] + [ dep.modified_at for dep in self.dependencies ], default = self.modified_at )
+
+    @property
+    def json( self ):
+        return  super( ).json | get_json_dict( self, [ "includes", "dependencies_modified_at" ] )
+
 
 
 class hpp( project_file ):
