@@ -127,6 +127,20 @@ class project_model:
 
         return  None
 
+    def get_source( self, file_path ):
+        candidates  =   [
+            file_path
+            ,f"{file_path}.{self.source_ext}"
+            ,os.path.join( self.source_dir, file_path )
+            ,os.path.join( self.source_dir, f"{file_path}.{self.source_ext}" )
+        ]
+
+        for candidate in candidates:
+            if candidate in self.files:
+                return  self.files[ candidate ]
+
+        return  None
+
     @property
     def json( self ):
         return  get_json_dict( self, [ "files" ] )
