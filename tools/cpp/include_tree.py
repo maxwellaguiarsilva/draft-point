@@ -47,21 +47,13 @@ class include_tree:
 
     def _build_tree( self, node, depth, branch_visited, output ):
         for include in node.includes:
-            indent = "    " * depth
-            output.append( f"{indent}- <{include}>" )
-            
-            #	try to find the file in the project
-            #	most includes are headers
+            output.append( f"{'    ' * depth}<{include}>" )
             header = self.project.get_file( include, is_header = True )
-            if not header:
-                header = self.project.get_file( include, is_header = False )
-
             if header and header.path not in branch_visited:
                 self._build_tree( header, depth + 1, branch_visited | { header.path }, output )
 
 def run_include_tree( params: dict ) -> str:
-    config = params.get( "config", default_cpp_config )
-    project = project_model( config )
+    project = project_model( default_cpp_config )
     file_path = params.get( "file_path" )
     
     if not file_path:
