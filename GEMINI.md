@@ -38,6 +38,7 @@ In code files, we will not use capital letters, except in:
 `	//	a comment that does not contain any capital letters or periods at the end of the sentence`
 `	//	string( "the rule above also applies to string literals" )`
 `	//	it has a tab \t after // and only one sentence per line`
+`   #   in python use space instead \t`
 - Operators: Use of keywords: `and, or, not, not_eq`. Use of `&&, ||, !, !=` operators is forbidden.
 - Comma rule:
     - On the same line, space is after comma: `print( "{} {} {}", 1, 2, 3 );`
