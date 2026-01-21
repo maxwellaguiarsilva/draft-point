@@ -46,6 +46,10 @@ class project_file( text_file ):
     def json( self ):
         return  super( ).json | get_json_dict( self, [ "includes" ] )
 
+    @property
+    def dependencies( self ):
+        return  set( )
+
 
 class hpp( project_file ):
     def __init__( self, *args, **kwargs ):
@@ -93,6 +97,20 @@ class project_model:
             for file_path in glob.glob( os.path.join( dir_path, "**", "*" ), recursive = True )
             if os.path.isfile( file_path ) and file_path.endswith( ( f".{self.header_ext}", f".{self.source_ext}" ) )
         }
+
+    def get_header( self, file_path ):
+        candidates  =   [
+            file_path
+            ,f"{file_path}.{self.header_ext}"
+            ,os.path.join( self.include_dir, file_path )
+            ,os.path.join( self.include_dir, f"{file_path}.{self.header_ext}" )
+        ]
+
+        for candidate in candidates:
+            if candidate in self.files:
+                return  self.files[ candidate ]
+
+        return  None
 
     @property
     def json( self ):
