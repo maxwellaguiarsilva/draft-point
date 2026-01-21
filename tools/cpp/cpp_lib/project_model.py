@@ -88,8 +88,18 @@ class cpp( project_file ):
         self.is_test = self.path.startswith( self.project.tests_dir )
 
     @property
+    def link_list( self ):
+        if not self.is_main:
+            return  [ ]
+        return  [
+            implementation
+            for dep in self.dependencies
+            if ( implementation := self.project.get_file( dep.hierarchy, is_header = False ) )
+        ]
+
+    @property
     def json( self ):
-        return  super( ).json | get_json_dict( self, [ "is_main", "is_test" ] )
+        return  super( ).json | get_json_dict( self, [ "is_main", "is_test", "link_list" ] )
 
 
 class project_model:
@@ -150,6 +160,6 @@ if __name__ == "__main__":
     import sys
     if len( sys.argv ) > 1 and sys.argv[ 1 ] == "--run-test":
         from cpp.cpp_lib.config import default_cpp_config
-        print( project_model( default_cpp_config ) )
+        print( project_model( default_cpp_config ).files[ "source/main.cpp" ] )
 
 
