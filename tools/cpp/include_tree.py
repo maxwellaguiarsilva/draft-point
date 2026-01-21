@@ -34,15 +34,23 @@ from cpp_lib.config import default_cpp_config
 
 
 class include_tree:
-    def __init__( self, project ):
-        self.project = project
-
-    def get_report( self, target_file: str ) -> str:
-        node = self.project.files.get( target_file )
-        ensure( node, f"file {target_file} not found in project" )
+    def __init__( self, file_path: str = None ):
+        self.project = project_model( default_cpp_config )
+        self.file_path = file_path
         
-        output = [ f"- <{target_file}>" ]
-        self._build_tree( node, 1, { target_file }, output )
+        if not self.file_path:
+            for f in self.project.files.values( ):
+                if hasattr( f, "is_main" ) and f.is_main and not getattr( f, "is_test", False ):
+                    self.file_path = f.path
+                    break
+        
+        ensure( self.file_path, "could not determine a target file for include_tree analysis" )
+        self.node = self.project.files.get( self.file_path )
+        ensure( self.node, f"file {self.file_path} not found in project" )
+
+    def __repr__( self ) -> str:
+        output = [ f"- <{self.file_path}>" ]
+        self._build_tree( self.node, 1, { self.file_path }, output )
         return  "\n".join( output )
 
     def _build_tree( self, node, depth, branch_visited, output ):
@@ -53,20 +61,7 @@ class include_tree:
                 self._build_tree( header, depth + 1, branch_visited | { header.path }, output )
 
 def run_include_tree( params: dict ) -> str:
-    project = project_model( default_cpp_config )
-    file_path = params.get( "file_path" )
-    
-    if not file_path:
-        for f in project.files.values( ):
-            #   using the same logic as before to find main file
-            if hasattr( f, "is_main" ) and f.is_main and not getattr( f, "is_test", False ):
-                file_path = f.path
-                break
-    
-    ensure( file_path, "could not determine a target file for include_tree analysis" )
-    
-    analyzer = include_tree( project )
-    return  analyzer.get_report( file_path )
+    return  repr( include_tree( params.get( "file_path" ) ) )
 
 if __name__ == "__main__":
     run_mcp_tool( run_include_tree )
