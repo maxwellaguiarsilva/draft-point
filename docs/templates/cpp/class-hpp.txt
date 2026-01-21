@@ -1,4 +1,4 @@
-{{import file-header}}
+{{import cpp/file-header}}
 
 
 #pragma once

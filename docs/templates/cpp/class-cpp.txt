@@ -1,4 +1,4 @@
-{{import file-header}}
+{{import cpp/file-header}}
 
 
 {{list_open include_list}}#include <{{list_item include_list}}>

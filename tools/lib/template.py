@@ -32,24 +32,33 @@ from lib.common import read_file, write_file
 from lib import file_info
 
 
-r_import        =   r"\{\{import\s+([a-zA-Z0-9_-]+)\}\}"
-r_list_open     =   r"\{\{list_open\s+([a-zA-Z0-9_-]+)\}\}"
-r_list_close    =   r"\{\{list_close\s+([a-zA-Z0-9_-]+)\}\}"
-r_list_item     =   r"\{\{list_item\s+([a-zA-Z0-9_-]+)\}\}"
+r_import        =   r"\{\{import\s+([a-zA-Z0-9_/-]+)\}\}"
+r_list_open     =   r"\{\{list_open\s+([a-zA-Z0-9_/-]+)\}\}"
+r_list_close    =   r"\{\{list_close\s+([a-zA-Z0-9_/-]+)\}\}"
+r_list_item     =   r"\{\{list_item\s+([a-zA-Z0-9_/-]+)\}\}"
 
 
 class template:
-    def __init__( self, name, path = None ):
+    def __init__( self, name, path = None, comment_string = None ):
         assert( name != "" )
         self.path = path if path is not None else default_config[ "paths" ][ "templates" ]
+        self.comment_string = comment_string
         self.text = self.load( name )
     
     def load( self, name ):
         text = read_file( f"{self.path}/{name}.txt" )
-        text = re.sub( r_import, lambda match: self.load( match.group( 1 ) ), text )
-        return  text
+        
+        def resolve_imports( content ):
+            return re.sub( r_import, lambda match: resolve_imports( self.load_raw( match.group( 1 ) ) ), content )
+        
+        return resolve_imports( text )
+
+    def load_raw( self, name ):
+        return read_file( f"{self.path}/{name}.txt" )
 
     def _render_dict( self, data: dict, text: str ) -> str:
+        if self.comment_string:
+            data = { "comment_string": self.comment_string } | data
         for key, value in data.items( ):
             if isinstance( value, str ):
                 text = text.replace( f"{{{{{key}}}}}", str( value ) )

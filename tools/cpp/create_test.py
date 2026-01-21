@@ -64,7 +64,7 @@ def run_create_test( params ):
 
     file_path = f"{tests_dir}/{rel_path}"
 
-    return  template( "test-cpp" ).create_file( 
+    return  template( "cpp/test-cpp", comment_string = default_cpp_config[ "language" ][ "comment_string" ] ).create_file( 
          file_path
         ,{
              "hierarchy": hierarchy
