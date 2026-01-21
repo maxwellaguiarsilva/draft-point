@@ -31,7 +31,32 @@ from lib import file_info
 from lib.template import template
 
 
+newline_3 = "\n\n\n"
+include_sep = r"\1\n\n\n\2"
+trailing_msg = "file must end with exactly 2 empty lines and no trailing whitespace"
+bracket_ignore = r"//.*|/\*[\s\S]*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'"
+bracket_fix = "fixed bracket spacing ( ( space ) and [ space ] rules )"
+
+
 class formatter:
+    m_rules = {
+         "consecutive_newlines": ( r"\n{4,}", newline_3, "too many consecutive empty lines (maximum 2 allowed)" )
+        ,"return_spacing": ( r"([ \t])return\b(?![ \t]*;)[ \t]*", r"\1return\1", "return must be followed by exactly one space or tab (matching the preceding indentation character)" )
+        ,"include_no_empty": ( r"(^#include\s+.*)\n(?:[ \t]*\n)+(?=#include\s+.*)", r"\1\n", "include directives must not be separated by empty lines" )
+        ,"include_before": ( r"^((?!#include).+)\n+(#include\s+.*)", include_sep, "there must be exactly two empty lines before the first include" )
+        ,"include_after": ( r"(^#include\s+.*)\n+((?!#include).+)", include_sep, "there must be exactly two empty lines after the last include" )
+        ,"bracket_ignore": bracket_ignore
+        ,"bracket_fix": bracket_fix
+        ,"brackets": [
+             ( r"\((?![ \t\n\)])", r"( ", "missing space after '('" )
+            ,( r"(?<![ \t\n\(])\)", r" )", "missing space before ')'" )
+            ,( r"\[(?![ \t\n\]])", r"[ ", "missing space after '['" )
+            ,( r"(?<![ \t\n\[])\]", r" ]", "missing space before ']" )
+        ]
+        ,"trailing_msg": trailing_msg
+        ,"newline_3": newline_3
+    }
+
     def __init__( self, content: str, file_path: str = None, flg_auto_fix: bool = True ):
         self.content = content
         self.file_path = file_path
@@ -84,50 +109,28 @@ class formatter:
                 self.messages.append( ( 1, f"license header mismatch in {self.file_path}" ) )
 
     def _consecutive_newlines( self ):
-        self._apply( 
-            r"\n{4,}", 
-            "\n\n\n", 
-            "too many consecutive empty lines (maximum 2 allowed)" 
-        )
+        rule = self.m_rules[ "consecutive_newlines" ]
+        self._apply( rule[ 0 ], rule[ 1 ], rule[ 2 ] )
 
     def _return_spacing( self ):
-        self._apply( 
-            r"([ \t])return\b(?![ \t]*;)[ \t]*", 
-            r"\1return\1", 
-            "return must be followed by exactly one space or tab (matching the preceding indentation character)" 
-        )
+        rule = self.m_rules[ "return_spacing" ]
+        self._apply( rule[ 0 ], rule[ 1 ], rule[ 2 ] )
 
     def _trailing_newlines( self ):
-        new_content = self.content.rstrip( ) + "\n\n\n"
+        new_content = self.content.rstrip( ) + self.m_rules[ "newline_3" ]
         if new_content != self.content:
+            msg = self.m_rules[ "trailing_msg" ]
             if self.flg_auto_fix:
                 self.content = new_content
-                self.messages.append( "file must end with exactly 2 empty lines and no trailing whitespace" )
+                self.messages.append( msg )
             else:
                 line_no = self.content.count( "\n" ) + 1
-                self.messages.append( ( line_no, "file must end with exactly 2 empty lines and no trailing whitespace" ) )
+                self.messages.append( ( line_no, msg ) )
 
     def _include_spacing( self ):
-        self._apply( 
-            r"(^#include\s+.*)\n(?:[ \t]*\n)+(?=#include\s+.*)", 
-            r"\1\n", 
-            "include directives must not be separated by empty lines" ,
-            flags = re.MULTILINE 
-        )
-
-        self._apply(
-            r"^((?!#include).+)\n+(#include\s+.*)",
-            r"\1\n\n\n\2",
-            "there must be exactly two empty lines before the first include",
-            flags = re.MULTILINE
-        )
-
-        self._apply(
-            r"(^#include\s+.*)\n+((?!#include).+)",
-            r"\1\n\n\n\2",
-            "there must be exactly two empty lines after the last include",
-            flags = re.MULTILINE
-        )
+        for name in [ "include_no_empty", "include_before", "include_after" ]:
+            rule = self.m_rules[ name ]
+            self._apply( rule[ 0 ], rule[ 1 ], rule[ 2 ], flags = re.MULTILINE )
 
     def _bracket_spacing( self ):
         split_index = self.content.find( "\n\n" )
@@ -137,14 +140,8 @@ class formatter:
         header = self.content[ :split_index + 2 ]
         body = self.content[ split_index + 2 : ]
 
-        ignore_pattern = r"//.*|/\*[\s\S]*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'"
-        
-        patterns = [
-             ( r"\((?![ \t\n\)])", r"( ", "missing space after '('" )
-            ,( r"(?<![ \t\n\(])\)", r" )", "missing space before ')'" )
-            ,( r"\[(?![ \t\n\]])", r"[ ", "missing space after '['" )
-            ,( r"(?<![ \t\n\[])\]", r" ]", "missing space before ']" )
-        ]
+        ignore_pattern = self.m_rules[ "bracket_ignore" ]
+        patterns = self.m_rules[ "brackets" ]
 
         original_body = body
         for pattern, replacement, message in patterns:
@@ -162,7 +159,7 @@ class formatter:
 
         if self.flg_auto_fix and body != original_body:
             self.content = header + body
-            self.messages.append( "fixed bracket spacing ( ( space ) and [ space ] rules )" )
+            self.messages.append( self.m_rules[ "bracket_fix" ] )
 
 
 def run_code_verifier( params: dict ) -> str:
