@@ -49,7 +49,6 @@ class project_file( text_file ):
             if path.startswith( prefix ):
                 path    =   os.path.relpath( path, prefix )
                 break
-        
         return  os.path.splitext( path )[ 0 ]
     
     @property
@@ -63,7 +62,6 @@ class project_file( text_file ):
                 if header and header not in visited:
                     visited.add( header )
                     stack.append( header )
-
         return  { dep for dep in visited if isinstance( dep, hpp ) and dep is not self }
     
     @property
@@ -72,7 +70,7 @@ class project_file( text_file ):
 
     @property
     def json( self ):
-        return  super( ).json | get_json_dict( self, [ "includes", "dependencies_modified_at" ] )
+        return  super( ).json | get_json_dict( self, [ "hierarchy", "includes", "dependencies_modified_at" ] )
 
 
 
