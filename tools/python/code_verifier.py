@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 
+#   
 #   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   This program is free software: you can redistribute it and/or modify
@@ -13,14 +14,15 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 #   
-#   You should have received a copy of the GNU General License
+#   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
 #   File:   tools/python/code_verifier.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-18 14:00:00
+#   Created on 2026-01-18 16:21:38
+#
 
 
 import re
@@ -28,9 +30,20 @@ import os
 from lib.common import run_mcp_tool, ensure
 from lib.fso import text_file
 from lib import file_info
+from lib.template import template
+
+
+newline_3 = "\n\n\n"
+trailing_msg = "file must end with exactly 2 empty lines and no trailing whitespace"
 
 
 class formatter:
+    m_rules = {
+         "return_spacing": ( r"^(\s*return) +(\S)", r"\1  \2", "return must be followed by exactly 2 spaces" )
+        ,"trailing_msg": trailing_msg
+        ,"newline_3": newline_3
+    }
+
     def __init__( self, content: str, file_path: str = None, flg_auto_fix: bool = True ):
         self.content = content
         self.file_path = file_path
@@ -38,6 +51,7 @@ class formatter:
         self.flg_auto_fix = flg_auto_fix
 
     def run( self ):
+        self._validate_license( )
         self._trailing_newlines( )
         self._return_spacing( )
         return  self.content
@@ -47,29 +61,67 @@ class formatter:
         self.run( )
         return  self.messages
 
-    def _return_spacing( self ):
-        pattern = r'^(\s*return) +(\S)'
-        replacement = r'\1  \2'
-        
+    def _apply( self, pattern: str, replacement: str, message: str, flags: int = 0 ):
         if self.flg_auto_fix:
-            new_content = re.sub( pattern, replacement, self.content, flags = re.MULTILINE )
+            new_content = re.sub( pattern, replacement, self.content, flags = flags )
             if new_content != self.content:
                 self.content = new_content
-                self.messages.append( "return must be followed by exactly 2 spaces" )
+                self.messages.append( message )
         else:
-            for i, line in enumerate( self.content.splitlines( ) ):
-                if re.match( r'^\s*return +\S', line ) and not re.match( r'^\s*return  \S', line ):
-                    self.messages.append( ( i + 1, "return must be followed by exactly 2 spaces" ) )
+            for match in re.finditer( pattern, self.content, flags = flags ):
+                old_text = match.group( 0 )
+                new_text = re.sub( pattern, replacement, old_text, flags = flags )
+                if old_text != new_text:
+                    line_no = self.content.count( "\n", 0, match.start( ) ) + 1
+                    self.messages.append( ( line_no, message ) )
+
+    def _validate_license( self ):
+        if not self.file_path:
+            return
+        
+        #   check for shebang
+        shebang = ""
+        content_to_check = self.content
+        if self.content.startswith( "#!" ):
+            parts = self.content.split( "\n", 1 )
+            shebang = parts[ 0 ]
+            content_to_check = parts[ 1 ] if len( parts ) > 1 else ""
+
+        #   ideal header
+        model = template( "file-header", comment_string = "#   " )
+        ideal_header = model.render( file_info.get_info( self.file_path ) ).strip( " \n\r" )
+        
+        #   extract actual header
+        parts = content_to_check.lstrip( "\n" ).split( "\n\n", 1 )
+        actual_header = parts[ 0 ].strip( " \n\r" )
+        body = parts[ 1 ] if len( parts ) > 1 else ""
+        
+        if actual_header != ideal_header:
+            if self.flg_auto_fix:
+                new_content = ""
+                if shebang:
+                    new_content = shebang + self.m_rules[ "newline_3" ]
+                
+                new_content += ideal_header + self.m_rules[ "newline_3" ] + body.lstrip( "\n" )
+                self.content = new_content
+                self.messages.append( f"restored canonical license header for {self.file_path}" )
+            else:
+                self.messages.append( ( 1, f"license header mismatch in {self.file_path}" ) )
+
+    def _return_spacing( self ):
+        rule = self.m_rules[ "return_spacing" ]
+        self._apply( rule[ 0 ], rule[ 1 ], rule[ 2 ], flags = re.MULTILINE )
 
     def _trailing_newlines( self ):
-        new_content = self.content.rstrip( ) + "\n\n\n"
+        new_content = self.content.rstrip( ) + self.m_rules[ "newline_3" ]
         if new_content != self.content:
+            msg = self.m_rules[ "trailing_msg" ]
             if self.flg_auto_fix:
                 self.content = new_content
-                self.messages.append( "file must end with exactly 2 empty lines and no trailing whitespace" )
+                self.messages.append( msg )
             else:
                 line_no = self.content.count( "\n" ) + 1
-                self.messages.append( ( line_no, "file must end with exactly 2 empty lines and no trailing whitespace" ) )
+                self.messages.append( ( line_no, msg ) )
 
 
 def run_code_verifier( params: dict ) -> str:
