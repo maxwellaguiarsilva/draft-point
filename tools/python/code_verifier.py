@@ -25,7 +25,8 @@
 
 import re
 import os
-from lib.common import run_mcp_tool, ensure, get_path_parts, write_file, read_file
+from lib.common import run_mcp_tool, ensure
+from lib.fso import text_file
 from lib import file_info
 
 
@@ -77,14 +78,15 @@ def run_code_verifier( params: dict ) -> str:
     
     results = [ ]
     for file_path in files:
-        ensure( get_path_parts( file_path )[ "extension" ] == "py", "this tool is exclusively for python files" )
-        content = read_file( file_path )
+        f = text_file( file_path )
+        ensure( f.exists, f"file not found: {file_path}" )
+        ensure( f.extension == "py", "this tool is exclusively for python files" )
         
-        fmt = formatter( content, file_path = file_path, flg_auto_fix = flg_auto_fix )
+        fmt = formatter( f.content, file_path = f.path, flg_auto_fix = flg_auto_fix )
         if flg_auto_fix:
             new_content = fmt.run( )
-            if content != new_content:
-                write_file( file_path, new_content )
+            if f.content != new_content:
+                f.write( new_content )
         else:
             fmt.verify( )
         

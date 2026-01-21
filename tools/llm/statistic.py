@@ -26,7 +26,8 @@
 
 import json
 import os
-from lib.common import run_mcp_tool, ensure, write_file, read_file
+from lib.common import run_mcp_tool, ensure
+from lib.fso import text_file
 
 
 _statistic_file = "/home/.gemini/statistic.json"
@@ -78,8 +79,9 @@ def run_statistic( params ):
     for key in params:
         ensure( key in allowed_fields, f"field '{key}' is not allowed" )
     
-    if os.path.exists( _statistic_file ):
-        data = json.loads( read_file( _statistic_file ) )
+    f = text_file( _statistic_file )
+    if f.exists:
+        data = json.loads( f.content )
     else:
         data = [ ]
 
@@ -96,7 +98,7 @@ def run_statistic( params ):
             ensure( False, "field 'name' must be a string or a list of strings" )
             
         #   save data
-        write_file( _statistic_file, json.dumps( data, indent="\t" ) )
+        f.write( json.dumps( data, indent="\t" ) )
             
     return  format_output( data )
 
