@@ -33,6 +33,36 @@ from cpp_lib.project_model import project_model
 from cpp_lib.config import default_cpp_config
 
 
+class include_node:
+    def __init__( self, path: str, is_redundant: bool = False ):
+        self.path = path
+        self.items = [ ]
+        self.is_redundant = is_redundant
+
+    def __repr__( self ) -> str:
+        text = f"<{self.path}>"
+        if self.is_redundant:
+            return  f"{text} (redundant)"
+        
+        if not self.items:
+            return  text
+            
+        output = [ text ]
+        for item in self.items:
+            #   indents the children by adding spaces after each newline
+            indented = "    " + repr( item ).replace( "\n", "\n    " )
+            output.append( indented )
+        
+        return  "\n".join( output )
+
+    def get_descendants( self ) -> set:
+        descendants = set( )
+        for item in self.items:
+            descendants.add( item.path )
+            descendants.update( item.get_descendants( ) )
+        return  descendants
+
+
 class include_tree:
     def __init__( self, file_path: str = None ):
         self.project = project_model( default_cpp_config )
@@ -49,16 +79,36 @@ class include_tree:
         ensure( self.node, f"file {self.file_path} not found in project" )
 
     def __repr__( self ) -> str:
+        root_children = self._build_nodes( self.node, { self.file_path } )
         output = [ f"- <{self.file_path}>" ]
-        self._build_tree( self.node, 1, { self.file_path }, output )
+        for child in root_children:
+            indented = "    " + repr( child ).replace( "\n", "\n    " )
+            output.append( indented )
         return  "\n".join( output )
 
-    def _build_tree( self, node, depth, branch_visited, output ):
+    def _build_nodes( self, node, branch_visited ):
+        children = [ ]
         for include in node.includes:
-            output.append( f"{'    ' * depth}<{include}>" )
+            child = include_node( include )
             header = self.project.get_file( include, is_header = True )
             if header and header.path not in branch_visited:
-                self._build_tree( header, depth + 1, branch_visited | { header.path }, output )
+                child.items = self._build_nodes( header, branch_visited | { header.path } )
+            children.append( child )
+        
+        #   redundancy check
+        for i, child in enumerate( children ):
+            for j, sibling in enumerate( children ):
+                if i == j:
+                    continue
+                
+                if i > j and child.path == sibling.path:
+                    child.is_redundant = True
+                    break
+                
+                if child.path in sibling.get_descendants( ):
+                    child.is_redundant = True
+                    break
+        return  children
 
 def run_include_tree( params: dict ) -> str:
     return  repr( include_tree( params.get( "file_path" ) ) )
