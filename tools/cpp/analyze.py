@@ -61,7 +61,7 @@ def run_analyze( params ):
 
     core.run_cppcheck( )
     
-    return "analysis completed successfully"
+    return  "analysis completed successfully"
 
 
 if __name__ == "__main__":

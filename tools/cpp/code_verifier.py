@@ -45,12 +45,12 @@ class formatter:
         self._trailing_newlines( )
         self._include_spacing( )
         self._bracket_spacing( )
-        return self.content
+        return  self.content
 
     def verify( self ):
         self.flg_auto_fix = False
         self.run( )
-        return self.messages
+        return  self.messages
 
     def _apply( self, pattern: str, replacement: str, message: str, flags: int = 0 ):
         if self.flg_auto_fix:
@@ -152,7 +152,7 @@ class formatter:
             if self.flg_auto_fix:
                 def sub_func( m ):
                     if m.group( 1 ): return m.group( 1 )
-                    return replacement
+                    return  replacement
                 body = re.sub( combined, sub_func, body )
             else:
                 for match in re.finditer( combined, body ):
@@ -196,7 +196,7 @@ def run_code_verifier( params: dict ) -> str:
     if res and flg_auto_fix:
         res += "\n\nthe files were adjusted automatically, no action necessary"
 
-    return res or f"no formatting violations found in the provided files."
+    return  res or f"no formatting violations found in the provided files."
 
 
 

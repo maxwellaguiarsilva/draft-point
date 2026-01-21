@@ -99,7 +99,7 @@ class cpp( project_file ):
 
     @property
     def is_compilation_needed( self ):
-        return ( 
+        return  ( 
             self.compiled_at is None 
             or self.compiled_at < self.modified_at 
             or self.compiled_at < self.dependencies_modified_at 
@@ -112,7 +112,7 @@ class cpp( project_file ):
         
         link_max_compiled_at = max( [ self.compiled_at ] + [ dep.compiled_at for dep in self.link_list if dep.compiled_at ], default = None )
         
-        return (
+        return  (
             self.binary.modified_at is None
             or ( link_max_compiled_at is not None and self.binary.modified_at < link_max_compiled_at )
         )

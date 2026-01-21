@@ -93,7 +93,7 @@ class project_core:
 
     @property
     def is_stopped( self ):
-        return self.flg_stop.is_set( )
+        return  self.flg_stop.is_set( )
 
     def print( self, *args, **kwargs ):
         args = [ a for a in args if a ]
@@ -146,3 +146,5 @@ class project_core:
             self.print( f"cppcheck: {cppcheck_command}" )
         ensure( process.returncode == 0, "cppcheck failed for the project" )
         self.print( "static analysis completed successfully" )
+
+

@@ -27,7 +27,7 @@ class cppcheck:
     def get_command( self, paths ):
         params = self._get_params( )
         paths_str = " ".join( f'"{p}"' for p in paths )
-        return f"cppcheck {params} {paths_str}"
+        return  f"cppcheck {params} {paths_str}"
 
     def _get_params( self ):
         config = self.config
@@ -52,6 +52,6 @@ class cppcheck:
         for d in config[ 'dependencies' ][ 'include_dirs' ]:
             params.append( f"-I{d}" )
             
-        return " ".join( params )
+        return  " ".join( params )
 
 

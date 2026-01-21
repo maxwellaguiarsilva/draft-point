@@ -40,13 +40,13 @@ class clang:
     def get_compile_command( self, source_path, object_path ):
         params = self._get_compile_params( )
         executable = self.config[ "compiler" ][ "executable" ]
-        return f"{executable} {params} -c {source_path} -o {object_path}"
+        return  f"{executable} {params} -c {source_path} -o {object_path}"
 
     def get_link_command( self, object_files, binary_path ):
         params = self._get_link_params( )
         executable = self.config[ "compiler" ][ "executable" ]
         object_files_str = " ".join( object_files )
-        return f"{executable} {object_files_str} {params} -o {binary_path}"
+        return  f"{executable} {object_files_str} {params} -o {binary_path}"
 
     def _get_compile_params( self ):
         config = self.config
@@ -80,7 +80,7 @@ class clang:
             
         params.extend( config[ 'compiler' ].get( 'extra_compile_flags', [ ] ) )
 
-        return " ".join( params )
+        return  " ".join( params )
 
     def _get_link_params( self ):
         config = self.config
@@ -106,6 +106,6 @@ class clang:
         for lib in config[ 'dependencies' ][ 'libraries' ]:
             params.append( f"-l{lib}" )
 
-        return " ".join( params )
+        return  " ".join( params )
 
 

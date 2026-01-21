@@ -30,7 +30,7 @@ def run_adhoc_tool( params ):
     action = params.get( "action" )
     
     if action == "hello":
-        return f"hello, {params.get( 'name', 'world' )}!"
+        return  f"hello, {params.get( 'name', 'world' )}!"
 
     raise Exception( "no valid action or parameters provided to adhoc_tool" )
 

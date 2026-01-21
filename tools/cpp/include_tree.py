@@ -98,7 +98,7 @@ class include_tree:
                 )
 
         print_root( node )
-        return "\n".join( output )
+        return  "\n".join( output )
 
 def run_include_tree( params: dict ) -> str:
     core = project_core( params.get( "config", { } ) )
@@ -113,7 +113,7 @@ def run_include_tree( params: dict ) -> str:
     ensure( file_path, "could not determine a target file for include_tree analysis" )
     
     analyzer = include_tree( core.tree )
-    return analyzer.get_report( file_path )
+    return  analyzer.get_report( file_path )
 
 if __name__ == "__main__":
     run_mcp_tool( run_include_tree )

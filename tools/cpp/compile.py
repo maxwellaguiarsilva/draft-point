@@ -75,7 +75,7 @@ def run_compile( params ):
     core.print( f"\nbuild ended at: {end_time.strftime( '%Y-%m-%d %H:%M:%S' )}" )
     core.print( f"elapsed time: {elapsed_time}" )
     
-    return "compilation completed successfully"
+    return  "compilation completed successfully"
 
 
 if __name__ == "__main__":
