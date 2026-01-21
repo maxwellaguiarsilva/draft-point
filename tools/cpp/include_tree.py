@@ -11,7 +11,7 @@
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#   GNU General License for more details.
 #   
 #   You should have received a copy of the GNU General License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -29,90 +29,90 @@ import sys
 
 
 from lib.common import run_mcp_tool, ensure
-from cpp_lib.project_core import project_core
+from cpp_lib.project_model import project_model
+from cpp_lib.config import default_cpp_config
 
 
 class include_tree:
-    def __init__( self, tree ):
-        self.tree = tree
+    def __init__( self, project ):
+        self.project = project
 
     def get_report( self, target_file: str ) -> str:
-        node = self.tree.nodes.get( target_file )
+        node = self.project.files.get( target_file )
         
-        ensure( node, f"file {target_file} not found in project tree" )
+        ensure( node, f"file {target_file} not found in project" )
         
         output = [ ]
         
-        def print_tree( current_node, prefix="", is_last=True, visited=None, is_redundant=False ):
+        def print_tree( current_node, prefix="", is_last=True, visited=None ):
             if visited is None:
                 visited = set( )
             
             connector = "└── " if is_last else "├── "
             
-            display_name = current_node.hierarchy
-            if not current_node.is_external:
-                if current_node.path and current_node.path.endswith( ".hpp" ):
-                    display_name += ".hpp"
-                elif current_node.path and current_node.path.endswith( ".cpp" ):
-                    display_name += ".cpp"
-            
-            display_name = f"<{display_name}>"
-
+            display_name = f"<{current_node.hierarchy}>"
             line = prefix + connector + display_name
             
-            if is_redundant:
-                line += " (redundant)"
-            elif current_node in visited:
+            if current_node in visited:
                 line += " (recursion)"
             
             output.append( line )
             
-            if is_redundant or current_node in visited:
+            if current_node in visited:
                 return
 
             new_visited = visited | { current_node }
             new_prefix = prefix + ( "    " if is_last else "│   " )
             
-            for i, ref in enumerate( current_node.direct_includes ):
+            #   resolve direct includes to project files
+            includes = [ ]
+            for include_path in current_node.includes:
+                header = self.project.get_file( include_path, is_header = True )
+                if header:
+                    includes.append( header )
+
+            for i, header in enumerate( includes ):
                 print_tree( 
-                    ref.target_node, 
+                    header, 
                     new_prefix, 
-                    i == len( current_node.direct_includes ) - 1, 
-                    new_visited,
-                    ref.is_redundant
+                    i == len( includes ) - 1, 
+                    new_visited
                 )
 
-        #   special case for root node to match original display style if possible
-        #   original used target_file as display name for root
-        #   we'll use a slightly different approach to start the tree
+        output.append( node.path )
         
-        def print_root( root_node ):
-            output.append( root_node.path if root_node.path else root_node.hierarchy )
-            for i, ref in enumerate( root_node.direct_includes ):
-                print_tree( 
-                    ref.target_node, 
-                    "", 
-                    i == len( root_node.direct_includes ) - 1, 
-                    { root_node },
-                    ref.is_redundant
-                )
+        #   identify direct includes for the root node
+        root_includes = [ ]
+        for include_path in node.includes:
+            header = self.project.get_file( include_path, is_header = True )
+            if header:
+                root_includes.append( header )
 
-        print_root( node )
+        for i, header in enumerate( root_includes ):
+            print_tree( 
+                header, 
+                "", 
+                i == len( root_includes ) - 1, 
+                { node }
+            )
+
         return  "\n".join( output )
 
 def run_include_tree( params: dict ) -> str:
-    core = project_core( params.get( "config", { } ) )
+    config = params.get( "config", default_cpp_config )
+    project = project_model( config )
     file_path = params.get( "file_path" )
     
     if not file_path:
-        for c in core.cpp_list:
-            if c.is_main and not c.is_test:
-                file_path = c.path
+        for f in project.files.values( ):
+            #   using the same logic as before to find main file
+            if hasattr( f, "is_main" ) and f.is_main and not getattr( f, "is_test", False ):
+                file_path = f.path
                 break
     
     ensure( file_path, "could not determine a target file for include_tree analysis" )
     
-    analyzer = include_tree( core.tree )
+    analyzer = include_tree( project )
     return  analyzer.get_report( file_path )
 
 if __name__ == "__main__":
