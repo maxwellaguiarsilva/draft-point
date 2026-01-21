@@ -94,7 +94,7 @@ class cpp( project_file ):
         return  self.object.modified_at
 
     @property
-    def flg_compilation_needed( self ):
+    def is_compilation_needed( self ):
         return ( 
             self.compiled_at is None 
             or self.compiled_at < self.modified_at 
@@ -102,7 +102,7 @@ class cpp( project_file ):
         )
 
     @property
-    def flg_linkage_needed( self ):
+    def is_linkage_needed( self ):
         if not self.is_main:
             return  False
         
@@ -125,7 +125,7 @@ class cpp( project_file ):
 
     @property
     def json( self ):
-        return  super( ).json | get_json_dict( self, [ "is_main", "is_test", "compiled_at", "flg_compilation_needed", "flg_linkage_needed", "link_list" ] )
+        return  super( ).json | get_json_dict( self, [ "is_main", "is_test", "compiled_at", "is_compilation_needed", "is_linkage_needed", "link_list" ] )
 
 
 class project_model:
