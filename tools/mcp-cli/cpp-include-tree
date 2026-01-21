@@ -1,0 +1,13 @@
+#!/bin/bash
+
+
+if [ "$#" -eq 0 ]; then
+    PYTHONPATH=tools tools/cpp/include_tree.py "{}"
+else
+    PYTHONPATH=tools tools/cpp/include_tree.py "$( cat <<-EOF
+{
+  "file_path": "$1"
+}
+EOF
+)"
+fi

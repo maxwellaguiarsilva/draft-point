@@ -1,0 +1,14 @@
+#!/bin/bash
+
+
+if [ "$#" -eq 0 ]; then
+    echo "usage: cpp-create-class <class_hierarchy>"
+    exit 1
+fi
+
+PYTHONPATH=tools tools/cpp/create_class.py "$( cat <<-EOF
+{
+  "class_hierarchy": "$1"
+}
+EOF
+)"

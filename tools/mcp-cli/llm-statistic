@@ -1,7 +1,8 @@
 #!/bin/bash
 
+
 if [ "$#" -eq 0 ]; then
-    PYTHONPATH=tools tools/llm/statistic.py
+    PYTHONPATH=tools tools/llm/statistic.py "{}"
 else
     JSON_NAMES="["
     for arg in "$@"; do

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+PYTHONPATH=tools tools/llm/adhoc_tool.py "${1:-"{}"}"
