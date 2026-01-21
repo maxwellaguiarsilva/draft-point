@@ -41,6 +41,16 @@ class project_file( text_file ):
     def refresh( self ):
         super( ).refresh( )
         self.includes   =   [ match.group( "path" ) for match in self.include_regex.finditer( self.content ) ] if self.content else [ ]
+
+    @property
+    def hierarchy( self ):
+        path    =   self.path
+        for prefix in [ self.project.include_dir, self.project.source_dir, self.project.tests_dir ]:
+            if path.startswith( prefix ):
+                path    =   os.path.relpath( path, prefix )
+                break
+        
+        return  os.path.splitext( path )[ 0 ]
     
     @property
     def dependencies( self ):
@@ -49,7 +59,7 @@ class project_file( text_file ):
         while stack:
             current =   stack.pop( )
             for include in current.includes:
-                header  =   self.project.get_header( include )
+                header  =   self.project.get_file( include, is_header = True )
                 if header and header not in visited:
                     visited.add( header )
                     stack.append( header )
@@ -113,26 +123,15 @@ class project_model:
             if os.path.isfile( file_path ) and file_path.endswith( ( f".{self.header_ext}", f".{self.source_ext}" ) )
         }
 
-    def get_header( self, file_path ):
+    def get_file( self, file_path, is_header = True ):
+        extension   =   self.header_ext if is_header else self.source_ext
+        directory   =   self.include_dir if is_header else self.source_dir
+
         candidates  =   [
             file_path
-            ,f"{file_path}.{self.header_ext}"
-            ,os.path.join( self.include_dir, file_path )
-            ,os.path.join( self.include_dir, f"{file_path}.{self.header_ext}" )
-        ]
-
-        for candidate in candidates:
-            if candidate in self.files:
-                return  self.files[ candidate ]
-
-        return  None
-
-    def get_source( self, file_path ):
-        candidates  =   [
-            file_path
-            ,f"{file_path}.{self.source_ext}"
-            ,os.path.join( self.source_dir, file_path )
-            ,os.path.join( self.source_dir, f"{file_path}.{self.source_ext}" )
+            ,f"{file_path}.{extension}"
+            ,os.path.join( directory, file_path )
+            ,os.path.join( directory, f"{file_path}.{extension}" )
         ]
 
         for candidate in candidates:
