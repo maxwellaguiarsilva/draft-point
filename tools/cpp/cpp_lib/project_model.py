@@ -48,7 +48,17 @@ class project_file( text_file ):
 
     @property
     def dependencies( self ):
-        return  set( )
+        visited =   { self }
+        stack   =   [ self ]
+        while stack:
+            current =   stack.pop( )
+            for include in current.includes:
+                header  =   self.project.get_header( include )
+                if header and header not in visited:
+                    visited.add( header )
+                    stack.append( header )
+
+        return  { dep for dep in visited if isinstance( dep, hpp ) and dep is not self }
 
 
 class hpp( project_file ):
