@@ -33,9 +33,10 @@ import glob
 class project_file( text_file ):
     include_regex   =   re.compile( r'#include\s*(?P<full>(?P<open>[<"])(?P<path>[^>"]+)(?P<close>[>"]))' )
 
-    def __init__( self, file_path ):
+    def __init__( self, file_path, project ):
         super( ).__init__( file_path )
         self.refresh( )
+        self.project    =   project
     
     def refresh( self ):
         super( ).refresh( )
@@ -47,20 +48,21 @@ class project_file( text_file ):
 
 
 class hpp( project_file ):
-    def __init__( self, file_path ):
-        super( ).__init__( file_path )
+    def __init__( self, *args, **kwargs ):
+        super( ).__init__( *args, **kwargs )
 
 
 class cpp( project_file ):
     main_regex  =   r"\b(int|auto)\s+main\s*\("
 
-    def __init__( self, file_path ):
-        super( ).__init__( file_path )
+    def __init__( self, *args, **kwargs ):
+        super( ).__init__( *args, **kwargs )
         self.is_main = bool( re.search( self.main_regex, self.content ) ) if self.content else False
+        self.is_test = self.path.startswith( self.project.tests_dir )
 
     @property
     def json( self ):
-        return  super( ).json | get_json_dict( self, [ "is_main" ] )
+        return  super( ).json | get_json_dict( self, [ "is_main", "is_test" ] )
 
 
 class project_model:
@@ -76,9 +78,8 @@ class project_model:
         language    =   self.config[ "language" ]
         self.source_ext  =   language[ "source_extension" ]
         self.header_ext  =   language[ "header_extension" ]
-
-        self.files  =   { }
-        self.files.update( self.scan_dir( [ self.include_dir, self.source_dir, self.tests_dir ] ) )
+        
+        self.files  =   self.scan_dir( [ self.include_dir, self.source_dir, self.tests_dir ] )
 
     def scan_dir( self, dir_path ):
         if isinstance( dir_path, list ):
@@ -88,7 +89,7 @@ class project_model:
             return  files
         
         return  {
-            file_path: cpp( file_path ) if file_path.endswith( f".{self.source_ext}" ) else hpp( file_path )
+            file_path: cpp( file_path, self ) if file_path.endswith( f".{self.source_ext}" ) else hpp( file_path, self )
             for file_path in glob.glob( os.path.join( dir_path, "**", "*" ), recursive = True )
             if os.path.isfile( file_path ) and file_path.endswith( ( f".{self.header_ext}", f".{self.source_ext}" ) )
         }
