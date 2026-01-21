@@ -39,12 +39,25 @@ class include_tree:
 
     def get_report( self, target_file: str ) -> str:
         node = self.project.files.get( target_file )
-        
         ensure( node, f"file {target_file} not found in project" )
         
-        output = [ ]
-
+        output = [ f"- <{target_file}>" ]
+        self._build_tree( node, 1, { target_file }, output )
         return  "\n".join( output )
+
+    def _build_tree( self, node, depth, branch_visited, output ):
+        for include in node.includes:
+            indent = "    " * depth
+            output.append( f"{indent}- <{include}>" )
+            
+            #	try to find the file in the project
+            #	most includes are headers
+            header = self.project.get_file( include, is_header = True )
+            if not header:
+                header = self.project.get_file( include, is_header = False )
+
+            if header and header.path not in branch_visited:
+                self._build_tree( header, depth + 1, branch_visited | { header.path }, output )
 
 def run_include_tree( params: dict ) -> str:
     config = params.get( "config", default_cpp_config )
