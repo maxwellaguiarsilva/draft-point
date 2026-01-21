@@ -87,10 +87,31 @@ class cpp( project_file ):
         self.is_main = bool( re.search( self.main_regex, self.content ) ) if self.content else False
         self.is_test = self.path.startswith( self.project.tests_dir )
         self.object  = file( os.path.join( self.project.build_dir, os.path.splitext( self.path )[ 0 ] + ".o" ) )
+        self.binary  = file( os.path.join( self.project.output_dir, self.name ) )
 
     @property
     def compiled_at( self ):
         return  self.object.modified_at
+
+    @property
+    def flg_compilation_needed( self ):
+        return ( 
+            self.compiled_at is None 
+            or self.compiled_at < self.modified_at 
+            or self.compiled_at < self.dependencies_modified_at 
+        )
+
+    @property
+    def flg_linkage_needed( self ):
+        if not self.is_main:
+            return  False
+        
+        link_max_compiled_at = max( [ self.compiled_at ] + [ dep.compiled_at for dep in self.link_list if dep.compiled_at ], default = None )
+        
+        return (
+            self.binary.modified_at is None
+            or ( link_max_compiled_at is not None and self.binary.modified_at < link_max_compiled_at )
+        )
 
     @property
     def link_list( self ):
@@ -104,7 +125,7 @@ class cpp( project_file ):
 
     @property
     def json( self ):
-        return  super( ).json | get_json_dict( self, [ "is_main", "is_test", "compiled_at", "link_list" ] )
+        return  super( ).json | get_json_dict( self, [ "is_main", "is_test", "compiled_at", "flg_compilation_needed", "flg_linkage_needed", "link_list" ] )
 
 
 class project_model:
