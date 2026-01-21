@@ -94,7 +94,7 @@ class formatter:
     def _validate_license( self ):
         if not self.file_path:
             return
-        model   =   template( "file-header" )
+        model   =   template( "file-header", comment_string = default_cpp_config[ "language" ][ "comment_string" ] )
         ideal_header = model.render( file_info.get_info( self.file_path ) ).strip( " \n\r" )
         
         parts = self.content.split( "\n\n", 1 )
