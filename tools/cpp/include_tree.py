@@ -43,58 +43,6 @@ class include_tree:
         ensure( node, f"file {target_file} not found in project" )
         
         output = [ ]
-        
-        def print_tree( current_node, prefix="", is_last=True, visited=None ):
-            if visited is None:
-                visited = set( )
-            
-            connector = "└── " if is_last else "├── "
-            
-            display_name = f"<{current_node.hierarchy}>"
-            line = prefix + connector + display_name
-            
-            if current_node in visited:
-                line += " (recursion)"
-            
-            output.append( line )
-            
-            if current_node in visited:
-                return
-
-            new_visited = visited | { current_node }
-            new_prefix = prefix + ( "    " if is_last else "│   " )
-            
-            #   resolve direct includes to project files
-            includes = [ ]
-            for include_path in current_node.includes:
-                header = self.project.get_file( include_path, is_header = True )
-                if header:
-                    includes.append( header )
-
-            for i, header in enumerate( includes ):
-                print_tree( 
-                    header, 
-                    new_prefix, 
-                    i == len( includes ) - 1, 
-                    new_visited
-                )
-
-        output.append( node.path )
-        
-        #   identify direct includes for the root node
-        root_includes = [ ]
-        for include_path in node.includes:
-            header = self.project.get_file( include_path, is_header = True )
-            if header:
-                root_includes.append( header )
-
-        for i, header in enumerate( root_includes ):
-            print_tree( 
-                header, 
-                "", 
-                i == len( root_includes ) - 1, 
-                { node }
-            )
 
         return  "\n".join( output )
 
