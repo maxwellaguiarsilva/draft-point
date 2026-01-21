@@ -102,7 +102,7 @@ def run_code_verifier( params: dict ) -> str:
     if res and flg_auto_fix:
         res += "\n\nthe files were adjusted automatically, no action necessary"
 
-    return  res or f"no formatting violations found in the provided files."
+    return  res or f"no formatting violations found in the provided files"
 
 
 
