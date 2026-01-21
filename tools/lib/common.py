@@ -42,12 +42,6 @@ def get_cpu_count( ):
         return  os.cpu_count( ) or 1
 
 
-def get_modification_time( file_path ):
-    if os.path.exists( file_path ):
-        return  datetime.datetime.fromtimestamp( os.path.getmtime( file_path ) )
-    return  None
-
-
 def deep_update( source, overrides ):
     for key, value in overrides.items( ):
         if isinstance( value, dict ) and key in source and isinstance( source[ key ], dict ):
@@ -89,30 +83,6 @@ def print_line( strong = True ):
     line_size = 50
     char = "=" if strong else "-"
     print( char * line_size )
-
-
-def get_path_parts( path ):
-    base = os.path.dirname( path )
-    folder = os.path.basename( base )
-    name, extension = os.path.splitext( os.path.basename( path ) )
-    return  {
-         "base": base
-        ,"folder": folder
-        ,"name": name
-        ,"extension": extension[ 1: ]
-    }
-
-
-def write_file( file_path, content ):
-    os.makedirs( os.path.dirname( file_path ), exist_ok=True )
-    with open( file_path, "w" ) as f:
-        f.write( content )
-    return  f"created file: {file_path}\n"
-
-
-def read_file( file_path ):
-    with open( file_path, "r" ) as f:
-        return  f.read( )
 
 
 def get_json_args( ):
