@@ -23,9 +23,9 @@
 import copy
 import os
 import threading
-from lib.common import create_process, deep_update, ensure, get_modification_time, get_process_text
+from lib.common import create_process, deep_update, ensure, get_process_text
 from cpp_lib.config import default_cpp_config
-from cpp_lib.project_map import project_map, cpp, hpp
+from cpp_lib.project_model import project_model, cpp, hpp
 from cpp_lib.clang import clang
 from cpp_lib.cppcheck import cppcheck
 
@@ -36,45 +36,20 @@ class binary_builder:
         
         self.cpp = cpp_file
         self.project = project
-        dist_folder  = self.project.config["paths"]["output"]
+        self.binary_path = self.cpp.binary.path
         
-        binary_name = os.path.basename( self.cpp.path )
-        binary_name = os.path.splitext( binary_name )[0]
-        self.binary_path = os.path.join( dist_folder, binary_name )
-        
-        self.modified_at = get_modification_time( self.binary_path )
-
-        self.dependencies_list = []
-        self._resolve_dependencies()
-
-    def _resolve_dependencies( self ):
-        self.dependencies_list = [ self.cpp ]
-        visited_hierarchies = { self.cpp.hierarchy }
-        
-        for dep_node in self.cpp.dependencies:
-            if dep_node.hierarchy in visited_hierarchies:
-                continue
-                
-            visited_hierarchies.add( dep_node.hierarchy )
-            items = self.project.map.hierarchy_items.get( dep_node.hierarchy )
-            if items and items[ "cpp" ]:
-                self.dependencies_list.append( items[ "cpp" ] )
+        self.dependencies_list = [ self.cpp ] + self.cpp.link_list
 
     def link( self ):
         if self.project.is_stopped:
             return
 
         log = self.project.print
-        os.makedirs( os.path.dirname( self.binary_path ), exist_ok=True )
+        os.makedirs( os.path.dirname( self.binary_path ), exist_ok = True )
         
-        object_files = []
-        flg_link = False
-        for c in self.dependencies_list:
-            object_files.append( c.object_path )
-            if c.compiled_at and ( ( not self.modified_at ) or self.modified_at < c.compiled_at ):
-                flg_link = True
+        object_files = [ c.object.path for c in self.dependencies_list ]
         
-        if flg_link:
+        if self.cpp.is_linkage_needed:
             linker_command = self.project.compiler.get_link_command( object_files, self.binary_path )
             
             process = create_process( linker_command, shell = True, check = False )
@@ -88,13 +63,14 @@ class binary_builder:
             else:
                 log( f"    [link]: {os.path.basename( self.binary_path )}" )
                 log( get_process_text( process ) )
+                self.cpp.binary.refresh( )
 
 
 class project_core:
     def __init__( self, config = { } ):
         self.config = deep_update( copy.deepcopy( default_cpp_config ), config )
         
-        self.map = project_map( self.config )
+        self.map = project_model( self.config )
         
         self._lock = threading.Lock( )
         self.flg_stop = threading.Event( )
@@ -134,11 +110,11 @@ class project_core:
         if self.is_stopped:
             return
 
-        if cpp_file.compiled_at and cpp_file.dependencies_modified_at <= cpp_file.compiled_at:
+        if not cpp_file.is_compilation_needed:
             self.print( f"    [cached]: {cpp_file.hierarchy}" )
             return
 
-        compiler_command = self.compiler.get_compile_command( cpp_file.path, cpp_file.object_path )
+        compiler_command = self.compiler.get_compile_command( cpp_file.path, cpp_file.object.path )
 
         process = create_process( compiler_command, shell = True, check = False )
 
@@ -150,7 +126,7 @@ class project_core:
         else:
             self.print( *lines, sep = "\n" )
 
-        cpp_file.update_compiled_at( )
+        cpp_file.object.refresh( )
 
     def run_cppcheck( self ):
         if not self.config[ 'quality_control' ][ 'static_analysis' ][ 'enabled' ]:

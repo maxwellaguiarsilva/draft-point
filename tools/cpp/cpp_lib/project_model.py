@@ -30,6 +30,10 @@ import os
 import glob
 
 
+def parse_hierarchy( hierarchy ):
+    return  re.split( r"[/:\\.]+", hierarchy )
+
+
 class project_file( text_file ):
     include_regex   =   re.compile( r'#include\s*(?P<full>(?P<open>[<"])(?P<path>[^>"]+)(?P<close>[>"]))' )
 

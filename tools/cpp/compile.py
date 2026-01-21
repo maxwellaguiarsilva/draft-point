@@ -44,7 +44,7 @@ def run_compile( params ):
 
     #   2. ensure build directories exist
     for c in all_cpps.values( ):
-        os.makedirs( os.path.dirname( c.object_path ), exist_ok=True )
+        os.makedirs( os.path.dirname( c.object.path ), exist_ok = True )
 
     #   3. parallel compilation
     max_workers = core.config[ "build_behavior" ].get( "max_threads", get_cpu_count( ) )
