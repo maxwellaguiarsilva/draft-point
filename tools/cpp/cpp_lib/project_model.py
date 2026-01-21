@@ -23,7 +23,7 @@
 #   Created on 2026-01-20 16:23:01
 
 
-from lib.fso import text_file
+from lib.fso import text_file, file
 from lib.common import get_json_dict, get_json_str
 import re
 import os
@@ -86,6 +86,11 @@ class cpp( project_file ):
         super( ).__init__( *args, **kwargs )
         self.is_main = bool( re.search( self.main_regex, self.content ) ) if self.content else False
         self.is_test = self.path.startswith( self.project.tests_dir )
+        self.object  = file( os.path.join( self.project.build_dir, os.path.splitext( self.path )[ 0 ] + ".o" ) )
+
+    @property
+    def compiled_at( self ):
+        return  self.object.modified_at
 
     @property
     def link_list( self ):
@@ -99,7 +104,7 @@ class cpp( project_file ):
 
     @property
     def json( self ):
-        return  super( ).json | get_json_dict( self, [ "is_main", "is_test", "link_list" ] )
+        return  super( ).json | get_json_dict( self, [ "is_main", "is_test", "compiled_at", "link_list" ] )
 
 
 class project_model:
@@ -111,6 +116,8 @@ class project_model:
         self.include_dir    =   paths[ "include" ]
         self.source_dir     =   paths[ "source" ]
         self.tests_dir      =   paths[ "tests" ]
+        self.build_dir      =   paths[ "build" ]
+        self.output_dir     =   paths[ "output" ]
 
         language    =   self.config[ "language" ]
         self.source_ext  =   language[ "source_extension" ]
