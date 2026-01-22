@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-
-#   Copyright (C) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+#   
+#   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -13,15 +13,15 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 #   
-#   You should have received a copy of the GNU General License
+#   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
 #   File:   tools/cpp/create_class.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-15 15:00:00
-
+#   Created on 2026-01-16 14:22:13
+#
 
 import time
 from lib.common import run_mcp_tool, ensure

@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-
 #   
 #   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
@@ -23,7 +22,6 @@
 #   
 #   Created on 2026-01-18 15:27:14
 #
-
 
 import re
 import os

@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-
-
 #   
 #   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
@@ -25,7 +23,6 @@
 #   Created on 2026-01-18 16:21:38
 #
 
-
 import re
 from lib.common import run_mcp_tool
 from lib.verifier import base_verifier, run_verifier
@@ -33,6 +30,9 @@ from lib.verifier import base_verifier, run_verifier
 
 
 class formatter( base_verifier ):
+    def _get_shebang( self ):
+        return  "#!/usr/bin/python3"
+
     def _get_rules( self ):
         return  super( )._get_rules( ) | {
             "return_spacing": ( r"^(\s*return) +(\S)", r"\1  \2", "return must be followed by exactly 2 spaces" )

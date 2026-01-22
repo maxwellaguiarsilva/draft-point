@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-
-
 #   
 #   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
@@ -22,9 +20,8 @@
 #   File:   tools/lib/verifier.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-22 13:49:52
+#   Created on 2026-01-22 13:50:05
 #
-
 
 import re
 from lib.common import ensure, validate_params
@@ -44,12 +41,16 @@ class base_verifier:
 
     def _get_rules( self ):
         return  {
-             "newline_3": "\n\n\n"
+             "newline_2": "\n\n"
+            ,"newline_3": "\n\n\n"
             ,"trailing_msg": "file must end with exactly 2 empty lines and no trailing whitespace"
         }
 
     def _get_comment_string( self ):
         return  "#   "
+
+    def _get_shebang( self ):
+        return  ""
 
     def run( self ):
         self._validate_license( )
@@ -84,8 +85,11 @@ class base_verifier:
         ideal_header = model.render( file_info.get_info( self.file_path ) | { "comment_string": comment_string } ).strip( " \n\r" )
         
         shebang, body = file_info.strip_header( self.content, comment_string )
+        if not shebang:
+            shebang = self._get_shebang( )
+        shebang = shebang.strip( )
         
-        sep = self.m_rules[ "newline_3" ]
+        sep = self.m_rules[ "newline_2" ]
         new_content = shebang + ( sep if shebang else "" ) + ideal_header + sep + body.lstrip( "\n" )
         
         if self.content.strip( " \n\r" ) != new_content.strip( " \n\r" ):

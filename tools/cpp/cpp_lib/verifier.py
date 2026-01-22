@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-
-
 #   
 #   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
@@ -22,52 +20,35 @@
 #   File:   tools/cpp/cpp_lib/verifier.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-22 13:49:53
+#   Created on 2026-01-22 13:50:05
 #
-
 
 import re
 from lib.verifier import base_verifier, run_verifier
 from cpp_lib.config import default_cpp_config
 
 
-newline_3 = "
-
-
-"
-include_sep = r"\1
-
-
-\2"
-bracket_ignore = r"//.*|/\*[\s\S]*?\*/|"(?:\.|[^"\])*"|'(?:\.|[^'\])*'"
+newline_3 = "\n\n\n"
+include_sep = r"\1\n\n\n\2"
+bracket_ignore = r"//.*|/\*[\s\S]*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'"
 bracket_fix = "fixed bracket spacing ( ( space ) and [ space ] rules )"
 
 
 class formatter( base_verifier ):
     def _get_rules( self ):
         return  super( )._get_rules( ) | {
-             "consecutive_newlines": ( r"
-{4,}", newline_3, "too many consecutive empty lines (maximum 2 allowed)" )
-            ,"return_spacing": ( r"([ 	])return\b(?![ 	]*;)[ 	]*", r"\1return\1", "return must be followed by exactly one space or tab (matching the preceding indentation character)" )
-            ,"include_no_empty": ( r"(^#include\s+.*)
-(?:[ 	]*
-)+(?=#include\s+.*)", r"\1
-", "include directives must not be separated by empty lines" )
-            ,"include_before": ( r"^((?!#include).+)
-+(#include\s+.*)", include_sep, "there must be exactly two empty lines before the first include" )
-            ,"include_after": ( r"(^#include\s+.*)
-+((?!#include).+)", include_sep, "there must be exactly two empty lines after the last include" )
+             "consecutive_newlines": ( r"\n{4,}", newline_3, "too many consecutive empty lines (maximum 2 allowed)" )
+            ,"return_spacing": ( r"([ \t])return\b(?![ \t]*;)[ \t]*", r"\1return\1", "return must be followed by exactly one space or tab (matching the preceding indentation character)" )
+            ,"include_no_empty": ( r"(^#include\s+.*)\n(?:[ \t]*\n)+(?=#include\s+.*)", r"\1\n", "include directives must not be separated by empty lines" )
+            ,"include_before": ( r"^((?!#include).+)\n+(#include\s+.*)", include_sep, "there must be exactly two empty lines before the first include" )
+            ,"include_after": ( r"(^#include\s+.*)\n+((?!#include).+)", include_sep, "there must be exactly two empty lines after the last include" )
             ,"bracket_ignore": bracket_ignore
             ,"bracket_fix": bracket_fix
             ,"brackets": [
-                 ( r"\((?![ 	
-\)])", r"( ", "missing space after '('" )
-                ,( r"(?<![ 	
-\(])\)", r" )", "missing space before ')'" )
-                ,( r"\[(?![ 	
-\]])", r"[ ", "missing space after '['" )
-                ,( r"(?<![ 	
-\[])\]", r" ]", "missing space before ']" )
+                 ( r"\((?![ \t\n\)])", r"( ", "missing space after '('" )
+                ,( r"(?<![ \t\n\(])\)", r" )", "missing space before ')'" )
+                ,( r"\[(?![ \t\n\]])", r"[ ", "missing space after '['" )
+                ,( r"(?<![ \t\n\[])\]", r" ]", "missing space before ']'" )
             ]
         }
 
@@ -96,14 +77,12 @@ class formatter( base_verifier ):
             self._apply( rule[ 0 ], rule[ 1 ], rule[ 2 ], flags = re.MULTILINE )
 
     def _bracket_spacing( self ):
-        split_index = self.content.find( "
-
-" )
+        split_index = self.content.find( "\n\n\n" )
         if split_index == -1:
             return
 
-        header = self.content[ :split_index + 2 ]
-        body = self.content[ split_index + 2 : ]
+        header = self.content[ :split_index + 3 ]
+        body = self.content[ split_index + 3 : ]
 
         ignore_pattern = self.m_rules[ "bracket_ignore" ]
         patterns = self.m_rules[ "brackets" ]
@@ -119,9 +98,7 @@ class formatter( base_verifier ):
             else:
                 for match in re.finditer( combined, body ):
                     if match.group( 1 ): continue
-                    line_no = header.count( "
-" ) + original_body.count( "
-", 0, match.start( ) ) + 1
+                    line_no = header.count( "\n" ) + original_body.count( "\n", 0, match.start( ) ) + 1
                     self.messages.append( ( line_no, message ) )
 
         if self.flg_auto_fix and body != original_body:

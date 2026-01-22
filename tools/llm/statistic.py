@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-
-
 #   
 #   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
@@ -24,7 +22,6 @@
 #   
 #   Created on 2026-01-16 13:55:19
 #
-
 
 import json
 import os

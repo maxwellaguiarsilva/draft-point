@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-
-#   Copyright (C) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+#   
+#   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -13,19 +13,15 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 #   
-#   You should have received a copy of the GNU General License
+#   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   config
+#   File:   tools/lib/config.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-16 11:00:00
-
-
-#   this file must store data that orchestrates how the process behaves (machine logic)
-#   it must not be used as a repository for string or regex constants (string externalization)
-
+#   Created on 2026-01-16 17:04:37
+#
 
 from lib.common import get_cpu_count, deep_update
 

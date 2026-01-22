@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-
-
 #   
 #   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
@@ -24,7 +22,6 @@
 #   
 #   Created on 2026-01-16 00:05:41
 #
-
 
 from lib.common import run_mcp_tool, validate_params
 
