@@ -31,11 +31,11 @@ from cpp_lib.project_core import project_core
 from cpp_lib.verifier import run_cpp_verifier
 
 
-def run_analyze( params ):
+def run_analyze( ) -> str:
     """runs static analysis (cppcheck) and automatically fixes formatting rules
-    beyond checking, it also applies fixes for the rules verified by 'cpp_code_verifier' on all .cpp and .hpp files
-    this command takes no arguments"""
-    core = project_core( params.get( "config", { } ) )
+beyond checking, it also applies fixes for the rules verified by 'cpp_code_verifier' on all .cpp and .hpp files
+this command takes no arguments"""
+    core = project_core( { } )
     
     include_ext = core.config["language"]["header_extension"]
     source_ext  = core.config["language"]["source_extension"]

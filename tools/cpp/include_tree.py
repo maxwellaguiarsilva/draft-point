@@ -110,8 +110,11 @@ class include_tree:
                     break
         return  children
 
-def run_include_tree( params: dict ) -> str:
-    return  repr( include_tree( params.get( "file_path" ) ) )
+def run_include_tree( file_path: str = None ) -> str:
+    """displays the include tree of a c++ file (cpp or hpp)
+it recursively analyzes includes
+call this tool without any arguments to use the project's main file"""
+    return  repr( include_tree( file_path ) )
 
 if __name__ == "__main__":
     run_mcp_tool( run_include_tree )

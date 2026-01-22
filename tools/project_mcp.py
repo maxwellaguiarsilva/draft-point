@@ -26,9 +26,10 @@
 import json
 import os
 import inspect
+import importlib.util
 from typing import Any
 from fastmcp import FastMCP
-from lib.common import create_process
+from lib.common import create_process, get_tool_metadata
 from lib.config import default_config
 
 
@@ -53,123 +54,61 @@ def _invoke_tool( group: str, name: str, args: Any = None ) -> str:
         return  f"{name} failed: {str( e )}"
 
 
-tool_registry = [
-    {
-         "name": "analyze"
-        ,"group": "cpp"
-        ,"description": """runs static analysis (cppcheck) and automatically fixes formatting rules
-beyond checking, it also applies fixes for the rules verified by 'cpp_code_verifier' on all .cpp and .hpp files
-this command takes no arguments"""
-        ,"parameters": [ ]
-    }
-    ,{
-         "name": "code_verifier"
-        ,"group": "cpp"
-        ,"description": """verifies if a list of files follows the project's formatting rules
-if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
-returns a consolidated list of violations
-to verify and process the entire project, prefer the `cpp_analyze` tool. the `cpp_code_verifier` tool is recommended for a small group of files or just a single file"""
-        ,"parameters": [
-             { "name": "files", "type": list[ str ] }
-            ,{ "name": "flg_auto_fix", "type": bool, "default": False }
-        ]
-    }
-    ,{
-         "name": "compile"
-        ,"group": "cpp"
-        ,"description": """compiles the project using
-this command takes no arguments"""
-        ,"parameters": [ ]
-    }
-    ,{
-         "name": "create_class"
-        ,"group": "cpp"
-        ,"description": """creates a new c++ class with corresponding .hpp and .cpp files
-the class_hierarchy parameter defines the namespace and class name (e.g., "game/player" creates class 'player' in namespace 'game')
-optional include_list and using_list parameters allow specifying additional headers to include and 'using' declarations to add
-good example: include_list=["string", "vector"], using_list=[ "::std::string", "::std::vector", "item_list   =   vector< string >"]
-bad example: include_list="<string>", using_list="using std::string;" """
-        ,"parameters": [
-             { "name": "class_hierarchy", "type": str }
-            ,{ "name": "include_list", "type": list[ str ], "default": [ ] }
-            ,{ "name": "using_list", "type": list[ str ], "default": [ ] }
-            ,{ "name": "create_header_only", "type": bool, "default": False }
-        ]
-    }
-    ,{
-         "name": "create_test"
-        ,"group": "cpp"
-        ,"description": """creates a new c++ test file
-if flg_adhoc is true, creates an adhoc test in tests/adhoc/nnnn_hierarchy/
-in adhoc mode, 'hierarchy' must be a simple name (no slashes or paths)
-if flg_adhoc is false, creates a structured test in tests/path/test_path_hierarchy.cpp"""
-        ,"parameters": [
-             { "name": "hierarchy", "type": str }
-            ,{ "name": "flg_adhoc", "type": bool, "default": False }
-            ,{ "name": "include_list", "type": list[ str ], "default": [ ] }
-        ]
-    }
-    ,{
-         "name": "include_tree"
-        ,"group": "cpp"
-        ,"description": """displays the include tree of a c++ file (cpp or hpp)
-it recursively analyzes includes
-call this tool without any arguments to use the project's main file"""
-        ,"parameters": [
-            { "name": "file_path", "type": str, "default": None }
-        ]
-    }
-    ,{
-         "name": "discard_changes"
-        ,"group": "git"
-        ,"description": """discards all uncommitted changes and removes untracked files
-this tool reverts the repository to the state of the last commit (head)"""
-        ,"parameters": [ ]
-    }
-    ,{
-         "name": "quick_upload"
-        ,"group": "git"
-        ,"description": """performs a quick git upload: pull, add all, commit with message, and push
-this tool is intended for simple, non-conflicting changes to increase agility"""
-        ,"parameters": [
-            { "name": "message", "type": str }
-        ]
-    }
-    ,{
-         "name": "adhoc_tool"
-        ,"group": "llm"
-        ,"description": """executes experimental logic defined in tools/llm/adhoc_tool.py
-this tool is used for prototyping new functionalities
-the 'params' dictionary is passed to the script"""
-        ,"parameters": [
-            { "name": "params", "type": dict }
-        ]
-    }
-    ,{
-         "name": "statistic"
-        ,"group": "llm"
-        ,"description": """records or retrieves agent behavioral statistics
-if 'name' is provided, increments the count for that event ( can be a string or a list of strings )
-if no arguments are provided, returns the current statistics table
-this tool accepts a literal call with no arguments
-if you identify that you have made a mistake that has already been recorded previously, increment the counter
-this is a support tool to help prioritize attention for repeat offenders"""
-        ,"parameters": [
-            { "name": "name", "type": Any, "default": None }
-        ]
-    }
-    ,{
-         "name": "code_verifier"
-        ,"group": "python"
-        ,"description": """verifies if a list of python files follows the project's formatting rules
-if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
-returns a consolidated list of violations"""
-        ,"parameters": [
-             { "name": "files", "type": list[ str ] }
-            ,{ "name": "flg_auto_fix", "type": bool, "default": False }
-        ]
-    }
-]
+def discover_tools( ):
+    """scans the tools directory and returns a list of tool definitions"""
+    tools_dir = default_config[ "paths" ][ "tools" ]
+    tool_list = [ ]
+    
+    #   get subdirectories (groups)
+    groups = [ 
+        d for d in os.listdir( tools_dir ) 
+        if os.path.isdir( os.path.join( tools_dir, d ) ) 
+        and d not in [ "lib", "mcp-cli", "resources", "__pycache__" ] 
+    ]
+    
+    for group in sorted( groups ):
+        group_dir = os.path.join( tools_dir, group )
+        for filename in sorted( os.listdir( group_dir ) ):
+            if filename.endswith( ".py" ) and not filename.startswith( "__" ):
+                name = filename[ :-3 ]
+                module_name = f"{group}.{name}"
+                file_path = os.path.join( group_dir, filename )
+                
+                #   load module to inspect metadata
+                spec = importlib.util.spec_from_file_location( module_name, file_path )
+                if spec is None or spec.loader is None:
+                    continue
+                    
+                module = importlib.util.module_from_spec( spec )
+                
+                #   add tools_dir and group_dir to sys.path to resolve imports within the tool
+                import sys
+                sys.path.insert( 0, tools_dir )
+                sys.path.insert( 0, group_dir )
+                try:
+                    spec.loader.exec_module( module )
+                except Exception as e:
+                    #   just skip tools that fail to load during discovery
+                    #   they will still be listed but might fail when called
+                    print( f"warning: failed to load tool {module_name}: {e}" )
+                    continue
+                finally:
+                    sys.path.pop( 0 )
+                    sys.path.pop( 0 )
+                
+                func_name = f"run_{name}"
+                if hasattr( module, func_name ):
+                    action = getattr( module, func_name )
+                    metadata = get_tool_metadata( action )
+                    
+                    tool_list.append( {
+                         "name": name
+                        ,"group": group
+                        ,"description": metadata[ "description" ]
+                        ,"parameters": metadata[ "parameters" ]
+                    } )
+                    
+    return  tool_list
 
 
 def create_tool_wrapper( group, name, description, params_def ):
@@ -204,8 +143,8 @@ def create_tool_wrapper( group, name, description, params_def ):
 
 
 def register_tools( ):
-    """registers tools dynamically using data from tool_registry"""
-    for tool_def in tool_registry:
+    """registers tools dynamically using data from discover_tools"""
+    for tool_def in discover_tools( ):
         group = tool_def[ "group" ]
         name = tool_def[ "name" ]
         mcp_name = f"{group}_{name}"

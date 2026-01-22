@@ -26,8 +26,10 @@
 from lib.common import run_mcp_tool, validate_params
 
 
-def run_adhoc_tool( params ):
-    validate_params( params, required = [ "action" ], optional = [ "name" ] )
+def run_adhoc_tool( params: dict ) -> str:
+    """executes experimental logic defined in tools/llm/adhoc_tool.py
+this tool is used for prototyping new functionalities
+the 'params' dictionary is passed to the script"""
     action = params.get( "action" )
     
     if action == "hello":

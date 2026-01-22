@@ -27,10 +27,9 @@ from lib.common import run_mcp_tool, ensure, create_process
 from llm.statistic import run_statistic
 
 
-def run_quick_upload( params ):
-    message = params.get( "message" )
-    ensure( message, "message parameter is required for quick upload" )
-
+def run_quick_upload( message: str ) -> str:
+    """performs a quick git upload: pull, add all, commit with message, and push
+this tool is intended for simple, non-conflicting changes to increase agility"""
     create_process( [ "git", "pull" ] )
     create_process( [ "git", "add", "." ] )
     create_process( [ "git", "commit", "-m", message ] )

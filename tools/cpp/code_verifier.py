@@ -28,7 +28,15 @@ from cpp_lib.verifier import run_cpp_verifier
 
 
 
+def run_code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
+    """verifies if a list of files follows the project's formatting rules
+if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
+returns a consolidated list of violations
+to verify and process the entire project, prefer the `cpp_analyze` tool. the `cpp_code_verifier` tool is recommended for a small group of files or just a single file"""
+    return  run_cpp_verifier( { "files": files, "flg_auto_fix": flg_auto_fix } )
+
+
 if __name__ == "__main__":
-    run_mcp_tool( run_cpp_verifier )
+    run_mcp_tool( run_code_verifier )
 
 

@@ -72,17 +72,23 @@ def increment_event( data, name, short_description ):
         data.append( new_entry )
 
 
-def run_statistic( params ):
-    validate_params( params, optional = [ "name", "short-description" ] )
-    
+from typing import Any
+
+
+def run_statistic( name: Any = None, short_description: str = None ) -> str:
+    """records or retrieves agent behavioral statistics
+if 'name' is provided, increments the count for that event ( can be a string or a list of strings )
+if no arguments are provided, returns the current statistics table
+this tool accepts a literal call with no arguments
+if you identify that you have made a mistake that has already been recorded previously, increment the counter
+this is a support tool to help prioritize attention for repeat offenders"""
     f = text_file( _statistic_file )
     if f.exists:
         data = json.loads( f.content )
     else:
         data = [ ]
 
-    name_param = params.get( "name" )
-    short_description = params.get( "short-description" )
+    name_param = name
     
     if name_param:
         names = [ ]

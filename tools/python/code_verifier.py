@@ -48,8 +48,11 @@ class formatter( base_verifier ):
         self._apply( rule[ 0 ], rule[ 1 ], rule[ 2 ], flags = re.MULTILINE )
 
 
-def run_code_verifier( params: dict ) -> str:
-    return  run_verifier( params, formatter, "py", "python" )
+def run_code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
+    """verifies if a list of python files follows the project's formatting rules
+if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
+returns a consolidated list of violations"""
+    return  run_verifier( { "files": files, "flg_auto_fix": flg_auto_fix }, formatter, "py", "python" )
 
 
 

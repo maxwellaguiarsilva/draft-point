@@ -30,9 +30,11 @@ from lib.common import run_mcp_tool, ensure, get_cpu_count
 from cpp_lib.project_core import project_core
 
 
-def run_compile( params ):
+def run_compile( ) -> str:
+    """compiles the project using
+this command takes no arguments"""
     start_time = datetime.datetime.now( )
-    core = project_core( params.get( "config", { } ) )
+    core = project_core( { } )
 
     core.print( f"build started at: {start_time.strftime( '%Y-%m-%d %H:%M:%S' )}" )
 

@@ -29,16 +29,21 @@ from cpp_lib.config import default_cpp_config
 from cpp_lib.project_model import project_model
 
 
-def run_create_test( params ):
-    ensure( "hierarchy" in params, "missing 'hierarchy' parameter" )
-
-    hierarchy = params[ "hierarchy" ]
+def run_create_test( 
+     hierarchy: str
+    ,flg_adhoc: bool = False
+    ,include_list: list[ str ] = [ ]
+) -> str:
+    """creates a new c++ test file
+if flg_adhoc is true, creates an adhoc test in tests/adhoc/nnnn_hierarchy/
+in adhoc mode, 'hierarchy' must be a simple name (no slashes or paths)
+if flg_adhoc is false, creates a structured test in tests/path/test_path_hierarchy.cpp"""
     model = project_model( default_cpp_config )
     
     file_path = model.get_path_for_hierarchy( 
          hierarchy
         ,"test"
-        ,flg_adhoc = params.get( "flg_adhoc", False ) 
+        ,flg_adhoc = flg_adhoc 
     )
 
     return  template( "cpp/test-cpp" ).create_file( 
@@ -46,7 +51,7 @@ def run_create_test( params ):
         ,{
              "comment_string": default_cpp_config[ "language" ][ "comment_string" ]
             ,"hierarchy": hierarchy
-            ,"include_list": params.get( "include_list", [ ] )
+            ,"include_list": include_list
         }
     )
 

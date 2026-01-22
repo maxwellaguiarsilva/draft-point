@@ -27,7 +27,9 @@ from lib.common import run_mcp_tool, ensure, create_process
 from llm.statistic import run_statistic
 
 
-def run_discard_changes( params ):
+def run_discard_changes( ) -> str:
+    """discards all uncommitted changes and removes untracked files
+this tool reverts the repository to the state of the last commit (head)"""
     create_process( [ "git", "reset", "--hard", "HEAD" ] )
     create_process( [ "git", "clean", "-fd" ] )
     

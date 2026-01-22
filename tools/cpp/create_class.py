@@ -30,11 +30,19 @@ from cpp_lib.config import default_cpp_config
 from cpp_lib.project_model import parse_hierarchy, project_model
 
 
-def run_create_class( params ):
-    ensure( "class_hierarchy" in params, "missing 'class_hierarchy' parameter" )
-
+def run_create_class( 
+     class_hierarchy: str
+    ,include_list: list[ str ] = [ ]
+    ,using_list: list[ str ] = [ ]
+    ,create_header_only: bool = False 
+) -> str:
+    """creates a new c++ class with corresponding .hpp and .cpp files
+the class_hierarchy parameter defines the namespace and class name (e.g., "game/player" creates class 'player' in namespace 'game')
+optional include_list and using_list parameters allow specifying additional headers to include and 'using' declarations to add
+good example: include_list=["string", "vector"], using_list=[ "::std::string", "::std::vector", "item_list   =   vector< string >"]
+bad example: include_list="<string>", using_list="using std::string;" """
     message = ""
-    hierarchy = params[ "class_hierarchy" ]
+    hierarchy = class_hierarchy
     hierarchy_list = parse_hierarchy( hierarchy )
     model = project_model( default_cpp_config )
     
@@ -46,13 +54,13 @@ def run_create_class( params ):
              "comment_string": default_cpp_config[ "language" ][ "comment_string" ]
             ,"header_guard": f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
             ,"class_name": hierarchy_list[ -1 ]
-            ,"include_list": params.get( "include_list", [ ] )
+            ,"include_list": include_list
             ,"namespace_list": hierarchy_list[ :-1 ]
-            ,"using_list": params.get( "using_list", [ ] )
+            ,"using_list": using_list
         }
     )
 
-    if( params.get( "create_header_only", False ) ):
+    if( create_header_only ):
         return  message
     
     source_path = model.get_path_for_hierarchy( hierarchy, "source" )

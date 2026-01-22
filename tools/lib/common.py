@@ -28,11 +28,31 @@ import json
 import sys
 import os
 import subprocess
+import inspect
 
 
 def ensure( expression, message ):
     if not expression:
         raise Exception( message )
+
+
+def get_tool_metadata( action ):
+    sig = inspect.signature( action )
+    doc = inspect.getdoc( action ) or ""
+    
+    parameters = [ ]
+    for name, param in sig.parameters.items( ):
+        p_def = { "name": name }
+        if param.annotation is not inspect.Parameter.empty:
+            p_def[ "type" ] = param.annotation
+        if param.default is not inspect.Parameter.empty:
+            p_def[ "default" ] = param.default
+        parameters.append( p_def )
+        
+    return  {
+         "description": doc
+        ,"parameters": parameters
+    }
 
 
 def validate_params( params, required = None, optional = None ):
@@ -130,15 +150,22 @@ def run_mcp_tool( action ):
         #   ensure validation doesn't fail when recording the violation itself
         os.environ[ "MCP_VALID" ] = "1"
         from llm.statistic import run_statistic
-        result = run_statistic( { 
-             "name": "direct-mcp-call"
-            ,"short-description": "bad: the agent attempted to invoke an mcp tool directly via shell or python instead of using the mcp_tool mechanism" 
-        } )
+        result = run_statistic( 
+             name = "direct-mcp-call"
+            ,short_description = "bad: the agent attempted to invoke an mcp tool directly via shell or python instead of using the mcp_tool mechanism" 
+        )
         print( result, file = sys.stderr )
         sys.exit( 1 )
 
     try:
-        print( action( get_json_args( ) ) )
+        params = get_json_args( )
+        sig = inspect.signature( action )
+        
+        #   if the function takes a single argument named 'params', it's the old style
+        if len( sig.parameters ) == 1 and "params" in sig.parameters:
+            print( action( params ) )
+        else:
+            print( action( **params ) )
     except Exception as error:
         print( str( error ), file = sys.stderr )
         sys.exit( 1 )
