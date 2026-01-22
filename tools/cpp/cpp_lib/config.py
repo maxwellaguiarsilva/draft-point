@@ -23,6 +23,10 @@
 #   Created on 2026-01-16 11:00:00
 
 
+#   this file must store data that orchestrates how the process behaves (machine logic)
+#   it must not be used as a repository for string or regex constants (string externalization)
+
+
 import os
 import copy
 from lib.common import get_cpu_count, deep_update
