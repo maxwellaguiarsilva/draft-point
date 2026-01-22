@@ -1,7 +1,7 @@
 In this project, the functionality of the feature is not the most important aspect, as it is a didactic exploration.
 The list of priorities must strictly follow the list below in order:
--   SRP: Single Responsibility Principle
 -   DRY: Don't Repeat Yourself
+-   SRP: Single Responsibility Principle
 -   Semantic elevation and Data over Machinery: Hide the "machinery" ( pointers, manual loops ) to let the "data" speak.
 -   Visual Serenity: Reduce visual noise. Code should be a statement of intent ( "what" ), not a CPU instruction manual ( "how" ).
 -   Style and formatting of the code.
