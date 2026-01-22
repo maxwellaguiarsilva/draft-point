@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 
 
-#   Copyright (C) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+
+#   
+#   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -13,20 +15,20 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 #   
-#   You should have received a copy of the GNU General License
+#   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   statistic
+#   File:   tools/llm/statistic.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-10 00:01:07
-
+#   Created on 2026-01-16 13:55:19
+#
 
 
 import json
 import os
-from lib.common import run_mcp_tool, ensure
+from lib.common import run_mcp_tool, ensure, validate_params
 from lib.fso import text_file
 
 
@@ -74,10 +76,7 @@ def increment_event( data, name, short_description ):
 
 
 def run_statistic( params ):
-    #   validate allowed fields
-    allowed_fields = { "name", "short-description" }
-    for key in params:
-        ensure( key in allowed_fields, f"field '{key}' is not allowed" )
+    validate_params( params, optional = [ "name", "short-description" ] )
     
     f = text_file( _statistic_file )
     if f.exists:

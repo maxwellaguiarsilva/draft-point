@@ -27,124 +27,29 @@
 
 
 import re
-import os
-from lib.common import run_mcp_tool, ensure
-from lib.fso import text_file
-from lib import file_info
-from lib.template import template
+from lib.common import run_mcp_tool
+from lib.verifier import base_verifier, run_verifier
 
 
-newline_3 = "\n\n\n"
-trailing_msg = "file must end with exactly 2 empty lines and no trailing whitespace"
 
-
-class formatter:
-    m_rules = {
-         "return_spacing": ( r"^(\s*return) +(\S)", r"\1  \2", "return must be followed by exactly 2 spaces" )
-        ,"trailing_msg": trailing_msg
-        ,"newline_3": newline_3
-    }
-
-    def __init__( self, content: str, file_path: str = None, flg_auto_fix: bool = True ):
-        self.content = content
-        self.file_path = file_path
-        self.messages = []
-        self.flg_auto_fix = flg_auto_fix
+class formatter( base_verifier ):
+    def _get_rules( self ):
+        return  super( )._get_rules( ) | {
+            "return_spacing": ( r"^(\s*return) +(\S)", r"\1  \2", "return must be followed by exactly 2 spaces" )
+        }
 
     def run( self ):
-        self._validate_license( )
-        self._trailing_newlines( )
+        super( ).run( )
         self._return_spacing( )
         return  self.content
-
-    def verify( self ):
-        self.flg_auto_fix = False
-        self.run( )
-        return  self.messages
-
-    def _apply( self, pattern: str, replacement: str, message: str, flags: int = 0 ):
-        if self.flg_auto_fix:
-            new_content = re.sub( pattern, replacement, self.content, flags = flags )
-            if new_content != self.content:
-                self.content = new_content
-                self.messages.append( message )
-        else:
-            for match in re.finditer( pattern, self.content, flags = flags ):
-                old_text = match.group( 0 )
-                new_text = re.sub( pattern, replacement, old_text, flags = flags )
-                if old_text != new_text:
-                    line_no = self.content.count( "\n", 0, match.start( ) ) + 1
-                    self.messages.append( ( line_no, message ) )
-
-    def _validate_license( self ):
-        if not self.file_path:
-            return
-        
-        comment_string = "#   "
-        model = template( "file-header" )
-        ideal_header = model.render( file_info.get_info( self.file_path ) | { "comment_string": comment_string } ).strip( " \n\r" )
-        
-        shebang, body = file_info.strip_header( self.content, comment_string )
-        
-        sep = self.m_rules[ "newline_3" ]
-        new_content = shebang + ( sep if shebang else "" ) + ideal_header + sep + body.lstrip( "\n" )
-        
-        if self.content.strip( " \n\r" ) != new_content.strip( " \n\r" ):
-            if self.flg_auto_fix:
-                self.content = new_content
-                self.messages.append( f"restored canonical license header for {self.file_path}" )
-            else:
-                self.messages.append( ( 1, f"license header mismatch in {self.file_path}" ) )
 
     def _return_spacing( self ):
         rule = self.m_rules[ "return_spacing" ]
         self._apply( rule[ 0 ], rule[ 1 ], rule[ 2 ], flags = re.MULTILINE )
 
-    def _trailing_newlines( self ):
-        new_content = self.content.rstrip( ) + self.m_rules[ "newline_3" ]
-        if new_content != self.content:
-            msg = self.m_rules[ "trailing_msg" ]
-            if self.flg_auto_fix:
-                self.content = new_content
-                self.messages.append( msg )
-            else:
-                line_no = self.content.count( "\n" ) + 1
-                self.messages.append( ( line_no, msg ) )
-
 
 def run_code_verifier( params: dict ) -> str:
-    files = params.get( "files", [ ] )
-    flg_auto_fix = params.get( "flg_auto_fix", False )
-    
-    results = [ ]
-    for file_path in files:
-        f = text_file( file_path )
-        ensure( f.exists, f"file not found: {file_path}" )
-        ensure( f.extension == "py", "this tool is exclusively for python files" )
-        
-        fmt = formatter( f.content, file_path = f.path, flg_auto_fix = flg_auto_fix )
-        if flg_auto_fix:
-            new_content = fmt.run( )
-            if f.content != new_content:
-                f.write( new_content )
-        else:
-            fmt.verify( )
-        
-        if fmt.messages:
-            message = f"file: {file_path}\n"
-            for violation in fmt.messages:
-                if isinstance( violation, ( list, tuple ) ):
-                    line, text = violation
-                    message += f"  line {line}: {text}\n"
-                else:
-                    message += f"  {violation}\n"
-            results.append( message )
-    
-    res = "\n".join( results ).strip( )
-    if res and flg_auto_fix:
-        res += "\n\nthe files were adjusted automatically, no action necessary"
-
-    return  res or f"no formatting violations found in the provided files"
+    return  run_verifier( params, formatter, "py", "python" )
 
 
 

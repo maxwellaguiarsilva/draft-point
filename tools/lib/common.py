@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 
 
-#   Copyright (C) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+
+#   
+#   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -13,14 +15,15 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 #   
-#   You should have received a copy of the GNU General License
+#   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   common
+#   File:   tools/lib/common.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-04 20:18:54
+#   Created on 2026-01-13 19:46:34
+#
 
 
 import datetime
@@ -33,6 +36,18 @@ import subprocess
 def ensure( expression, message ):
     if not expression:
         raise Exception( message )
+
+
+def validate_params( params, required = None, optional = None ):
+    required = required or [ ]
+    optional = optional or [ ]
+    allowed = set( required ) | set( optional )
+    
+    for key in required:
+        ensure( key in params, f"missing required parameter: '{key}'" )
+        
+    for key in params:
+        ensure( key in allowed, f"unexpected parameter: '{key}'" )
 
 
 def get_cpu_count( ):

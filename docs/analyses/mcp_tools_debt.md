@@ -1,3 +1,6 @@
+This document is a constantly evolving line of reasoning; feel free to update it as needed.
+
+
 ## MODEL ✨
 
 As requested, I have analyzed the files in the `tools` directory, focusing on diagnosing violations of SRP (Single Responsibility Principle) and DRY (Don't Repeat Yourself). My analysis focused on the code verifiers, tool wrappers, and library abstractions.

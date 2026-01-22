@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 
 
-#   Copyright (C) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+
+#   
+#   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -13,14 +15,15 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 #   
-#   You should have received a copy of the GNU General License
+#   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
 #   File:   tools/cpp/analyze.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-14 18:00:00
+#   Created on 2026-01-16 14:22:13
+#
 
 
 import concurrent.futures
@@ -28,7 +31,7 @@ from lib.common import run_mcp_tool, get_cpu_count, print_line
 
 
 from cpp_lib.project_core import project_core
-from code_verifier import run_code_verifier
+from cpp_lib.verifier import run_cpp_verifier
 
 
 def run_analyze( params ):
@@ -52,7 +55,7 @@ def run_analyze( params ):
         ,"flg_auto_fix": True
     }
     
-    result_fmt = run_code_verifier( fmt_params )
+    result_fmt = run_cpp_verifier( fmt_params )
     if "file:" in result_fmt:
         core.print( result_fmt )
     
