@@ -1,44 +1,24 @@
 This document is a constantly evolving line of reasoning; feel free to update it as needed.
 
 
-## MODEL ✨
+## IDENTIFIED DRY DEBTS ✨
 
-As requested, I have analyzed the files in the `tools` directory, focusing on diagnosing violations of SRP (Single Responsibility Principle) and DRY (Don't Repeat Yourself). My analysis focused on the code verifiers, tool wrappers, and library abstractions.
+*   **Boilerplate and Dynamic Dispatch in `tools/project_mcp.py`**:
+    *   **Problem**: Every tool registration repeats the `@mcp.tool` decorator, the `_invoke_tool` call, and the use of `locals().copy()` to capture arguments. This creates a high maintenance cost; changing how tools are invoked (e.g., adding a new environment variable or changing the python interpreter) requires editing every single function.
+    *   **Propose**: Move tool registration to a "Data over Machinery" approach. Define a central dictionary or list of tuples containing `(group, name, description, parameters)` and use a loop to dynamically register these tools in the FastMCP instance.
 
-### Diagnostic Report: Architectural Debt in `tools`
+*   **Hardcoded Formatting Constants and Rules**:
+    *   **Problem**: The project's "Visual Serenity" standards, such as the `newline_3` constant (`\n\n\n`) and regex rules for keyword spacing (e.g., `return` spacing), are redeclared across `lib/verifier.py`, `cpp_lib/verifier.py`, and `python/code_verifier.py`.
+    *   **Propose**: 
+        *   Centralize universal formatting constants and regex patterns (like `newline_3`) in a `common_rules` dictionary within `tools/lib/verifier.py`.
+        *   Ensure that language-specific verifiers (C++, Python) compose their logic by extending this central rule set, rather than redeclaring patterns.
 
-The current implementation of the project tools prioritized direct delivery of features, resulting in several architectural issues that hinder maintainability and scalability.
-
-#### 1. Severe Code Duplication in Verifiers (DRY Violation)
-The `tools/cpp/code_verifier.py` and `tools/python/code_verifier.py` scripts are nearly identical in structure. 
-*   **Logic Duplication:** Both define a `formatter` class with identical `__init__`, `_apply`, `verify`, and `_trailing_newlines` methods.
-*   **License Validation:** The `_validate_license` method is duplicated with only minor adjustments for the comment character and shebang handling.
-*   **Tool Boilerplate:** The `run_code_verifier` wrapper, which handles file iteration and error message accumulation, is copied across both files.
-
-#### 2. Responsibility Overlap (SRP Violation)
-Most tool scripts are currently serving three distinct roles simultaneously:
-*   **Tool Interface:** Managing MCP/JSON parameter extraction and output formatting.
-*   **Domain Logic:** Implementing the actual feature (e.g., formatting rules, statistical calculation).
-*   **Execution Orchestration:** Handling file system iteration and I/O management.
-This overlap is evident in `tools/llm/statistic.py` and the verifiers, where the logic for "how to process" is tightly coupled with "what to process".
-
-#### 3. Mixed-Mode Scripting
-`tools/cpp/analyze.py` imports `run_code_verifier` directly from `code_verifier.py`. This forces `code_verifier.py` to act as both a standalone entry point and a library. This pattern often leads to fragile dependencies and complicates future refactoring of the tool's interface.
-
-#### 4. Inconsistent Parameter Handling
-While `tools/lib/common.py` provides `ensure`, its usage is inconsistent across the tools. Some tools use `params.get()` with defaults, others use direct access (which causes unhandled `KeyError`), and others perform manual validation (e.g., `tools/llm/statistic.py`'s `allowed_fields` check). There is no common "Contract" or "Schema" for tool parameters.
-
-### Opportunity for Improvement
-
-The most immediate and impactful improvement would be the creation of a **Generic Verifier Base Class** in `tools/lib/`. This base class could handle:
-
-1.  **Orchestration:** Iterating through files and collecting results.
-2.  **Canonical Logic:** Implementing language-agnostic rules like license header restoration and trailing whitespace/newline enforcement.
-3.  **Extensibility:** Providing a clean interface for language-specific subclasses to register their unique regex-based rules.
+*   **Redundant Path Calculation in Creation Tools**:
+    *   **Problem**: `tools/cpp/create_class.py` and `tools/cpp/create_test.py` both implement logic to split a hierarchy string (e.g., "game/player") and map it to the physical directory structure (include, source, or tests).
+    *   **Propose**: Centralize path intelligence in `tools/cpp/cpp_lib/project_model.py`. The model should provide a method like `get_path_for_hierarchy(hierarchy, file_type)` that returns the absolute or relative path based on the project's configuration, ensuring that any change to the folder structure only needs to be updated in one place.
 
 ---
+
 ### Contextual Note
-The architectural debts identified above—particularly the dry and srp violations in the verifiers—are concrete examples of the pitfalls described in [llm interaction principles](llm_interaction_principles.md). 
-These issues often arise when the llm prioritizes the "direct delivery" of a feature over architectural refinement. Resolving these debts requires moving beyond "delivery-focused" implementation towards a more principled, iterative approach that values small, certain steps and structural integrity over quick, context-limited fixes.
-
-
+Architectural debts—particularly violations of DRY and SRP—serve as concrete examples of the pitfalls described in [llm interaction principles](llm_interaction_principles.md). 
+These issues often arise when the LLM prioritizes the "direct delivery" of a feature over architectural refinement. Preventing or resolving such debts requires moving beyond "delivery-focused" implementation towards a more principled, iterative approach that values small, certain steps and structural integrity over quick, context-limited fixes.
