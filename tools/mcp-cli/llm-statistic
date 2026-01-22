@@ -2,7 +2,7 @@
 
 
 if [ "$#" -eq 0 ]; then
-    PYTHONPATH=tools tools/llm/statistic.py "{}"
+    MCP_VALID=1 PYTHONPATH=tools tools/llm/statistic.py "{}"
 else
     JSON_NAMES="["
     for arg in "$@"; do
