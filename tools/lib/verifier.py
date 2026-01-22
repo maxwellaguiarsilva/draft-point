@@ -39,11 +39,16 @@ class base_verifier:
         self.flg_auto_fix = flg_auto_fix
         self.m_rules = self._get_rules( )
 
-    def _get_rules( self ):
+    @property
+    def common_rules( self ):
         return  {
              "newline_2": "\n\n"
             ,"newline_3": "\n\n\n"
-            ,"trailing_msg": "file must end with exactly 2 empty lines and no trailing whitespace"
+        }
+
+    def _get_rules( self ):
+        return  self.common_rules | {
+            "trailing_msg": "file must end with exactly 2 empty lines and no trailing whitespace"
         }
 
     def _get_comment_string( self ):

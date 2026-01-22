@@ -141,6 +141,7 @@ class project_model:
         self.include_dir    =   paths[ "include" ]
         self.source_dir     =   paths[ "source" ]
         self.tests_dir      =   paths[ "tests" ]
+        self.adhoc_dir      =   paths[ "adhoc" ]
         self.build_dir      =   paths[ "build" ]
         self.output_dir     =   paths[ "output" ]
 
@@ -179,6 +180,43 @@ class project_model:
                 return  self.files[ candidate ]
 
         return  None
+
+    def get_path_for_hierarchy( self, hierarchy, file_type, flg_adhoc = False ):
+        hierarchy_list = parse_hierarchy( hierarchy )
+        rel_path = "/".join( hierarchy_list )
+
+        if file_type == "header":
+            return  f"{self.include_dir}/{rel_path}.{self.header_ext}"
+        
+        if file_type == "source":
+            return  f"{self.source_dir}/{rel_path}.{self.source_ext}"
+        
+        if file_type == "test":
+            if flg_adhoc:
+                prefix = self._get_next_adhoc_prefix( )
+                return  f"{self.adhoc_dir}/{prefix}_{hierarchy}/{prefix}_{hierarchy}.{self.source_ext}"
+            
+            test_file_name = f"test_{'_'.join( hierarchy_list )}.{self.source_ext}"
+            return  f"{self.tests_dir}/{ '/'.join( hierarchy_list[ :-1 ] + [ test_file_name ] ) }"
+
+        raise ValueError( f"invalid file_type: {file_type}" )
+
+    def _get_next_adhoc_prefix( self ):
+        from pathlib import Path
+        path = Path( self.adhoc_dir )
+        path.mkdir( exist_ok = True, parents = True )
+        
+        ids = {
+            int( p.name.split( "_" )[ 0 ] )
+            for p in path.iterdir( )
+            if p.is_dir( ) and p.name.split( "_" )[ 0 ].isdigit( )
+        }
+        
+        next_counter = 1
+        while next_counter in ids:
+            next_counter += 1
+        
+        return  f"{next_counter:04d}"
 
     @property
     def json( self ):

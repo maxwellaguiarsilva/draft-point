@@ -23,46 +23,23 @@
 #   Created on 2026-01-16 14:22:13
 #
 
-from pathlib import Path
 from lib.template import template
 from lib.common import run_mcp_tool, ensure
 from cpp_lib.config import default_cpp_config
-from cpp_lib.project_model import parse_hierarchy
-
-
-def get_next_adhoc_prefix( adhoc_dir ):
-    path = Path( adhoc_dir )
-    path.mkdir( exist_ok = True )
-    
-    ids = {
-        int( p.name.split( "_" )[ 0 ] )
-        for p in path.iterdir( )
-        if p.is_dir( ) and p.name.split( "_" )[ 0 ].isdigit( )
-    }
-    
-    next_counter = 1
-    while next_counter in ids:
-        next_counter += 1
-    
-    return  f"{next_counter:04d}"
-
+from cpp_lib.project_model import project_model
 
 
 def run_create_test( params ):
     ensure( "hierarchy" in params, "missing 'hierarchy' parameter" )
 
     hierarchy = params[ "hierarchy" ]
+    model = project_model( default_cpp_config )
     
-    if( params.get( "flg_adhoc", False ) ):
-        tests_dir = default_cpp_config[ "paths" ][ "adhoc" ]
-        prefix = get_next_adhoc_prefix( tests_dir )
-        rel_path = f"{prefix}_{hierarchy}/{prefix}_{hierarchy}.{default_cpp_config[ 'language' ][ 'source_extension' ]}"
-    else:
-        tests_dir = default_cpp_config[ "paths" ][ "tests" ]
-        hierarchy_list = parse_hierarchy( hierarchy )
-        rel_path = "/".join( hierarchy_list[ :-1 ] + [ f"test_{ '_'.join( hierarchy_list ) }.{default_cpp_config[ 'language' ][ 'source_extension' ]}" ] )
-
-    file_path = f"{tests_dir}/{rel_path}"
+    file_path = model.get_path_for_hierarchy( 
+         hierarchy
+        ,"test"
+        ,flg_adhoc = params.get( "flg_adhoc", False ) 
+    )
 
     return  template( "cpp/test-cpp" ).create_file( 
          file_path

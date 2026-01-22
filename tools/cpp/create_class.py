@@ -27,18 +27,21 @@ import time
 from lib.common import run_mcp_tool, ensure
 from lib.template import template
 from cpp_lib.config import default_cpp_config
-from cpp_lib.project_model import parse_hierarchy
+from cpp_lib.project_model import parse_hierarchy, project_model
 
 
 def run_create_class( params ):
     ensure( "class_hierarchy" in params, "missing 'class_hierarchy' parameter" )
 
     message = ""
-    hierarchy_list = parse_hierarchy( params[ "class_hierarchy" ] )
-    rel_path = "/".join( hierarchy_list )
-
+    hierarchy = params[ "class_hierarchy" ]
+    hierarchy_list = parse_hierarchy( hierarchy )
+    model = project_model( default_cpp_config )
+    
+    header_path = model.get_path_for_hierarchy( hierarchy, "header" )
+    
     message +=  template( "cpp/class-hpp" ).create_file( 
-         f"{default_cpp_config[ 'paths' ][ 'include' ]}/{rel_path}.{default_cpp_config[ 'language' ][ 'header_extension' ]}"
+         header_path
         ,{
              "comment_string": default_cpp_config[ "language" ][ "comment_string" ]
             ,"header_guard": f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
@@ -52,11 +55,14 @@ def run_create_class( params ):
     if( params.get( "create_header_only", False ) ):
         return  message
     
+    source_path = model.get_path_for_hierarchy( hierarchy, "source" )
+    rel_header_path = "/".join( hierarchy_list ) + "." + default_cpp_config[ 'language' ][ 'header_extension' ]
+
     message +=  template( "cpp/class-cpp" ).create_file( 
-         f"{default_cpp_config[ 'paths' ][ 'source' ]}/{rel_path}.{default_cpp_config[ 'language' ][ 'source_extension' ]}"
+         source_path
         ,{
              "comment_string": default_cpp_config[ "language" ][ "comment_string" ]
-            ,"include_list": [ f"{rel_path}.{default_cpp_config[ 'language' ][ 'header_extension' ]}" ]
+            ,"include_list": [ rel_header_path ]
         }
     )
 

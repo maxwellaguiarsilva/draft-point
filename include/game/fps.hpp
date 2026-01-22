@@ -21,7 +21,6 @@
 //	Created on 2025-08-26 20:27:11
 //	
 
-
 #pragma once
 #ifndef header_guard_602704350
 #define header_guard_602704350

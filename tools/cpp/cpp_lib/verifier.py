@@ -28,7 +28,6 @@ from lib.verifier import base_verifier, run_verifier
 from cpp_lib.config import default_cpp_config
 
 
-newline_3 = "\n\n\n"
 include_sep = r"\1\n\n\n\2"
 bracket_ignore = r"//.*|/\*[\s\S]*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'"
 bracket_fix = "fixed bracket spacing ( ( space ) and [ space ] rules )"
@@ -36,12 +35,14 @@ bracket_fix = "fixed bracket spacing ( ( space ) and [ space ] rules )"
 
 class formatter( base_verifier ):
     def _get_rules( self ):
-        return  super( )._get_rules( ) | {
-             "consecutive_newlines": ( r"\n{4,}", newline_3, "too many consecutive empty lines (maximum 2 allowed)" )
+        rules = super( )._get_rules( )
+        nl3 = rules[ "newline_3" ]
+        return  rules | {
+             "consecutive_newlines": ( r"\n{4,}", nl3, "too many consecutive empty lines (maximum 2 allowed)" )
             ,"return_spacing": ( r"([ \t])return\b(?![ \t]*;)[ \t]*", r"\1return\1", "return must be followed by exactly one space or tab (matching the preceding indentation character)" )
             ,"include_no_empty": ( r"(^#include\s+.*)\n(?:[ \t]*\n)+(?=#include\s+.*)", r"\1\n", "include directives must not be separated by empty lines" )
-            ,"include_before": ( r"^((?!#include).+)\n+(#include\s+.*)", include_sep, "there must be exactly two empty lines before the first include" )
-            ,"include_after": ( r"(^#include\s+.*)\n+((?!#include).+)", include_sep, "there must be exactly two empty lines after the last include" )
+            ,"include_before": ( r"^((?!#include).+)\n+(#include\s+.*)", r"\1" + nl3 + r"\2", "there must be exactly two empty lines before the first include" )
+            ,"include_after": ( r"(^#include\s+.*)\n+((?!#include).+)", r"\1" + nl3 + r"\2", "there must be exactly two empty lines after the last include" )
             ,"bracket_ignore": bracket_ignore
             ,"bracket_fix": bracket_fix
             ,"brackets": [
