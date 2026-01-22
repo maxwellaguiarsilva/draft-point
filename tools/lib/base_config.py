@@ -17,10 +17,10 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/lib/config.py
+#   File:   tools/lib/base_config.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-16 17:04:37
+#   Created on 2026-01-22 19:06:37
 #
 
 from lib.common import get_cpu_count, deep_update

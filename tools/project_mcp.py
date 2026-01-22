@@ -30,7 +30,7 @@ import importlib.util
 from typing import Any
 from fastmcp import FastMCP
 from lib.common import create_process, get_tool_metadata
-from lib.config import default_config
+from lib.base_config import default_config
 
 
 #   create an mcp server instance

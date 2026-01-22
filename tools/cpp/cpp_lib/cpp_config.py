@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/cpp/cpp_lib/config.py
+#   File:   tools/cpp/cpp_lib/cpp_config.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-16 17:38:37
@@ -26,7 +26,7 @@
 import os
 import copy
 from lib.common import get_cpu_count, deep_update
-from lib.config import default_config
+from lib.base_config import default_config
 
 
 default_cpp_config = {

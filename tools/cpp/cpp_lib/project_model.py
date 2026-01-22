@@ -229,7 +229,7 @@ class project_model:
 if __name__ == "__main__":
     import sys
     if len( sys.argv ) > 1 and sys.argv[ 1 ] == "--run-test":
-        from cpp.cpp_lib.config import default_cpp_config
+        from cpp.cpp_lib.cpp_config import default_cpp_config
         print( project_model( default_cpp_config ).files[ "source/main.cpp" ] )
 
 

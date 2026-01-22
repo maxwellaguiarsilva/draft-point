@@ -27,7 +27,7 @@ import re
 import os
 
 
-from lib.config import default_config
+from lib.base_config import default_config
 from lib.common import ensure
 from lib.fso import text_file
 from lib import file_info

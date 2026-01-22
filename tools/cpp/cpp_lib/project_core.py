@@ -27,7 +27,7 @@ import copy
 import os
 import threading
 from lib.common import create_process, deep_update, ensure, get_process_text
-from cpp_lib.config import default_cpp_config
+from cpp_lib.cpp_config import default_cpp_config
 from cpp_lib.project_model import project_model, cpp, hpp
 from cpp_lib.clang import clang
 from cpp_lib.cppcheck import cppcheck

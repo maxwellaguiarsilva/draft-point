@@ -17,10 +17,10 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/lib/verifier.py
+#   File:   tools/lib/base_verifier.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-22 13:50:05
+#   Created on 2026-01-22 19:06:37
 #
 
 import re

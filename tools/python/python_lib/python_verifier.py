@@ -20,11 +20,11 @@
 #   File:   tools/python/python_lib/python_verifier.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-22 14:05:00
+#   Created on 2026-01-22 19:00:22
 #
 
 import re
-from lib.verifier import base_verifier, run_verifier
+from lib.base_verifier import base_verifier, run_verifier
 
 
 class formatter( base_verifier ):
@@ -48,3 +48,5 @@ class formatter( base_verifier ):
 
 def run_python_verifier( params: dict ) -> str:
     return  run_verifier( params, formatter, "py", "python" )
+
+
