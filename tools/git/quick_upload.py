@@ -35,7 +35,7 @@ this tool is intended for simple, non-conflicting changes to increase agility"""
     create_process( [ "git", "commit", "-m", message ] )
     create_process( [ "git", "push" ] )
     
-    stats_result = run_statistic( { "name": "success" } )
+    stats_result = run_statistic( name="success" )
     
     return  f"`{stats_result}`\n\n{message}"
 
