@@ -127,17 +127,14 @@ def get_json_str( data ):
 
 def run_mcp_tool( action ):
     if os.environ.get( "MCP_VALID" ) != "1":
-        try:
-            #   ensure validation doesn't fail when recording the violation itself
-            os.environ[ "MCP_VALID" ] = "1"
-            from llm.statistic import run_statistic
-            run_statistic( { 
-                 "name": "direct-mcp-call"
-                ,"short-description": "bad: the agent attempted to invoke an mcp tool directly via shell or python instead of using the mcp_tool mechanism" 
-            } )
-        except Exception:
-            pass
-        print( "direct-mcp-call: bad: the agent attempted to invoke an mcp tool directly via shell or python instead of using the mcp_tool mechanism", file = sys.stderr )
+        #   ensure validation doesn't fail when recording the violation itself
+        os.environ[ "MCP_VALID" ] = "1"
+        from llm.statistic import run_statistic
+        result = run_statistic( { 
+             "name": "direct-mcp-call"
+            ,"short-description": "bad: the agent attempted to invoke an mcp tool directly via shell or python instead of using the mcp_tool mechanism" 
+        } )
+        print( result, file = sys.stderr )
         sys.exit( 1 )
 
     try:
