@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 
 
-#   Copyright (C) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+
+#   
+#   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -13,14 +15,15 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 #   
-#   You should have received a copy of the GNU General License
+#   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
 #   File:   tools/cpp/code_verifier.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-06 14:06:09
+#   Created on 2026-01-16 14:22:13
+#
 
 
 import re
@@ -95,16 +98,18 @@ class formatter:
     def _validate_license( self ):
         if not self.file_path:
             return
+        comment_string = default_cpp_config[ "language" ][ "comment_string" ]
         model   =   template( "file-header" )
-        ideal_header = model.render( file_info.get_info( self.file_path ) | { "comment_string": default_cpp_config[ "language" ][ "comment_string" ] } ).strip( " \n\r" )
+        ideal_header = model.render( file_info.get_info( self.file_path ) | { "comment_string": comment_string } ).strip( " \n\r" )
         
-        parts = self.content.split( "\n\n", 1 )
-        actual_header = parts[ 0 ].strip( " \n\r" )
+        shebang, body = file_info.strip_header( self.content, comment_string )
         
-        if actual_header != ideal_header:
+        sep = self.m_rules[ "newline_3" ]
+        new_content = shebang + ( sep if shebang else "" ) + ideal_header + sep + body.lstrip( "\n" )
+        
+        if self.content.strip( " \n\r" ) != new_content.strip( " \n\r" ):
             if self.flg_auto_fix:
-                body = parts[ 1 ] if len( parts ) > 1 else ""
-                self.content = ideal_header + "\n\n" + body
+                self.content = new_content
                 self.messages.append( f"restored canonical license header for {self.file_path}" )
             else:
                 self.messages.append( ( 1, f"license header mismatch in {self.file_path}" ) )

@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 
+
 #   
 #   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
@@ -79,41 +80,17 @@ class formatter:
         if not self.file_path:
             return
         
-        #   check for shebang
-        shebang = ""
-        content_to_check = self.content
-        if self.content.startswith( "#!" ):
-            parts = self.content.split( "\n", 1 )
-            shebang = parts[ 0 ]
-            content_to_check = parts[ 1 ] if len( parts ) > 1 else ""
-
-        #   ideal header
+        comment_string = "#   "
         model = template( "file-header" )
-        ideal_header = model.render( file_info.get_info( self.file_path ) | { "comment_string": "#   " } ).strip( " \n\r" )
+        ideal_header = model.render( file_info.get_info( self.file_path ) | { "comment_string": comment_string } ).strip( " \n\r" )
         
-        #   extract actual header
-        parts = content_to_check.lstrip( "\n" ).split( "\n\n", 1 )
-        first_block = parts[ 0 ]
-        body = parts[ 1 ] if len( parts ) > 1 else ""
-
-        #   check if the first block is actually a header (only comments)
-        lines = first_block.strip( ).split( "\n" )
-        is_header = all( line.strip( ).startswith( "#" ) for line in lines ) if lines else False
-
-        if is_header:
-            actual_header = first_block.strip( " \n\r" )
-            content_to_restore = body.lstrip( "\n" )
-        else:
-            actual_header = ""
-            content_to_restore = content_to_check.lstrip( "\n" )
+        shebang, body = file_info.strip_header( self.content, comment_string )
         
-        if actual_header != ideal_header:
+        sep = self.m_rules[ "newline_3" ]
+        new_content = shebang + ( sep if shebang else "" ) + ideal_header + sep + body.lstrip( "\n" )
+        
+        if self.content.strip( " \n\r" ) != new_content.strip( " \n\r" ):
             if self.flg_auto_fix:
-                new_content = ""
-                if shebang:
-                    new_content = shebang + self.m_rules[ "newline_3" ]
-                
-                new_content += ideal_header + self.m_rules[ "newline_3" ] + content_to_restore
                 self.content = new_content
                 self.messages.append( f"restored canonical license header for {self.file_path}" )
             else:

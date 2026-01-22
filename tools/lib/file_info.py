@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 
 
-#   Copyright (C) 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+
+#   
+#   Copyright (C) 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -13,14 +15,15 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 #   
-#   You should have received a copy of the GNU General License
+#   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   file_info
+#   File:   tools/lib/file_info.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-14 18:00:00
+#   Created on 2026-01-18 10:35:16
+#
 
 
 import os
@@ -62,5 +65,25 @@ def get_info( file_path ):
         ,"des_email": des_email
         ,"des_formatted_datetime": dat_full
     }
+
+
+def strip_header( content, comment_string ):
+    lines = content.splitlines( keepends = True )
+    shebang = ""
+    start_index = 0
+    if lines and lines[ 0 ].startswith( "#!" ):
+        shebang = lines[ 0 ]
+        start_index = 1
+    
+    comment_prefix = comment_string.rstrip( )
+    body_start = start_index
+    for i in range( start_index, len( lines ) ):
+        line = lines[ i ]
+        if not line.strip( ) or ( comment_prefix and line.startswith( comment_prefix ) ):
+            body_start = i + 1
+        else:
+            break
+            
+    return  shebang, "".join( lines[ body_start: ] )
 
 
