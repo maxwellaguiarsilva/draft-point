@@ -29,7 +29,7 @@ from lib.common import get_cpu_count, deep_update
 default_config = {
     #   folder organization
     "paths": {
-        "tools": "tools"              #   project tools directory
+         "tools": "tools"              #   project tools directory
         ,"docs": "docs"                #   project documentation directory
         ,"templates": "docs/templates" #   project templates directory
     }

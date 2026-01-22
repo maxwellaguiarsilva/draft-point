@@ -36,7 +36,7 @@ default_cpp_config = {
         ,"standard": "c++23"           #   examples: "c++17", "c++20", "c++23"
         ,"use_64_bits": True           #   abstraction for -m64 (64-bit)
         ,"extra_compile_flags": [
-            "-ffunction-sections"      #   place each function into its own section
+             "-ffunction-sections"     #   place each function into its own section
             ,"-fdata-sections"         #   place each data item into its own section
             ,"-flto"                   #   enable link time optimization
         ]
@@ -62,7 +62,7 @@ default_cpp_config = {
     #   quality control (warning and analysis flags)
     ,"quality_control": {
         #   options: "minimal", "high" (-Wall -Wextra), "pedantic"
-        "warning_level": "high"
+         "warning_level": "high"
         ,"treat_warnings_as_errors": True #   -Werror
         ,"stop_on_first_error": True      #   -Wfatal-errors
         ,"static_analysis": {
@@ -70,7 +70,7 @@ default_cpp_config = {
             ,"tool": "cppcheck"
             ,"strictness": "exhaustive"    #   options: "normal", "exhaustive"
             ,"suppressions": [
-                "missingIncludeSystem"
+                 "missingIncludeSystem"
                 ,"checkersReport"
             ]
         }
@@ -78,25 +78,21 @@ default_cpp_config = {
 
     #   external dependencies (no -l or -I prefixes)
     ,"dependencies": {
-        "libraries": []                #   example: ["ncurses", "pthread"]
+         "libraries": []                #   example: ["ncurses", "pthread"]
         ,"include_dirs": []            #   additional paths for header search
         ,"library_dirs": []             #   additional paths for library search
     }
 
     #   language information
     ,"language": {
-        "source_extension": "cpp"
+         "source_extension": "cpp"
         ,"header_extension": "hpp"
         ,"comment_string":  "//\t"
-        ,"patterns": {
-            "main_function": r"\b(int|auto)\s+main\s*\("
-            ,"include_directive": r'#include\s*(?P<full>(?P<open>[<"])(?P<path>[^>"]+)(?P<close>[>"]))'
-        }
     }
 
     #   folder organization
     ,"paths": {
-        "source": "source"             #   project source directory containing .cpp files
+         "source": "source"            #   project source directory containing .cpp files
         ,"include": "include"          #   project include directory containing .hpp files
         ,"tests": "tests"              #   test source directory containing .cpp files
         ,"adhoc": "tests/adhoc"        #   adhoc tests directory
