@@ -17,22 +17,34 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/python/code_verifier.py
+#   File:   tools/python/python_lib/python_verifier.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-18 16:21:38
+#   Created on 2026-01-22 14:05:00
 #
 
-from lib.common import run_mcp_tool
-from python_lib.python_verifier import run_python_verifier
+import re
+from lib.verifier import base_verifier, run_verifier
 
 
-def run_code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
-    """verifies if a list of python files follows the project's formatting rules
-if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
-returns a consolidated list of violations"""
-    return  run_python_verifier( { "files": files, "flg_auto_fix": flg_auto_fix } )
+class formatter( base_verifier ):
+    def _get_shebang( self ):
+        return  "#!/usr/bin/python3"
+
+    def _get_rules( self ):
+        return  super( )._get_rules( ) | {
+            "return_spacing": ( r"^(\s*return) +(\S)", r"\1  \2", "return must be followed by exactly 2 spaces" )
+        }
+
+    def run( self ):
+        super( ).run( )
+        self._return_spacing( )
+        return  self.content
+
+    def _return_spacing( self ):
+        rule = self.m_rules[ "return_spacing" ]
+        self._apply( rule[ 0 ], rule[ 1 ], rule[ 2 ], flags = re.MULTILINE )
 
 
-if __name__ == "__main__":
-    run_mcp_tool( run_code_verifier )
+def run_python_verifier( params: dict ) -> str:
+    return  run_verifier( params, formatter, "py", "python" )
