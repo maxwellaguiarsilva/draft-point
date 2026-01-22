@@ -88,8 +88,8 @@ class formatter:
             content_to_check = parts[ 1 ] if len( parts ) > 1 else ""
 
         #   ideal header
-        model = template( "file-header", comment_string = "#   " )
-        ideal_header = model.render( file_info.get_info( self.file_path ) ).strip( " \n\r" )
+        model = template( "file-header" )
+        ideal_header = model.render( file_info.get_info( self.file_path ) | { "comment_string": "#   " } ).strip( " \n\r" )
         
         #   extract actual header
         parts = content_to_check.lstrip( "\n" ).split( "\n\n", 1 )

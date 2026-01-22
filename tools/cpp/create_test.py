@@ -64,10 +64,11 @@ def run_create_test( params ):
 
     file_path = f"{tests_dir}/{rel_path}"
 
-    return  template( "cpp/test-cpp", comment_string = default_cpp_config[ "language" ][ "comment_string" ] ).create_file( 
+    return  template( "cpp/test-cpp" ).create_file( 
          file_path
         ,{
-             "hierarchy": hierarchy
+             "comment_string": default_cpp_config[ "language" ][ "comment_string" ]
+            ,"hierarchy": hierarchy
             ,"include_list": params.get( "include_list", [ ] )
         }
     )

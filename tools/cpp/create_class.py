@@ -37,10 +37,11 @@ def run_create_class( params ):
     hierarchy_list = parse_hierarchy( params[ "class_hierarchy" ] )
     rel_path = "/".join( hierarchy_list )
 
-    message +=  template( "cpp/class-hpp", comment_string = default_cpp_config[ "language" ][ "comment_string" ] ).create_file( 
+    message +=  template( "cpp/class-hpp" ).create_file( 
          f"{default_cpp_config[ 'paths' ][ 'include' ]}/{rel_path}.{default_cpp_config[ 'language' ][ 'header_extension' ]}"
         ,{
-             "header_guard": f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
+             "comment_string": default_cpp_config[ "language" ][ "comment_string" ]
+            ,"header_guard": f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
             ,"class_name": hierarchy_list[ -1 ]
             ,"include_list": params.get( "include_list", [ ] )
             ,"namespace_list": hierarchy_list[ :-1 ]
@@ -51,9 +52,12 @@ def run_create_class( params ):
     if( params.get( "create_header_only", False ) ):
         return  message
     
-    message +=  template( "cpp/class-cpp", comment_string = default_cpp_config[ "language" ][ "comment_string" ] ).create_file( 
+    message +=  template( "cpp/class-cpp" ).create_file( 
          f"{default_cpp_config[ 'paths' ][ 'source' ]}/{rel_path}.{default_cpp_config[ 'language' ][ 'source_extension' ]}"
-        ,{ "include_list": [ f"{rel_path}.{default_cpp_config[ 'language' ][ 'header_extension' ]}" ] }
+        ,{
+             "comment_string": default_cpp_config[ "language" ][ "comment_string" ]
+            ,"include_list": [ f"{rel_path}.{default_cpp_config[ 'language' ][ 'header_extension' ]}" ]
+        }
     )
 
     return  message

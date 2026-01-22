@@ -42,10 +42,9 @@ r_list_item     =   r"\{\{list_item\s+([a-zA-Z0-9_/-]+)\}\}"
 
 
 class template:
-    def __init__( self, name, path = None, comment_string = None ):
+    def __init__( self, name, path = None ):
         ensure( name != "", "template name cannot be empty" )
         self.path           =   path if path is not None else default_config[ "paths" ][ "templates" ]
-        self.comment_string =   comment_string
         self.text           =   self.load( name )
     
     def load( self, name ):
@@ -60,8 +59,6 @@ class template:
         return  text_file( f"{self.path}/{name}.txt" ).content
 
     def _render_dict( self, data: dict, text: str ) -> str:
-        if self.comment_string:
-            data    =   { "comment_string": self.comment_string } | data
         for key, value in data.items( ):
             if isinstance( value, str ):
                 text    =   text.replace( f"{{{{{key}}}}}", str( value ) )
