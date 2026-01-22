@@ -85,16 +85,25 @@ def run_statistic( params ):
     short_description = params.get( "short-description" )
     
     if name_param:
+        names = [ ]
         if isinstance( name_param, str ):
-            increment_event( data, name_param, short_description )
+            names.append( name_param )
         elif isinstance( name_param, list ):
-            for n in name_param:
-                increment_event( data, n, short_description )
+            names.extend( name_param )
         else:
             ensure( False, "field 'name' must be a string or a list of strings" )
             
+        normalized_names = [ ]
+        for n in names:
+            increment_event( data, n, short_description )
+            normalized_names.append( n.lower( ).strip( ).replace( " ", "-" ) )
+            
         #   save data
         f.write( json.dumps( data, indent="\t" ) )
+        
+        #   filter data to only show incremented events
+        display_data = [ item for item in data if item[ "name" ] in normalized_names ]
+        return  format_output( display_data )
             
     return  format_output( data )
 
