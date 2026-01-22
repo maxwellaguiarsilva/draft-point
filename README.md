@@ -17,14 +17,17 @@ The project implements a **Dispatcher-Script** architecture for its Model Contex
 
 | Tool | Description |
 | :--- | :--- |
-| `create_class` | Generates a C++ class pair (`.hpp`/`.cpp`) with automatic namespaces, license headers, and header guards. |
-| `create_test` | Creates structured tests mapping the source hierarchy or adhoc experiments in `tests/adhoc/`. |
-| `compile` | Orchestrates incremental and parallel builds, analyzing dependencies to minimize compilation time. |
-| `analyze` | Performs exhaustive static analysis (`cppcheck`) and applies automatic formatting fixes to the codebase. |
-| `verify_formatting` | Validates adherence to strict project style rules (newline patterns, bracket spacing, return formatting). |
-| `agent_statistic` | Tracks behavioral metrics and recurring errors to refine agent performance and avoid past mistakes. |
-| `adhoc_tool` | Provides a sandbox for executing experimental logic without modifying the core MCP server. |
-| `quick_upload` | Automates the git workflow (pull, add, commit, and push) for rapid iteration. |
+| `cpp_analyze` | Performs exhaustive static analysis (`cppcheck`) and applies automatic formatting fixes to the codebase. |
+| `cpp_code_verifier` | Validates adherence to strict project style rules for C++ files. |
+| `cpp_compile` | Orchestrates incremental and parallel builds. |
+| `cpp_create_class` | Generates a C++ class pair (`.hpp`/`.cpp`) with automatic namespaces, license headers, and header guards. |
+| `cpp_create_test` | Creates structured tests mapping the source hierarchy or adhoc experiments in `tests/adhoc/`. |
+| `cpp_include_tree` | Displays the include tree of a C++ file. |
+| `git_discard_changes` | Discards all uncommitted changes and removes untracked files. |
+| `git_quick_upload` | Automates the git workflow (pull, add, commit, and push) for rapid iteration. |
+| `llm_adhoc_tool` | Provides a sandbox for executing experimental logic without modifying the core MCP server. |
+| `llm_statistic` | Tracks behavioral metrics and recurring errors to refine agent performance and avoid past mistakes. |
+| `python_code_verifier` | Validates adherence to project style rules for Python files. |
 
 ### Generic Multidimensional Point
 The `sak::point` class is a high-level abstraction for N-dimensional arithmetic.

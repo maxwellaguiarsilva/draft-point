@@ -53,49 +53,28 @@ def _invoke_tool( group: str, name: str, args: Any = None ) -> str:
 
 
 @mcp.tool( )
-def llm_adhoc_tool( params: dict ) -> str:
-    """executes experimental logic defined in tools/adhoc-tool.py
-    this tool is used for prototyping new functionalities
-    the 'params' dictionary is passed to the script
-    """
-    return  _invoke_tool( "llm", "adhoc_tool", params )
+def cpp_analyze( ) -> str:
+    """runs static analysis (cppcheck) and automatically fixes formatting rules
+    beyond checking, it also applies fixes for the rules verified by 'verify_formatting' on all .cpp and .hpp files
+    this command takes no arguments"""
+    return  _invoke_tool( "cpp", "analyze" )
 
 
 @mcp.tool( )
-def llm_statistic( name: Any = None ) -> str:
-    """records or retrieves agent behavioral statistics
-    if 'name' is provided, increments the count for that event ( can be a string or a list of strings )
-    if no arguments are provided, returns the current statistics table
-    this tool accepts a literal call with no arguments
-    if you identify that you have made a mistake that has already been recorded previously, increment the counter
-    this is a support tool to help prioritize attention for repeat offenders
+def cpp_code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
+    """verifies if a list of files follows the project's formatting rules
+    if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
+    returns a consolidated list of violations
+    to verify and process the entire project, prefer the `analyze` tool. the `code_verifier` tool is recommended for a small group of files or just a single file
     """
-    return  _invoke_tool( "llm", "statistic", locals( ).copy( ) )
+    return  _invoke_tool( "cpp", "code_verifier", locals( ).copy( ) )
 
 
 @mcp.tool( )
-def git_quick_upload( message: str ) -> str:
-    """performs a quick git upload: pull, add all, commit with message, and push
-    this tool is intended for simple, non-conflicting changes to increase agility
-    """
-    return  _invoke_tool( "git", "quick_upload", locals( ).copy( ) )
-
-
-@mcp.tool( )
-def git_discard_changes( ) -> str:
-    """discards all uncommitted changes and removes untracked files
-    this tool reverts the repository to the state of the last commit (head)
-    """
-    return  _invoke_tool( "git", "discard_changes" )
-
-
-@mcp.tool( )
-def cpp_include_tree( file_path: str = None ) -> str:
-    """displays the include tree of a c++ file (cpp or hpp)
-    it recursively analyzes includes
-    call this tool without any arguments to use the project's main file
-    """
-    return  _invoke_tool( "cpp", "include_tree", locals( ).copy( ) )
+def cpp_compile( ) -> str:
+    """compiles the project using
+    this command takes no arguments"""
+    return  _invoke_tool( "cpp", "compile" )
 
 
 @mcp.tool( )
@@ -129,28 +108,49 @@ def cpp_create_test(
 
 
 @mcp.tool( )
-def cpp_compile( ) -> str:
-    """compiles the project using
-    this command takes no arguments"""
-    return  _invoke_tool( "cpp", "compile" )
-
-
-@mcp.tool( )
-def cpp_analyze( ) -> str:
-    """runs static analysis (cppcheck) and automatically fixes formatting rules
-    beyond checking, it also applies fixes for the rules verified by 'verify_formatting' on all .cpp and .hpp files
-    this command takes no arguments"""
-    return  _invoke_tool( "cpp", "analyze" )
-
-
-@mcp.tool( )
-def cpp_code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:
-    """verifies if a list of files follows the project's formatting rules
-    if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
-    returns a consolidated list of violations
-    to verify and process the entire project, prefer the `analyze` tool. the `code_verifier` tool is recommended for a small group of files or just a single file
+def cpp_include_tree( file_path: str = None ) -> str:
+    """displays the include tree of a c++ file (cpp or hpp)
+    it recursively analyzes includes
+    call this tool without any arguments to use the project's main file
     """
-    return  _invoke_tool( "cpp", "code_verifier", locals( ).copy( ) )
+    return  _invoke_tool( "cpp", "include_tree", locals( ).copy( ) )
+
+
+@mcp.tool( )
+def git_discard_changes( ) -> str:
+    """discards all uncommitted changes and removes untracked files
+    this tool reverts the repository to the state of the last commit (head)
+    """
+    return  _invoke_tool( "git", "discard_changes" )
+
+
+@mcp.tool( )
+def git_quick_upload( message: str ) -> str:
+    """performs a quick git upload: pull, add all, commit with message, and push
+    this tool is intended for simple, non-conflicting changes to increase agility
+    """
+    return  _invoke_tool( "git", "quick_upload", locals( ).copy( ) )
+
+
+@mcp.tool( )
+def llm_adhoc_tool( params: dict ) -> str:
+    """executes experimental logic defined in tools/llm/adhoc_tool.py
+    this tool is used for prototyping new functionalities
+    the 'params' dictionary is passed to the script
+    """
+    return  _invoke_tool( "llm", "adhoc_tool", params )
+
+
+@mcp.tool( )
+def llm_statistic( name: Any = None ) -> str:
+    """records or retrieves agent behavioral statistics
+    if 'name' is provided, increments the count for that event ( can be a string or a list of strings )
+    if no arguments are provided, returns the current statistics table
+    this tool accepts a literal call with no arguments
+    if you identify that you have made a mistake that has already been recorded previously, increment the counter
+    this is a support tool to help prioritize attention for repeat offenders
+    """
+    return  _invoke_tool( "llm", "statistic", locals( ).copy( ) )
 
 
 @mcp.tool( )
