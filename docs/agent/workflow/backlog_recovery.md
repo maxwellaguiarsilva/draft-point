@@ -22,7 +22,7 @@ This workflow is purely documental. No changes to the source code (`source/` or 
 2.  **History Analysis:** Use `git log` and `git show` to analyze the changes for the specific day.
 3.  **Report Generation:** Create the `docs/analyses/YYYY-MM-DD.md` file in `en-us` using the template defined in `head.md`.
 4.  **Checklist Update:** Mark the date as completed `[x]` in the `head.md` file.
-5.  **Statistic Registration:** Call the `agent_statistic` tool with `name="success"`.
+5.  **Statistic Registration:** Call the `llm_statistic` tool with `name="success"`.
 
 ---
 

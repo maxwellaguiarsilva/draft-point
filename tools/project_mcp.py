@@ -58,7 +58,7 @@ tool_registry = [
          "name": "analyze"
         ,"group": "cpp"
         ,"description": """runs static analysis (cppcheck) and automatically fixes formatting rules
-beyond checking, it also applies fixes for the rules verified by 'verify_formatting' on all .cpp and .hpp files
+beyond checking, it also applies fixes for the rules verified by 'cpp_code_verifier' on all .cpp and .hpp files
 this command takes no arguments"""
         ,"parameters": [ ]
     }
@@ -68,7 +68,7 @@ this command takes no arguments"""
         ,"description": """verifies if a list of files follows the project's formatting rules
 if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
 returns a consolidated list of violations
-to verify and process the entire project, prefer the `analyze` tool. the `code_verifier` tool is recommended for a small group of files or just a single file"""
+to verify and process the entire project, prefer the `cpp_analyze` tool. the `cpp_code_verifier` tool is recommended for a small group of files or just a single file"""
         ,"parameters": [
              { "name": "files", "type": list[ str ] }
             ,{ "name": "flg_auto_fix", "type": bool, "default": False }
