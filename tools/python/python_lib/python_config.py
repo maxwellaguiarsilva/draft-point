@@ -17,34 +17,22 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/python/python_lib/python_verifier.py
+#   File:   tools/python/python_lib/python_config.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-22 19:00:22
+#   Created on 2026-01-22 19:45:00
 #
 
-import re
-from lib.base_verifier import base_verifier, run_verifier
-from python_lib.python_config import default_python_config
+import copy
+from lib.common import deep_update
+from lib.base_config import default_config
 
 
-class formatter( base_verifier ):
-    def _get_shebang( self ):
-        return  "#!/usr/bin/python3"
+default_python_config = {
+    "language": {
+         "extension": "py"
+        ,"comment_string": "#   "
+    }
+}
 
-    def _get_comment_string( self ):
-        return  default_python_config[ "language" ][ "comment_string" ]
-
-    def _get_rules( self ):
-        return  super( )._get_rules( ) | {
-            "return_spacing": ( r"^(\s*return) +(\S)", r"\1  \2", "return must be followed by exactly 2 spaces" )
-        }
-
-    def run( self ):
-        return  super( ).run( )
-
-
-def run_python_verifier( params: dict ) -> str:
-    return  run_verifier( params, formatter, "py", "python" )
-
-
+default_python_config = deep_update( copy.deepcopy( default_config ), default_python_config )

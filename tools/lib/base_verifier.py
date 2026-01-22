@@ -20,7 +20,7 @@
 #   File:   tools/lib/base_verifier.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-22 19:06:37
+#   Created on 2026-01-22 19:12:03
 #
 
 import re
@@ -60,12 +60,29 @@ class base_verifier:
     def run( self ):
         self._validate_license( )
         self._trailing_newlines( )
+        self.run_rules( )
         return  self.content
 
     def verify( self ):
         self.flg_auto_fix = False
         self.run( )
         return  self.messages
+
+    def run_rules( self ):
+        for name, rule in self._get_rules( ).items( ):
+            if name in [ "newline_2", "newline_3", "trailing_msg", "bracket_ignore", "bracket_fix" ]:
+                continue
+            
+            if isinstance( rule, list ):
+                ignore_pattern = self.m_rules.get( "bracket_ignore" )
+                if ignore_pattern:
+                    self._apply_with_exclusion( rule, ignore_pattern, self.m_rules.get( "bracket_fix" ) )
+                else:
+                    for r in rule:
+                        self._apply( *r )
+            else:
+                flags = re.MULTILINE if "include" in name or "return" in name else 0
+                self._apply( *rule, flags = flags )
 
     def _apply( self, pattern: str, replacement: str, message: str, flags: int = 0 ):
         if self.flg_auto_fix:
@@ -80,6 +97,33 @@ class base_verifier:
                 if old_text != new_text:
                     line_no = self.content.count( "\n", 0, match.start( ) ) + 1
                     self.messages.append( ( line_no, message ) )
+
+    def _apply_with_exclusion( self, rules: list, ignore_pattern: str, fix_message: str = None ):
+        split_index = self.content.find( "\n\n\n" )
+        if split_index == -1:
+            return
+
+        header = self.content[ :split_index + 3 ]
+        body = self.content[ split_index + 3 : ]
+        original_body = body
+
+        for pattern, replacement, message in rules:
+            combined = f"({ignore_pattern})|({pattern})"
+            if self.flg_auto_fix:
+                def sub_func( m ):
+                    if m.group( 1 ): return m.group( 1 )
+                    return  replacement
+                body = re.sub( combined, sub_func, body )
+            else:
+                for match in re.finditer( combined, body ):
+                    if match.group( 1 ): continue
+                    line_no = header.count( "\n" ) + original_body.count( "\n", 0, match.start( ) ) + 1
+                    self.messages.append( ( line_no, message ) )
+
+        if self.flg_auto_fix and body != original_body:
+            self.content = header + body
+            if fix_message:
+                self.messages.append( fix_message )
 
     def _validate_license( self ):
         if not self.file_path:

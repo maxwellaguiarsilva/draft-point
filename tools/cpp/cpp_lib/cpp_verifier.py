@@ -20,7 +20,7 @@
 #   File:   tools/cpp/cpp_lib/cpp_verifier.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-22 13:50:05
+#   Created on 2026-01-22 19:12:03
 #
 
 import re
@@ -57,54 +57,7 @@ class formatter( base_verifier ):
         return  default_cpp_config[ "language" ][ "comment_string" ]
 
     def run( self ):
-        super( ).run( )
-        self._consecutive_newlines( )
-        self._return_spacing( )
-        self._include_spacing( )
-        self._bracket_spacing( )
-        return  self.content
-
-    def _consecutive_newlines( self ):
-        rule = self.m_rules[ "consecutive_newlines" ]
-        self._apply( rule[ 0 ], rule[ 1 ], rule[ 2 ] )
-
-    def _return_spacing( self ):
-        rule = self.m_rules[ "return_spacing" ]
-        self._apply( rule[ 0 ], rule[ 1 ], rule[ 2 ] )
-
-    def _include_spacing( self ):
-        for name in [ "include_no_empty", "include_before", "include_after" ]:
-            rule = self.m_rules[ name ]
-            self._apply( rule[ 0 ], rule[ 1 ], rule[ 2 ], flags = re.MULTILINE )
-
-    def _bracket_spacing( self ):
-        split_index = self.content.find( "\n\n\n" )
-        if split_index == -1:
-            return
-
-        header = self.content[ :split_index + 3 ]
-        body = self.content[ split_index + 3 : ]
-
-        ignore_pattern = self.m_rules[ "bracket_ignore" ]
-        patterns = self.m_rules[ "brackets" ]
-
-        original_body = body
-        for pattern, replacement, message in patterns:
-            combined = f"({ignore_pattern})|({pattern})"
-            if self.flg_auto_fix:
-                def sub_func( m ):
-                    if m.group( 1 ): return m.group( 1 )
-                    return  replacement
-                body = re.sub( combined, sub_func, body )
-            else:
-                for match in re.finditer( combined, body ):
-                    if match.group( 1 ): continue
-                    line_no = header.count( "\n" ) + original_body.count( "\n", 0, match.start( ) ) + 1
-                    self.messages.append( ( line_no, message ) )
-
-        if self.flg_auto_fix and body != original_body:
-            self.content = header + body
-            self.messages.append( self.m_rules[ "bracket_fix" ] )
+        return  super( ).run( )
 
 
 def run_cpp_verifier( params: dict ) -> str:
