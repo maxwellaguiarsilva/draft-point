@@ -13,7 +13,7 @@ The system uses **FastMCP** as the communication interface, but adopts a decoupl
 
 -   **Logic Hot-Reloading:** Since the MCP server calls external scripts, you can modify a script's code (e.g., `tools/cpp/compile.py`) and test the change immediately without needing to restart the FastMCP server.
 -   **Isolation:** Errors in a tool do not bring down the main server.
--   **Validation:** Scripts use `run_mcp_tool` from `lib.common`, which ensures they are called through the MCP mechanism by checking the `MCP_VALID` environment variable. Direct calls from the shell are detected and recorded as violations.
+-   **Validation:** Scripts use `run_mcp_tool` from `lib.common`, which ensures they are called through the MCP mechanism by checking the `MCP_CALL_LOCK` environment variable. Direct calls from the shell are detected and recorded as violations.
 
 ## Philosophy: The MCP-First Mindset
 

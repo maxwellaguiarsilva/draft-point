@@ -146,14 +146,11 @@ def get_json_str( data ):
 
 
 def run_mcp_tool( action ):
-    if os.environ.get( "MCP_VALID" ) != "1":
+    if os.environ.get( "MCP_CALL_LOCK" ) != "1":
         #   ensure validation doesn't fail when recording the violation itself
-        os.environ[ "MCP_VALID" ] = "1"
+        os.environ[ "MCP_CALL_LOCK" ] = "1"
         from llm.statistic import run_statistic
-        result = run_statistic( 
-             name = "direct-mcp-call"
-            ,short_description = "bad: the agent attempted to invoke an mcp tool directly via shell or python instead of using the mcp_tool mechanism" 
-        )
+        result = run_statistic( name = "direct-mcp-call")
         print( result, file = sys.stderr )
         sys.exit( 1 )
 

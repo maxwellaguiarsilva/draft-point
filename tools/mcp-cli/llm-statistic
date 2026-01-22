@@ -2,7 +2,7 @@
 
 
 if [ "$#" -eq 0 ]; then
-    MCP_VALID=1 PYTHONPATH=tools tools/llm/statistic.py "{}"
+    MCP_CALL_LOCK=1 PYTHONPATH=tools tools/llm/statistic.py "{}"
 else
     JSON_NAMES="["
     for arg in "$@"; do
@@ -10,7 +10,7 @@ else
     done
     JSON_NAMES="${JSON_NAMES%,}]"
 
-    MCP_VALID=1 PYTHONPATH=tools tools/llm/statistic.py "$( cat <<-EOF
+    MCP_CALL_LOCK=1 PYTHONPATH=tools tools/llm/statistic.py "$( cat <<-EOF
 { "name": ${JSON_NAMES} }
 EOF
 )"

@@ -47,7 +47,7 @@ def _invoke_tool( group: str, name: str, args: Any = None ) -> str:
     try:
         process = create_process( 
              [ "python3", f"{tools_dir}/{group}/{name}.py", json.dumps( args if args is not None else { } ) ]
-            ,env = os.environ | { "PYTHONPATH" : tools_dir, "MCP_VALID": "1" } 
+            ,env = os.environ | { "PYTHONPATH" : tools_dir, "MCP_CALL_LOCK": "1" } 
         )
         return  f"{name} successful:\n{process.stdout}"
     except Exception as e:
