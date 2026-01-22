@@ -55,18 +55,16 @@ def _invoke_tool( group: str, name: str, args: Any = None ) -> str:
 
 tool_registry = [
     {
-         "mcp_name": "cpp_analyze"
+         "name": "analyze"
         ,"group": "cpp"
-        ,"script": "analyze"
         ,"description": """runs static analysis (cppcheck) and automatically fixes formatting rules
 beyond checking, it also applies fixes for the rules verified by 'verify_formatting' on all .cpp and .hpp files
 this command takes no arguments"""
         ,"parameters": [ ]
     }
     ,{
-         "mcp_name": "cpp_code_verifier"
+         "name": "code_verifier"
         ,"group": "cpp"
-        ,"script": "code_verifier"
         ,"description": """verifies if a list of files follows the project's formatting rules
 if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
 returns a consolidated list of violations
@@ -77,17 +75,15 @@ to verify and process the entire project, prefer the `analyze` tool. the `code_v
         ]
     }
     ,{
-         "mcp_name": "cpp_compile"
+         "name": "compile"
         ,"group": "cpp"
-        ,"script": "compile"
         ,"description": """compiles the project using
 this command takes no arguments"""
         ,"parameters": [ ]
     }
     ,{
-         "mcp_name": "cpp_create_class"
+         "name": "create_class"
         ,"group": "cpp"
-        ,"script": "create_class"
         ,"description": """creates a new c++ class with corresponding .hpp and .cpp files
 the class_hierarchy parameter defines the namespace and class name (e.g., "game/player" creates class 'player' in namespace 'game')
 optional include_list and using_list parameters allow specifying additional headers to include and 'using' declarations to add
@@ -101,9 +97,8 @@ bad example: include_list="<string>", using_list="using std::string;" """
         ]
     }
     ,{
-         "mcp_name": "cpp_create_test"
+         "name": "create_test"
         ,"group": "cpp"
-        ,"script": "create_test"
         ,"description": """creates a new c++ test file
 if flg_adhoc is true, creates an adhoc test in tests/adhoc/nnnn_hierarchy/
 in adhoc mode, 'hierarchy' must be a simple name (no slashes or paths)
@@ -115,9 +110,8 @@ if flg_adhoc is false, creates a structured test in tests/path/test_path_hierarc
         ]
     }
     ,{
-         "mcp_name": "cpp_include_tree"
+         "name": "include_tree"
         ,"group": "cpp"
-        ,"script": "include_tree"
         ,"description": """displays the include tree of a c++ file (cpp or hpp)
 it recursively analyzes includes
 call this tool without any arguments to use the project's main file"""
@@ -126,17 +120,15 @@ call this tool without any arguments to use the project's main file"""
         ]
     }
     ,{
-         "mcp_name": "git_discard_changes"
+         "name": "discard_changes"
         ,"group": "git"
-        ,"script": "discard_changes"
         ,"description": """discards all uncommitted changes and removes untracked files
 this tool reverts the repository to the state of the last commit (head)"""
         ,"parameters": [ ]
     }
     ,{
-         "mcp_name": "git_quick_upload"
+         "name": "quick_upload"
         ,"group": "git"
-        ,"script": "quick_upload"
         ,"description": """performs a quick git upload: pull, add all, commit with message, and push
 this tool is intended for simple, non-conflicting changes to increase agility"""
         ,"parameters": [
@@ -144,9 +136,8 @@ this tool is intended for simple, non-conflicting changes to increase agility"""
         ]
     }
     ,{
-         "mcp_name": "llm_adhoc_tool"
+         "name": "adhoc_tool"
         ,"group": "llm"
-        ,"script": "adhoc_tool"
         ,"description": """executes experimental logic defined in tools/llm/adhoc_tool.py
 this tool is used for prototyping new functionalities
 the 'params' dictionary is passed to the script"""
@@ -155,9 +146,8 @@ the 'params' dictionary is passed to the script"""
         ]
     }
     ,{
-         "mcp_name": "llm_statistic"
+         "name": "statistic"
         ,"group": "llm"
-        ,"script": "statistic"
         ,"description": """records or retrieves agent behavioral statistics
 if 'name' is provided, increments the count for that event ( can be a string or a list of strings )
 if no arguments are provided, returns the current statistics table
@@ -169,9 +159,8 @@ this is a support tool to help prioritize attention for repeat offenders"""
         ]
     }
     ,{
-         "mcp_name": "python_code_verifier"
+         "name": "code_verifier"
         ,"group": "python"
-        ,"script": "code_verifier"
         ,"description": """verifies if a list of python files follows the project's formatting rules
 if flg_auto_fix is true, allows the tool to attempt to adjust automatically ( false as default )
 returns a consolidated list of violations"""
@@ -183,10 +172,10 @@ returns a consolidated list of violations"""
 ]
 
 
-def create_tool_wrapper( group, script, description, params_def ):
+def create_tool_wrapper( group, name, description, params_def ):
     """creates a function with specific signature for mcp registration"""
     def tool_wrapper( **kwargs ):
-        return  _invoke_tool( group, script, kwargs )
+        return  _invoke_tool( group, name, kwargs )
     
     tool_wrapper.__doc__ = description
     
@@ -195,13 +184,13 @@ def create_tool_wrapper( group, script, description, params_def ):
     sig_params = [ ]
     
     for p in params_def:
-        name = p[ "name" ]
+        name_param = p[ "name" ]
         annotation = p.get( "type", Any )
         default = p.get( "default", inspect.Parameter.empty )
         
-        annotations[ name ] = annotation
+        annotations[ name_param ] = annotation
         sig_params.append( inspect.Parameter( 
-             name
+             name_param
             ,inspect.Parameter.POSITIONAL_OR_KEYWORD
             ,default = default
             ,annotation = annotation
@@ -217,13 +206,13 @@ def create_tool_wrapper( group, script, description, params_def ):
 def register_tools( ):
     """registers tools dynamically using data from tool_registry"""
     for tool_def in tool_registry:
-        mcp_name = tool_def[ "mcp_name" ]
         group = tool_def[ "group" ]
-        script = tool_def[ "script" ]
+        name = tool_def[ "name" ]
+        mcp_name = f"{group}_{name}"
         description = tool_def[ "description" ]
         params_def = tool_def[ "parameters" ]
         
-        wrapper = create_tool_wrapper( group, script, description, params_def )
+        wrapper = create_tool_wrapper( group, name, description, params_def )
         mcp.tool( name = mcp_name )( wrapper )
 
 
