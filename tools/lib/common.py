@@ -154,13 +154,7 @@ def run_mcp_tool( action ):
             ensure( False, run_statistic( name="direct-mcp-call" ) )
         
         params = get_json_args( )
-        sig = inspect.signature( action )
-        
-        #   if the function takes a single argument named 'params', it's the old style
-        if len( sig.parameters ) == 1 and "params" in sig.parameters:
-            print( action( params ) )
-        else:
-            print( action( **params ) )
+        print( action( **params ) )
     except Exception as error:
         print( str( error ), file = sys.stderr )
         sys.exit( 1 )
