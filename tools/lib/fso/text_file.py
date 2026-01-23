@@ -17,45 +17,14 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/lib/fso.py
+#   File:   tools/lib/fso/text_file.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-20 16:05:47
+#   Created on 2026-01-23 15:54:56
 #
 
-import datetime
 import os
-from lib.common import get_json_dict, get_json_str
-
-
-class file:
-    def __init__( self, file_path ):
-        self.path   =   file_path
-    
-    @property
-    def path( self ):
-        return  self.file_path
-
-    @path.setter
-    def path( self, path ):
-        name, extension =   os.path.splitext( os.path.basename( path ) )
-        self.file_path  =   path
-        self.base       =   os.path.dirname( path )
-        self.folder     =   os.path.basename( self.base )
-        self.name       =   name
-        self.extension  =   extension[ 1: ]
-        self.refresh( )
-    
-    def refresh( self ):
-        self.exists =   os.path.exists( self.path )
-        self.modified_at    =   datetime.datetime.fromtimestamp( os.path.getmtime( self.path ) ) if self.exists else None
-
-    @property
-    def json( self ):
-        return  get_json_dict( self, [ "path", "base", "folder", "name", "extension", "exists", "modified_at" ] )
-
-    def __repr__( self ):
-        return  get_json_str( self.json )
+from lib.fso.file import file
 
 
 class text_file( file ):
