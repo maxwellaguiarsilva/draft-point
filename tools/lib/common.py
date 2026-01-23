@@ -146,15 +146,13 @@ def get_json_str( data ):
 
 
 def run_mcp_tool( action ):
-    if os.environ.get( "MCP_CALL_LOCK" ) != "1":
-        #   ensure validation doesn't fail when recording the violation itself
-        os.environ[ "MCP_CALL_LOCK" ] = "1"
-        from llm.statistic import run_statistic
-        result = run_statistic( name="direct-mcp-call" )
-        print( result, file = sys.stderr )
-        sys.exit( 1 )
-
     try:
+        if os.environ.get( "MCP_CALL_LOCK" ) != "1":
+            #   ensure validation doesn't fail when recording the violation itself
+            os.environ[ "MCP_CALL_LOCK" ] = "1"
+            from llm.statistic import run_statistic
+            ensure( False, run_statistic( name="direct-mcp-call" ) )
+        
         params = get_json_args( )
         sig = inspect.signature( action )
         

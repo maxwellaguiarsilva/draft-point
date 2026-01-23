@@ -1,56 +1,67 @@
 # How to Create and Test New MCP Tools
 
-This guide describes the project's Model Context Protocol (MCP) tool architecture and how to use `llm_adhoc_tool` for rapid prototyping.
+This guide describes the project's Model Context Protocol (MCP) tool architecture, which favors dynamic discovery and decoupling for rapid development.
 
 ## Execution Architecture
 
-The system uses **FastMCP** as the communication interface, but adopts a decoupling strategy for greater agility:
+The system uses **FastMCP** as the communication interface, but employs a dispatching strategy to external scripts:
 
-1.  **MCP Server (`tools/project_mcp.py`):** Acts only as a dispatcher. It defines the tool interface and uses `subprocess.run` to execute external Python scripts.
-2.  **Tool Scripts (`tools/{group}/{name}.py`):** Contain the actual tool logic, organized into groups (e.g., `cpp/`, `git/`, `llm/`). They receive parameters via the command line as a JSON string and return the result via `stdout`.
+1.  **Dynamic Discovery Server (`tools/project_mcp.py`):** Scans the `tools/` directory for subdirectories (groups) and Python scripts. It automatically registers each script as an MCP tool.
+2.  **Tool Scripts (`tools/{group}/{name}.py`):** Contain the actual logic. They are executed as independent processes.
+3.  **Metadata Extraction:** The server inspects the `run_{name}` function signature and docstring in each script to define the MCP tool's parameters and description.
 
-### Advantages of this Approach
+### Advantages
 
--   **Logic Hot-Reloading:** Since the MCP server calls external scripts, you can modify a script's code (e.g., `tools/cpp/compile.py`) and test the change immediately without needing to restart the FastMCP server.
--   **Isolation:** Errors in a tool do not bring down the main server.
--   **Validation:** Scripts use `run_mcp_tool` from `lib.common`, which ensures they are called through the MCP mechanism by checking the `MCP_CALL_LOCK` environment variable. Direct calls from the shell are detected and recorded as violations.
+-   **Hot-Reloading:** Logic changes within a script take effect immediately without restarting the MCP server.
+-   **Strong Typing:** MCP parameters are derived directly from Python type hints and default values.
+-   **Security:** The `MCP_CALL_LOCK` environment variable ensures tools are only executed through the authorized MCP interface. Direct shell execution is blocked and recorded as a violation.
 
-## Philosophy: The MCP-First Mindset
+## Tool Development Workflow
 
-The goal of this architecture is to minimize friction and maximize the agent's high-level autonomy.
+### 1. Create the Script
+Place your new tool in the appropriate group directory. The file name determines the tool name suffix.
+Example: `tools/cpp/my_tool.py` will be registered as `cpp_my_tool`.
 
-1.  **Prefer Abstractions over Manual Labor:** If a task involves repetitive steps, complex logic, or orchestrating multiple entities, do not default to manual terminal commands. Instead, think: "Can this be an MCP tool?".
-2.  **Avoid the "Bash Loop" Anti-pattern:** Using the terminal to iterate over files (e.g., `for f in ...; do tool $f; done`) is a sign that the tool's interface is too low-level. The tool should handle the complexity (e.g., accepting a list of files), not the user/agent via terminal.
-3.  **The Agent as a Tool-Builder:** When you encounter a limitation in existing tools, use `llm_adhoc_tool` to prototype a better interface. You are responsible for evolving the project's capabilities to be more robust and less error-prone.
-4.  **Hot-Reloading for Rapid Iteration:** Leverage the decoupling between the MCP server and Python scripts. You can refine logic in real-time. Use this to arrive at robust, production-quality tools without constant server restarts.
+### 2. Implement the Logic
+The script must follow these conventions:
+-   Define a function named `run_{name}` (e.g., `run_my_tool`).
+-   Use type hints and default values for parameters.
+-   Provide a docstring for the tool description.
+-   Return a `str`.
+-   Call `run_mcp_tool` in the `if __name__ == "__main__":` block.
+
+```python
+from lib.common import run_mcp_tool
+
+def run_my_tool( name: str, count: int = 1 ) -> str:
+    """description of what the tool does
+    it will be displayed in the mcp interface"""
+    return  f"hello {name}, " * count
+
+if __name__ == "__main__":
+    run_mcp_tool( run_my_tool )
+```
+
+### 3. Register and Restart
+Structural changes require restarting the MCP server (ask the user to restart if running in the Gemini CLI).
+**Restart is mandatory when:**
+-   Creating a new tool file.
+-   Renaming a file or the `run_` function.
+-   Changing the function signature (adding/removing parameters, changing types).
+-   Updating the docstring.
 
 ## Prototyping with `llm_adhoc_tool`
 
-The `llm_adhoc_tool` is a special tool designed to allow the agent to write and test experimental logic in real-time.
+For experimental logic, use `tools/llm/adhoc_tool.py`. This avoids the need for constant registration/restarts during the early stages of a new feature.
 
-### Adhoc Development Cycle
+1.  Modify `tools/llm/adhoc_tool.py` with your experimental code.
+2.  Invoke it via the `llm_adhoc_tool` MCP command.
+3.  Once the logic is stable, migrate it to a permanent script following the steps above.
 
-1.  **Write:** Modify the `tools/llm/adhoc_tool.py` file with the desired experimental logic.
-2.  **Test:** Call the `llm_adhoc_tool(params={...})` MCP tool.
-3.  **Validate:** The server executes the script and returns the result for conceptual validation.
+## Best Practices
 
-### Usage Example
+1.  **Reuse Utilities:** Use `tools/lib/common.py` for common tasks like `ensure`, `validate_params`, `create_process`, and `get_cpu_count`.
+2.  **Explicit Imports:** The `PYTHONPATH` is set to include `tools/` and the script's own group directory. You can import group-specific libraries (e.g., `from cpp_lib.project_core import ...`).
+3.  **No Chitchat:** Tools should return concise, actionable information. Use `print` within the `run_` function (which `run_mcp_tool` captures and returns).
+4.  **Error Handling:** Use `ensure` with clear messages. `run_mcp_tool` will catch these and return them via `stderr`.
 
-If you need to test new string processing:
-
-1.  Modify `tools/llm/adhoc_tool.py`:
-    ```python
-    def run_adhoc_tool( params ):
-        text = params.get( "text", "" )
-        return  f"processed: {text.upper( )}"
-    ```
-2.  Invoke via MCP:
-    `llm_adhoc_tool(params={"text": "hello world"})`
-
-## Production Migration
-
-After validating a new feature via `llm_adhoc_tool`, the migration procedure is:
-
-1.  **Extract Logic:** Move the tested logic to a definitive script in the appropriate group directory (e.g., `tools/cpp/my_new_tool.py`).
-2.  **Register on Server:** Add the new `@mcp.tool()` to the `tools/project_mcp.py` file.
-3.  **Restart Server:** **Mandatory.** Unlike script logic, changes to the server structure (new tools or signature changes) require restarting the MCP server process so that the client (Gemini CLI) recognizes the new capabilities. Ask the user to restart the server after registration.
