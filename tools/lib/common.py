@@ -150,7 +150,7 @@ def run_mcp_tool( action ):
         #   ensure validation doesn't fail when recording the violation itself
         os.environ[ "MCP_CALL_LOCK" ] = "1"
         from llm.statistic import run_statistic
-        result = run_statistic( name = "direct-mcp-call")
+        result = run_statistic( name="direct-mcp-call" )
         print( result, file = sys.stderr )
         sys.exit( 1 )
 

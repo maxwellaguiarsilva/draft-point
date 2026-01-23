@@ -46,36 +46,23 @@ def format_output( data ):
     return  "\n".join( lines )
 
 
-def increment_event( data, name, short_description ):
+def increment_event( data, name ):
     #   normalize name: lower, trim, spaces to hyphens
     name = name.lower( ).strip( ).replace( " ", "-" )
-    
-    if short_description:
-        short_description = short_description.lower( ).strip( )
-        ensure( "." not in short_description, "short-description cannot contain periods ('.')" )
     
     #   find entry
     entry = next( ( item for item in data if item[ "name" ] == name ), None )
     
     if entry:
         entry[ "count" ] += 1
-        if short_description:
-            entry[ "short-description" ] = short_description
     else:
-        ensure( short_description, f"entry '{name}' does not exist" )
-        
-        new_entry = {
-            "name": name,
-            "short-description": short_description,
-            "count": 1
-        }
-        data.append( new_entry )
+        ensure( False, f"entry '{name}' does not exist" )
 
 
 from typing import Any
 
 
-def run_statistic( name: Any = None, short_description: str = None ) -> str:
+def run_statistic( name: Any = None ) -> str:
     """records or retrieves agent behavioral statistics
 if 'name' is provided, increments the count for that event ( can be a string or a list of strings )
 if no arguments are provided, returns the current statistics table
@@ -101,7 +88,7 @@ this is a support tool to help prioritize attention for repeat offenders"""
             
         normalized_names = [ ]
         for n in names:
-            increment_event( data, n, short_description )
+            increment_event( data, n )
             normalized_names.append( n.lower( ).strip( ).replace( " ", "-" ) )
             
         #   save data

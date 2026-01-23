@@ -33,7 +33,7 @@ this tool reverts the repository to the state of the last commit (head)"""
     create_process( [ "git", "reset", "--hard", "HEAD" ] )
     create_process( [ "git", "clean", "-fd" ] )
     
-    stats_result = run_statistic( { "name": "success" } ) 
+    stats_result = run_statistic( "success" ) 
     
     return  f"`{stats_result}`\n\nall uncommitted changes have been discarded and untracked files removed"
 
