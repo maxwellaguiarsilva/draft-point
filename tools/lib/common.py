@@ -128,10 +128,10 @@ def get_json_args( ):
     return  params
 
 
-def get_json_dict( obj, members ):
+def to_dict( obj, members ):
     def to_json( value ):
-        if hasattr( value, "json" ):
-            return  value.json
+        if hasattr( value, "to_dict" ):
+            return  value.to_dict
         if isinstance( value, dict ):
             return  { key: to_json( val ) for key, val in value.items( ) }
         if isinstance( value, list ):
@@ -141,7 +141,7 @@ def get_json_dict( obj, members ):
     return  { member: to_json( getattr( obj, member ) ) for member in members }
 
 
-def get_json_str( data ):
+def to_json( data ):
     return  json.dumps( data, indent = 4, default = str )
 
 

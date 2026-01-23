@@ -24,7 +24,7 @@
 #
 
 from lib.fso import text_file, file
-from lib.common import get_json_dict, get_json_str
+from lib.common import to_dict, to_json
 import re
 import os
 import glob
@@ -73,8 +73,8 @@ class project_file( text_file ):
         return  max( [ self.modified_at ] + [ dep.modified_at for dep in self.dependencies ], default = self.modified_at )
 
     @property
-    def json( self ):
-        return  super( ).json | get_json_dict( self, [ "hierarchy", "includes", "dependencies_modified_at" ] )
+    def to_dict( self ):
+        return  super( ).to_dict | to_dict( self, [ "hierarchy", "includes", "dependencies_modified_at" ] )
 
 
 
@@ -128,8 +128,8 @@ class cpp( project_file ):
         ]
 
     @property
-    def json( self ):
-        return  super( ).json | get_json_dict( self, [ "is_main", "is_test", "compiled_at", "is_compilation_needed", "is_linkage_needed", "link_list" ] )
+    def to_dict( self ):
+        return  super( ).to_dict | to_dict( self, [ "is_main", "is_test", "compiled_at", "is_compilation_needed", "is_linkage_needed", "link_list" ] )
 
 
 class project_model:
@@ -219,11 +219,11 @@ class project_model:
         return  f"{next_counter:04d}"
 
     @property
-    def json( self ):
-        return  get_json_dict( self, [ "files" ] )
+    def to_dict( self ):
+        return  to_dict( self, [ "files" ] )
 
     def __repr__( self ):
-        return  get_json_str( self.json )
+        return  to_json( self.to_dict )
                                       
 
 if __name__ == "__main__":

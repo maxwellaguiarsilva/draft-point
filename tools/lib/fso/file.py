@@ -25,7 +25,7 @@
 
 import datetime
 import os
-from lib.common import get_json_dict, get_json_str
+from lib.common import to_dict, to_json
 
 
 class file:
@@ -47,14 +47,14 @@ class file:
         self.refresh( )
     
     def refresh( self ):
-        self.exists =   os.path.exists( self.path )
+        self.exists         =   os.path.exists( self.path )
         self.modified_at    =   datetime.datetime.fromtimestamp( os.path.getmtime( self.path ) ) if self.exists else None
 
     @property
-    def json( self ):
-        return  get_json_dict( self, [ "path", "base", "folder", "name", "extension", "exists", "modified_at" ] )
+    def to_dict( self ):
+        return  to_dict( self, { "path", "base", "folder", "name", "extension", "exists", "modified_at" } )
 
     def __repr__( self ):
-        return  get_json_str( self.json )
+        return  to_json( self.to_dict )
 
 

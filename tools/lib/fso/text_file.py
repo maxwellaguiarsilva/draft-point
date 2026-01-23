@@ -31,17 +31,18 @@ class text_file( file ):
     #   do not display self.content in __repr__ or json
 
     def __init__( self, file_path ):
+        self.content    =   None
         super( ).__init__( file_path )
     
     def refresh( self ):
-        self.content    =   self.read( )
+        super( ).refresh( )
+        self.read( )
     
     def read( self ):
-        super( ).refresh( )
         if self.exists:
             with open( self.path, "r" ) as f:
-                return  f.read( )
-        return  None
+                self.content    =   f.read( )
+        return  self.content
     
     def write( self, content ):
         os.makedirs( os.path.dirname( self.path ), exist_ok=True )
