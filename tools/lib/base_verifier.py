@@ -24,11 +24,25 @@
 #
 
 import re
+from dataclasses import dataclass, field
 from lib.common import ensure, validate_params
 from lib.fso import text_file
 from lib import file_info
 from lib.template import template
 
+
+
+@dataclass
+class rule:
+    pattern: str
+    replacement: str
+    message: str
+    flags: int = 0
+    is_exclusive: bool = False
+    description: str = ""
+
+    def __post_init__( self ):
+        re.compile( self.pattern, flags = self.flags )
 
 
 class base_verifier:
@@ -69,36 +83,39 @@ class base_verifier:
         return  self.messages
 
     def run_rules( self ):
-        for name, rule in self._get_rules( ).items( ):
-            if name in [ "newline_2", "newline_3", "trailing_msg", "bracket_ignore", "bracket_fix" ]:
-                continue
-            
-            if isinstance( rule, list ):
-                ignore_pattern = self.m_rules.get( "bracket_ignore" )
-                if ignore_pattern:
-                    self._apply_with_exclusion( rule, ignore_pattern, self.m_rules.get( "bracket_fix" ) )
-                else:
-                    for r in rule:
-                        self._apply( *r )
-            else:
-                flags = re.MULTILINE if "include" in name or "return" in name else 0
-                self._apply( *rule, flags = flags )
+        ignore_pattern = self.m_rules.get( "bracket_ignore" )
+        fix_message = self.m_rules.get( "bracket_fix" )
 
-    def _apply( self, pattern: str, replacement: str, message: str, flags: int = 0 ):
+        for name, item in self.m_rules.items( ):
+            if not isinstance( item, ( rule, list ) ):
+                continue
+
+            if isinstance( item, list ):
+                if ignore_pattern:
+                    self._apply_with_exclusion( item, ignore_pattern, fix_message )
+                else:
+                    for r in item:
+                        self._apply( r )
+            elif item.is_exclusive and ignore_pattern:
+                self._apply_with_exclusion( [ item ], ignore_pattern, fix_message )
+            else:
+                self._apply( item )
+
+    def _apply( self, rule_obj: rule ):
         if self.flg_auto_fix:
-            new_content = re.sub( pattern, replacement, self.content, flags = flags )
+            new_content = re.sub( rule_obj.pattern, rule_obj.replacement, self.content, flags = rule_obj.flags )
             if new_content != self.content:
                 self.content = new_content
-                self.messages.append( message )
+                self.messages.append( rule_obj.message )
         else:
-            for match in re.finditer( pattern, self.content, flags = flags ):
+            for match in re.finditer( rule_obj.pattern, self.content, flags = rule_obj.flags ):
                 old_text = match.group( 0 )
-                new_text = re.sub( pattern, replacement, old_text, flags = flags )
+                new_text = re.sub( rule_obj.pattern, rule_obj.replacement, old_text, flags = rule_obj.flags )
                 if old_text != new_text:
                     line_no = self.content.count( "\n", 0, match.start( ) ) + 1
-                    self.messages.append( ( line_no, message ) )
+                    self.messages.append( ( line_no, rule_obj.message ) )
 
-    def _apply_with_exclusion( self, rules: list, ignore_pattern: str, fix_message: str = None ):
+    def _apply_with_exclusion( self, rules: list[ rule ], ignore_pattern: str, fix_message: str = None ):
         split_index = self.content.find( "\n\n\n" )
         if split_index == -1:
             return
@@ -107,18 +124,18 @@ class base_verifier:
         body = self.content[ split_index + 3 : ]
         original_body = body
 
-        for pattern, replacement, message in rules:
-            combined = f"({ignore_pattern})|({pattern})"
+        for rule_obj in rules:
+            combined = f"({ignore_pattern})|({rule_obj.pattern})"
             if self.flg_auto_fix:
                 def sub_func( m ):
                     if m.group( 1 ): return m.group( 1 )
-                    return  replacement
-                body = re.sub( combined, sub_func, body )
+                    return  rule_obj.replacement
+                body = re.sub( combined, sub_func, body, flags = rule_obj.flags )
             else:
-                for match in re.finditer( combined, body ):
+                for match in re.finditer( combined, body, flags = rule_obj.flags ):
                     if match.group( 1 ): continue
                     line_no = header.count( "\n" ) + original_body.count( "\n", 0, match.start( ) ) + 1
-                    self.messages.append( ( line_no, message ) )
+                    self.messages.append( ( line_no, rule_obj.message ) )
 
         if self.flg_auto_fix and body != original_body:
             self.content = header + body

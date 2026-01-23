@@ -24,7 +24,7 @@
 #
 
 import re
-from lib.base_verifier import base_verifier, run_verifier
+from lib.base_verifier import base_verifier, run_verifier, rule
 from python_lib.python_config import default_python_config
 
 
@@ -37,7 +37,7 @@ class formatter( base_verifier ):
 
     def _get_rules( self ):
         return  super( )._get_rules( ) | {
-            "return_spacing": ( r"^(\s*return) +(\S)", r"\1  \2", "return must be followed by exactly 2 spaces" )
+            "return_spacing": rule( r"^(\s*return) +(\S)", r"\1  \2", "return must be followed by exactly 2 spaces", flags = re.MULTILINE )
         }
 
     def run( self ):

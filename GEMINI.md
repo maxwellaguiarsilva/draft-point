@@ -11,6 +11,7 @@ To assist in this task, there are some mcp tools available, and the code generat
 Consult the `llm_statistic` tool to learn from and avoid behavioral and formatting errors committed in the past.
 In this project there is a lot of counterintuitive information and code.
 Relying on these notes, models and tools saves tokens in the context of the LLM and time, which will not be wasted on repeatedly checking subjects already tested in the past. A good example is the formatting patterns inherent to language models mentioned in this document.
+
 In code files, we will not use capital letters, except in:
 -   The header with the license and information of the current file.
 -   Consumption of code and external libraries to this project that require not following its standards.

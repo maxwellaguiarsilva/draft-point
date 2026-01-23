@@ -24,7 +24,7 @@
 #
 
 import re
-from lib.base_verifier import base_verifier, run_verifier
+from lib.base_verifier import base_verifier, run_verifier, rule
 from cpp_lib.cpp_config import default_cpp_config
 
 
@@ -38,18 +38,18 @@ class formatter( base_verifier ):
         rules = super( )._get_rules( )
         nl3 = rules[ "newline_3" ]
         return  rules | {
-             "consecutive_newlines": ( r"\n{4,}", nl3, "too many consecutive empty lines (maximum 2 allowed)" )
-            ,"return_spacing": ( r"([ \t])return\b(?![ \t]*;)[ \t]*", r"\1return\1", "return must be followed by exactly one space or tab (matching the preceding indentation character)" )
-            ,"include_no_empty": ( r"(^#include\s+.*)\n(?:[ \t]*\n)+(?=#include\s+.*)", r"\1\n", "include directives must not be separated by empty lines" )
-            ,"include_before": ( r"^((?!#include).+)\n+(#include\s+.*)", r"\1" + nl3 + r"\2", "there must be exactly two empty lines before the first include" )
-            ,"include_after": ( r"(^#include\s+.*)\n+((?!#include).+)", r"\1" + nl3 + r"\2", "there must be exactly two empty lines after the last include" )
+             "consecutive_newlines": rule( r"\n{4,}", nl3, "too many consecutive empty lines (maximum 2 allowed)" )
+            ,"return_spacing": rule( r"([ \t])return\b(?![ \t]*;)[ \t]*", r"\1return\1", "return must be followed by exactly one space or tab (matching the preceding indentation character)" )
+            ,"include_no_empty": rule( r"(^#include\s+.*)\n(?:[ \t]*\n)+(?=#include\s+.*)", r"\1\n", "include directives must not be separated by empty lines", flags = re.MULTILINE )
+            ,"include_before": rule( r"^((?!#include).+)\n+(#include\s+.*)", r"\1" + nl3 + r"\2", "there must be exactly two empty lines before the first include", flags = re.MULTILINE )
+            ,"include_after": rule( r"(^#include\s+.*)\n+((?!#include).+)", r"\1" + nl3 + r"\2", "there must be exactly two empty lines after the last include", flags = re.MULTILINE )
             ,"bracket_ignore": bracket_ignore
             ,"bracket_fix": bracket_fix
             ,"brackets": [
-                 ( r"\((?![ \t\n\)])", r"( ", "missing space after '('" )
-                ,( r"(?<![ \t\n\(])\)", r" )", "missing space before ')'" )
-                ,( r"\[(?![ \t\n\]])", r"[ ", "missing space after '['" )
-                ,( r"(?<![ \t\n\[])\]", r" ]", "missing space before ']'" )
+                 rule( r"\((?![ \t\n\)])", r"( ", "missing space after '('" )
+                ,rule( r"(?<![ \t\n\(])\)", r" )", "missing space before ')'" )
+                ,rule( r"\[(?![ \t\n\]])", r"[ ", "missing space after '['" )
+                ,rule( r"(?<![ \t\n\[])\]", r" ]", "missing space before ']'" )
             ]
         }
 
