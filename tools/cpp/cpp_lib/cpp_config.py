@@ -20,7 +20,7 @@
 #   File:   tools/cpp/cpp_lib/cpp_config.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-16 17:38:37
+#   Created on 2026-01-22 19:12:03
 #
 
 import os
@@ -35,28 +35,12 @@ default_cpp_config = {
         "executable": "clang++"        #   options: "g++", "clang++" or full path
         ,"standard": "c++23"           #   examples: "c++17", "c++20", "c++23"
         ,"use_64_bits": True           #   abstraction for -m64 (64-bit)
-        ,"extra_compile_flags": [
-             "-ffunction-sections"     #   place each function into its own section
-            ,"-fdata-sections"         #   place each data item into its own section
-            ,"-flto"                   #   enable link time optimization
-        ]
-        ,"extra_link_flags": [
-            "-flto"                    #   enable link time optimization during linking
-        ]
-        ,"linker_direct_options": [
-            "--as-needed"              #   only link libraries that satisfy undefined symbols
-            ,"--gc-sections"           #   remove unused sections (dead code elimination)
-        ]
     }
 
     #   build rules (how to compile)
     ,"build_behavior": {
         #   options: "none" (-O0), "balanced" (-O2), "aggressive" (-O3), "debug" (-Og)
-        "optimization": "balanced"
-        ,"debug_symbols": False         #   generates symbols for gdb (-g)
-        ,"generate_dependencies": False #   generates .d files (intelligent recompilation)
-        ,"experimental_library": True   #   enables -fexperimental-library
-        ,"max_threads": get_cpu_count( )
+         "experimental_library": True   #   enables -fexperimental-library
     }
 
     #   quality control (warning and analysis flags)
@@ -101,7 +85,36 @@ default_cpp_config = {
     }
 }
 
+
+cpp_release_config  =   {
+    
+    #   compiler information
+    "compiler": {
+        "extra_compile_flags": [
+             "-ffunction-sections"     #   place each function into its own section
+            ,"-fdata-sections"         #   place each data item into its own section
+            ,"-flto"                   #   enable link time optimization
+        ]
+        ,"extra_link_flags": [
+            "-flto"                    #   enable link time optimization during linking
+        ]
+        ,"linker_direct_options": [
+            "--as-needed"              #   only link libraries that satisfy undefined symbols
+            ,"--gc-sections"           #   remove unused sections (dead code elimination)
+        ]
+    }
+    
+    #   build rules (how to compile)
+    ,"build_behavior": {
+        #   options: "none" (-O0), "balanced" (-O2), "aggressive" (-O3), "debug" (-Og)
+        "optimization": "balanced"
+        ,"debug_symbols": False         #   generates symbols for gdb (-g)
+        ,"generate_dependencies": False #   generates .d files (intelligent recompilation)
+    }
+}
+
+
 #   the cpp config performs a deep_update on the generic config
-default_cpp_config = deep_update( copy.deepcopy( default_config ), default_cpp_config )
+default_cpp_config = deep_update( deep_update( copy.deepcopy( default_config ), default_cpp_config ), cpp_release_config )
 
 

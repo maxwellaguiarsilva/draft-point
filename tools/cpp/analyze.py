@@ -45,7 +45,7 @@ this command takes no arguments"""
     print_line( )
     core.print( f"checking code formatting for {len(files_to_check)} files..." )
     
-    max_workers = core.config[ "build_behavior" ].get( "max_threads", get_cpu_count( ) )
+    max_workers = core.config.get( "max_threads", get_cpu_count( ) )
 
     fmt_params = {
          "files": files_to_check

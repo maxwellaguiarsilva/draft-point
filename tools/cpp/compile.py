@@ -49,7 +49,7 @@ this command takes no arguments"""
         os.makedirs( os.path.dirname( c.object.path ), exist_ok = True )
 
     #   3. parallel compilation
-    max_workers = core.config[ "build_behavior" ].get( "max_threads", get_cpu_count( ) )
+    max_workers = core.config.get( "max_threads", get_cpu_count( ) )
     core.print( f"\ncompiling {len(all_cpps)} files using {max_workers} threads..." )
     
     with concurrent.futures.ThreadPoolExecutor( max_workers = max_workers ) as executor:

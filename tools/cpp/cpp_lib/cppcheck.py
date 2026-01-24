@@ -43,7 +43,7 @@ class cppcheck:
             ,"--inline-suppr"
             ,f"--std={config[ 'compiler' ][ 'standard' ]}"
             ,"--error-exitcode=1"
-            ,f"-j {config[ 'build_behavior' ][ 'max_threads' ]}"
+            ,f"-j {config[ 'max_threads' ]}"
         ]
         
         params.append( f"--check-level={analysis_config[ 'strictness' ]}" )

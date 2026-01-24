@@ -20,15 +20,16 @@
 #   File:   tools/lib/base_config.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-22 19:06:37
+#   Created on 2026-01-22 19:12:03
 #
 
 from lib.common import get_cpu_count, deep_update
 
 
 default_config = {
+    "max_threads": get_cpu_count( )
     #   folder organization
-    "paths": {
+    ,"paths": {
          "tools": "tools"              #   project tools directory
         ,"docs": "docs"                #   project documentation directory
         ,"templates": "docs/templates" #   project templates directory
