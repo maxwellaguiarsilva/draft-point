@@ -90,22 +90,17 @@ def create_process( command, **kwargs ):
     try:
         return  subprocess.run( command, **params )
     except subprocess.CalledProcessError as e:
-        error_msg = get_process_text( e ).strip( )
-        if not error_msg:
-             error_msg = str( e )
-             
-        cmd_str = ' '.join( e.cmd ) if isinstance( e.cmd, list ) else str( e.cmd )
-        raise Exception( f"failed at command: {cmd_str}\nerror: {error_msg}" ) from None
+        error_msg = get_process_text( e ).strip( ) or str( e )
+        cmd_str = " ".join( e.cmd ) if isinstance( e.cmd, list ) else str( e.cmd )
+        raise   Exception( f"failed at command: {cmd_str}\nerror: {error_msg}" ) from None
 
 
 def get_process_text( result ):
-    return  ( ( result.stderr or "" ).rstrip( "\n" ) + "\n" + ( result.stdout or "" ).rstrip( "\n" ) ).strip( "\n" )
+    return  "\n".join( [ result.stderr or "", result.stdout or "" ] )
 
 
 def print_line( strong = True ):
-    line_size = 50
-    char = "=" if strong else "-"
-    print( char * line_size )
+    print( ( "=" if strong else "-" ) * 50 )
 
 
 def get_json_args( ):
