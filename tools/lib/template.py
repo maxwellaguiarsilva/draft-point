@@ -23,11 +23,12 @@
 #   Created on 2026-01-18 15:27:14
 #
 
+
 import re
 import os
 
 
-from lib.base_config import project_config
+from lib.project_config import project_config
 from lib.common import ensure
 from lib.fso import text_file
 from lib import file_info

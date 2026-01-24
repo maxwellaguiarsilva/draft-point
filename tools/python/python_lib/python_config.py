@@ -20,12 +20,13 @@
 #   File:   tools/python/python_lib/python_config.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-22 19:45:00
+#   Created on 2026-01-22 19:40:18
 #
+
 
 import copy
 from lib.common import deep_update
-from lib.base_config import project_config
+from lib.project_config import project_config
 
 
 project_python_config = {
@@ -36,3 +37,5 @@ project_python_config = {
 }
 
 project_python_config = deep_update( copy.deepcopy( project_config ), project_python_config )
+
+

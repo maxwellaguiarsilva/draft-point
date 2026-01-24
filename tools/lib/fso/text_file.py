@@ -20,8 +20,9 @@
 #   File:   tools/lib/fso/text_file.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-23 15:54:56
+#   Created on 2026-01-23 15:56:51
 #
+
 
 import os
 from lib.fso.file import file

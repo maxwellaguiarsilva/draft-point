@@ -17,29 +17,38 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/git/discard_changes.py
+#   File:   tools/python/analyze.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-16 22:34:01
+#   Created on 2026-01-24 15:49:53
 #
 
 
-from lib.common import run_mcp_tool, ensure, create_process
-from llm.statistic import run_statistic
+import os
+from lib.common import run_mcp_tool, print_line
+from python.code_verifier import run_code_verifier
 
 
-def run_discard_changes( ) -> str:
-    """discards all uncommitted changes and removes untracked files
-this tool reverts the repository to the state of the last commit (head)"""
-    create_process( [ "git", "reset", "--hard", "HEAD" ] )
-    create_process( [ "git", "clean", "-fd" ] )
+def run_analyze( ) -> str:
+    """applies python_code_verifier in all *.py files found inside tools with the flg_auto_fix = true"""
+    files_to_check  =   [ ]
+    for root, dirs, files in os.walk( "tools" ):
+        for file in files:
+            if file.endswith( ".py" ):
+                files_to_check.append( os.path.join( root, file ) )
+                
+    print_line( )
+    print( f"checking python code formatting for {len( files_to_check )} files..." )
     
-    stats_result = run_statistic( "success" ) 
+    result_fmt = run_code_verifier( files_to_check, flg_auto_fix = True )
+    if result_fmt.strip( ):
+        print( result_fmt )
     
-    return  f"`{stats_result}`\n\nall uncommitted changes have been discarded and untracked files removed"
+    print_line( )
+    return  "python analysis completed successfully"
 
 
 if __name__ == "__main__":
-    run_mcp_tool( run_discard_changes )
+    run_mcp_tool( run_analyze )
 
 

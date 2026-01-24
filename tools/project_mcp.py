@@ -23,6 +23,7 @@
 #   Created on 2026-01-14 01:31:32
 #
 
+
 import json
 import os
 import inspect
@@ -30,7 +31,7 @@ import importlib.util
 from typing import Any
 from fastmcp import FastMCP
 from lib.common import create_process, get_tool_metadata
-from lib.base_config import project_config
+from lib.project_config import project_config
 
 
 #   create an mcp server instance

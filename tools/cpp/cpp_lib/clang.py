@@ -23,6 +23,7 @@
 #   Created on 2026-01-19 16:20:40
 #
 
+
 class clang:
     optimization_levels = {
         "none": "-O0"

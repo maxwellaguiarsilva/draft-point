@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+PYTHONPATH=tools tools/python/analyze.py "{}"

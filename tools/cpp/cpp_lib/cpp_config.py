@@ -23,10 +23,11 @@
 #   Created on 2026-01-22 19:12:03
 #
 
+
 import os
 import copy
 from lib.common import get_cpu_count, deep_update
-from lib.base_config import project_config
+from lib.project_config import project_config
 
 
 project_cpp_config = {

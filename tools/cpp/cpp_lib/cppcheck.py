@@ -23,6 +23,7 @@
 #   Created on 2026-01-19 17:21:50
 #
 
+
 class cppcheck:
     def __init__( self, config ):
         self.config = config
