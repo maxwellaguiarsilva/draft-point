@@ -26,7 +26,7 @@
 from lib.common import get_cpu_count, deep_update
 
 
-default_config = {
+project_config = {
     "max_threads": get_cpu_count( )
     #   folder organization
     ,"paths": {

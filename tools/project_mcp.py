@@ -30,7 +30,7 @@ import importlib.util
 from typing import Any
 from fastmcp import FastMCP
 from lib.common import create_process, get_tool_metadata
-from lib.base_config import default_config
+from lib.base_config import project_config
 
 
 #   create an mcp server instance
@@ -43,7 +43,7 @@ mcp = FastMCP( name = "project-mcp" )
 
 def _invoke_tool( group: str, name: str, args: Any = None ) -> str:
     """runs a command and formats the output for mcp return"""
-    tools_dir = default_config[ "paths" ][ "tools" ]
+    tools_dir = project_config[ "paths" ][ "tools" ]
     try:
         process = create_process( 
              [ "python3", f"{tools_dir}/{group}/{name}.py", json.dumps( args if args is not None else { } ) ]
@@ -56,7 +56,7 @@ def _invoke_tool( group: str, name: str, args: Any = None ) -> str:
 
 def discover_tools( ):
     """scans the tools directory and returns a list of tool definitions"""
-    tools_dir = default_config[ "paths" ][ "tools" ]
+    tools_dir = project_config[ "paths" ][ "tools" ]
     tool_list = [ ]
     
     #   get subdirectories (groups)

@@ -25,7 +25,7 @@
 
 import re
 from lib.base_verifier import base_verifier, run_verifier, rule
-from python_lib.python_config import default_python_config
+from python_lib.python_config import project_python_config
 
 
 class formatter( base_verifier ):
@@ -33,7 +33,7 @@ class formatter( base_verifier ):
         return  "#!/usr/bin/python3"
 
     def _get_comment_string( self ):
-        return  default_python_config[ "language" ][ "comment_string" ]
+        return  project_python_config[ "language" ][ "comment_string" ]
 
     def _get_rules( self ):
         return  super( )._get_rules( ) | {

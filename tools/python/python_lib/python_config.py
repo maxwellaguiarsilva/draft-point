@@ -25,14 +25,14 @@
 
 import copy
 from lib.common import deep_update
-from lib.base_config import default_config
+from lib.base_config import project_config
 
 
-default_python_config = {
+project_python_config = {
     "language": {
          "extension": "py"
         ,"comment_string": "#   "
     }
 }
 
-default_python_config = deep_update( copy.deepcopy( default_config ), default_python_config )
+project_python_config = deep_update( copy.deepcopy( project_config ), project_python_config )

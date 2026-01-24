@@ -25,7 +25,7 @@
 
 import re
 from lib.base_verifier import base_verifier, run_verifier, rule
-from cpp_lib.cpp_config import default_cpp_config
+from cpp_lib.cpp_config import project_cpp_config
 
 
 include_sep = r"\1\n\n\n\2"
@@ -54,7 +54,7 @@ class formatter( base_verifier ):
         }
 
     def _get_comment_string( self ):
-        return  default_cpp_config[ "language" ][ "comment_string" ]
+        return  project_cpp_config[ "language" ][ "comment_string" ]
 
     def run( self ):
         return  super( ).run( )

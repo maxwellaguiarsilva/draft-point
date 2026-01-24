@@ -26,10 +26,10 @@
 import os
 import copy
 from lib.common import get_cpu_count, deep_update
-from lib.base_config import default_config
+from lib.base_config import project_config
 
 
-default_cpp_config = {
+project_cpp_config = {
     #   compiler information
     "compiler": {
         "executable": "clang++"        #   options: "g++", "clang++" or full path
@@ -115,6 +115,6 @@ cpp_release_config  =   {
 
 
 #   the cpp config performs a deep_update on the generic config
-default_cpp_config = deep_update( deep_update( copy.deepcopy( default_config ), default_cpp_config ), cpp_release_config )
+project_cpp_config = deep_update( deep_update( copy.deepcopy( project_config ), project_cpp_config ), cpp_release_config )
 
 
