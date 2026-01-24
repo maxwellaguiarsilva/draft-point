@@ -26,12 +26,15 @@
 
 import json
 import os
+import sys
 import inspect
 import importlib.util
+from pathlib import Path
 from typing import Any
 from fastmcp import FastMCP
 from lib.common import create_process, get_tool_metadata
 from lib.project_config import project_config
+from lib.fso import get_file_list
 
 
 #   create an mcp server instance
@@ -58,56 +61,57 @@ def _invoke_tool( group: str, name: str, args: Any = None ) -> str:
 def discover_tools( ):
     """scans the tools directory and returns a list of tool definitions"""
     tools_dir = project_config[ "paths" ][ "tools" ]
+    exclude_groups = { "lib", "mcp-cli", "resources", "__pycache__" }
     tool_list = [ ]
     
-    #   get subdirectories (groups)
-    groups = [ 
-        d for d in os.listdir( tools_dir ) 
-        if os.path.isdir( os.path.join( tools_dir, d ) ) 
-        and d not in [ "lib", "mcp-cli", "resources", "__pycache__" ] 
-    ]
-    
-    for group in sorted( groups ):
-        group_dir = os.path.join( tools_dir, group )
-        for filename in sorted( os.listdir( group_dir ) ):
-            if filename.endswith( ".py" ) and not filename.startswith( "__" ):
-                name = filename[ :-3 ]
-                module_name = f"{group}.{name}"
-                file_path = os.path.join( group_dir, filename )
-                
-                #   load module to inspect metadata
-                spec = importlib.util.spec_from_file_location( module_name, file_path )
-                if spec is None or spec.loader is None:
-                    continue
-                    
-                module = importlib.util.module_from_spec( spec )
-                
-                #   add tools_dir and group_dir to sys.path to resolve imports within the tool
-                import sys
-                sys.path.insert( 0, tools_dir )
-                sys.path.insert( 0, group_dir )
-                try:
-                    spec.loader.exec_module( module )
-                except Exception as e:
-                    #   just skip tools that fail to load during discovery
-                    #   they will still be listed but might fail when called
-                    print( f"warning: failed to load tool {module_name}: {e}" )
-                    continue
-                finally:
-                    sys.path.pop( 0 )
-                    sys.path.pop( 0 )
-                
-                func_name = f"run_{name}"
-                if hasattr( module, func_name ):
-                    action = getattr( module, func_name )
-                    metadata = get_tool_metadata( action )
-                    
-                    tool_list.append( {
-                         "name": name
-                        ,"group": group
-                        ,"description": metadata[ "description" ]
-                        ,"parameters": metadata[ "parameters" ]
-                    } )
+    for tool_path in sorted( get_file_list( tools_dir, extensions = [ "py" ] ) ):
+        path = Path( tool_path )
+        rel_path = path.relative_to( tools_dir )
+        
+        #   tool must be exactly in a group directory (tools/group/tool.py)
+        if len( rel_path.parts ) != 2 or path.name.startswith( "__" ):
+            continue
+            
+        group = rel_path.parts[ 0 ]
+        if group in exclude_groups:
+            continue
+            
+        name = path.stem
+        module_name = f"{group}.{name}"
+        
+        #   load module to inspect metadata
+        spec = importlib.util.spec_from_file_location( module_name, str( path ) )
+        if spec is None or spec.loader is None:
+            continue
+            
+        module = importlib.util.module_from_spec( spec )
+        
+        #   add tools_dir and group_dir to sys.path to resolve imports within the tool
+        group_dir = str( path.parent )
+        sys.path.insert( 0, tools_dir )
+        sys.path.insert( 0, group_dir )
+        try:
+            spec.loader.exec_module( module )
+        except Exception as e:
+            #   just skip tools that fail to load during discovery
+            #   they will still be listed but might fail when called
+            print( f"warning: failed to load tool {module_name}: {e}" )
+            continue
+        finally:
+            sys.path.pop( 0 )
+            sys.path.pop( 0 )
+        
+        func_name = f"run_{name}"
+        if hasattr( module, func_name ):
+            action = getattr( module, func_name )
+            metadata = get_tool_metadata( action )
+            
+            tool_list.append( {
+                 "name": name
+                ,"group": group
+                ,"description": metadata[ "description" ]
+                ,"parameters": metadata[ "parameters" ]
+            } )
                     
     return  tool_list
 
