@@ -23,6 +23,7 @@
 #   Created on 2026-01-22 19:12:03
 #
 
+
 import re
 from dataclasses import dataclass, field
 from lib.common import ensure, validate_params
@@ -46,11 +47,10 @@ class rule:
 
 
 class base_verifier:
-    def __init__( self, content: str, file_path: str = None, flg_auto_fix: bool = True ):
+    def __init__( self, content: str, file_path: str = None ):
         self.content = content
         self.file_path = file_path
         self.messages = [ ]
-        self.flg_auto_fix = flg_auto_fix
         self.m_rules = self._get_rules( )
 
     @property
@@ -78,7 +78,6 @@ class base_verifier:
         return  self.content
 
     def verify( self ):
-        self.flg_auto_fix = False
         self.run( )
         return  self.messages
 
@@ -102,18 +101,14 @@ class base_verifier:
                 self._apply( item )
 
     def _apply( self, rule_obj: rule ):
-        if self.flg_auto_fix:
-            new_content = re.sub( rule_obj.pattern, rule_obj.replacement, self.content, flags = rule_obj.flags )
-            if new_content != self.content:
-                self.content = new_content
-                self.messages.append( rule_obj.message )
-        else:
-            for match in re.finditer( rule_obj.pattern, self.content, flags = rule_obj.flags ):
-                old_text = match.group( 0 )
-                new_text = re.sub( rule_obj.pattern, rule_obj.replacement, old_text, flags = rule_obj.flags )
-                if old_text != new_text:
-                    line_no = self.content.count( "\n", 0, match.start( ) ) + 1
-                    self.messages.append( ( line_no, rule_obj.message ) )
+        original_content = self.content
+        def sub_func( match ):
+            new_text = match.expand( rule_obj.replacement )
+            if match.group( 0 ) != new_text:
+                line_no = original_content.count( "\n", 0, match.start( ) ) + 1
+                self.messages.append( f"line {line_no}: {rule_obj.message}" )
+            return  new_text
+        self.content = re.sub( rule_obj.pattern, sub_func, self.content, flags = rule_obj.flags )
 
     def _apply_with_exclusion( self, rules: list[ rule ], ignore_pattern: str, fix_message: str = None ):
         split_index = self.content.find( "\n\n\n" )
@@ -122,25 +117,33 @@ class base_verifier:
 
         header = self.content[ :split_index + 3 ]
         body = self.content[ split_index + 3 : ]
+        header_lines = header.count( "\n" )
+        
         original_body = body
+        modified_body = body
+        any_actual_change = False
+        first_line = None
 
         for rule_obj in rules:
             combined = f"({ignore_pattern})|({rule_obj.pattern})"
-            if self.flg_auto_fix:
-                def sub_func( m ):
-                    if m.group( 1 ): return m.group( 1 )
-                    return  rule_obj.replacement
-                body = re.sub( combined, sub_func, body, flags = rule_obj.flags )
-            else:
-                for match in re.finditer( combined, body, flags = rule_obj.flags ):
-                    if match.group( 1 ): continue
-                    line_no = header.count( "\n" ) + original_body.count( "\n", 0, match.start( ) ) + 1
-                    self.messages.append( ( line_no, rule_obj.message ) )
+            current_body = modified_body
 
-        if self.flg_auto_fix and body != original_body:
-            self.content = header + body
+            def sub_func( m ):
+                nonlocal any_actual_change, first_line
+                if m.group( 1 ): return m.group( 0 )
+
+                line_no = header_lines + current_body.count( "\n", 0, m.start( ) ) + 1
+                if first_line is None: first_line = line_no
+                self.messages.append( f"line {line_no}: {rule_obj.message}" )
+                any_actual_change = True
+                return  rule_obj.replacement
+
+            modified_body = re.sub( combined, sub_func, modified_body, flags = rule_obj.flags )
+
+        if any_actual_change:
+            self.content = header + modified_body
             if fix_message:
-                self.messages.append( fix_message )
+                self.messages.append( f"line {first_line}: {fix_message}" )
 
     def _validate_license( self ):
         if not self.file_path:
@@ -161,56 +164,40 @@ class base_verifier:
         new_content = shebang + ( sep_shebang if shebang else "" ) + ideal_header + sep_body + body.lstrip( "\n" )
         
         if self.content.strip( " \n\r" ) != new_content.strip( " \n\r" ):
-            if self.flg_auto_fix:
-                self.content = new_content
-                self.messages.append( f"restored canonical license header for {self.file_path}" )
-            else:
-                self.messages.append( ( 1, f"license header mismatch in {self.file_path}" ) )
+            self.content = new_content
+            self.messages.append( f"line 1: restored canonical license header for {self.file_path}" )
 
     def _trailing_newlines( self ):
         new_content = self.content.rstrip( ) + self.m_rules[ "newline_3" ]
         if new_content != self.content:
-            msg = self.m_rules[ "trailing_msg" ]
-            if self.flg_auto_fix:
-                self.content = new_content
-                self.messages.append( msg )
-            else:
-                line_no = self.content.count( "\n" ) + 1
-                self.messages.append( ( line_no, msg ) )
+            line_no = self.content.count( "\n" ) + 1
+            self.content = new_content
+            self.messages.append( f"line {line_no}: {self.m_rules[ 'trailing_msg' ]}" )
 
 
 def run_verifier( params: dict, verifier_class, allowed_extensions, language_name ) -> str:
     validate_params( params, required = [ "files" ], optional = [ "flg_auto_fix" ] )
     files = params.get( "files", [ ] )
     flg_auto_fix = params.get( "flg_auto_fix", False )
+    allowed_extensions = allowed_extensions if isinstance( allowed_extensions, list ) else [ allowed_extensions ]
     
     results = [ ]
     for file_path in files:
         f = text_file( file_path )
+        
         ensure( f.exists, f"file not found: {file_path}" )
+        ensure( f.extension in allowed_extensions, f"this tool is exclusively for {language_name} files" )
         
-        ext_msg = f"this tool is exclusively for {language_name} files"
-        if isinstance( allowed_extensions, list ):
-            ensure( f.extension in allowed_extensions, ext_msg )
-        else:
-            ensure( f.extension == allowed_extensions, ext_msg )
+        fmt = verifier_class( f.content, file_path = f.path )
+        new_content = fmt.run( )
         
-        fmt = verifier_class( f.content, file_path = f.path, flg_auto_fix = flg_auto_fix )
-        if flg_auto_fix:
-            new_content = fmt.run( )
-            if f.content != new_content:
-                f.write( new_content )
-        else:
-            fmt.verify( )
+        if flg_auto_fix and f.content != new_content:
+            f.write( new_content )
         
         if fmt.messages:
             message = f"file: {file_path}\n"
             for violation in fmt.messages:
-                if isinstance( violation, ( list, tuple ) ):
-                    line, text = violation
-                    message += f"  line {line}: {text}\n"
-                else:
-                    message += f"  {violation}\n"
+                message += f"  {violation}\n"
             results.append( message )
     
     res = "\n".join( results ).strip( )
