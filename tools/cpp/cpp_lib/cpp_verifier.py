@@ -24,13 +24,12 @@
 #
 
 import re
-from lib.base_verifier import base_verifier, run_verifier, rule, rule_group
+from lib.base_verifier import base_verifier, run_verifier, rule
 from cpp_lib.cpp_config import project_cpp_config
 
 
 include_sep = r"\1\n\n\n\2"
 bracket_ignore = r"//.*|/\*[\s\S]*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'"
-bracket_fix = "fixed bracket spacing ( ( space ) and [ space ] rules )"
 
 
 class formatter( base_verifier ):
@@ -43,16 +42,10 @@ class formatter( base_verifier ):
             ,"include_no_empty": rule( r"(^#include\s+.*)\n(?:[ \t]*\n)+(?=#include\s+.*)", r"\1\n", "include directives must not be separated by empty lines", flags = re.MULTILINE )
             ,"include_before": rule( r"^((?!#include).+)\n+(#include\s+.*)", r"\1" + nl3 + r"\2", "there must be exactly two empty lines before the first include", flags = re.MULTILINE )
             ,"include_after": rule( r"(^#include\s+.*)\n+((?!#include).+)", r"\1" + nl3 + r"\2", "there must be exactly two empty lines after the last include", flags = re.MULTILINE )
-            ,"brackets": rule_group(
-                 rules = [
-                     rule( r"\((?![ \t\n\)])", r"( ", "missing space after '('" )
-                    ,rule( r"(?<![ \t\n\(])\)", r" )", "missing space before ')'" )
-                    ,rule( r"\[(?![ \t\n\]])", r"[ ", "missing space after '['" )
-                    ,rule( r"(?<![ \t\n\[])\]", r" ]", "missing space before ']'" )
-                ]
-                ,ignore_pattern = bracket_ignore
-                ,summary_message = bracket_fix
-            )
+            ,"bracket_open_space": rule( r"\((?![ \t\n\)])", r"( ", "missing space after '('", ignore_pattern = bracket_ignore )
+            ,"bracket_close_space": rule( r"(?<![ \t\n\(])\)", r" )", "missing space before ')'", ignore_pattern = bracket_ignore )
+            ,"square_bracket_open_space": rule( r"\[(?![ \t\n\]])", r"[ ", "missing space after '['", ignore_pattern = bracket_ignore )
+            ,"square_bracket_close_space": rule( r"(?<![ \t\n\[])\]", r" ]", "missing space before ']'", ignore_pattern = bracket_ignore )
         }
 
     def _get_comment_string( self ):
