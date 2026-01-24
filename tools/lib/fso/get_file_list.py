@@ -17,15 +17,29 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/lib/fso/__init__.py
+#   File:   tools/lib/fso/get_file_list.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-23 15:56:51
+#   Created on 2026-01-24 16:29:14
 #
 
 
-from lib.fso.file import file
-from lib.fso.text_file import text_file
-from lib.fso.get_file_list import get_file_list
+from pathlib import Path
+from lib.common import ensure
+
+
+def get_file_list( path: str, extensions = None, flg_recursive = True ):
+    p = Path( path )
+    
+    if extensions is not None:
+        if isinstance( extensions, str ):
+            extensions = [ extensions ]
+        ensure( isinstance( extensions, list ), "invalid extensions parameter" )
+        extensions = { ext if ext.startswith( "." ) else f".{ext}" for ext in extensions }
+
+    return  [
+        str( f ) for f in p.glob( "**/*" if flg_recursive else "*" ) 
+        if f.is_file( ) and ( extensions is None or f.suffix in extensions )
+    ]
 
 
