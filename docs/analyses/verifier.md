@@ -80,35 +80,21 @@ Would you like me to draft the structural changes for this pipeline-based `run()
 
 ## Progress 🚀
 
-### Status: Step 1 Complete ✅
-*   **Pipeline Orchestration**: `run()` now strictly isolates the canonical header from the body.
-*   **Body Isolation**: Rules now operate exclusively on the body, receiving a `line_offset` for accurate reporting.
-*   **Simplified Exclusion**: `_apply_with_exclusion` no longer performs its own splitting; it's now a pure transformation on the body.
-*   **Verified**: Line numbering remains accurate, and both `python_code_verifier` and `cpp_code_verifier` are functional.
+> [!IMPORTANT]
+> Na seção progresso, só é permitido adicionar texto, proibido remover ou alterar.
+> Já é a quinta tentataiva, no qual o LLM tomou decisão unilateral em vez de perguntar e discutir sobre os pontos. Foco em evitar que isso ocorra novamente.
 
+### Diagnóstico de Divergência 🔍
 
-### Next Step: Data-Driven Rule Groups
-*   **Eliminate Special Cases in `run_rules`**: Currently, `run_rules` has hardcoded knowledge of `bracket_ignore` and `bracket_fix`.
-*   **Abstaction**: Introduce a `rule_group` (or extend `rule`) that encapsulates:
-    *   A list of rules.
-    *   An optional `ignore_pattern`.
-    *   An optional `summary_message` (replacing `fix_message`).
-*   **Uniform Loop**: `run_rules` will become a simple iterator over these rule objects, applying them without knowing their internal details.
-*   **Change Detection**: Refactor `_apply` and `_apply_group` to return both the new content and whether a change occurred.
+A implementação atual do `base_verifier.py` divergiu do plano original e das críticas do usuário:
 
+1.  **Regressão por Tuplas**: Foi introduzida a tupla `(new_content, changed)` no retorno de `_apply` e `_apply_group`, reintroduzindo a complexidade de desempacotamento e a assimetria de fluxo que deveriam ter sido eliminadas pela comparação direta de strings.
+2.  **Entidade Rígida**: O `rule_group` foi implementado como uma `NamedTuple`, o que forçou o `run_rules` a manter o conhecimento sobre tipos específicos (`isinstance`) para lidar com a assimetria de `ignore_pattern`.
+3.  **Isonomia de Mensagens**: O objetivo de unificar a mensageria não foi atingido, pois as mensagens de sumário ainda estão acopladas à lógica de grupo em vez de serem uma propriedade agnóstica do motor de transformação.
+4.  **Orquestração vs. Iteração**: O motor de regras continua sendo um orquestrador de casos especiais em vez de um iterador burro de transformações que seguem um contrato único.
 
-### Status: Step 2 Complete ✅
-*   **Data-Driven Rule Groups**: Introduced `rule_group` to encapsulate rules, ignore patterns, and summary messages.
-*   **Clean `run_rules`**: Eliminated hardcoded knowledge of brackets; the method is now a uniform loop over rule-like objects.
-*   **Refactored Logic**: Refactored `_apply` and `_apply_group` to return `(new_content, changed)` tuples, removing manual state flags.
-*   **Verified**: Both C++ and Python verifiers remain functional, with C++ now using the more robust `rule_group`.
-
-### Next Step: Universal Rule Protocol
-*   **Generic Pipeline**: Integrate `_trailing_newlines` into the standard rule engine.
-*   **Functional Transformations**: Explore transforming rules from "Regex + Replacement" to a more generic "Transformation Function" `(content) -> (new_content, message)`.
-*   **Eliminate `_run_body_rules`**: Merge trailing newline logic and other body-specific checks into the same `run_rules` loop.
-*   **Message Decoupling**: Ensure all transformations (including license restoration) use a consistent way of reporting changes, possibly by making
-validate_license` also return a `(content, messages)` tuple.
-
+# Status atual: Planejar:
+- Como remover o conceito de grupo de regras e tornar isso uma motor de regras uniformes? Todas regras devem possui `ignore_pattern_list` mesmo que alguma deixe vazio `[ ]`.
+- Como remover lógicas assimétricas entre ter sido alterado ou não? O motor, as mensagens, as regras, são exatamente as mesmas idenpendente de flg_auto_fix. Somente f.content != new_content decide se vai ou não escrever o arquivo. Na execução das regras não deveria haver nenhum status que não seja agnóstico ao fato se houve ou não um replace no conteúdo.
 
 
