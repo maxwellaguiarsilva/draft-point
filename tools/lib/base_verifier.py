@@ -48,28 +48,27 @@ class rule:
 
 
 class base_verifier:
+    config = {
+         "newline_2": "\n\n"
+        ,"newline_3": "\n\n\n"
+        ,"trailing_msg": "file must end with exactly 2 empty lines and no trailing whitespace"
+    }
+
     def __init__( self, content: str, file_path: str = None ):
         self.content = content
         self.file_path = file_path
         self.messages = [ ]
         self.m_rules = self._get_rules( )
 
-    @property
-    def common_rules( self ):
-        return  {
-             "newline_2": "\n\n"
-            ,"newline_3": "\n\n\n"
-        }
-
     def _get_rules( self ):
-        return  self.common_rules | {
-            "trailing_msg": "file must end with exactly 2 empty lines and no trailing whitespace"
-        }
+        return  { }
 
-    def _get_comment_string( self ):
+    @property
+    def comment_string( self ) -> str:
         return  "#   "
 
-    def _get_shebang( self ):
+    @property
+    def shebang_string( self ) -> str:
         return  ""
 
     def run( self ):
@@ -83,17 +82,17 @@ class base_verifier:
         if not self.file_path:
             return  "", self.content
 
-        comment_string = self._get_comment_string( )
+        comment_string = self.comment_string
         model = template( "file-header" )
         ideal_header = model.render( file_info.get_info( self.file_path ) | { "comment_string": comment_string } ).strip( " \n\r" )
         
         shebang, body = file_info.strip_header( self.content, comment_string )
         if not shebang:
-            shebang = self._get_shebang( )
+            shebang = self.shebang_string
         shebang = shebang.strip( )
         
-        sep_shebang = self.m_rules[ "newline_2" ]
-        sep_body    = self.m_rules[ "newline_3" ]
+        sep_shebang = self.config[ "newline_2" ]
+        sep_body    = self.config[ "newline_3" ]
         
         header = shebang + ( sep_shebang if shebang else "" ) + ideal_header + sep_body
         
@@ -118,12 +117,8 @@ class base_verifier:
         return  self.messages
 
     def run_rules( self, body, line_offset ):
-        for name, item in self.m_rules.items( ):
-            if isinstance( item, rule ):
-                body = self._apply_rule( body, item, line_offset )
-            elif isinstance( item, list ): # legacy support
-                for r in item:
-                    body = self._apply_rule( body, r, line_offset )
+        for name, r in self.m_rules.items( ):
+            body = self._apply_rule( body, r, line_offset )
         
         return  body
 
@@ -146,10 +141,10 @@ class base_verifier:
 
 
     def _trailing_newlines( self, body, line_offset ):
-        new_body = body.rstrip( ) + self.m_rules[ "newline_3" ]
+        new_body = body.rstrip( ) + self.config[ "newline_3" ]
         if new_body != body:
             line_no = line_offset + body.count( "\n" ) + 1
-            self.messages.append( f"line {line_no}: {self.m_rules[ 'trailing_msg' ]}" )
+            self.messages.append( f"line {line_no}: {self.config[ 'trailing_msg' ]}" )
         return  new_body
 
 

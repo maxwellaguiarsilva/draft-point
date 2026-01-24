@@ -23,16 +23,19 @@
 #   Created on 2026-01-22 19:00:22
 #
 
+
 import re
 from lib.base_verifier import base_verifier, run_verifier, rule
 from python_lib.python_config import project_python_config
 
 
 class formatter( base_verifier ):
-    def _get_shebang( self ):
+    @property
+    def shebang_string( self ):
         return  "#!/usr/bin/python3"
 
-    def _get_comment_string( self ):
+    @property
+    def comment_string( self ):
         return  project_python_config[ "language" ][ "comment_string" ]
 
     def _get_rules( self ):

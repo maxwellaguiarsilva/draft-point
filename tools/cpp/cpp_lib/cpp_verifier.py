@@ -23,6 +23,7 @@
 #   Created on 2026-01-22 19:12:03
 #
 
+
 import re
 from lib.base_verifier import base_verifier, run_verifier, rule
 from cpp_lib.cpp_config import project_cpp_config
@@ -35,7 +36,7 @@ bracket_ignore = r"//.*|/\*[\s\S]*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'"
 class formatter( base_verifier ):
     def _get_rules( self ):
         rules = super( )._get_rules( )
-        nl3 = rules[ "newline_3" ]
+        nl3 = self.config[ "newline_3" ]
         return  rules | {
              "consecutive_newlines": rule( r"\n{4,}", nl3, "too many consecutive empty lines (maximum 2 allowed)" )
             ,"return_spacing": rule( r"([ \t])return\b(?![ \t]*;)[ \t]*", r"\1return\1", "return must be followed by exactly one space or tab (matching the preceding indentation character)" )
@@ -48,8 +49,13 @@ class formatter( base_verifier ):
             ,"square_bracket_close_space": rule( r"(?<![ \t\n\[])\]", r" ]", "missing space before ']'", ignore_pattern = bracket_ignore )
         }
 
-    def _get_comment_string( self ):
+    @property
+    def comment_string( self ):
         return  project_cpp_config[ "language" ][ "comment_string" ]
+
+    @property
+    def shebang_string( self ):
+        return  ""
 
     def run( self ):
         return  super( ).run( )
