@@ -94,10 +94,7 @@ def create_process( command, **kwargs ):
     try:
         return  subprocess.run( command, **params )
     except subprocess.CalledProcessError as e:
-        stdout = ( e.stdout or "" ).strip( )
-        stderr = ( e.stderr or "" ).strip( )
-        
-        error_msg = f"{stdout}\n{stderr}".strip( )
+        error_msg = get_process_text( e ).strip( )
         if not error_msg:
              error_msg = str( e )
              
