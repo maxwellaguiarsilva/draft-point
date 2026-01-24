@@ -26,7 +26,7 @@
 
 import re
 from dataclasses import dataclass, field
-from lib.common import ensure, validate_params
+from lib.common import ensure, validate_params, ensure_list 
 from lib.fso import text_file
 from lib import file_info
 from lib.template import template
@@ -153,14 +153,13 @@ def run_verifier( params: dict, verifier_class, allowed_extensions, language_nam
     validate_params( params, required = [ "files" ], optional = [ "flg_auto_fix" ] )
     files = params.get( "files", [ ] )
     flg_auto_fix = params.get( "flg_auto_fix", False )
-    allowed_extensions = allowed_extensions if isinstance( allowed_extensions, list ) else [ allowed_extensions ]
     
     results = [ ]
     for file_path in files:
         f = text_file( file_path )
         
         ensure( f.exists, f"file not found: {file_path}" )
-        ensure( f.extension in allowed_extensions, f"this tool is exclusively for {language_name} files" )
+        ensure( f.extension in ensure_list( allowed_extensions, str ), f"this tool is exclusively for {language_name} files" )
         
         fmt = verifier_class( f.content, file_path = f.path )
         new_content = fmt.run( )

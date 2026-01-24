@@ -37,6 +37,18 @@ def ensure( expression, message ):
         raise Exception( message )
 
 
+def all_is_instance( items, cls ):
+    return  all( isinstance( item, cls ) for item in items )
+
+def ensure_list( value, cls = None, message = "" ):
+    if value is None:
+        return  [ ]
+    
+    items = value if isinstance( value, list ) else [ value ]
+    ensure( cls is None or all_is_instance( items, cls ), message or f"invalid parameter: must be a {cls.__name__} or a list of {cls.__name__}" )
+    return  items
+
+
 def get_tool_metadata( action ):
     parameters = [ ]
     for name, param in inspect.signature( action ).parameters.items( ):

@@ -26,7 +26,7 @@
 
 import json
 import os
-from lib.common import run_mcp_tool, ensure, validate_params, to_json
+from lib.common import run_mcp_tool, ensure, validate_params, to_json, ensure_list
 from lib.fso import text_file
 
 
@@ -79,25 +79,20 @@ this is a support tool to help prioritize attention for repeat offenders"""
     name_param = name
     
     if name_param:
-        names = [ ]
-        if isinstance( name_param, str ):
-            names.append( name_param )
-        elif isinstance( name_param, list ):
-            names.extend( name_param )
-        else:
-            ensure( False, "field 'name' must be a string or a list of strings" )
-            
-        normalized_names = [ ]
+        names = [
+            n.lower( ).strip( ).replace( " ", "-" ).replace( "_", "-" )
+            for n in ensure_list( name_param, str, "field 'name' must be a string or a list of strings" )
+        ]
+        
         for n in names:
             increment_event( data, n )
-            normalized_names.append( n.lower( ).strip( ).replace( " ", "-" ) )
             
         #   sort and save data
         data.sort( key=lambda x: x[ "count" ], reverse=True )
         f.write( to_json( data ) )
         
         #   filter data to only show incremented events
-        display_data = [ item for item in data if item[ "name" ] in normalized_names ]
+        display_data = [ item for item in data if item[ "name" ] in names ]
         return  format_output( display_data )
             
     return  format_output( data )

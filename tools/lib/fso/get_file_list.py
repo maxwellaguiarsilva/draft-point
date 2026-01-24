@@ -25,21 +25,15 @@
 
 
 from pathlib import Path
-from lib.common import ensure
+from lib.common import ensure, ensure_list 
 
 
 def get_file_list( path: str, extensions = None, flg_recursive = True ):
     p = Path( path )
-    
-    if extensions is not None:
-        if isinstance( extensions, str ):
-            extensions = [ extensions ]
-        ensure( isinstance( extensions, list ), "invalid extensions parameter" )
-        extensions = { ext if ext.startswith( "." ) else f".{ext}" for ext in extensions }
-
+    ext_list = [ ext if ext.startswith( "." ) else f".{ext}" for ext in ensure_list( extensions, str ) ]
     return  [
         str( f ) for f in p.glob( "**/*" if flg_recursive else "*" ) 
-        if f.is_file( ) and ( extensions is None or f.suffix in extensions )
+        if f.is_file( ) and ( extensions is None or f.suffix in ext_list )
     ]
 
 
