@@ -99,10 +99,7 @@ def create_process( command, **kwargs ):
 
 
 def get_process_text( result ):
-    lines = [ ]
-    if result.stderr: lines.append( result.stderr.rstrip( "\n" ) )
-    if result.stdout: lines.append( result.stdout.rstrip( "\n" ) )
-    return  "\n".join( lines )
+    return  ( ( result.stderr or "" ).rstrip( "\n" ) + "\n" + ( result.stdout or "" ).rstrip( "\n" ) ).strip( "\n" )
 
 
 def print_line( strong = True ):
