@@ -38,11 +38,8 @@ def ensure( expression, message ):
 
 
 def get_tool_metadata( action ):
-    sig = inspect.signature( action )
-    doc = inspect.getdoc( action ) or ""
-    
     parameters = [ ]
-    for name, param in sig.parameters.items( ):
+    for name, param in inspect.signature( action ).parameters.items( ):
         p_def = { "name": name }
         if param.annotation is not inspect.Parameter.empty:
             p_def[ "type" ] = param.annotation
@@ -51,21 +48,17 @@ def get_tool_metadata( action ):
         parameters.append( p_def )
         
     return  {
-         "description": doc
+         "description": inspect.getdoc( action ) or ""
         ,"parameters": parameters
     }
 
 
 def validate_params( params, required = None, optional = None ):
     required = required or [ ]
-    optional = optional or [ ]
-    allowed = set( required ) | set( optional )
-    
     for key in required:
         ensure( key in params, f"missing required parameter: '{key}'" )
-        
     for key in params:
-        ensure( key in allowed, f"unexpected parameter: '{key}'" )
+        ensure( key in ( set( required ) | set( optional or [ ] ) ), f"unexpected parameter: '{key}'" )
 
 
 def get_cpu_count( ):
@@ -146,13 +139,9 @@ def to_json( data ):
 def run_mcp_tool( action ):
     try:
         if os.environ.get( "MCP_CALL_LOCK" ) != "1":
-            #   ensure validation doesn't fail when recording the violation itself
-            os.environ[ "MCP_CALL_LOCK" ] = "1"
             from llm.statistic import run_statistic
             ensure( False, run_statistic( name="direct-mcp-call" ) )
-        
-        params = get_json_args( )
-        print( action( **params ) )
+        print( action( **( get_json_args( ) ) ) )
     except Exception as error:
         print( str( error ), file = sys.stderr )
         sys.exit( 1 )
