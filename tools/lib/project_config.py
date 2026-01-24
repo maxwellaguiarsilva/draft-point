@@ -20,7 +20,7 @@
 #   File:   tools/lib/project_config.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-24 15:49:53
+#   Created on 2026-01-24 15:51:01
 #
 
 

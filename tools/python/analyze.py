@@ -20,21 +20,25 @@
 #   File:   tools/python/analyze.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-24 15:49:53
+#   Created on 2026-01-24 15:51:01
 #
 
 
 import os
 from lib.common import run_mcp_tool, print_line
 from python.code_verifier import run_code_verifier
+from python.python_lib.python_config import project_python_config
 
 
 def run_analyze( ) -> str:
     """applies python_code_verifier in all *.py files found inside tools with the flg_auto_fix = true"""
     files_to_check  =   [ ]
-    for root, dirs, files in os.walk( "tools" ):
+    path_tools      =   project_python_config[ "paths" ][ "tools" ]
+    extension       =   project_python_config[ "language" ][ "extension" ]
+
+    for root, dirs, files in os.walk( path_tools ):
         for file in files:
-            if file.endswith( ".py" ):
+            if file.endswith( f".{extension}" ):
                 files_to_check.append( os.path.join( root, file ) )
                 
     print_line( )
