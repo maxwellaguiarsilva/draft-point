@@ -2,8 +2,7 @@ In this project, the functionality of the feature is not the most important aspe
 The list of priorities must strictly follow the list below in order:
 -   DRY: Don't Repeat Yourself
 -   SRP: Single Responsibility Principle
--   Semantic elevation and Data over Machinery: Hide the "machinery" ( pointers, manual loops ) to let the "data" speak.
--   Visual Serenity: Reduce visual noise. Code should be a statement of intent ( "what" ), not a CPU instruction manual ( "how" ).
+-   Visual Serenity: Reduce visual noise. Hide the "machinery" ( pointers, manual loops ) to let the "data" speak. Code should be a statement of intent ( "what" ), not a CPU instruction manual ( "how" ).
 -   Style and formatting of the code.
 -   Lastly, and least importantly, the delivery of the feature.
 
@@ -76,7 +75,7 @@ person::person( )
     - Prefer `const&` ( constant reference ) to avoid `->` operator noise.
     - Adjust the names to avoid collision and shadowing, in order to prevent `this->`.
 
-### 4. Semantic Elevation
+### 4. Composition and Utilities
 - With composition: If logic can be named, it should be a utility in the `sak` library. Avoid ad-hoc lambdas; prefer composing named entities.
 - Any lambda with generic, reusable logic that can be expressed via `ranges`, `views`, or other `sak` utilities should be implemented as a niebloid or CPO in `sak`.
 

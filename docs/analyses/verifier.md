@@ -10,7 +10,7 @@ O `base_verifier.py` hoje sofre do que podemos chamar de "Síndrome do Caso Espe
     *   **Regex Direto (`_apply`)**: Aplicação atômica com mensagens individuais.
     *   **Agrupado com Exclusão (`_apply_with_exclusion`)**: Um caminho especial para colchetes que introduz conceitos como "split de header/body", padrões de exclusão e mensagens de sumário (`fix_message`).
     *   **Lógica Hardcoded (`_validate_license`, `_trailing_newlines`)**: Cidadãos de "primeira classe" que rodam fora do motor de regras, tornando impossível tratá-los de forma genérica.
-    *   **Orquestração por Tipo (`run_rules`)**: O motor de regras tem conhecimento íntimo de nomes de chaves (`bracket_ignore`) e tipos (`isinstance(item, list)`), o que é o oposto de "Data over Machinery".
+    *   **Orquestração por Tipo (`run_rules`)**: O motor de regras tem conhecimento íntimo de nomes de chaves (`bracket_ignore`) e tipos (`isinstance(item, list)`), o que impede a generalização e uniformidade do motor.
 
 2.  **Redundância de Rastreamento de Estado**: O `any_actual_change` e o `first_line` dentro de `_apply_with_exclusion` são reconstruções manuais de informações que já existem (a diferença entre strings e a lista de mensagens). Isso espelha o `f.content != new_content` do `run_verifier`, criando camadas redundantes de detecção de mudança.
 
@@ -50,7 +50,7 @@ The current architecture of `base_verifier.py` suffers from "Special Case Syndro
 ### Diagnosis
 
 1.  **Step 0 is not isolated**: `_validate_license` is currently just another method. Because it doesn't formally establish the boundary between the header and the body, subsequent rules can accidentally corrupt the canonical license.
-2.  **Redundant Machinery**: Concepts like `any_actual_change` and `first_line` are manual state-tracking "hacks" (puxadinhos). In a "Data over Machinery" approach, change detection should be a byproduct of string comparison (`new_content != old_content`), not a flag set in a callback.
+2.  **Redundant Machinery**: Concepts like `any_actual_change` and `first_line` are manual state-tracking "hacks" (puxadinhos). By using string comparison (`new_content != old_content`), change detection becomes a natural byproduct of the transformation process.
 3.  **Functional Asymmetry**:
     *   **Scope**: Simple rules (`_apply`) run on the whole file; exclusive rules (`_apply_with_exclusion`) run only on the body. This is inconsistent and dangerous for the license header.
     *   **Reporting**: Summary messages (like "fixed bracket spacing") are hardcoded into the exclusion logic instead of being a generic property of any rule group.
@@ -75,3 +75,40 @@ Instead of having rules decide if they should split the file, the `run()` method
 *   **Clean Reporting**: We can detect changes by comparing the `body` before and after a group of rules, allowing us to add summary messages without `nonlocal` flags.
 
 Would you like me to draft the structural changes for this pipeline-based `run()` method?
+
+---
+
+## Progress 🚀
+
+### Status: Step 1 Complete ✅
+*   **Pipeline Orchestration**: `run()` now strictly isolates the canonical header from the body.
+*   **Body Isolation**: Rules now operate exclusively on the body, receiving a `line_offset` for accurate reporting.
+*   **Simplified Exclusion**: `_apply_with_exclusion` no longer performs its own splitting; it's now a pure transformation on the body.
+*   **Verified**: Line numbering remains accurate, and both `python_code_verifier` and `cpp_code_verifier` are functional.
+
+
+### Next Step: Data-Driven Rule Groups
+*   **Eliminate Special Cases in `run_rules`**: Currently, `run_rules` has hardcoded knowledge of `bracket_ignore` and `bracket_fix`.
+*   **Abstaction**: Introduce a `rule_group` (or extend `rule`) that encapsulates:
+    *   A list of rules.
+    *   An optional `ignore_pattern`.
+    *   An optional `summary_message` (replacing `fix_message`).
+*   **Uniform Loop**: `run_rules` will become a simple iterator over these rule objects, applying them without knowing their internal details.
+*   **Change Detection**: Refactor `_apply` and `_apply_group` to return both the new content and whether a change occurred.
+
+
+### Status: Step 2 Complete ✅
+*   **Data-Driven Rule Groups**: Introduced `rule_group` to encapsulate rules, ignore patterns, and summary messages.
+*   **Clean `run_rules`**: Eliminated hardcoded knowledge of brackets; the method is now a uniform loop over rule-like objects.
+*   **Refactored Logic**: Refactored `_apply` and `_apply_group` to return `(new_content, changed)` tuples, removing manual state flags.
+*   **Verified**: Both C++ and Python verifiers remain functional, with C++ now using the more robust `rule_group`.
+
+### Next Step: Universal Rule Protocol
+*   **Generic Pipeline**: Integrate `_trailing_newlines` into the standard rule engine.
+*   **Functional Transformations**: Explore transforming rules from "Regex + Replacement" to a more generic "Transformation Function" `(content) -> (new_content, message)`.
+*   **Eliminate `_run_body_rules`**: Merge trailing newline logic and other body-specific checks into the same `run_rules` loop.
+*   **Message Decoupling**: Ensure all transformations (including license restoration) use a consistent way of reporting changes, possibly by making
+validate_license` also return a `(content, messages)` tuple.
+
+
+

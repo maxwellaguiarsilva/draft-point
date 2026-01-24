@@ -2,7 +2,7 @@
 
 ![Draft Point Screenshot](docs/images/screenshot.jpg)
 
-This project is a didactic exploration of modern C++23, focused on **Semantic Elevation**. The goal is to move away from low-level "machine instructions" and instead write code that serves as a clear statement of intent.
+This project is a didactic exploration of modern C++23, focused on **Visual Serenity**. The goal is to move away from low-level "machine instructions" and instead write code that serves as a clear statement of intent.
 
 ## The `sak` Library (Swiss Army Knife)
 

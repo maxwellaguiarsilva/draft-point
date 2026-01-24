@@ -24,7 +24,7 @@
 #
 
 import re
-from lib.base_verifier import base_verifier, run_verifier, rule
+from lib.base_verifier import base_verifier, run_verifier, rule, rule_group
 from cpp_lib.cpp_config import project_cpp_config
 
 
@@ -43,14 +43,16 @@ class formatter( base_verifier ):
             ,"include_no_empty": rule( r"(^#include\s+.*)\n(?:[ \t]*\n)+(?=#include\s+.*)", r"\1\n", "include directives must not be separated by empty lines", flags = re.MULTILINE )
             ,"include_before": rule( r"^((?!#include).+)\n+(#include\s+.*)", r"\1" + nl3 + r"\2", "there must be exactly two empty lines before the first include", flags = re.MULTILINE )
             ,"include_after": rule( r"(^#include\s+.*)\n+((?!#include).+)", r"\1" + nl3 + r"\2", "there must be exactly two empty lines after the last include", flags = re.MULTILINE )
-            ,"bracket_ignore": bracket_ignore
-            ,"bracket_fix": bracket_fix
-            ,"brackets": [
-                 rule( r"\((?![ \t\n\)])", r"( ", "missing space after '('" )
-                ,rule( r"(?<![ \t\n\(])\)", r" )", "missing space before ')'" )
-                ,rule( r"\[(?![ \t\n\]])", r"[ ", "missing space after '['" )
-                ,rule( r"(?<![ \t\n\[])\]", r" ]", "missing space before ']'" )
-            ]
+            ,"brackets": rule_group(
+                 rules = [
+                     rule( r"\((?![ \t\n\)])", r"( ", "missing space after '('" )
+                    ,rule( r"(?<![ \t\n\(])\)", r" )", "missing space before ')'" )
+                    ,rule( r"\[(?![ \t\n\]])", r"[ ", "missing space after '['" )
+                    ,rule( r"(?<![ \t\n\[])\]", r" ]", "missing space before ']'" )
+                ]
+                ,ignore_pattern = bracket_ignore
+                ,summary_message = bracket_fix
+            )
         }
 
     def _get_comment_string( self ):

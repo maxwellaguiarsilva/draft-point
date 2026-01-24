@@ -39,11 +39,17 @@ class rule:
     replacement: str
     message: str
     flags: int = 0
-    is_exclusive: bool = False
     description: str = ""
 
     def __post_init__( self ):
         re.compile( self.pattern, flags = self.flags )
+
+
+@dataclass
+class rule_group:
+    rules: list[rule]
+    ignore_pattern: str = None
+    summary_message: str = None
 
 
 class base_verifier:
@@ -73,77 +79,86 @@ class base_verifier:
 
     def run( self ):
         self._validate_license( )
-        self._trailing_newlines( )
-        self.run_rules( )
+        
+        split_index = self.content.find( "\n\n\n" )
+        if split_index == -1:
+            return  self.content
+
+        header = self.content[ :split_index + 3 ]
+        body = self.content[ split_index + 3 : ]
+        
+        header_lines = header.count( "\n" )
+        body = self._run_body_rules( body, header_lines )
+        
+        self.content = header + body
         return  self.content
+
+    def _run_body_rules( self, body, header_lines ):
+        body, _ = self._trailing_newlines( body, header_lines )
+        body = self.run_rules( body, header_lines )
+        return  body
 
     def verify( self ):
         self.run( )
         return  self.messages
 
-    def run_rules( self ):
-        ignore_pattern = self.m_rules.get( "bracket_ignore" )
-        fix_message = self.m_rules.get( "bracket_fix" )
-
+    def run_rules( self, body, line_offset ):
         for name, item in self.m_rules.items( ):
-            if not isinstance( item, ( rule, list ) ):
-                continue
+            if isinstance( item, rule ):
+                body, _ = self._apply( body, item, line_offset )
+            elif isinstance( item, rule_group ):
+                body, _ = self._apply_group( body, item, line_offset )
+            elif isinstance( item, list ): # legacy support
+                group = rule_group( rules = item )
+                body, _ = self._apply_group( body, group, line_offset )
+        
+        return  body
 
-            if isinstance( item, list ):
-                if ignore_pattern:
-                    self._apply_with_exclusion( item, ignore_pattern, fix_message )
-                else:
-                    for r in item:
-                        self._apply( r )
-            elif item.is_exclusive and ignore_pattern:
-                self._apply_with_exclusion( [ item ], ignore_pattern, fix_message )
-            else:
-                self._apply( item )
-
-    def _apply( self, rule_obj: rule ):
-        original_content = self.content
+    def _apply( self, body, rule_obj: rule, line_offset: int = 0 ):
         def sub_func( match ):
             new_text = match.expand( rule_obj.replacement )
             if match.group( 0 ) != new_text:
-                line_no = original_content.count( "\n", 0, match.start( ) ) + 1
+                line_no = line_offset + body.count( "\n", 0, match.start( ) ) + 1
                 self.messages.append( f"line {line_no}: {rule_obj.message}" )
             return  new_text
-        self.content = re.sub( rule_obj.pattern, sub_func, self.content, flags = rule_obj.flags )
-
-    def _apply_with_exclusion( self, rules: list[ rule ], ignore_pattern: str, fix_message: str = None ):
-        split_index = self.content.find( "\n\n\n" )
-        if split_index == -1:
-            return
-
-        header = self.content[ :split_index + 3 ]
-        body = self.content[ split_index + 3 : ]
-        header_lines = header.count( "\n" )
         
-        original_body = body
+        new_body = re.sub( rule_obj.pattern, sub_func, body, flags = rule_obj.flags )
+        return  new_body, new_body != body
+
+    def _apply_group( self, body, group: rule_group, line_offset: int = 0 ):
+        if not group.ignore_pattern:
+            new_body = body
+            changed = False
+            for r in group.rules:
+                new_body, r_changed = self._apply( new_body, r, line_offset )
+                changed = changed or r_changed
+            return  new_body, changed
+
         modified_body = body
-        any_actual_change = False
         first_line = None
 
-        for rule_obj in rules:
-            combined = f"({ignore_pattern})|({rule_obj.pattern})"
+        for rule_obj in group.rules:
+            combined = f"({group.ignore_pattern})|({rule_obj.pattern})"
             current_body = modified_body
 
             def sub_func( m ):
-                nonlocal any_actual_change, first_line
-                if m.group( 1 ): return m.group( 0 )
+                nonlocal first_line
+                if m.group( 1 ): return  m.group( 0 )
 
-                line_no = header_lines + current_body.count( "\n", 0, m.start( ) ) + 1
-                if first_line is None: first_line = line_no
-                self.messages.append( f"line {line_no}: {rule_obj.message}" )
-                any_actual_change = True
-                return  rule_obj.replacement
+                new_text = m.expand( rule_obj.replacement )
+                if m.group( 0 ) != new_text:
+                    line_no = line_offset + current_body.count( "\n", 0, m.start( ) ) + 1
+                    if first_line is None: first_line = line_no
+                    self.messages.append( f"line {line_no}: {rule_obj.message}" )
+                return  new_text
 
             modified_body = re.sub( combined, sub_func, modified_body, flags = rule_obj.flags )
 
-        if any_actual_change:
-            self.content = header + modified_body
-            if fix_message:
-                self.messages.append( f"line {first_line}: {fix_message}" )
+        changed = modified_body != body
+        if changed and group.summary_message:
+            self.messages.append( f"line {first_line}: {group.summary_message}" )
+            
+        return  modified_body, changed
 
     def _validate_license( self ):
         if not self.file_path:
@@ -167,12 +182,42 @@ class base_verifier:
             self.content = new_content
             self.messages.append( f"line 1: restored canonical license header for {self.file_path}" )
 
-    def _trailing_newlines( self ):
-        new_content = self.content.rstrip( ) + self.m_rules[ "newline_3" ]
-        if new_content != self.content:
-            line_no = self.content.count( "\n" ) + 1
-            self.content = new_content
+    def _trailing_newlines( self, body, line_offset ):
+        new_body = body.rstrip( ) + self.m_rules[ "newline_3" ]
+        changed = new_body != body
+        if changed:
+            line_no = line_offset + body.count( "\n" ) + 1
             self.messages.append( f"line {line_no}: {self.m_rules[ 'trailing_msg' ]}" )
+        return  new_body, changed
+
+    def _validate_license( self ):
+        if not self.file_path:
+            return
+        
+        comment_string = self._get_comment_string( )
+        model   =   template( "file-header" )
+        ideal_header = model.render( file_info.get_info( self.file_path ) | { "comment_string": comment_string } ).strip( " \n\r" )
+        
+        shebang, body = file_info.strip_header( self.content, comment_string )
+        if not shebang:
+            shebang = self._get_shebang( )
+        shebang = shebang.strip( )
+        
+        sep_shebang = self.m_rules[ "newline_2" ]
+        sep_body    = self.m_rules[ "newline_3" ]
+        
+        new_content = shebang + ( sep_shebang if shebang else "" ) + ideal_header + sep_body + body.lstrip( "\n" )
+        
+        if self.content.strip( " \n\r" ) != new_content.strip( " \n\r" ):
+            self.content = new_content
+            self.messages.append( f"line 1: restored canonical license header for {self.file_path}" )
+
+    def _trailing_newlines( self, body, line_offset ):
+        new_body = body.rstrip( ) + self.m_rules[ "newline_3" ]
+        if new_body != body:
+            line_no = line_offset + body.count( "\n" ) + 1
+            self.messages.append( f"line {line_no}: {self.m_rules[ 'trailing_msg' ]}" )
+        return  new_body
 
 
 def run_verifier( params: dict, verifier_class, allowed_extensions, language_name ) -> str:
