@@ -24,7 +24,6 @@
 #
 
 
-import json
 import os
 import sys
 import inspect
@@ -32,7 +31,7 @@ import importlib.util
 from pathlib import Path
 from typing import Any
 from fastmcp import FastMCP
-from lib.common import create_process, get_tool_metadata
+from lib.common import create_process, get_tool_metadata, to_json
 from lib.project_config import project_config
 from lib.fso import get_file_list
 
@@ -50,7 +49,7 @@ def _invoke_tool( group: str, name: str, args: Any = None ) -> str:
     tools_dir = project_config[ "paths" ][ "tools" ]
     try:
         process = create_process( 
-             [ "python3", f"{tools_dir}/{group}/{name}.py", json.dumps( args if args is not None else { } ) ]
+             [ "python3", f"{tools_dir}/{group}/{name}.py", to_json( args if args is not None else { } ) ]
             ,env = os.environ | { "PYTHONPATH" : tools_dir, "MCP_CALL_LOCK": "1" } 
         )
         return  f"{name} successful:\n{process.stdout}"

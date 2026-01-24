@@ -26,7 +26,7 @@
 
 import json
 import os
-from lib.common import run_mcp_tool, ensure, validate_params
+from lib.common import run_mcp_tool, ensure, validate_params, to_json
 from lib.fso import text_file
 
 
@@ -94,7 +94,7 @@ this is a support tool to help prioritize attention for repeat offenders"""
             
         #   sort and save data
         data.sort( key=lambda x: x[ "count" ], reverse=True )
-        f.write( json.dumps( data, indent="\t" ) )
+        f.write( to_json( data ) )
         
         #   filter data to only show incremented events
         display_data = [ item for item in data if item[ "name" ] in normalized_names ]
