@@ -130,16 +130,16 @@ def get_json_args( ):
 
 
 def to_dict( obj, members ):
-    def to_json( value ):
+    def __to_dict( value ):
         if hasattr( value, "to_dict" ):
             return  value.to_dict
         if isinstance( value, dict ):
-            return  { key: to_json( val ) for key, val in value.items( ) }
+            return  { key: __to_dict( val ) for key, val in value.items( ) }
         if isinstance( value, list ):
-            return  [ to_json( val ) for val in value ]
+            return  [ __to_dict( val ) for val in value ]
         return  value
 
-    return  { member: to_json( getattr( obj, member ) ) for member in members }
+    return  { member: __to_dict( getattr( obj, member ) ) for member in members }
 
 
 def to_json( data ):
