@@ -24,11 +24,10 @@
 #
 
 
-from lib.fso import text_file, file
+from lib.fso import text_file, file, get_file_list
 from lib.common import to_dict, to_json
 import re
 import os
-import glob
 
 
 def parse_hierarchy( hierarchy ):
@@ -161,8 +160,7 @@ class project_model:
         
         return  {
             file_path: cpp( file_path, self ) if file_path.endswith( f".{self.source_ext}" ) else hpp( file_path, self )
-            for file_path in glob.glob( os.path.join( dir_path, "**", "*" ), recursive = True )
-            if os.path.isfile( file_path ) and file_path.endswith( ( f".{self.header_ext}", f".{self.source_ext}" ) )
+            for file_path in get_file_list( dir_path, extensions = [ self.header_ext, self.source_ext ] )
         }
 
     def get_file( self, file_path, is_header = True ):
