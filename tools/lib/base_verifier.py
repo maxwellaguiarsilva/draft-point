@@ -155,8 +155,10 @@ class base_verifier:
             shebang = self._get_shebang( )
         shebang = shebang.strip( )
         
-        sep = self.m_rules[ "newline_2" ]
-        new_content = shebang + ( sep if shebang else "" ) + ideal_header + sep + body.lstrip( "\n" )
+        sep_shebang = self.m_rules[ "newline_2" ]
+        sep_body    = self.m_rules[ "newline_3" ]
+        
+        new_content = shebang + ( sep_shebang if shebang else "" ) + ideal_header + sep_body + body.lstrip( "\n" )
         
         if self.content.strip( " \n\r" ) != new_content.strip( " \n\r" ):
             if self.flg_auto_fix:
