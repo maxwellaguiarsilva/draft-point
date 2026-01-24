@@ -46,15 +46,10 @@ def ensure_list( value, cls = None, message = "" ):
 
 
 def get_tool_metadata( action ):
-    parameters = [ ]
-    for name, param in inspect.signature( action ).parameters.items( ):
-        p_def = { "name": name }
-        if param.annotation is not inspect.Parameter.empty:
-            p_def[ "type" ] = param.annotation
-        if param.default is not inspect.Parameter.empty:
-            p_def[ "default" ] = param.default
-        parameters.append( p_def )
-        
+    parameters = [
+        { key: value for key, value in { "name": name, "type": param.annotation, "default": param.default }.items( ) if value is not inspect.Parameter.empty }
+        for name, param in inspect.signature( action ).parameters.items( )
+    ]
     return  {
          "description": inspect.getdoc( action ) or ""
         ,"parameters": parameters
@@ -77,12 +72,12 @@ def get_cpu_count( ):
 
 
 def deep_update( source, overrides ):
-    for key, value in overrides.items( ):
-        if isinstance( value, dict ) and key in source and isinstance( source[ key ], dict ):
-            deep_update( source[ key ], value )
-        else:
-            source[ key ] = value
-    return  source
+    return  {
+        key: deep_update( source[ key ], overrides[ key ] )
+        if key in source and isinstance( source[ key ], dict ) and isinstance( overrides.get( key ), dict )
+        else overrides.get( key, source.get( key ) )
+        for key in source.keys( ) | overrides.keys( )
+    }
 
 
 def create_process( command, **kwargs ):
