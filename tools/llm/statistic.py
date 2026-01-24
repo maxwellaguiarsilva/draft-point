@@ -23,6 +23,7 @@
 #   Created on 2026-01-16 13:55:19
 #
 
+
 import json
 import os
 from lib.common import run_mcp_tool, ensure, validate_params
@@ -91,7 +92,8 @@ this is a support tool to help prioritize attention for repeat offenders"""
             increment_event( data, n )
             normalized_names.append( n.lower( ).strip( ).replace( " ", "-" ) )
             
-        #   save data
+        #   sort and save data
+        data.sort( key=lambda x: x[ "count" ], reverse=True )
         f.write( json.dumps( data, indent="\t" ) )
         
         #   filter data to only show incremented events
