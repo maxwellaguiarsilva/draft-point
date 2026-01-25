@@ -1,10 +1,29 @@
 #!/bin/bash
 
+# generating the commit message or a stop signal using chat-tui
+MESSAGE="$( chat-tui "$(cat <<EOF
+Analyze the following git context (status, diff, and recent history) and provide a concise, descriptive commit message in English (en-us).
 
-MCP_CALL_LOCK=1 PYTHONPATH=tools tools/git/quick_upload.py "$( cat <<-EOF
-{ "message": "$( chat-tui "return a commit messagem (en-us): $( git status ; git diff; git log -n3 )" )" }
+CRITICAL INSTRUCTION:
+If you identify any bugs, anti-patterns, security risks, or any reason why these changes should NOT be committed, you must instead return a message starting with "stop:" followed by the specific reason.
+
+Git Context:
+$(git status; git diff HEAD; git log -n3)
 EOF
-)"
-git log -n2
+)" )"
+
+# checking if the commit should be stopped
+if [[ $MESSAGE == stop:* ]]; then
+    echo -e "\n\033[0;31m$MESSAGE\033[0m"
+    exit 1
+fi
+
+# constructing the JSON payload safely and performing the upload
+JSON_PAYLOAD=$(python3 -c "import json, sys; print(json.dumps({'message': sys.stdin.read().strip()}))" <<< "$MESSAGE")
+
+MCP_CALL_LOCK=1 PYTHONPATH=tools tools/git/quick_upload.py "$JSON_PAYLOAD"
+
+# showing recent history
+git log -n1
 
 
