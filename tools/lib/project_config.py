@@ -42,6 +42,11 @@ project_config = {
     ,"locale": {
         "datetime-format": "%Y-%m-%d %H:%M:%S"
     }
+    ,"system": {
+        "pattern": {
+            "line_break": "\n"
+        }
+    }
 
 }
 
