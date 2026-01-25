@@ -52,12 +52,6 @@ cpp_project_config = {
         ,"stop_on_first_error": True      #   -Wfatal-errors
         ,"static_analysis": {
             "enabled": True
-            ,"tool": "cppcheck"
-            ,"strictness": "exhaustive"    #   options: "normal", "exhaustive"
-            ,"suppressions": [
-                 "missingIncludeSystem"
-                ,"checkersReport"
-            ]
         }
     }
 

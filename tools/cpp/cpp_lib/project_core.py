@@ -31,7 +31,7 @@ from lib.common import create_process, deep_update, ensure, get_process_text
 from cpp_lib.cpp_project_config import cpp_project_config
 from cpp_lib.project_model import project_model, cpp, hpp
 from cpp_lib.clang import clang
-from cpp_lib.cppcheck import cppcheck
+from cpp_lib.cpp_check import cpp_check
 
 
 class binary_builder:
@@ -79,7 +79,6 @@ class project_core:
         self._lock = threading.Lock( )
         self.flg_stop = threading.Event( )
         self.compiler = clang( self.config )
-        self.analyzer = cppcheck( self.config )
 
         self.binary_list = [ binary_builder( c, self ) for c in self.map.files.values( ) if isinstance( c, cpp ) and c.is_main ]
         
@@ -132,7 +131,7 @@ class project_core:
 
         cpp_file.object.refresh( )
 
-    def run_cppcheck( self ):
+    def run_static_analysis( self ):
         if not self.config[ 'quality_control' ][ 'static_analysis' ][ 'enabled' ]:
             return
 
@@ -142,13 +141,14 @@ class project_core:
         source_dir = self.config[ 'paths' ][ 'source' ]
         tests_dir = self.config[ 'paths' ][ 'tests' ]
         
-        cppcheck_command = self.analyzer.get_command( [ source_dir, tests_dir ] )
+        analyzer = cpp_check( self.config, [ source_dir, tests_dir ] )
+        analyzer_command = analyzer.command
         
-        self.print( "running static analysis (cppcheck)..." )
-        process = create_process( cppcheck_command, shell = True, check = False, capture_output = False, text = False )
+        self.print( "running static analysis..." )
+        process = create_process( analyzer_command, shell = True, check = False, capture_output = False, text = False )
         if process.returncode != 0:
-            self.print( f"cppcheck: {cppcheck_command}" )
-        ensure( process.returncode == 0, "cppcheck failed for the project" )
+            self.print( f"analyzer: {analyzer_command}" )
+        ensure( process.returncode == 0, "static analysis failed for the project" )
         self.print( "static analysis completed successfully" )
 
 

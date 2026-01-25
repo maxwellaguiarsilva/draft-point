@@ -17,25 +17,36 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/cpp/cpp_lib/cppcheck.py
+#   File:   tools/cpp/cpp_lib/cpp_check.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-19 17:21:50
 #
 
 
-class cppcheck:
-    def __init__( self, config ):
+class cpp_check:
+    default_config = {
+         "executable": "cppcheck"
+        ,"strictness": "exhaustive"
+        ,"suppressions": [
+             "missingIncludeSystem"
+            ,"checkersReport"
+        ]
+    }
+
+    def __init__( self, config, paths ):
         self.config = config
+        self.paths = paths
 
-    def get_command( self, paths ):
-        params = self._get_params( )
-        paths_str = " ".join( f'"{p}"' for p in paths )
-        return  f"cppcheck {params} {paths_str}"
+    @property
+    def command( self ):
+        paths_str = " ".join( f'"{p}"' for p in self.paths )
+        executable = self.default_config[ 'executable' ]
+        return  f"{executable} {self.params} {paths_str}"
 
-    def _get_params( self ):
+    @property
+    def params( self ):
         config = self.config
-        analysis_config = config[ 'quality_control' ][ 'static_analysis' ]
         
         params = [
             "--quiet"
@@ -47,9 +58,9 @@ class cppcheck:
             ,f"-j {config[ 'max_threads' ]}"
         ]
         
-        params.append( f"--check-level={analysis_config[ 'strictness' ]}" )
+        params.append( f"--check-level={self.default_config[ 'strictness' ]}" )
             
-        for suppression in analysis_config.get( 'suppressions', [ ] ):
+        for suppression in self.default_config[ 'suppressions' ]:
             params.append( f"--suppress={suppression}" )
 
         params.append( f"-I{config[ 'paths' ][ 'include' ]}" )

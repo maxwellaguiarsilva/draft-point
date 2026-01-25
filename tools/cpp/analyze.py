@@ -33,7 +33,7 @@ from cpp_lib.cpp_verifier import run_cpp_verifier
 
 
 def run_analyze( ) -> str:
-    """runs static analysis (cppcheck) and automatically fixes formatting rules
+    """runs static analysis and automatically fixes formatting rules
 beyond checking, it also applies fixes for the rules verified by 'cpp_code_verifier' on all .cpp and .hpp files
 this command takes no arguments"""
     core = project_core( { } )
@@ -60,7 +60,7 @@ this command takes no arguments"""
     core.print( "done formatting" )
     print_line( )
 
-    core.run_cppcheck( )
+    core.run_static_analysis( )
     
     return  "analysis completed successfully"
 
