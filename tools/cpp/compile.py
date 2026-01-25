@@ -24,8 +24,9 @@
 #
 
 
-import datetime
+from datetime import datetime
 import os
+from os.path import dirname
 import concurrent.futures
 from lib.common import run_mcp_tool, ensure, get_cpu_count
 from cpp_lib.project_core import project_core
@@ -34,7 +35,7 @@ from cpp_lib.project_core import project_core
 def run_compile( ) -> str:
     """compiles the project using
 this command takes no arguments"""
-    start_time = datetime.datetime.now( )
+    start_time = datetime.now( )
     core = project_core( { } )
 
     core.print( f"build started at: {start_time.strftime( '%Y-%m-%d %H:%M:%S' )}" )
@@ -47,7 +48,7 @@ this command takes no arguments"""
 
     #   2. ensure build directories exist
     for c in all_cpps.values( ):
-        os.makedirs( os.path.dirname( c.object.path ), exist_ok = True )
+        os.makedirs( dirname( c.object.path ), exist_ok = True )
 
     #   3. parallel compilation
     max_workers = core.config.get( "max_threads", get_cpu_count( ) )
@@ -73,7 +74,7 @@ this command takes no arguments"""
             core.stop( )
             raise e
 
-    end_time = datetime.datetime.now( )
+    end_time = datetime.now( )
     elapsed_time = end_time - start_time
     core.print( f"\nbuild ended at: {end_time.strftime( '%Y-%m-%d %H:%M:%S' )}" )
     core.print( f"elapsed time: {elapsed_time}" )

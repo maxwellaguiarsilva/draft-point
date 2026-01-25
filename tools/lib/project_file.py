@@ -25,7 +25,10 @@
 
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 from itertools import takewhile
+from os.path import getctime
+import re
 from lib.fso import text_file
 from lib.project_config import project_config
 
@@ -43,6 +46,39 @@ class project_file( text_file, ABC ):
     @abstractmethod
     def comment_string( self ) -> str:
         pass
+
+    @property
+    def license_header_info( self ) -> dict:
+        info = {
+             "name": project_config[ "author" ][ "name" ]
+            ,"email": project_config[ "author" ][ "email" ]
+            ,"created_at": getctime( self.path )
+        }
+
+        if not self.license_header:
+            return  info
+        
+        comment = re.escape( self.comment_string )
+        author_regex = rf"{comment}.*Author:\s*(.*?)\s*<([^>]+)>"
+        date_regex = rf"{comment}.*Created on\s*(.*)"
+        
+        author_match = re.search( author_regex, self.license_header )
+        date_match = re.search( date_regex, self.license_header )
+        
+        if author_match:
+            info[ "name" ] = author_match.group( 1 ).strip( )
+            info[ "email" ] = author_match.group( 2 ).strip( )
+        
+        if date_match:
+            try:
+                info[ "created_at" ] = datetime.strptime(
+                     date_match.group( 1 ).strip( )
+                    ,project_config[ "locale" ][ "datetime-format" ]
+                ).timestamp( )
+            except ValueError:
+                pass
+        
+        return  info
 
     @property
     def license_header( self ) -> str:

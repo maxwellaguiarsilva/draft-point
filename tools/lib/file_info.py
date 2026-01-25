@@ -24,8 +24,7 @@
 #
 
 
-import os
-import datetime
+from datetime import datetime
 from lib.common import create_process
 from lib.fso.file import file
 
@@ -40,10 +39,10 @@ def get_info( file_path ):
     
     if not item.exists:
         return  {
-             "num_year": datetime.datetime.now( ).strftime( "%Y" )
+             "num_year": datetime.now( ).strftime( "%Y" )
             ,"des_full_name": item.author_name
             ,"des_email": item.author_email
-            ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M:%S" )
+            ,"des_formatted_datetime": datetime.now( ).strftime( "%Y-%m-%d %H:%M:%S" )
             ,"des_file_path": file_path
         }
     

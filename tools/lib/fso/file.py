@@ -24,8 +24,8 @@
 #
 
 
-import datetime
-import os
+from datetime import datetime
+from os.path import basename, dirname, exists, getctime, getmtime, splitext
 from lib.common import create_process, to_dict, to_json
 from lib.project_config import project_config
 
@@ -40,22 +40,22 @@ class file:
 
     @path.setter
     def path( self, path ):
-        name, extension =   os.path.splitext( os.path.basename( path ) )
+        name, extension =   splitext( basename( path ) )
         self.file_path  =   path
-        self.base       =   os.path.dirname( path )
-        self.folder     =   os.path.basename( self.base )
+        self.base       =   dirname( path )
+        self.folder     =   basename( self.base )
         self.name       =   name
         self.extension  =   extension[ 1: ]
         self.refresh( )
     
     def refresh( self ):
-        self.exists         =   os.path.exists( self.path )
-        self.modified_at    =   datetime.datetime.fromtimestamp( os.path.getmtime( self.path ) ) if self.exists else None
+        self.exists         =   exists( self.path )
+        self.modified_at    =   datetime.fromtimestamp( getmtime( self.path ) ) if self.exists else None
 
         metadata            =   self.git_metadata if self.exists else None
         self.author_name    =   ( metadata[ "name" ] if metadata else project_config[ "author" ][ "name" ] ) if self.exists else None
         self.author_email   =   ( metadata[ "email" ] if metadata else project_config[ "author" ][ "email" ] ) if self.exists else None
-        self.create_at      =   ( metadata[ "create_at" ] if metadata else datetime.datetime.fromtimestamp( os.path.getctime( self.path ) ) ) if self.exists else None
+        self.create_at      =   ( metadata[ "create_at" ] if metadata else datetime.fromtimestamp( getctime( self.path ) ) ) if self.exists else None
 
     @property
     def git_metadata( self ):
@@ -84,7 +84,7 @@ class file:
         return  {
              "name": name
             ,"email": email
-            ,"create_at": datetime.datetime.strptime( create_at, "%Y-%m-%d %H:%M:%S" )
+            ,"create_at": datetime.strptime( create_at, "%Y-%m-%d %H:%M:%S" )
         }
 
     @property
