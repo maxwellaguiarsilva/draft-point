@@ -62,16 +62,19 @@ class file:
         if not self.exists:
             return  None
 
-        process =   create_process( [
-             "git"
-            ,"log"
-            ,"--follow"
-            ,"--reverse"
-            ,"--date=format:%Y-%m-%d %H:%M:%S"
-            ,"--format=%ad|%an|%ae"
-            ,"--"
-            ,self.path
-        ] )
+        try:
+            process =   create_process( [
+                 "git"
+                ,"log"
+                ,"--follow"
+                ,"--reverse"
+                ,"--date=format:%Y-%m-%d %H:%M:%S"
+                ,"--format=%ad|%an|%ae"
+                ,"--"
+                ,self.path
+            ] )
+        except Exception:
+            return  None
         
         output  =   process.stdout.strip( )
         if not output:
