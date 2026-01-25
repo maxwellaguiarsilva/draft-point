@@ -29,7 +29,6 @@ import datetime
 from lib.common import create_process
 
 
-
 def get_git_config_value( configuration_name ):
     return  create_process( [ "git", "config", "--global", configuration_name ] ).stdout.strip( )
 

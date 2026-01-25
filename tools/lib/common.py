@@ -32,43 +32,33 @@ import subprocess
 import inspect
 
 
+def print_line( strong = True ):
+    print( ( "=" if strong else "-" ) * 50 )
+
+
+def value_or( values, index, default ):
+    try:
+        return  values[ index ]
+    except ( IndexError, KeyError ):
+        return  default
+
+
 def ensure( expression, message ):
     if not expression:
         raise Exception( message )
 
 
 def all_is_instance( items, cls ):
-    return  isinstance( items, cls ) or ( isinstance( items, list ) and all( isinstance( item, cls ) for item in items ) )
+    return  isinstance( items, cls ) or (
+        isinstance( items, list ) and all( isinstance( item, cls ) for item in items )
+    )
 
 def ensure_list( value, cls = None, message = "" ):
-    ensure( cls is None or all_is_instance( value, cls ), message or f"invalid parameter: must be a {cls.__name__} or a list of {cls.__name__}" )
+    ensure(
+         cls is None or all_is_instance( value, cls )
+        ,message or f"invalid parameter: must be a {cls.__name__} or a list of {cls.__name__}"
+    )
     return  value if isinstance( value, list ) else [ value ]
-
-
-def get_tool_metadata( action ):
-    parameters = [
-        { key: value for key, value in { "name": name, "type": param.annotation, "default": param.default }.items( ) if value is not inspect.Parameter.empty }
-        for name, param in inspect.signature( action ).parameters.items( )
-    ]
-    return  {
-         "description": inspect.getdoc( action ) or ""
-        ,"parameters": parameters
-    }
-
-
-def validate_params( params, required = None, optional = None ):
-    required = required or [ ]
-    for key in required:
-        ensure( key in params, f"missing required parameter: '{key}'" )
-    for key in params:
-        ensure( key in ( set( required ) | set( optional or [ ] ) ), f"unexpected parameter: '{key}'" )
-
-
-def get_cpu_count( ):
-    try:
-        return  len( os.sched_getaffinity( 0 ) )
-    except AttributeError:
-        return  os.cpu_count( ) or 1
 
 
 def deep_update( source, overrides ):
@@ -78,6 +68,23 @@ def deep_update( source, overrides ):
         else overrides.get( key, source.get( key ) )
         for key in source.keys( ) | overrides.keys( )
     }
+
+
+def to_dict( obj, members ):
+    def __to_dict( value ):
+        if hasattr( value, "to_dict" ):
+            return  value.to_dict
+        if isinstance( value, dict ):
+            return  { key: __to_dict( val ) for key, val in value.items( ) }
+        if isinstance( value, list ):
+            return  [ __to_dict( val ) for val in value ]
+        return  value
+
+    return  { member: __to_dict( getattr( obj, member ) ) for member in members }
+
+
+def to_json( data ):
+    return  json.dumps( data, indent = 4, default = str )
 
 
 def create_process( command, **kwargs ):
@@ -99,36 +106,23 @@ def get_process_text( result ):
     return  "\n".join( [ result.stderr or "", result.stdout or "" ] )
 
 
-def print_line( strong = True ):
-    print( ( "=" if strong else "-" ) * 50 )
+def get_git_config( configuration_name ):
+    return  create_process( [ "git", "config", "--global", configuration_name ] ).stdout.strip( )
+
+
+def get_cpu_count( ):
+    try:
+        return  len( os.sched_getaffinity( 0 ) )
+    except AttributeError:
+        return  os.cpu_count( ) or 1
 
 
 def get_json_args( ):
-    params  =   { }
-    if len( sys.argv ) > 1:
-        try:
-            params = json.loads( sys.argv[ 1 ] )
-        except json.JSONDecodeError:
-            print( "invalid json parameters" )
-            sys.exit( 1 )
-    return  params
-
-
-def to_dict( obj, members ):
-    def __to_dict( value ):
-        if hasattr( value, "to_dict" ):
-            return  value.to_dict
-        if isinstance( value, dict ):
-            return  { key: __to_dict( val ) for key, val in value.items( ) }
-        if isinstance( value, list ):
-            return  [ __to_dict( val ) for val in value ]
-        return  value
-
-    return  { member: __to_dict( getattr( obj, member ) ) for member in members }
-
-
-def to_json( data ):
-    return  json.dumps( data, indent = 4, default = str )
+    try:
+        return  json.loads( value_or( sys.argv, 1, "{ }" ) )
+    except json.JSONDecodeError:
+        print( "invalid json parameters" )
+        sys.exit( 1 )
 
 
 def run_mcp_tool( action ):
@@ -140,5 +134,28 @@ def run_mcp_tool( action ):
     except Exception as error:
         print( str( error ), file = sys.stderr )
         sys.exit( 1 )
+
+
+def validate_params( params, required = None, optional = None ):
+    required = required or [ ]
+    for key in required:
+        ensure( key in params, f"missing required parameter: '{key}'" )
+    for key in params:
+        ensure( key in ( set( required ) | set( optional or [ ] ) ), f"unexpected parameter: '{key}'" )
+
+
+def get_tool_metadata( action ):
+    parameters = [
+        {
+            key: value
+            for key, value in { "name": name, "type": param.annotation, "default": param.default }.items( )
+            if value is not inspect.Parameter.empty
+        }
+        for name, param in inspect.signature( action ).parameters.items( )
+    ]
+    return  {
+         "description": inspect.getdoc( action ) or ""
+        ,"parameters": parameters
+    }
 
 
