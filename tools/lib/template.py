@@ -26,18 +26,32 @@
 
 import re
 import os
+from datetime import datetime
 
 
 from lib.project_config import project_config
 from lib.common import ensure
 from lib.fso import text_file
-from lib import file_info
+from lib.project_file import generic_project_file
 
 
 r_import        =   r"\{\{import\s+([a-zA-Z0-9_/-]+)\}\}"
 r_list_open     =   r"\{\{list_open\s+([a-zA-Z0-9_/-]+)\}\}"
 r_list_close    =   r"\{\{list_close\s+([a-zA-Z0-9_/-]+)\}\}"
 r_list_item     =   r"\{\{list_item\s+([a-zA-Z0-9_/-]+)\}\}"
+
+
+def get_metadata( item ):
+    info = item.license_header_info
+    created_at = datetime.fromtimestamp( info[ "created_at" ] )
+    
+    return  {
+         "num_year": created_at.strftime( "%Y" )
+        ,"des_full_name": info[ "name" ]
+        ,"des_email": info[ "email" ]
+        ,"des_formatted_datetime": created_at.strftime( project_config[ "locale" ][ "datetime-format" ] )
+        ,"des_file_path": item.path
+    }
 
 
 class template:
@@ -86,7 +100,9 @@ class template:
 
     def render( self, data: dict, file_path: str = None ) -> str:
         if file_path:
-            data    =   file_info.get_info( file_path ) | data
+            comment_string = data.get( "comment_string", "#\t" )
+            item    =   generic_project_file( file_path, comment_string = comment_string )
+            data    =   get_metadata( item ) | data
         return  self._render_dict( data, self.text )
 
     def create_file( self, file_path, data ):

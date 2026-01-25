@@ -28,9 +28,28 @@ import re
 from dataclasses import dataclass, field
 from lib.common import ensure, validate_params, ensure_list 
 from lib.fso import text_file
-from lib import file_info
-from lib.template import template
+from lib.project_file import generic_project_file
+from lib.template import template, get_metadata
 
+
+def strip_header( content, comment_string ):
+    lines = content.splitlines( keepends = True )
+    shebang = ""
+    start_index = 0
+    if lines and lines[ 0 ].startswith( "#!" ):
+        shebang = lines[ 0 ]
+        start_index = 1
+    
+    comment_prefix = comment_string.rstrip( )
+    body_start = start_index
+    for i in range( start_index, len( lines ) ):
+        line = lines[ i ]
+        if not line.strip( ) or ( comment_prefix and line.startswith( comment_prefix ) ):
+            body_start = i + 1
+        else:
+            break
+            
+    return  shebang, "".join( lines[ body_start: ] )
 
 
 @dataclass
@@ -83,12 +102,14 @@ class base_verifier:
             return  "", self.content
 
         comment_string = self.comment_string
+        shebang_string = self.shebang_string
         model = template( "file-header" )
-        ideal_header = model.render( file_info.get_info( self.file_path ) | { "comment_string": comment_string } ).strip( " \n\r" )
+        item  = generic_project_file( self.file_path, shebang = shebang_string, comment_string = comment_string )
+        ideal_header = model.render( get_metadata( item ) | { "comment_string": comment_string } ).strip( " \n\r" )
         
-        shebang, body = file_info.strip_header( self.content, comment_string )
+        shebang, body = strip_header( self.content, comment_string )
         if not shebang:
-            shebang = self.shebang_string
+            shebang = shebang_string
         shebang = shebang.strip( )
         
         sep_shebang = self.config[ "newline_2" ]

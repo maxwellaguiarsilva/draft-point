@@ -25,6 +25,7 @@
 
 
 from lib.fso import text_file, file, get_file_list
+from lib.project_file import project_file
 from lib.common import to_dict, to_json
 import re
 import os
@@ -34,13 +35,21 @@ def parse_hierarchy( hierarchy ):
     return  re.split( r"[/:\\.]+", hierarchy )
 
 
-class cpp_project_file( text_file ):
+class cpp_project_file( project_file ):
     include_regex   =   re.compile( r'#include\s*(?P<full>(?P<open>[<"])(?P<path>[^>"]+)(?P<close>[>"]))' )
 
     def __init__( self, file_path, project ):
         super( ).__init__( file_path )
         self.refresh( )
         self.project    =   project
+    
+    @property
+    def shebang( self ):
+        return  ""
+    
+    @property
+    def comment_string( self ):
+        return  "//\t"
     
     def refresh( self ):
         super( ).refresh( )

@@ -52,7 +52,7 @@ class project_file( text_file, ABC ):
         info = {
              "name": project_config[ "author" ][ "name" ]
             ,"email": project_config[ "author" ][ "email" ]
-            ,"created_at": getctime( self.path )
+            ,"created_at": getctime( self.path ) if self.exists else datetime.now( ).timestamp( )
         }
         
         if not self.license_header:
@@ -98,3 +98,16 @@ class project_file( text_file, ABC ):
         ) )
 
 
+class generic_project_file( project_file ):
+    def __init__( self, file_path, shebang = "", comment_string = "#\t" ):
+        self._shebang = shebang
+        self._comment_string = comment_string
+        super( ).__init__( file_path )
+
+    @property
+    def shebang( self ):
+        return  self._shebang
+
+    @property
+    def comment_string( self ):
+        return  self._comment_string

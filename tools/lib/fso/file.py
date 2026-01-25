@@ -25,9 +25,8 @@
 
 
 from datetime import datetime
-from os.path import basename, dirname, exists, getctime, getmtime, splitext
-from lib.common import create_process, to_dict, to_json
-from lib.project_config import project_config
+from os.path import basename, dirname, exists, getmtime, splitext
+from lib.common import to_dict, to_json
 
 
 class file:
@@ -52,41 +51,6 @@ class file:
         self.exists         =   exists( self.path )
         self.modified_at    =   datetime.fromtimestamp( getmtime( self.path ) ) if self.exists else None
 
-        metadata            =   self.git_metadata if self.exists else None
-        self.author_name    =   ( metadata[ "name" ] if metadata else project_config[ "author" ][ "name" ] ) if self.exists else None
-        self.author_email   =   ( metadata[ "email" ] if metadata else project_config[ "author" ][ "email" ] ) if self.exists else None
-        self.create_at      =   ( metadata[ "create_at" ] if metadata else datetime.fromtimestamp( getctime( self.path ) ) ) if self.exists else None
-
-    @property
-    def git_metadata( self ):
-        if not self.exists:
-            return  None
-
-        try:
-            process =   create_process( [
-                 "git"
-                ,"log"
-                ,"--follow"
-                ,"--reverse"
-                ,"--date=format:%Y-%m-%d %H:%M:%S"
-                ,"--format=%ad|%an|%ae"
-                ,"--"
-                ,self.path
-            ] )
-        except Exception:
-            return  None
-        
-        output  =   process.stdout.strip( )
-        if not output:
-            return  None
-
-        create_at, name, email  =   output.splitlines( )[ 0 ].split( "|" )
-        return  {
-             "name": name
-            ,"email": email
-            ,"create_at": datetime.strptime( create_at, "%Y-%m-%d %H:%M:%S" )
-        }
-
     @property
     def to_dict( self ):
         return  to_dict( self, {
@@ -97,9 +61,6 @@ class file:
             ,"extension"
             ,"exists"
             ,"modified_at"
-            ,"author_name"
-            ,"author_email"
-            ,"create_at"
         } )
 
     def __repr__( self ):
