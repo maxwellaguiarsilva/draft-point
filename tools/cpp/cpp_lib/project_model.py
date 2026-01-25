@@ -24,7 +24,7 @@
 #
 
 
-from lib.fso import text_file, file, get_file_list
+from lib.fso import file, get_file_list
 from lib.project_file import project_file
 from lib.common import to_dict, to_json
 import re
