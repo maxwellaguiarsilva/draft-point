@@ -24,7 +24,7 @@
 #
 
 
-from lib.common import get_cpu_count, deep_update, get_git_config
+from lib.common import get_cpu_count, deep_update, get_git_config, ensure
 
 
 project_config = {
@@ -36,8 +36,8 @@ project_config = {
         ,"templates": "docs/templates" #   project templates directory
     }
     ,"author": {
-         "name": get_git_config( "user.name" )
-        ,"email": get_git_config( "user.email" )
+         "name": get_git_config( "user.name" ) or ensure( False, "failed to retrieve user.name from git" )
+        ,"email": get_git_config( "user.email" ) or ensure( False, "failed to retrieve user.email from git" )
     }
 
 }

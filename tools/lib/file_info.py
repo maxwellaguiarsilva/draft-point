@@ -39,8 +39,8 @@ def get_info( file_path ):
     #   fallback
     data    =   {
          "num_year": datetime.datetime.now( ).strftime( "%Y" )
-        ,"des_full_name": project_config.name
-        ,"des_email": project_config.email
+        ,"des_full_name": project_config[ "author" ][ "name" ]
+        ,"des_email": project_config[ "author" ][ "email" ]
         ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M:%S" )
         ,"des_file_path": file_path
     }
