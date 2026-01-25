@@ -20,7 +20,7 @@ The system uses **FastMCP** as the communication interface, but employs a dispat
 
 ### 1. Create the Script
 Place your new tool in the appropriate group directory. The file name determines the tool name suffix.
-Example: `tools/cpp/my_tool.py` will be registered as `cpp_my_tool`.
+Example: `tools/group/my_tool.py` will be registered as `group_my_tool`.
 
 ### 2. Implement the Logic
 The script must follow these conventions:
@@ -61,7 +61,8 @@ For experimental logic, use `tools/llm/adhoc_tool.py`. This avoids the need for 
 ## Best Practices
 
 1.  **Reuse Utilities:** Use `tools/lib/common.py` for common tasks like `ensure`, `validate_params`, `create_process`, and `get_cpu_count`.
-2.  **Explicit Imports:** The `PYTHONPATH` is set to include `tools/` and the script's own group directory. You can import group-specific libraries (e.g., `from cpp_lib.project_core import ...`).
+2.  **Explicit Imports:** The `PYTHONPATH` is set to include `tools/` and the script's own group directory. You can import group-specific libraries (e.g., `from lib.common import ensure`).
 3.  **No Chitchat:** Tools should return concise, actionable information. Use `print` within the `run_` function (which `run_mcp_tool` captures and returns).
 4.  **Error Handling:** Use `ensure` with clear messages. `run_mcp_tool` will catch these and return them via `stderr`.
+
 
