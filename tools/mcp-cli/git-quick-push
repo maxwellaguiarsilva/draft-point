@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # generating the commit message or a stop signal using chat-tui
 MESSAGE="$( chat-tui "$(cat <<EOF
 Analyze the following git context (status, diff, and recent history) and provide a concise, descriptive commit message in English (en-us).
@@ -14,7 +15,7 @@ EOF
 
 # checking if the commit should be stopped
 if [[ $MESSAGE == stop:* ]]; then
-    echo -e "\n\033[0;31m$MESSAGE\033[0m"
+    echo -e "\n\033[7m$MESSAGE\033[0m"
     exit 1
 fi
 
