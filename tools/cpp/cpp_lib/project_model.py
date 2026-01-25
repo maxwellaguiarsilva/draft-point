@@ -39,9 +39,8 @@ class cpp_project_file( project_file ):
     include_regex   =   re.compile( r'#include\s*(?P<full>(?P<open>[<"])(?P<path>[^>"]+)(?P<close>[>"]))' )
 
     def __init__( self, file_path, project ):
-        super( ).__init__( file_path )
-        self.refresh( )
         self.project    =   project
+        super( ).__init__( file_path )
     
     @property
     def shebang( self ):
@@ -49,7 +48,7 @@ class cpp_project_file( project_file ):
     
     @property
     def comment_string( self ):
-        return  "//\t"
+        return  self.project.config[ "language" ][ "comment_string" ]
     
     def refresh( self ):
         super( ).refresh( )
@@ -237,7 +236,7 @@ class project_model:
 if __name__ == "__main__":
     import sys
     if len( sys.argv ) > 1 and sys.argv[ 1 ] == "--run-test":
-        from cpp_lib.cpp_config import cpp_project_config
+        from cpp_lib.cpp_project_config import cpp_project_config
         print( project_model( cpp_project_config ).files[ "source/main.cpp" ] )
 
 

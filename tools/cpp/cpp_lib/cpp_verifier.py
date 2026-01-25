@@ -26,7 +26,7 @@
 
 import re
 from lib.base_verifier import base_verifier, run_verifier, rule
-from cpp_lib.cpp_config import cpp_project_config
+from cpp_lib.cpp_project_config import cpp_project_config
 
 
 include_sep = r"\1\n\n\n\2"

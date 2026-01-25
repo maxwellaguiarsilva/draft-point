@@ -111,3 +111,5 @@ class generic_project_file( project_file ):
     @property
     def comment_string( self ):
         return  self._comment_string
+
+
