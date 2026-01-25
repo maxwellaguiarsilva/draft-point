@@ -24,7 +24,7 @@
 #
 
 
-from lib.common import get_cpu_count, deep_update
+from lib.common import get_cpu_count, deep_update, get_git_config
 
 
 project_config = {
@@ -35,6 +35,11 @@ project_config = {
         ,"docs": "docs"                #   project documentation directory
         ,"templates": "docs/templates" #   project templates directory
     }
+    ,"author": {
+         "name": get_git_config_value( "user.name" )
+        ,"email": get_git_config_value( "user.email" )
+    }
+
 }
 
 

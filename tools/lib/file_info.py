@@ -27,6 +27,7 @@
 import os
 import datetime
 from lib.common import create_process
+from lib.project_config import project_config
 
 
 def get_git_config_value( configuration_name ):
@@ -38,8 +39,8 @@ def get_info( file_path ):
     #   fallback
     data    =   {
          "num_year": datetime.datetime.now( ).strftime( "%Y" )
-        ,"des_full_name": get_git_config_value( "user.name" )
-        ,"des_email": get_git_config_value( "user.email" )
+        ,"des_full_name": project_config.name
+        ,"des_email": project_config.email
         ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M:%S" )
         ,"des_file_path": file_path
     }
