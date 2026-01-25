@@ -27,8 +27,8 @@
 import time
 from lib.common import run_mcp_tool, ensure
 from lib.template import template
-from lib_cpp.cpp_config import project_cpp_config
-from lib_cpp.project_model import parse_hierarchy, project_model
+from cpp_lib.cpp_config import cpp_project_config
+from cpp_lib.project_model import parse_hierarchy, project_model
 
 
 def run_create_class( 
@@ -45,14 +45,14 @@ bad example: include_list="<string>", using_list="using std::string;" """
     message = ""
     hierarchy = class_hierarchy
     hierarchy_list = parse_hierarchy( hierarchy )
-    model = project_model( project_cpp_config )
+    model = project_model( cpp_project_config )
     
     header_path = model.get_path_for_hierarchy( hierarchy, "header" )
     
     message +=  template( "cpp/class-hpp" ).create_file( 
          header_path
         ,{
-             "comment_string": project_cpp_config[ "language" ][ "comment_string" ]
+             "comment_string": cpp_project_config[ "language" ][ "comment_string" ]
             ,"header_guard": f"header_guard_{ str( time.time_ns( ) )[ -9: ] }"
             ,"class_name": hierarchy_list[ -1 ]
             ,"include_list": include_list
@@ -65,12 +65,12 @@ bad example: include_list="<string>", using_list="using std::string;" """
         return  message
     
     source_path = model.get_path_for_hierarchy( hierarchy, "source" )
-    rel_header_path = "/".join( hierarchy_list ) + "." + project_cpp_config[ 'language' ][ 'header_extension' ]
+    rel_header_path = "/".join( hierarchy_list ) + "." + cpp_project_config[ 'language' ][ 'header_extension' ]
 
     message +=  template( "cpp/class-cpp" ).create_file( 
          source_path
         ,{
-             "comment_string": project_cpp_config[ "language" ][ "comment_string" ]
+             "comment_string": cpp_project_config[ "language" ][ "comment_string" ]
             ,"include_list": [ rel_header_path ]
         }
     )

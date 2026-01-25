@@ -26,8 +26,8 @@
 
 from lib.template import template
 from lib.common import run_mcp_tool, ensure
-from lib_cpp.cpp_config import project_cpp_config
-from lib_cpp.project_model import project_model
+from cpp_lib.cpp_config import cpp_project_config
+from cpp_lib.project_model import project_model
 
 
 def run_create_test( 
@@ -39,7 +39,7 @@ def run_create_test(
 if flg_adhoc is true, creates an adhoc test in tests/adhoc/nnnn_hierarchy/
 in adhoc mode, 'hierarchy' must be a simple name (no slashes or paths)
 if flg_adhoc is false, creates a structured test in tests/path/test_path_hierarchy.cpp"""
-    model = project_model( project_cpp_config )
+    model = project_model( cpp_project_config )
     
     file_path = model.get_path_for_hierarchy( 
          hierarchy
@@ -50,7 +50,7 @@ if flg_adhoc is false, creates a structured test in tests/path/test_path_hierarc
     return  template( "cpp/test-cpp" ).create_file( 
          file_path
         ,{
-             "comment_string": project_cpp_config[ "language" ][ "comment_string" ]
+             "comment_string": cpp_project_config[ "language" ][ "comment_string" ]
             ,"hierarchy": hierarchy
             ,"include_list": include_list
         }

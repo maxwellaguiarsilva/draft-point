@@ -28,7 +28,7 @@ import datetime
 import os
 import concurrent.futures
 from lib.common import run_mcp_tool, ensure, get_cpu_count
-from lib_cpp.project_core import project_core
+from cpp_lib.project_core import project_core
 
 
 def run_compile( ) -> str:

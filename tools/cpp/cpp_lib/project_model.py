@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/cpp/lib_cpp/project_model.py
+#   File:   tools/cpp/cpp_lib/project_model.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-24 22:08:36
@@ -228,7 +228,7 @@ class project_model:
 if __name__ == "__main__":
     import sys
     if len( sys.argv ) > 1 and sys.argv[ 1 ] == "--run-test":
-        from cpp.lib_cpp.cpp_config import project_cpp_config
-        print( project_model( project_cpp_config ).files[ "source/main.cpp" ] )
+        from cpp_lib.cpp_config import cpp_project_config
+        print( project_model( cpp_project_config ).files[ "source/main.cpp" ] )
 
 

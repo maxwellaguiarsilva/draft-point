@@ -27,13 +27,13 @@
 from lib.common import run_mcp_tool, print_line
 from lib.fso import get_file_list
 from python.code_verifier import run_code_verifier
-from python.lib_python.python_config import project_python_config
+from python.python_lib.python_config import python_project_config
 
 
 def run_analyze( ) -> str:
     """applies python_code_verifier in all *.py files found inside tools with the flg_auto_fix = true"""
-    path_tools      =   project_python_config[ "paths" ][ "tools" ]
-    extension       =   project_python_config[ "language" ][ "extension" ]
+    path_tools      =   python_project_config[ "paths" ][ "tools" ]
+    extension       =   python_project_config[ "language" ][ "extension" ]
     files_to_check  =   get_file_list( path_tools, extensions = extension )
 
     print_line( )

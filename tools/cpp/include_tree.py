@@ -30,8 +30,8 @@ import sys
 
 
 from lib.common import run_mcp_tool, ensure
-from lib_cpp.project_model import project_model
-from lib_cpp.cpp_config import project_cpp_config
+from cpp_lib.project_model import project_model
+from cpp_lib.cpp_config import cpp_project_config
 
 
 class include_node:
@@ -66,7 +66,7 @@ class include_node:
 
 class include_tree:
     def __init__( self, file_path: str = None ):
-        self.project = project_model( project_cpp_config )
+        self.project = project_model( cpp_project_config )
         self.file_path = file_path
         
         if not self.file_path:

@@ -25,7 +25,7 @@
 
 
 from lib.common import run_mcp_tool
-from lib_python.python_verifier import run_python_verifier
+from python_lib.python_verifier import run_python_verifier
 
 
 def run_code_verifier( files: list[ str ], flg_auto_fix: bool = False ) -> str:

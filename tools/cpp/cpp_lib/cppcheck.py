@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/cpp/lib_cpp/cppcheck.py
+#   File:   tools/cpp/cpp_lib/cppcheck.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-24 22:08:36

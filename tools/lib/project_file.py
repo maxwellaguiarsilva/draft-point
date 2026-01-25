@@ -20,7 +20,7 @@
 #   File:   tools/lib/project_file.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-25 15:39:10
+#   Created on 2026-01-25 15:40:46
 #
 
 
@@ -48,21 +48,20 @@ class project_file( text_file, ABC ):
     def license_header( self ) -> str:
         if not self.content:
             return  None
-
-        shebang = self.shebang
+        
         comment = self.comment_string
         start_index = 0
-
-        if shebang:
-            if not self.content.startswith( shebang + line_break * 2 + comment ):
+        
+        if self.shebang:
+            if not self.content.startswith( self.shebang + line_break * 2 + comment ):
                 return  None
             start_index = 2
         elif not self.content.startswith( comment ):
             return  None
-
-        lines = self.content.splitlines( keepends = True )
-        header = takewhile( lambda line: comment and line.startswith( comment ), lines[ start_index: ] )
         
-        return  "".join( header )
+        return  "".join( takewhile(
+            lambda line: comment and line.startswith( comment )
+            ,self.content.splitlines( keepends = True )[ start_index: ]
+        ) )
 
 

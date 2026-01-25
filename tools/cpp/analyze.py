@@ -28,8 +28,8 @@ import concurrent.futures
 from lib.common import run_mcp_tool, get_cpu_count, print_line
 
 
-from lib_cpp.project_core import project_core
-from lib_cpp.cpp_verifier import run_cpp_verifier
+from cpp_lib.project_core import project_core
+from cpp_lib.cpp_verifier import run_cpp_verifier
 
 
 def run_analyze( ) -> str:

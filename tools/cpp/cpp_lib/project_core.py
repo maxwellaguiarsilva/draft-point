@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/cpp/lib_cpp/project_core.py
+#   File:   tools/cpp/cpp_lib/project_core.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-24 22:08:36
@@ -28,10 +28,10 @@ import copy
 import os
 import threading
 from lib.common import create_process, deep_update, ensure, get_process_text
-from lib_cpp.cpp_config import project_cpp_config
-from lib_cpp.project_model import project_model, cpp, hpp
-from lib_cpp.clang import clang
-from lib_cpp.cppcheck import cppcheck
+from cpp_lib.cpp_config import cpp_project_config
+from cpp_lib.project_model import project_model, cpp, hpp
+from cpp_lib.clang import clang
+from cpp_lib.cppcheck import cppcheck
 
 
 class binary_builder:
@@ -72,7 +72,7 @@ class binary_builder:
 
 class project_core:
     def __init__( self, config = { } ):
-        self.config = deep_update( copy.deepcopy( project_cpp_config ), config )
+        self.config = deep_update( copy.deepcopy( cpp_project_config ), config )
         
         self.map = project_model( self.config )
         

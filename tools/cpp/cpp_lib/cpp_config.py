@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/cpp/lib_cpp/cpp_config.py
+#   File:   tools/cpp/cpp_lib/cpp_config.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-24 22:08:36
@@ -30,7 +30,7 @@ from lib.common import get_cpu_count, deep_update
 from lib.project_config import project_config
 
 
-project_cpp_config = {
+cpp_project_config = {
     #   compiler information
     "compiler": {
         "executable": "clang++"        #   options: "g++", "clang++" or full path
@@ -116,6 +116,6 @@ cpp_release_config  =   {
 
 
 #   the cpp config performs a deep_update on the generic config
-project_cpp_config = deep_update( deep_update( copy.deepcopy( project_config ), project_cpp_config ), cpp_release_config )
+cpp_project_config = deep_update( deep_update( copy.deepcopy( project_config ), cpp_project_config ), cpp_release_config )
 
 
