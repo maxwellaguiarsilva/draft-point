@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/cpp/cpp_lib/project_core.py
+#   File:   tools/cpp/lib_cpp/project_core.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-16 17:38:37
@@ -28,10 +28,10 @@ import copy
 import os
 import threading
 from lib.common import create_process, deep_update, ensure, get_process_text
-from cpp_lib.cpp_config import project_cpp_config
-from cpp_lib.project_model import project_model, cpp, hpp
-from cpp_lib.clang import clang
-from cpp_lib.cppcheck import cppcheck
+from lib_cpp.cpp_config import project_cpp_config
+from lib_cpp.project_model import project_model, cpp, hpp
+from lib_cpp.clang import clang
+from lib_cpp.cppcheck import cppcheck
 
 
 class binary_builder:

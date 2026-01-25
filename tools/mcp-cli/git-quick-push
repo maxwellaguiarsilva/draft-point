@@ -1,0 +1,10 @@
+#!/bin/bash
+
+
+MCP_CALL_LOCK=1 PYTHONPATH=tools tools/git/quick_upload.py "$( cat <<-EOF
+{ "message": "$( chat-tui "return a commit messagem (en-us): $( git status ; git diff; git log -n3 )" )" }
+EOF
+)"
+git log -n2
+
+

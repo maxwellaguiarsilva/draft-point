@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/python/python_lib/python_verifier.py
+#   File:   tools/python/lib_python/python_verifier.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-22 19:00:22
@@ -26,7 +26,7 @@
 
 import re
 from lib.base_verifier import base_verifier, run_verifier, rule
-from python_lib.python_config import project_python_config
+from lib_python.python_config import project_python_config
 
 
 class formatter( base_verifier ):

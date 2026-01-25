@@ -27,7 +27,7 @@
 from lib.common import run_mcp_tool, print_line
 from lib.fso import get_file_list
 from python.code_verifier import run_code_verifier
-from python.python_lib.python_config import project_python_config
+from python.lib_python.python_config import project_python_config
 
 
 def run_analyze( ) -> str:

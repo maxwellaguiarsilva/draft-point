@@ -26,8 +26,8 @@
 
 from lib.template import template
 from lib.common import run_mcp_tool, ensure
-from cpp_lib.cpp_config import project_cpp_config
-from cpp_lib.project_model import project_model
+from lib_cpp.cpp_config import project_cpp_config
+from lib_cpp.project_model import project_model
 
 
 def run_create_test( 

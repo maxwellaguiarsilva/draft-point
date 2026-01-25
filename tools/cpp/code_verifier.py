@@ -25,7 +25,7 @@
 
 
 from lib.common import run_mcp_tool
-from cpp_lib.cpp_verifier import run_cpp_verifier
+from lib_cpp.cpp_verifier import run_cpp_verifier
 
 
 

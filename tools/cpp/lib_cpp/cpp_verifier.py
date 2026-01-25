@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #   
 #   
-#   File:   tools/cpp/cpp_lib/cpp_verifier.py
+#   File:   tools/cpp/lib_cpp/cpp_verifier.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
 #   Created on 2026-01-22 19:12:03
@@ -26,7 +26,7 @@
 
 import re
 from lib.base_verifier import base_verifier, run_verifier, rule
-from cpp_lib.cpp_config import project_cpp_config
+from lib_cpp.cpp_config import project_cpp_config
 
 
 include_sep = r"\1\n\n\n\2"
