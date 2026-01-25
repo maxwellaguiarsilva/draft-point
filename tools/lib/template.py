@@ -46,11 +46,11 @@ def get_metadata( item ):
     created_at = datetime.fromtimestamp( info[ "created_at" ] )
     
     return  {
-         "num_year": created_at.strftime( "%Y" )
-        ,"des_full_name": info[ "name" ]
-        ,"des_email": info[ "email" ]
-        ,"des_formatted_datetime": created_at.strftime( project_config[ "locale" ][ "datetime-format" ] )
-        ,"des_file_path": item.path
+         "file_created_at_year": created_at.strftime( "%Y" )
+        ,"file_author_name": info[ "name" ]
+        ,"file_author_email": info[ "email" ]
+        ,"file_created_at": created_at.strftime( project_config[ "locale" ][ "datetime-format" ] )
+        ,"file_path": item.path
     }
 
 

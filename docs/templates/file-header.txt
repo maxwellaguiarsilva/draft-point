@@ -1,5 +1,5 @@
 {{comment_string}}
-{{comment_string}}Copyright (C) {{num_year}} {{des_full_name}} <{{des_email}}>
+{{comment_string}}Copyright (C) {{file_created_at_year}} {{file_author_name}} <{{file_author_email}}>
 {{comment_string}}
 {{comment_string}}This program is free software: you can redistribute it and/or modify
 {{comment_string}}it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 {{comment_string}}along with this program.  If not, see <http://www.gnu.org/licenses/>.
 {{comment_string}}
 {{comment_string}}
-{{comment_string}}File:   {{des_file_path}}
-{{comment_string}}Author: {{des_full_name}} <{{des_email}}>
+{{comment_string}}File:   {{file_path}}
+{{comment_string}}Author: {{file_author_name}} <{{file_author_email}}>
 {{comment_string}}
-{{comment_string}}Created on {{des_formatted_datetime}}
+{{comment_string}}Created on {{file_created_at}}
 {{comment_string}}
