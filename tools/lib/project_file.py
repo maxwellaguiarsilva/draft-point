@@ -54,16 +54,13 @@ class project_file( text_file, ABC ):
             ,"email": project_config[ "author" ][ "email" ]
             ,"created_at": getctime( self.path )
         }
-
+        
         if not self.license_header:
             return  info
         
         comment = re.escape( self.comment_string )
-        author_regex = rf"{comment}.*Author:\s*(.*?)\s*<([^>]+)>"
-        date_regex = rf"{comment}.*Created on\s*(.*)"
-        
-        author_match = re.search( author_regex, self.license_header )
-        date_match = re.search( date_regex, self.license_header )
+        author_match = re.search( rf"{comment}.*Author:\s*(.*?)\s*<([^>]+)>", self.license_header )
+        date_match = re.search( rf"{comment}.*Created on\s*(.*)", self.license_header )
         
         if author_match:
             info[ "name" ] = author_match.group( 1 ).strip( )
