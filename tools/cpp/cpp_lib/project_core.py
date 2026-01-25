@@ -141,8 +141,7 @@ class project_core:
         source_dir = self.config[ 'paths' ][ 'source' ]
         tests_dir = self.config[ 'paths' ][ 'tests' ]
         
-        analyzer = cpp_check( self.config, [ source_dir, tests_dir ] )
-        analyzer_command = analyzer.command
+        analyzer_command = cpp_check( self.config, [ source_dir, tests_dir ] ).command
         
         self.print( "running static analysis..." )
         process = create_process( analyzer_command, shell = True, check = False, capture_output = False, text = False )
