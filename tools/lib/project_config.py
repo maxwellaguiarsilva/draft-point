@@ -36,8 +36,8 @@ project_config = {
         ,"templates": "docs/templates" #   project templates directory
     }
     ,"author": {
-         "name": get_git_config_value( "user.name" )
-        ,"email": get_git_config_value( "user.email" )
+         "name": get_git_config( "user.name" )
+        ,"email": get_git_config( "user.email" )
     }
 
 }
