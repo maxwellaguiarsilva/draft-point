@@ -34,7 +34,7 @@ def parse_hierarchy( hierarchy ):
     return  re.split( r"[/:\\.]+", hierarchy )
 
 
-class project_file( text_file ):
+class cpp_project_file( text_file ):
     include_regex   =   re.compile( r'#include\s*(?P<full>(?P<open>[<"])(?P<path>[^>"]+)(?P<close>[>"]))' )
 
     def __init__( self, file_path, project ):
@@ -78,12 +78,12 @@ class project_file( text_file ):
 
 
 
-class hpp( project_file ):
+class hpp( cpp_project_file ):
     def __init__( self, *args, **kwargs ):
         super( ).__init__( *args, **kwargs )
 
 
-class cpp( project_file ):
+class cpp( cpp_project_file ):
     main_regex  =   r"\b(int|auto)\s+main\s*\("
 
     def __init__( self, *args, **kwargs ):
