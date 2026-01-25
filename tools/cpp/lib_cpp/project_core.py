@@ -20,7 +20,7 @@
 #   File:   tools/cpp/lib_cpp/project_core.py
 #   Author: Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 #   
-#   Created on 2026-01-16 17:38:37
+#   Created on 2026-01-24 22:08:36
 #
 
 

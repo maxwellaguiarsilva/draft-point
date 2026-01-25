@@ -27,7 +27,7 @@
 import os
 import datetime
 from lib.common import create_process
-from lib.project_config import project_config
+from lib.fso.file import file
 
 
 def get_git_config_value( configuration_name ):
@@ -36,32 +36,23 @@ def get_git_config_value( configuration_name ):
 
 def get_info( file_path ):
     """generates the official metadata set for a file (existing or new)."""
-    #   fallback
-    data    =   {
-         "num_year": datetime.datetime.now( ).strftime( "%Y" )
-        ,"des_full_name": project_config[ "author" ][ "name" ]
-        ,"des_email": project_config[ "author" ][ "email" ]
-        ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M:%S" )
-        ,"des_file_path": file_path
-    }
-
-    if not os.path.exists( file_path ):
-        return  data
-    process =   create_process( [
-        "git", "log", "--follow", "--reverse", 
-        "--date=format:%Y-%m-%d %H:%M:%S", 
-        "--format=%ad|%an|%ae", "--", file_path
-    ] )
-    if not process.stdout.strip( ):
-        return  data
-
-    dat_full, des_full_name, des_email  =   process.stdout.splitlines( )[ 0 ].split( "|" )
+    item    =   file( file_path )
     
-    return  data | {
-         "num_year": dat_full.split( "-" )[ 0 ]
-        ,"des_full_name": des_full_name
-        ,"des_email": des_email
-        ,"des_formatted_datetime": dat_full
+    if not item.exists:
+        return  {
+             "num_year": datetime.datetime.now( ).strftime( "%Y" )
+            ,"des_full_name": item.author_name
+            ,"des_email": item.author_email
+            ,"des_formatted_datetime": datetime.datetime.now( ).strftime( "%Y-%m-%d %H:%M:%S" )
+            ,"des_file_path": file_path
+        }
+    
+    return  {
+         "num_year": item.create_at.strftime( "%Y" )
+        ,"des_full_name": item.author_name
+        ,"des_email": item.author_email
+        ,"des_formatted_datetime": item.create_at.strftime( "%Y-%m-%d %H:%M:%S" )
+        ,"des_file_path": file_path
     }
 
 
