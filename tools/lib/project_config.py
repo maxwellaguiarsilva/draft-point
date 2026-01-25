@@ -39,6 +39,9 @@ project_config = {
          "name": get_git_config( "user.name" ) or ensure( False, "failed to retrieve user.name from git" )
         ,"email": get_git_config( "user.email" ) or ensure( False, "failed to retrieve user.email from git" )
     }
+    ,"locale": {
+        "datetime-format": "%Y-%m-%d %H:%M:%S"
+    }
 
 }
 

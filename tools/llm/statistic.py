@@ -26,11 +26,14 @@
 
 import json
 import os
-from lib.common import run_mcp_tool, ensure, validate_params, to_json, ensure_list
+from datetime import datetime
+from lib.common import run_mcp_tool, ensure, validate_params, to_json, ensure_list, value_or
 from lib.fso import text_file
+from lib.project_config import project_config
 
 
 _statistic_file = "/home/.gemini/statistic.json"
+_datetime_format = project_config[ "locale" ][ "datetime-format" ]
 
 
 def format_output( data ):
@@ -40,9 +43,10 @@ def format_output( data ):
     #   sort by count descending
     sorted_data = sorted( data, key=lambda x: x[ "count" ], reverse=True )
     
-    lines = [ ]
+    now_str = datetime.now( ).strftime( _datetime_format )
+    lines = [ f"now: {now_str}" ]
     for item in sorted_data:
-        lines.append( f"{item[ 'name' ]}( {item[ 'count' ]} ): {item[ 'short-description' ]}" )
+        lines.append( f"{ item[ 'last_event' ][ :-3 ]} {item[ 'name' ]}( {item[ 'count' ]} ): {item[ 'description' ]}" )
     
     return  "\n".join( lines )
 
@@ -56,6 +60,7 @@ def increment_event( data, name ):
     
     if entry:
         entry[ "count" ] += 1
+        entry[ "last_event" ] = datetime.now( ).strftime( _datetime_format )
     else:
         ensure( False, f"entry '{name}' does not exist" )
 
