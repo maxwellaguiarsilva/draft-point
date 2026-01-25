@@ -22,7 +22,7 @@ fi
 # constructing the JSON payload safely and performing the upload
 JSON_PAYLOAD=$(python3 -c "import json, sys; print(json.dumps({'message': sys.stdin.read().strip()}))" <<< "$MESSAGE")
 
-MCP_CALL_LOCK=1 PYTHONPATH=tools tools/git/quick_upload.py "$JSON_PAYLOAD"
+PYTHONPATH=tools tools/git/quick_upload.py "$JSON_PAYLOAD"
 
 # showing recent history
 git log -n1
