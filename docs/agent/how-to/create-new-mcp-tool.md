@@ -6,7 +6,7 @@ This guide describes the project's Model Context Protocol (MCP) tool architectur
 
 The system uses **FastMCP** as the communication interface, but employs a dispatching strategy to external scripts:
 
-1.  **Dynamic Discovery Server (`tools/project_mcp.py`):** Scans the `tools/` directory for subdirectories (groups) and Python scripts. It automatically registers each script as an MCP tool.
+1.  **Dynamic Discovery Server (`tools/project_mcp_server.py`):** Scans the `tools/` directory for subdirectories (groups) and Python scripts. It automatically registers each script as an MCP tool.
 2.  **Tool Scripts (`tools/{group}/{name}.py`):** Contain the actual logic. They are executed as independent processes.
 3.  **Metadata Extraction:** The server inspects the `run_{name}` function signature and docstring in each script to define the MCP tool's parameters and description.
 

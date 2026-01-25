@@ -2,7 +2,7 @@
 
 
 venv_dir="./.gemini/venv-fast-mcp"
-python_script="./tools/project_mcp.py"
+python_script="./tools/project_mcp_server.py"
 settings_template="./tools/resources/gemini-cli/settings.json"
 settings_production="./.gemini/settings.json"
 
