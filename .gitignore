@@ -1,0 +1,63 @@
+#	python-generated files
+__pycache__/
+*.py[oc]
+*.pyc
+*.pyd
+*.pyo
+
+#	distribution / packaging
+build/
+dist/
+wheels/
+*.egg-info
+*.egg
+.Python
+
+#	virtual environments
+.venv
+.venv/
+.venv-*/
+venv/
+venv-*/
+venv.bak/
+venv-*.bak/
+env/
+env.bak/
+tools/venv/
+.env
+.env/
+
+#	old files/directories
+.old/
+
+#	object files and dependency files
+*.o
+*.d
+
+#	editor / ide
+.vscode/
+.idea/
+*.swp
+*~
+
+#	logs and databases
+*.log
+*.sqlite3
+*.db
+.log/
+
+#	generated images
+resources/images/
+
+#	llm temp docs
+violations.md
+prompt.md
+
+#	gemini cli
+.gemini/
+
+#	credentials
+gha-creds-*.json
+
+
+.playwright-mcp/

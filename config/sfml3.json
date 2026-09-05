@@ -1,0 +1,9 @@
+{
+    "dependencies": {
+        "libraries": [
+            "sfml-graphics",
+            "sfml-window",
+            "sfml-system"
+        ]
+    }
+}
