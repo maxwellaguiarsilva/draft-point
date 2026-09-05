@@ -78,6 +78,7 @@ void main( )
 } 
 
 
+namespace sak {
 namespace sdl3 {
 
 using	::std::string;
@@ -89,56 +90,63 @@ class window
 public:
 	window( const string& title, const int width, const int height )
 	{
-		try
-		{
-			ensure( SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 4 ), "failed to set opengl major version" );
-			ensure( SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 6 ), "failed to set opengl minor version" );
-			ensure( SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE ), "failed to set opengl core profile" );
+		ensure( SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 4 ), "failed to set opengl major version" );
+		ensure( SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 6 ), "failed to set opengl minor version" );
+		ensure( SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE ), "failed to set opengl core profile" );
 
-			m_id = SDL_CreateWindow( title.c_str( ), width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE );
-			ensure( m_id not_eq nullptr, "failed to create sdl window" );
-
-			m_context = SDL_GL_CreateContext( m_id );
-			ensure( m_context not_eq nullptr, "failed to create opengl context" );
-			ensure( SDL_GL_MakeCurrent( m_id, m_context ), "failed to make opengl context current" );
-			ensure( gladLoadGL( SDL_GL_GetProcAddress ) not_eq 0, "failed to load opengl functions with glad" );
-		}
-		catch( ... )
-		{
-			SDL_GL_DestroyContext( m_context );
-			SDL_DestroyWindow( m_id );
-			throw;
-		}
+		m_id = SDL_CreateWindow( title.c_str( ), width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE );
+		ensure( m_id not_eq nullptr, "failed to create sdl window" );
 	}
 
 	~window( ) noexcept
 	{
-		SDL_GL_DestroyContext( m_context );
 		SDL_DestroyWindow( m_id );
 	}
 
 	delete_copy_move_ctc( window )
 
 	auto id( ) const noexcept -> SDL_Window* { return m_id; }
-	auto context( ) const noexcept -> SDL_GLContext { return m_context; }
 	auto swap( ) const noexcept -> void { SDL_GL_SwapWindow( m_id ); }
 	auto title( const string& title ) -> void { SDL_SetWindowTitle( m_id, title.c_str( ) ); }
 
 private:
-	SDL_Window*		m_id{ nullptr };
-	SDL_GLContext	m_context{ nullptr };
+	SDL_Window*	m_id{ nullptr };
 };
 
-} 
+
+class opengl_context
+{
+public:
+	explicit opengl_context( const window& application_window )
+	{
+		m_id = SDL_GL_CreateContext( application_window.id( ) );
+		ensure( m_id not_eq nullptr, "failed to create opengl context" );
+		ensure( SDL_GL_MakeCurrent( application_window.id( ), m_id ), "failed to make opengl context current" );
+		ensure( gladLoadGL( SDL_GL_GetProcAddress ) not_eq 0, "failed to load opengl functions with glad" );
+	}
+
+	~opengl_context( ) noexcept
+	{
+		SDL_GL_DestroyContext( m_id );
+	}
+
+	delete_copy_move_ctc( opengl_context )
+
+	auto id( ) const noexcept -> SDL_GLContext { return m_id; }
+
+private:
+	SDL_GLContext	m_id{ nullptr };
+};
+
+} } 
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {
 	__using( ::sak::, exit_success, exit_failure, ensure )
 	__using( ::sak::opengl::, program, shader )
-	using	::sak::sdl3::application;
+	__using( ::sak::sdl3::, application, opengl_context, window )
 	__using( ::gl::, vertex_shader_source, fragment_shader_source )
-	__using( ::sdl3::, window )
 	__using( ::std::
 		,array
 		,format
@@ -162,9 +170,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		application app( application::flag::video );
 
-		//	create a raii window with an opengl 4.6 core context,
-		//	declared before gpu resources so it outlives them on destruction
+		//	create a raii window and opengl context,
+		//	declared before gpu resources so they outlive them on destruction
 		window application_window( "modern opengl rgb triangle", 800, 600 );
+		opengl_context gl_context( application_window );
 
 		map< shader::type, shader > shader_map;
 		shader_map.try_emplace( shader::type::vertex, vertex_shader_source, shader::type::vertex );
