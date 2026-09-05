@@ -90,10 +90,6 @@ class window
 public:
 	window( const string& title, const int width, const int height )
 	{
-		ensure( SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 4 ), "failed to set opengl major version" );
-		ensure( SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 6 ), "failed to set opengl minor version" );
-		ensure( SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE ), "failed to set opengl core profile" );
-
 		m_id = SDL_CreateWindow( title.c_str( ), width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE );
 		ensure( m_id not_eq nullptr, "failed to create sdl window" );
 	}
@@ -114,29 +110,61 @@ private:
 };
 
 
-class opengl_context
+namespace opengl {
+
+
+class attributes
 {
 public:
-	explicit opengl_context( const window& application_window )
+	enum class profile
+	{
+		 core			=	SDL_GL_CONTEXT_PROFILE_CORE
+		,compatibility	=	SDL_GL_CONTEXT_PROFILE_COMPATIBILITY
+		,es				=	SDL_GL_CONTEXT_PROFILE_ES
+	};
+
+	attributes( const int major, const int minor, const profile gl_profile = profile::core )
+	{
+		ensure( SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, major ), "failed to set opengl major version" );
+		ensure( SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, minor ), "failed to set opengl minor version" );
+		ensure( SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, static_cast< int >( gl_profile ) ), "failed to set opengl profile" );
+	}
+
+	~attributes( ) noexcept
+	{
+		SDL_GL_ResetAttributes( );
+	}
+
+	delete_copy_move_ctc( attributes )
+};
+
+
+class context
+{
+public:
+	explicit context( const window& application_window )
 	{
 		m_id = SDL_GL_CreateContext( application_window.id( ) );
 		ensure( m_id not_eq nullptr, "failed to create opengl context" );
-		ensure( SDL_GL_MakeCurrent( application_window.id( ), m_id ), "failed to make opengl context current" );
 		ensure( gladLoadGL( SDL_GL_GetProcAddress ) not_eq 0, "failed to load opengl functions with glad" );
 	}
 
-	~opengl_context( ) noexcept
+	~context( ) noexcept
 	{
 		SDL_GL_DestroyContext( m_id );
 	}
 
-	delete_copy_move_ctc( opengl_context )
+	delete_copy_move_ctc( context )
 
 	auto id( ) const noexcept -> SDL_GLContext { return m_id; }
 
 private:
 	SDL_GLContext	m_id{ nullptr };
 };
+
+
+} 
+
 
 } } 
 
@@ -145,7 +173,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {
 	__using( ::sak::, exit_success, exit_failure, ensure )
 	__using( ::sak::opengl::, program, shader )
-	__using( ::sak::sdl3::, application, opengl_context, window )
+	__using( ::sak::sdl3::, application, window )
+	__using( ::sak::sdl3::opengl::, attributes, context )
 	__using( ::gl::, vertex_shader_source, fragment_shader_source )
 	__using( ::std::
 		,array
@@ -172,8 +201,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		//	create a raii window and opengl context,
 		//	declared before gpu resources so they outlive them on destruction
+		attributes gl_attributes( 4, 6, attributes::profile::core );
 		window application_window( "modern opengl rgb triangle", 800, 600 );
-		opengl_context gl_context( application_window );
+		context gl_context( application_window );
 
 		map< shader::type, shader > shader_map;
 		shader_map.try_emplace( shader::type::vertex, vertex_shader_source, shader::type::vertex );
