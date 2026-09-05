@@ -39,6 +39,7 @@
 #include <sak/ensure.hpp>
 #include <sak/using.hpp>
 #include <sak/pattern/bitmask.hpp>
+#include <sak/pattern/cast.hpp>
 #include <sak/pattern/dispatcher.hpp>
 #include <sak/pattern/to_number.hpp>
 #include <sak/pattern/tupled.hpp>
@@ -189,6 +190,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	)
 	__using( ::std::
 		,array
+		,equal_to
 		,exception
 		,less_equal
 		,make_pair
@@ -202,6 +204,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::std::views::, zip )
 	__using( ::sak::pattern::
 		,bitmask
+		,cast
 		,to_number
 		,tupled
 		,value_or
@@ -340,6 +343,18 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			bitmask< mock_flag > braced_mask{ { mock_flag::exec, mock_flag::write } };
 			ensure( braced_mask.all( mock_flag::exec, mock_flag::write ), "initializer_list constructor should initialize flags" );
 			ensure( not braced_mask.all( mock_flag::read ), "read should not be initialized" );
+		}
+
+		//	--------------------------------------------------
+		//	cast
+		//	--------------------------------------------------
+		{
+			ensure( cast< int >( 3.14f ) == 3, "scalar cast from float to int should truncate" );
+			ensure( cast< uint8_t >( mock_flag::write ) == 2, "scalar cast from enum to uint8_t should match underlying" );
+
+			const array values = { 1.1f, 2.9f, 3.5f };
+			const array expected = { 1, 2, 3 };
+			ensure( all_of( zip( values | cast< int >, expected ), tupled( equal_to{ } ) ), "piped cast should convert range element-wise" );
 		}
 
 		println( "all tests for sak/pattern passed" );
