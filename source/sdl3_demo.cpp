@@ -38,6 +38,7 @@
 #include <sak/opengl/program.hpp>
 #include <sak/opengl/shader.hpp>
 #include <sak/ranges/contains.hpp>
+#include <sak/sdl3/application.hpp>
 #include <SDL3/SDL.h>
 #include <game/fps.hpp>
 
@@ -88,8 +89,6 @@ class window
 public:
 	window( const string& title, const int width, const int height )
 	{
-		ensure( SDL_Init( SDL_INIT_VIDEO ), SDL_GetError( ) );
-
 		try
 		{
 			ensure( SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 4 ), "failed to set opengl major version" );
@@ -108,7 +107,6 @@ public:
 		{
 			SDL_GL_DestroyContext( m_context );
 			SDL_DestroyWindow( m_id );
-			SDL_Quit( );
 			throw;
 		}
 	}
@@ -117,7 +115,6 @@ public:
 	{
 		SDL_GL_DestroyContext( m_context );
 		SDL_DestroyWindow( m_id );
-		SDL_Quit( );
 	}
 
 	delete_copy_move_ctc( window )
@@ -139,6 +136,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {
 	__using( ::sak::, exit_success, exit_failure, ensure )
 	__using( ::sak::opengl::, program, shader )
+	using	::sak::sdl3::application;
 	__using( ::gl::, vertex_shader_source, fragment_shader_source )
 	__using( ::sdl3::, window )
 	__using( ::std::
@@ -161,6 +159,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	try
 	{
 		println( "starting modern opengl rgb triangle example" );
+
+		application app( application::flag::video );
 
 		//	create a raii window with an opengl 4.6 core context,
 		//	declared before gpu resources so it outlives them on destruction
