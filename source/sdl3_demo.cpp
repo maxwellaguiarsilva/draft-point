@@ -95,32 +95,43 @@ class window
 public:
 	enum class flag : SDL_WindowFlags
 	{
-		 fullscreen			=	SDL_WINDOW_FULLSCREEN
-		,opengl				=	SDL_WINDOW_OPENGL
-		,occluded			=	SDL_WINDOW_OCCLUDED
-		,hidden				=	SDL_WINDOW_HIDDEN
-		,borderless			=	SDL_WINDOW_BORDERLESS
-		,resizable			=	SDL_WINDOW_RESIZABLE
-		,minimized			=	SDL_WINDOW_MINIMIZED
-		,maximized			=	SDL_WINDOW_MAXIMIZED
-		,mouse_grabbed		=	SDL_WINDOW_MOUSE_GRABBED
-		,input_focus		=	SDL_WINDOW_INPUT_FOCUS
-		,mouse_focus		=	SDL_WINDOW_MOUSE_FOCUS
-		,external			=	SDL_WINDOW_EXTERNAL
-		,modal				=	SDL_WINDOW_MODAL
-		,high_pixel_density	=	SDL_WINDOW_HIGH_PIXEL_DENSITY
-		,mouse_capture		=	SDL_WINDOW_MOUSE_CAPTURE
-		,mouse_relative_mode=	SDL_WINDOW_MOUSE_RELATIVE_MODE
-		,always_on_top		=	SDL_WINDOW_ALWAYS_ON_TOP
-		,utility			=	SDL_WINDOW_UTILITY
-		,tooltip			=	SDL_WINDOW_TOOLTIP
-		,popup_menu			=	SDL_WINDOW_POPUP_MENU
-		,keyboard_grabbed	=	SDL_WINDOW_KEYBOARD_GRABBED
-		,fill_document		=	SDL_WINDOW_FILL_DOCUMENT
-		,vulkan				=	SDL_WINDOW_VULKAN
-		,metal				=	SDL_WINDOW_METAL
-		,transparent		=	SDL_WINDOW_TRANSPARENT
-		,not_focusable		=	SDL_WINDOW_NOT_FOCUSABLE
+		//	window state that can be both requested and reported
+		 fullscreen				=	SDL_WINDOW_FULLSCREEN
+		,hidden					=	SDL_WINDOW_HIDDEN
+		,minimized				=	SDL_WINDOW_MINIMIZED
+		,maximized				=	SDL_WINDOW_MAXIMIZED
+		,occluded				=	SDL_WINDOW_OCCLUDED
+		,borderless				=	SDL_WINDOW_BORDERLESS
+		,resizable				=	SDL_WINDOW_RESIZABLE
+		,always_on_top			=	SDL_WINDOW_ALWAYS_ON_TOP
+		,transparent			=	SDL_WINDOW_TRANSPARENT
+		,fill_document			=	SDL_WINDOW_FILL_DOCUMENT
+
+		//	focus and modality
+		,input_focus			=	SDL_WINDOW_INPUT_FOCUS
+		,mouse_focus			=	SDL_WINDOW_MOUSE_FOCUS
+		,not_focusable			=	SDL_WINDOW_NOT_FOCUSABLE
+		,modal					=	SDL_WINDOW_MODAL
+		,external				=	SDL_WINDOW_EXTERNAL
+
+		//	pointer and keyboard capture
+		,mouse_grabbed			=	SDL_WINDOW_MOUSE_GRABBED
+		,keyboard_grabbed		=	SDL_WINDOW_KEYBOARD_GRABBED
+		,mouse_capture			=	SDL_WINDOW_MOUSE_CAPTURE
+		,mouse_relative_mode	=	SDL_WINDOW_MOUSE_RELATIVE_MODE
+
+		//	system window roles
+		,utility				=	SDL_WINDOW_UTILITY
+		,tooltip				=	SDL_WINDOW_TOOLTIP
+		,popup_menu				=	SDL_WINDOW_POPUP_MENU
+
+		//	graphics api selected at creation
+		,opengl					=	SDL_WINDOW_OPENGL
+		,vulkan					=	SDL_WINDOW_VULKAN
+		,metal					=	SDL_WINDOW_METAL
+
+		//	pixel density
+		,high_pixel_density		=	SDL_WINDOW_HIGH_PIXEL_DENSITY
 	};
 
 	using	window_flags	=	bitmask< flag >;
