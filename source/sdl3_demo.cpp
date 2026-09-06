@@ -111,10 +111,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	{
 		println( "starting modern opengl rgb triangle example" );
 
-		application app( application::flag::video );
+		application app;
 
-		//	create a raii window and opengl context,
-		//	declared before gpu resources so they outlive them on destruction
+		//	create a raii window and opengl context, declared before gpu resources so they outlive them on destruction
 		attributes gl_attributes;
 		using	flag		=	window::flag;
 		window application_window( "modern opengl rgb triangle", 800, 600, window::window_flags{ flag::opengl, flag::resizable } );
@@ -124,7 +123,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		map< shader::type, shader > shader_map;
 		shader_map.try_emplace( shader::type::vertex, vertex_shader_source, shader::type::vertex );
 		shader_map.try_emplace( shader::type::fragment, fragment_shader_source, shader::type::fragment );
-		const program shader_program( shader_map | values );
 
 		//	triangle vertices stored as a compact array of structs
 		struct vertex
@@ -156,14 +154,16 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		gl_vertex_array_attrib_binding( vertex_array, 1, 0 );
 		gl_enable_vertex_array_attrib( vertex_array, 1 );
 
+		//	shader program
+		const program shader_program( shader_map | values );
+		shader_program.use( );
+
 		//	initialize fps controller for 60 frames per second
 		fps frame_limiter( 60 );
 		frame_limiter.compute( );
 
 		bool is_running = true;
 		SDL_Event event;
-
-		println( "entering main loop. close window to exit." );
 
 		//	simple event processing and rendering loop
 		while( is_running )
@@ -179,18 +179,11 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			gl_clear_color( 0.0f, 0.0f, 0.0f, 1.0f );
 			gl_clear( GL_COLOR_BUFFER_BIT );
 
-			shader_program.use( );
 			gl_bind_vertex_array( vertex_array );
 			gl_draw_arrays( GL_TRIANGLES, 0, 3 );
 
 			application_window.swap( );
-
-			//	control frame rate using game::fps instead of fixed sdl_delay
-			const int current_fps = frame_limiter.compute( );
-
-			//	update window title with the current fps
-			const string title = format( "modern opengl rgb triangle | fps: {}", current_fps );
-			application_window.title( title );
+			frame_limiter.compute( );
 		}
 
 		//	clean up raw opengl objects while the context is still current;
