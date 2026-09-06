@@ -39,6 +39,7 @@
 #include <sak/sak.hpp>
 #include <sak/opengl/program.hpp>
 #include <sak/opengl/shader.hpp>
+#include <sak/pattern/bitmask.hpp>
 #include <sak/ranges/contains.hpp>
 #include <sak/sdl3/application.hpp>
 #include <sak/sdl3/opengl/attributes.hpp>
@@ -86,21 +87,51 @@ namespace sdl3 {
 
 using	::std::string;
 using	::sak::ensure;
+using	::sak::pattern::bitmask;
 
 
 class window
 {
 public:
-	window( const string& title, const int width, const int height )
+	enum class flag : SDL_WindowFlags
 	{
-		m_id = SDL_CreateWindow( title.c_str( ), width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE );
+		 fullscreen			=	SDL_WINDOW_FULLSCREEN
+		,opengl				=	SDL_WINDOW_OPENGL
+		,occluded			=	SDL_WINDOW_OCCLUDED
+		,hidden				=	SDL_WINDOW_HIDDEN
+		,borderless			=	SDL_WINDOW_BORDERLESS
+		,resizable			=	SDL_WINDOW_RESIZABLE
+		,minimized			=	SDL_WINDOW_MINIMIZED
+		,maximized			=	SDL_WINDOW_MAXIMIZED
+		,mouse_grabbed		=	SDL_WINDOW_MOUSE_GRABBED
+		,input_focus		=	SDL_WINDOW_INPUT_FOCUS
+		,mouse_focus		=	SDL_WINDOW_MOUSE_FOCUS
+		,external			=	SDL_WINDOW_EXTERNAL
+		,modal				=	SDL_WINDOW_MODAL
+		,high_pixel_density	=	SDL_WINDOW_HIGH_PIXEL_DENSITY
+		,mouse_capture		=	SDL_WINDOW_MOUSE_CAPTURE
+		,mouse_relative_mode=	SDL_WINDOW_MOUSE_RELATIVE_MODE
+		,always_on_top		=	SDL_WINDOW_ALWAYS_ON_TOP
+		,utility			=	SDL_WINDOW_UTILITY
+		,tooltip			=	SDL_WINDOW_TOOLTIP
+		,popup_menu			=	SDL_WINDOW_POPUP_MENU
+		,keyboard_grabbed	=	SDL_WINDOW_KEYBOARD_GRABBED
+		,fill_document		=	SDL_WINDOW_FILL_DOCUMENT
+		,vulkan				=	SDL_WINDOW_VULKAN
+		,metal				=	SDL_WINDOW_METAL
+		,transparent		=	SDL_WINDOW_TRANSPARENT
+		,not_focusable		=	SDL_WINDOW_NOT_FOCUSABLE
+	};
+
+	using	mask_type	=	bitmask< flag >;
+
+	window( const string& title, const int width, const int height, const mask_type mask = mask_type{ } )
+	{
+		m_id = SDL_CreateWindow( title.c_str( ), width, height, mask.value( ) );
 		ensure( m_id not_eq nullptr, "failed to create sdl window" );
 	}
 
-	~window( ) noexcept
-	{
-		SDL_DestroyWindow( m_id );
-	}
+	~window( ) noexcept { SDL_DestroyWindow( m_id ); }
 
 	delete_copy_move_ctc( window )
 
@@ -125,10 +156,7 @@ public:
 		ensure( m_id not_eq nullptr, "failed to create opengl context" );
 	}
 
-	~context( ) noexcept
-	{
-		SDL_GL_DestroyContext( m_id );
-	}
+	~context( ) noexcept { SDL_GL_DestroyContext( m_id ); }
 
 	using	loader_type	=	decltype( &SDL_GL_GetProcAddress );
 
@@ -153,6 +181,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::sak::, exit_success, exit_failure, ensure )
 	__using( ::sak::opengl::, program, shader )
 	__using( ::sak::sdl3::, application, window )
+	using	flag		=	window::flag;
+	using	window_flags	=	window::mask_type;
 	__using( ::sak::sdl3::opengl::, attributes, context )
 	__using( ::gl::, vertex_shader_source, fragment_shader_source )
 	__using( ::std::
@@ -181,7 +211,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		//	create a raii window and opengl context,
 		//	declared before gpu resources so they outlive them on destruction
 		attributes gl_attributes;
-		window application_window( "modern opengl rgb triangle", 800, 600 );
+		window application_window( "modern opengl rgb triangle", 800, 600, window_flags{ flag::opengl, flag::resizable } );
 		context gl_context( application_window );
 		ensure( gladLoadGL( gl_context.function_pointer( ) ) not_eq 0, "failed to load opengl functions with glad" );
 
