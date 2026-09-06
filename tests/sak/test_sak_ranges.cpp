@@ -58,7 +58,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,string
 		,vector
 	)
-	__using( ::std::ranges::, fold_left, to )
+	__using( ::std::ranges::, fold_left )
 	__using( ::sak::ranges::
 		,chunk
 		,count_to
@@ -74,6 +74,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,operator*=
 		,operator/=
 		,operator%=
+		,to
 	)
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
@@ -111,7 +112,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		//	byte bound
 		{
-			const auto numbers = count_to( 5 ) | to< vector< int > >( );
+			const vector< int > numbers = count_to( 5 ) | to;
 			ensure( numbers.size( ) == 5, "count_to byte bound size failed" );
 			ensure( numbers == vector< int >{ 0, 1, 2, 3, 4 }, "count_to byte bound contents failed" );
 			println( "test 1 ( byte bound ) passed" );
@@ -119,7 +120,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		//	size_t bound
 		{
-			const auto numbers = count_to( 3uz ) | to< vector< size_t > >( );
+			const vector< size_t > numbers = count_to( 3uz ) | to;
 			ensure( numbers.size( ) == 3, "count_to size_t bound size failed" );
 			ensure( numbers == vector< size_t >{ 0, 1, 2 }, "count_to size_t bound contents failed" );
 			println( "test 2 ( size_t bound ) passed" );
@@ -127,14 +128,14 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		//	zero produces an empty range
 		{
-			const auto numbers = count_to( 0 ) | to< vector< int > >( );
+			const vector< int > numbers = count_to( 0 ) | to;
 			ensure( numbers.empty( ), "count_to zero bound failed" );
 			println( "test 3 ( zero bound ) passed" );
 		}
 
 		//	composable with transform
 		{
-			const auto squares = count_to( 4 ) | lazy_transform( [ ]( int value ) { return value * value; } ) | to< vector< int > >( );
+			const vector< int > squares = count_to( 4 ) | lazy_transform( [ ]( int value ) { return value * value; } ) | to;
 			ensure( squares == vector< int >{ 0, 1, 4, 9 }, "count_to with transform failed" );
 			println( "test 4 ( with transform ) passed" );
 		}
@@ -228,7 +229,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			const auto product = fold_left( boosted * 2, 0, ::std::plus{ } );
 			ensure( product == 120, "lazy view * scalar sum failed" );
 
-			const auto materialized = array< int, 3 >{ } = ( boosted + base ) | ::sak::ranges::to;
+			const auto materialized = array< int, 3 >{ } = ( boosted + base ) | to;
 			ensure( materialized[ 0 ] == 11 and materialized[ 2 ] == 33, "lazy to materialization failed" );
 		}
 
@@ -250,7 +251,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			const point< int, 3 > right{ 4, 5, 6 };
 
 			const auto result = left + right;
-			ensure( ::sak::is_point< decltype( result ) >, "point + point lost eager point semantics" );
+			ensure( is_point< decltype( result ) >, "point + point lost eager point semantics" );
 			ensure( result[ 0 ] == 5 and result[ 2 ] == 9, "point + point arithmetic failed" );
 		}
 
