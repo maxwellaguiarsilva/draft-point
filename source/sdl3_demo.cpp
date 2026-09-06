@@ -123,7 +123,6 @@ public:
 	{
 		m_id = SDL_GL_CreateContext( application_window.id( ) );
 		ensure( m_id not_eq nullptr, "failed to create opengl context" );
-		ensure( gladLoadGL( SDL_GL_GetProcAddress ) not_eq 0, "failed to load opengl functions with glad" );
 	}
 
 	~context( ) noexcept
@@ -131,9 +130,12 @@ public:
 		SDL_GL_DestroyContext( m_id );
 	}
 
+	using	loader_type	=	decltype( &SDL_GL_GetProcAddress );
+
 	delete_copy_move_ctc( context )
 
 	auto id( ) const noexcept -> SDL_GLContext { return m_id; }
+	auto function_pointer( ) const noexcept -> loader_type { return &SDL_GL_GetProcAddress; }
 
 private:
 	SDL_GLContext	m_id{ nullptr };
@@ -181,6 +183,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		attributes gl_attributes;
 		window application_window( "modern opengl rgb triangle", 800, 600 );
 		context gl_context( application_window );
+		ensure( gladLoadGL( gl_context.function_pointer( ) ) not_eq 0, "failed to load opengl functions with glad" );
 
 		map< shader::type, shader > shader_map;
 		shader_map.try_emplace( shader::type::vertex, vertex_shader_source, shader::type::vertex );
