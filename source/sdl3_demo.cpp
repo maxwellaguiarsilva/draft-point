@@ -42,6 +42,8 @@
 #include <sak/ranges/contains.hpp>
 #include <sak/sdl3/application.hpp>
 #include <sak/sdl3/opengl/attributes.hpp>
+#include <sak/sdl3/opengl/context.hpp>
+#include <sak/sdl3/window.hpp>
 #include <SDL3/SDL.h>
 #include <game/fps.hpp>
 
@@ -79,111 +81,6 @@ void main( )
 
 
 } 
-
-
-namespace sak {
-namespace sdl3 {
-
-using	::std::string;
-using	::sak::ensure;
-using	::sak::pattern::bitmask;
-
-
-class window
-{
-public:
-	enum class flag : SDL_WindowFlags
-	{
-		//	window state that can be both requested and reported
-		 fullscreen				=	SDL_WINDOW_FULLSCREEN
-		,hidden					=	SDL_WINDOW_HIDDEN
-		,minimized				=	SDL_WINDOW_MINIMIZED
-		,maximized				=	SDL_WINDOW_MAXIMIZED
-		,occluded				=	SDL_WINDOW_OCCLUDED
-		,borderless				=	SDL_WINDOW_BORDERLESS
-		,resizable				=	SDL_WINDOW_RESIZABLE
-		,always_on_top			=	SDL_WINDOW_ALWAYS_ON_TOP
-		,transparent			=	SDL_WINDOW_TRANSPARENT
-		,fill_document			=	SDL_WINDOW_FILL_DOCUMENT
-
-		//	focus and modality
-		,input_focus			=	SDL_WINDOW_INPUT_FOCUS
-		,mouse_focus			=	SDL_WINDOW_MOUSE_FOCUS
-		,not_focusable			=	SDL_WINDOW_NOT_FOCUSABLE
-		,modal					=	SDL_WINDOW_MODAL
-		,external				=	SDL_WINDOW_EXTERNAL
-
-		//	pointer and keyboard capture
-		,mouse_grabbed			=	SDL_WINDOW_MOUSE_GRABBED
-		,keyboard_grabbed		=	SDL_WINDOW_KEYBOARD_GRABBED
-		,mouse_capture			=	SDL_WINDOW_MOUSE_CAPTURE
-		,mouse_relative_mode	=	SDL_WINDOW_MOUSE_RELATIVE_MODE
-
-		//	system window roles
-		,utility				=	SDL_WINDOW_UTILITY
-		,tooltip				=	SDL_WINDOW_TOOLTIP
-		,popup_menu				=	SDL_WINDOW_POPUP_MENU
-
-		//	graphics api selected at creation
-		,opengl					=	SDL_WINDOW_OPENGL
-		,vulkan					=	SDL_WINDOW_VULKAN
-		,metal					=	SDL_WINDOW_METAL
-
-		//	pixel density
-		,high_pixel_density		=	SDL_WINDOW_HIGH_PIXEL_DENSITY
-	};
-
-	using	window_flags	=	bitmask< flag >;
-
-	window( const string& title, const int width, const int height, const window_flags flags = window_flags{ } )
-		: m_id( SDL_CreateWindow( title.c_str( ), width, height, flags ) )
-	{
-		ensure( m_id not_eq nullptr, "failed to create sdl window" );
-	}
-
-	~window( ) noexcept { SDL_DestroyWindow( m_id ); }
-
-	delete_copy_move_ctc( window )
-
-	auto id( ) const noexcept -> SDL_Window* { return m_id; }
-	auto swap( ) const noexcept -> void { SDL_GL_SwapWindow( m_id ); }
-	auto title( const string& title ) -> void { SDL_SetWindowTitle( m_id, title.c_str( ) ); }
-
-private:
-	SDL_Window*	m_id{ nullptr };
-};
-
-
-namespace opengl {
-
-
-class context
-{
-public:
-	explicit context( const window& application_window )
-		: m_id( SDL_GL_CreateContext( application_window.id( ) ) )
-	{
-		ensure( m_id not_eq nullptr, "failed to create opengl context" );
-	}
-
-	~context( ) noexcept { SDL_GL_DestroyContext( m_id ); }
-
-	using	loader_type	=	decltype( &SDL_GL_GetProcAddress );
-
-	delete_copy_move_ctc( context )
-
-	auto id( ) const noexcept -> SDL_GLContext { return m_id; }
-	auto function_pointer( ) const noexcept -> loader_type { return &SDL_GL_GetProcAddress; }
-
-private:
-	SDL_GLContext	m_id{ nullptr };
-};
-
-
-} 
-
-
-} } 
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
