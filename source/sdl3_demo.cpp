@@ -41,6 +41,7 @@
 #include <sak/opengl/shader.hpp>
 #include <sak/ranges/contains.hpp>
 #include <sak/sdl3/application.hpp>
+#include <sak/sdl3/opengl/attributes.hpp>
 #include <SDL3/SDL.h>
 #include <game/fps.hpp>
 
@@ -83,9 +84,7 @@ void main( )
 namespace sak {
 namespace sdl3 {
 
-using	::std::pair;
 using	::std::string;
-using	::sak::byte;
 using	::sak::ensure;
 
 
@@ -115,127 +114,6 @@ private:
 
 
 namespace opengl {
-
-
-class attributes
-{
-public:
-	using	version	=	pair< byte, byte >;
-
-	enum class profile
-	{
-		 core			=	SDL_GL_CONTEXT_PROFILE_CORE
-		,compatibility	=	SDL_GL_CONTEXT_PROFILE_COMPATIBILITY
-		,es				=	SDL_GL_CONTEXT_PROFILE_ES
-	};
-
-	enum class buffer_size
-	{
-		 red			=	SDL_GL_RED_SIZE
-		,green			=	SDL_GL_GREEN_SIZE
-		,blue			=	SDL_GL_BLUE_SIZE
-		,alpha			=	SDL_GL_ALPHA_SIZE
-		,depth			=	SDL_GL_DEPTH_SIZE
-		,stencil		=	SDL_GL_STENCIL_SIZE
-		,accum_red		=	SDL_GL_ACCUM_RED_SIZE
-		,accum_green	=	SDL_GL_ACCUM_GREEN_SIZE
-		,accum_blue		=	SDL_GL_ACCUM_BLUE_SIZE
-		,accum_alpha	=	SDL_GL_ACCUM_ALPHA_SIZE
-		,total			=	SDL_GL_BUFFER_SIZE
-	};
-
-	enum class visual
-	{
-		 float_buffers		=	SDL_GL_FLOATBUFFERS
-		,double_buffered	=	SDL_GL_DOUBLEBUFFER
-		,stereo				=	SDL_GL_STEREO
-		,accelerated		=	SDL_GL_ACCELERATED_VISUAL
-		,share_current		=	SDL_GL_SHARE_WITH_CURRENT_CONTEXT
-		,srgb				=	SDL_GL_FRAMEBUFFER_SRGB_CAPABLE
-		,no_error			=	SDL_GL_CONTEXT_NO_ERROR
-	};
-
-	enum class multisample
-	{
-		 buffers			=	SDL_GL_MULTISAMPLEBUFFERS
-		,samples			=	SDL_GL_MULTISAMPLESAMPLES
-	};
-
-	enum class context_flag
-	{
-		 debug				=	SDL_GL_CONTEXT_DEBUG_FLAG
-		,forward_compatible	=	SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG
-		,robust_access		=	SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG
-		,reset_isolation	=	SDL_GL_CONTEXT_RESET_ISOLATION_FLAG
-	};
-
-	enum class release_behavior
-	{
-		 none				=	SDL_GL_CONTEXT_RELEASE_BEHAVIOR_NONE
-		,flush				=	SDL_GL_CONTEXT_RELEASE_BEHAVIOR_FLUSH
-	};
-
-	enum class reset_notification
-	{
-		 no_notification	=	SDL_GL_CONTEXT_RESET_NO_NOTIFICATION
-		,lose_context		=	SDL_GL_CONTEXT_RESET_LOSE_CONTEXT
-	};
-
-	attributes( const profile gl_profile = profile::core, const version gl_version = version{ 4, 6 } )
-	{
-		set( gl_profile, gl_version );
-	}
-
-	~attributes( ) noexcept
-	{
-		SDL_GL_ResetAttributes( );
-	}
-
-	delete_copy_move_ctc( attributes )
-
-	auto set( const profile attribute, const version context_version ) -> void
-	{
-		set( SDL_GL_CONTEXT_PROFILE_MASK, static_cast< int >( attribute ), "failed to set opengl profile" );
-		set( SDL_GL_CONTEXT_MAJOR_VERSION, context_version.first, "failed to set opengl major version" );
-		set( SDL_GL_CONTEXT_MINOR_VERSION, context_version.second, "failed to set opengl minor version" );
-	}
-
-	auto set( const buffer_size attribute, const int value ) -> void
-	{
-		set( static_cast< SDL_GLAttr >( attribute ), value, "failed to set opengl buffer size attribute" );
-	}
-
-	auto set( const visual attribute, const int value ) -> void
-	{
-		set( static_cast< SDL_GLAttr >( attribute ), value, "failed to set opengl visual attribute" );
-	}
-
-	auto set( const multisample attribute, const int value ) -> void
-	{
-		set( static_cast< SDL_GLAttr >( attribute ), value, "failed to set opengl multisample attribute" );
-	}
-
-	auto set( const context_flag attribute, const int value ) -> void
-	{
-		set( static_cast< SDL_GLAttr >( attribute ), value, "failed to set opengl context flag" );
-	}
-
-	auto set( const release_behavior attribute, const int value ) -> void
-	{
-		set( static_cast< SDL_GLAttr >( attribute ), value, "failed to set opengl context release behavior" );
-	}
-
-	auto set( const reset_notification attribute, const int value ) -> void
-	{
-		set( static_cast< SDL_GLAttr >( attribute ), value, "failed to set opengl context reset notification" );
-	}
-
-private:
-	auto set( const SDL_GLAttr attribute, const int value, const string& error_message ) -> void
-	{
-		ensure( SDL_GL_SetAttribute( attribute, value ), error_message );
-	}
-};
 
 
 class context
