@@ -123,11 +123,11 @@ public:
 		,not_focusable		=	SDL_WINDOW_NOT_FOCUSABLE
 	};
 
-	using	mask_type	=	bitmask< flag >;
+	using	window_flags	=	bitmask< flag >;
 
-	window( const string& title, const int width, const int height, const mask_type mask = mask_type{ } )
+	window( const string& title, const int width, const int height, const window_flags flags = window_flags{ } )
 	{
-		m_id = SDL_CreateWindow( title.c_str( ), width, height, mask.value( ) );
+		m_id = SDL_CreateWindow( title.c_str( ), width, height, flags.value( ) );
 		ensure( m_id not_eq nullptr, "failed to create sdl window" );
 	}
 
@@ -151,8 +151,8 @@ class context
 {
 public:
 	explicit context( const window& application_window )
+		: m_id( SDL_GL_CreateContext( application_window.id( ) ) )
 	{
-		m_id = SDL_GL_CreateContext( application_window.id( ) );
 		ensure( m_id not_eq nullptr, "failed to create opengl context" );
 	}
 
@@ -182,7 +182,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::sak::opengl::, program, shader )
 	__using( ::sak::sdl3::, application, window )
 	using	flag		=	window::flag;
-	using	window_flags	=	window::mask_type;
 	__using( ::sak::sdl3::opengl::, attributes, context )
 	__using( ::gl::, vertex_shader_source, fragment_shader_source )
 	__using( ::std::
@@ -211,7 +210,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		//	create a raii window and opengl context,
 		//	declared before gpu resources so they outlive them on destruction
 		attributes gl_attributes;
-		window application_window( "modern opengl rgb triangle", 800, 600, window_flags{ flag::opengl, flag::resizable } );
+		window application_window( "modern opengl rgb triangle", 800, 600, window::window_flags{ flag::opengl, flag::resizable } );
 		context gl_context( application_window );
 		ensure( gladLoadGL( gl_context.function_pointer( ) ) not_eq 0, "failed to load opengl functions with glad" );
 
