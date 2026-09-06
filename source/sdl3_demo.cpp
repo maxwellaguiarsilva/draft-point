@@ -38,7 +38,6 @@
 #include <vector>
 #include <sak/sak.hpp>
 #include <sak/opengl/program.hpp>
-#include <sak/opengl/shader.hpp>
 #include <sak/pattern/bitmask.hpp>
 #include <sak/ranges/contains.hpp>
 #include <sak/sdl3/application.hpp>
@@ -137,8 +136,8 @@ public:
 	using	window_flags	=	bitmask< flag >;
 
 	window( const string& title, const int width, const int height, const window_flags flags = window_flags{ } )
+		: m_id( SDL_CreateWindow( title.c_str( ), width, height, flags ) )
 	{
-		m_id = SDL_CreateWindow( title.c_str( ), width, height, flags.value( ) );
 		ensure( m_id not_eq nullptr, "failed to create sdl window" );
 	}
 
@@ -192,7 +191,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::sak::, exit_success, exit_failure, ensure )
 	__using( ::sak::opengl::, program, shader )
 	__using( ::sak::sdl3::, application, window )
-	using	flag		=	window::flag;
 	__using( ::sak::sdl3::opengl::, attributes, context )
 	__using( ::gl::, vertex_shader_source, fragment_shader_source )
 	__using( ::std::
@@ -221,6 +219,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		//	create a raii window and opengl context,
 		//	declared before gpu resources so they outlive them on destruction
 		attributes gl_attributes;
+		using	flag		=	window::flag;
 		window application_window( "modern opengl rgb triangle", 800, 600, window::window_flags{ flag::opengl, flag::resizable } );
 		context gl_context( application_window );
 		ensure( gladLoadGL( gl_context.function_pointer( ) ) not_eq 0, "failed to load opengl functions with glad" );
