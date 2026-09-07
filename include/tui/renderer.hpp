@@ -72,7 +72,7 @@ private:
 	struct terminal_listener;
 
 	void resize( const geometry::size& size );
-	void plot_unsafe( int column, int row ) noexcept;
+	void plot_unsafe( const geometry::position& point ) noexcept;
 
 	terminal&	m_terminal;
 	buffer		m_copy;

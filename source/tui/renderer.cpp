@@ -89,7 +89,7 @@ auto renderer::draw( const geometry::line& line ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	for( const auto& pixel : line.start | line_to( line.end ) )
-		plot_unsafe( pixel[ width_index ], pixel[ height_index ] );
+		plot_unsafe( pixel );
 }
 
 
@@ -115,15 +115,15 @@ auto renderer::draw( const geometry::rectangle& area, bool is_filled ) noexcept 
 
 	for( auto row : iota( area.start[ top_index ], area.end[ top_index ] + 1 ) )
 	{
-		plot_unsafe( area.start[ left_index ], row );
-		plot_unsafe( area.end[ left_index ],   row );
+		plot_unsafe( geometry::position{ area.start[ left_index ], row } );
+		plot_unsafe( geometry::position{ area.end[ left_index ],   row } );
 	}
 }
 
 auto renderer::draw( const geometry::position& pixel ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
-	plot_unsafe( pixel[ left_index ], pixel[ top_index ] );
+	plot_unsafe( pixel );
 }
 
 auto renderer::print( const geometry::position& position, const string& text ) noexcept -> void
@@ -149,9 +149,9 @@ auto renderer::size( ) const noexcept -> geometry::size
 	return	m_screen_size;
 }
 
-auto renderer::plot_unsafe( int column, int row ) noexcept -> void
+auto renderer::plot_unsafe( const geometry::position& point ) noexcept -> void
 {
-	const size_t index = row * m_screen_size[ width_index ] + column;
+	const size_t index = point[ height_index ] * m_screen_size[ width_index ] + point[ left_index ];
 	if( index < m_main.size( ) )
 		m_main[ index ] = m_color;
 }
