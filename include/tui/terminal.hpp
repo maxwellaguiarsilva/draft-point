@@ -28,7 +28,7 @@
 
 
 #include <sak/pattern/dispatcher.hpp>
-#include <tui/geometry.hpp>
+#include <sak/geometry/geometry.hpp>
 #include <termios.h>
 #include <ostream>
 #include <sstream>
@@ -133,7 +133,7 @@ private:
 	ostringstream	m_buffer;
 	termios			m_original_termios;
 	mutable mutex	m_mutex;
-	g2i::rectangle	m_bounds;
+	geometry::rectangle	m_bounds;
 	jthread			m_resize_thread;
 	dispatcher< listener >	m_dispatcher;
 	byte			m_foreground;

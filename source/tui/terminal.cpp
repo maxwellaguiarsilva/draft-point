@@ -90,7 +90,7 @@ const array< string, 256 > terminal::m_background_colors	=	iota( 0, 256 )
 const array< string, 10 > terminal::m_text_styles	=	iota( 0, 10 )
 	|	lazy_transform( bind_front( format, "\033[{}m" ) )
 	|	to;
-constexpr auto zero = g2i::point( 0, 0 );
+constexpr auto zero = terminal::geometry::position( 0, 0 );
 
 
 terminal::terminal( )
@@ -158,7 +158,7 @@ auto terminal::clear_screen( bool full_reset ) -> void
 		if( auto result = raw_mode( false ); not result )
 			print( result.error( ) );
 		
-		g2i::point start_position;
+		geometry::position start_position;
 		{
 			auto lock = lock_guard( m_mutex );
 			start_position = m_bounds.start;

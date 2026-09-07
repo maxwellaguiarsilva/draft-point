@@ -44,11 +44,13 @@ using	::sak::byte;
 class renderer
 {
 public:
+	using	geometry	=	::sak::g2i;
+
 	class listener
 	{
 	public:
 		virtual ~listener( ) = default;
-		virtual void resize( const g2i::point& new_size ) = 0;
+		virtual void resize( const geometry::size& new_size ) = 0;
 	};
 
 	virtual ~renderer( ) noexcept = default;
@@ -56,13 +58,13 @@ public:
 	virtual void clear( const byte value = 0 ) noexcept = 0;
 	virtual void refresh( ) = 0;
 	virtual void color( const byte value ) noexcept = 0;
-	virtual void draw( const g2i::point& pixel ) noexcept = 0;
-	virtual void draw( const g2i::line& segment ) noexcept = 0;
-	virtual void draw( const g2i::rectangle& area, bool is_filled = true ) noexcept = 0;
-	virtual void print( const g2i::point& position, const string& text ) noexcept = 0;
-	virtual void fill_with( const function< byte( g2i::point ) >& shader ) noexcept = 0;
+	virtual void draw( const geometry::position& pixel ) noexcept = 0;
+	virtual void draw( const geometry::line& segment ) noexcept = 0;
+	virtual void draw( const geometry::rectangle& area, bool is_filled = true ) noexcept = 0;
+	virtual void print( const geometry::position& position, const string& text ) noexcept = 0;
+	virtual void fill_with( const function< byte( geometry::position ) >& shader ) noexcept = 0;
 
-	virtual auto size( ) const noexcept -> g2i::point = 0;
+	virtual auto size( ) const noexcept -> geometry::size = 0;
 
 	virtual void operator +=( const shared_ptr< listener >& subject ) = 0;
 };

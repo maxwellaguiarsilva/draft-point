@@ -59,27 +59,27 @@ public:
 	void clear( const byte value = 0 ) noexcept override;
 	void refresh( ) override;
 	void color( const byte value ) noexcept override;
-	void draw( const g2i::point& point ) noexcept override;
-	void draw( const g2i::line& line ) noexcept override;
-	void draw( const g2i::rectangle& rectangle, bool is_filled = true ) noexcept override;
-	void print( const g2i::point& position, const string& text ) noexcept override;
-	void fill_with( const function< byte( g2i::point ) >& shader ) noexcept override;
-	auto size( ) const noexcept -> g2i::point override;
+	void draw( const geometry::position& point ) noexcept override;
+	void draw( const geometry::line& line ) noexcept override;
+	void draw( const geometry::rectangle& rectangle, bool is_filled = true ) noexcept override;
+	void print( const geometry::position& position, const string& text ) noexcept override;
+	void fill_with( const function< byte( geometry::position ) >& shader ) noexcept override;
+	auto size( ) const noexcept -> geometry::size override;
 
 	void operator +=( const shared_ptr< listener >& subject ) override;
 
 private:
 	struct terminal_listener;
 
-	void resize( const g2i::point& size );
+	void resize( const geometry::size& size );
 	void plot_unsafe( int column, int row ) noexcept;
 
 	terminal&	m_terminal;
 	buffer		m_copy;
 	buffer		m_main;
-	g2i::point	m_terminal_size;
-	g2i::point	m_margin;
-	g2i::point	m_screen_size;
+	geometry::size	m_terminal_size;
+	geometry::size	m_margin;
+	geometry::size	m_screen_size;
 	byte		m_color;
 	mutable mutex	m_mutex;
 	shared_ptr< terminal_listener > m_terminal_listener;

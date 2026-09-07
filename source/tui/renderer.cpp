@@ -59,7 +59,7 @@ constexpr int height_index = 1, top_index = 1;
 struct renderer::terminal_listener final : public terminal::listener
 {
 	explicit terminal_listener( renderer& parent ) : m_renderer( parent ) { }
-	auto resize( const g2i::point& new_size ) -> void override { m_renderer.resize( new_size ); }
+	auto resize( const geometry::size& new_size ) -> void override { m_renderer.resize( new_size ); }
 	renderer& m_renderer;
 };
 
@@ -85,7 +85,7 @@ auto renderer::clear( const byte value ) noexcept -> void
 auto renderer::color( const byte value ) noexcept -> void { m_color = value; }
 
 
-auto renderer::draw( const g2i::line& line ) noexcept -> void
+auto renderer::draw( const geometry::line& line ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	for( const auto& pixel : line.start | line_to( line.end ) )
@@ -93,7 +93,7 @@ auto renderer::draw( const g2i::line& line ) noexcept -> void
 }
 
 
-auto renderer::draw( const g2i::rectangle& area, bool is_filled ) noexcept -> void
+auto renderer::draw( const geometry::rectangle& area, bool is_filled ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	auto const area_bound = area.end - area.start + 1;
@@ -120,13 +120,13 @@ auto renderer::draw( const g2i::rectangle& area, bool is_filled ) noexcept -> vo
 	}
 }
 
-auto renderer::draw( const g2i::point& pixel ) noexcept -> void
+auto renderer::draw( const geometry::position& pixel ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	plot_unsafe( pixel[ left_index ], pixel[ top_index ] );
 }
 
-auto renderer::print( const g2i::point& position, const string& text ) noexcept -> void
+auto renderer::print( const geometry::position& position, const string& text ) noexcept -> void
 {
 	using	enum	::tui::terminal::text_style;
 	auto lock = lock_guard( m_mutex );
@@ -134,16 +134,16 @@ auto renderer::print( const g2i::point& position, const string& text ) noexcept 
 	m_terminal.print( position, text );
 }
 
-auto renderer::fill_with( const function< byte( g2i::point ) >& shader ) noexcept -> void
+auto renderer::fill_with( const function< byte( geometry::position ) >& shader ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	const int width = m_screen_size[ width_index ];
 	const int height = m_screen_size[ height_index ];
 	for( auto [ row, column ] : cartesian_product( iota( 0, height ), iota( 0, width ) ) )
-		m_main[ row * width + column ] = shader( g2i::point{ column, row } );
+		m_main[ row * width + column ] = shader( geometry::position{ column, row } );
 }
 
-auto renderer::size( ) const noexcept -> g2i::point
+auto renderer::size( ) const noexcept -> geometry::size
 {
 	auto lock = lock_guard( m_mutex );
 	return	m_screen_size;
@@ -156,12 +156,12 @@ auto renderer::plot_unsafe( int column, int row ) noexcept -> void
 		m_main[ index ] = m_color;
 }
 
-auto renderer::resize( const g2i::point& new_size ) -> void
+auto renderer::resize( const geometry::size& new_size ) -> void
 {
 	{
 		auto lock = lock_guard( m_mutex );
 		m_terminal_size = new_size;
-		m_screen_size = ( m_terminal_size - m_margin * 2 ) * g2i::point{ 1, 2 };
+		m_screen_size = ( m_terminal_size - m_margin * 2 ) * geometry::size{ 1, 2 };
 		const size_t total_pixel_count = m_screen_size.product( );
 		if( m_main.size( ) not_eq total_pixel_count )
 		{
@@ -177,12 +177,12 @@ auto renderer::resize( const g2i::point& new_size ) -> void
 auto renderer::refresh( ) -> void
 {
 	using	enum	::tui::terminal::text_style;
-	using	point	=	g2i::point;
+	using	position	=	geometry::position;
 	unique_lock lock( m_mutex, try_to_lock );
 	if( not lock.owns_lock( ) ) return;
 
 	m_terminal.style( reset );
-	point cursor_position	=	{ 0, 0 };
+	position cursor_position	=	{ 0, 0 };
 	auto grid_view = chunk( m_screen_size[ width_index ] ) | chunk( 2 );
 
 	for( auto [ row, main_row, copy_row ] : zip( iota( m_margin[ top_index ] + 1 ), m_main | grid_view, m_copy | grid_view ) )
@@ -198,7 +198,7 @@ auto renderer::refresh( ) -> void
 				copy_upper = main_upper;
 				copy_lower = main_lower;
 				
-				const point current = point{ column, row };
+				const position current = position{ column, row };
 				if( cursor_position not_eq current )
 					m_terminal.move_cursor( current );
 
