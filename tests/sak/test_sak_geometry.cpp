@@ -135,31 +135,31 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			ensure( p1.is_inside( p1 ), "p1 should be inside itself" );
 		}
 
-		//	get_length
+		//	length
 		{
 			const point p1( 3, 4 );
 			//	sqrt( 3*3 + 4*4 ) = sqrt( 9 + 16 ) = sqrt( 25 ) = 5
-			ensure( p1.get_length( ) == 5, "get_length failed" );
+			ensure( p1.length( ) == 5, "length failed" );
 
 			const point< float, 3 > p2( 2.0f, 3.0f, 6.0f );
 			//	sqrt( 2*2 + 3*3 + 6*6 ) = sqrt( 4 + 9 + 36 ) = sqrt( 49 ) = 7
-			ensure( p2.get_length( ) == 7.0f, "get_length for 3d float point failed" );
+			ensure( p2.length( ) == 7.0f, "length for 3d float point failed" );
 		}
 
-		//	get_product
+		//	product
 		{
 			const point< int, 3 > p1( 2, 3, 4 );
-			ensure( p1.get_product( ) == 24, "get_product failed" );
+			ensure( p1.product( ) == 24, "product failed" );
 
 			const point< float, 2 > p2( 0.5f, 0.5f );
-			ensure( p2.get_product( ) == 0.25f, "get_product for float point failed" );
+			ensure( p2.product( ) == 0.25f, "product for float point failed" );
 		}
 
 		//	3d point
 		{
 			const point< int, 3 > p( 1, 2, 3 );
 			ensure( p[ 0 ] == 1 and p[ 1 ] == 2 and p[ 2 ] == 3, "3d point failed" );
-			ensure( p.get_length( ) == 3, "get_length for 3d int point failed ( truncated )" );
+			ensure( p.length( ) == 3, "length for 3d int point failed ( truncated )" );
 		}
 
 		//	--------------------------------------------------
@@ -248,11 +248,11 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		//	--------------------------------------------------
 		using	rectangle	=	::sak::geometry< point< int, 2 > >::rectangle;
 
-		//	get_size
+		//	size
 		{
 			const rectangle r{ { 1, 1 }, { 10, 10 } };
-			const auto size = r.get_size( );
-			ensure( size[ 0 ] == 9 and size[ 1 ] == 9, "get_size failed" );
+			const auto size = r.size( );
+			ensure( size[ 0 ] == 9 and size[ 1 ] == 9, "size failed" );
 		}
 
 		//	contains point

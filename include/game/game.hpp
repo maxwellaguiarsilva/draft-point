@@ -54,7 +54,7 @@ private:
 	struct renderer_listener final : public renderer::listener
 	{
 		explicit renderer_listener( const g2i::point& new_size );
-		void on_resize( const g2i::point& new_size ) override;
+		void resize( const g2i::point& new_size ) override;
 		g2i::point start;
 		g2i::point end;
 		g2i::point size;

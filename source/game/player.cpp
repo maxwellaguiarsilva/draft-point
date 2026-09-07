@@ -37,14 +37,14 @@ player::player( const g2i::point& position ) noexcept
 { }
 
 
-auto player::get_direction( ) const noexcept -> const direction& { return m_direction; }
-auto player::set_direction( const direction& heading ) noexcept -> void { m_direction = heading; }
+auto player::direction( ) const noexcept -> const ::game::direction& { return m_direction; }
+auto player::direction( const ::game::direction& heading ) noexcept -> void { m_direction = heading; }
 
 auto player::step_move( ) noexcept -> void { position += use_direction( m_direction ).point; }
 
 auto player::draw( renderer& renderer ) const noexcept -> void
 {
-	renderer.set_color( 15 );
+	renderer.color( 15 );
 	renderer.draw( position );
 }
 

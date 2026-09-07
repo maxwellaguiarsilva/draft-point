@@ -25,6 +25,7 @@
 #include <game/shadertoy.hpp>
 #include <tui/terminal.hpp>
 #include <sak/string.hpp>
+#include <sak/math/math.hpp>
 #include <chrono>
 
 
@@ -32,15 +33,50 @@ namespace game {
 
 
 using	::std::function;
+using	::std::make_shared;
 using	::sak::byte;
+using	::sak::math::min;
 using	::std::to_string;
 using	::std::chrono::high_resolution_clock;
 using	::std::chrono::duration;
 
 
-shadertoy::shadertoy( renderer& renderer )
-	:m_renderer{ renderer }
+namespace {
+	constexpr int width_index = 0, left_index = 0;
+	constexpr int height_index = 1, top_index = 1;
+
+	//	maps rgb components in [ 0.0, 1.0 ] to an xterm color code ( byte )
+	struct __to_xterm
+	{
+		constexpr auto operator ( ) ( const g3f::point& rgb ) const noexcept -> byte
+		{
+			const int r = static_cast< int >( rgb[ 0 ] * 5.0f );
+			const int g = static_cast< int >( rgb[ 1 ] * 5.0f );
+			const int b = static_cast< int >( rgb[ 2 ] * 5.0f );
+			return	static_cast< byte >( 16 + 36 * r + 6 * g + b );
+		}
+	};
+	inline constexpr auto to_xterm = __to_xterm{ };
+}
+
+
+shadertoy::renderer_listener::renderer_listener( const g2i::point& new_size )
+{ resize( new_size ); }
+
+
+void shadertoy::renderer_listener::resize( const g2i::point& new_size )
 {
+	const g2f::point screen_size{ new_size[ width_index ], new_size[ height_index ] };
+	normalization_scale	=	2.0f / min( screen_size );
+	half_screen			=	screen_size / 2.0f;
+}
+
+
+shadertoy::shadertoy( ::tui::renderer& renderer )
+	:m_renderer{ renderer }
+	,m_renderer_listener{ make_shared< renderer_listener >( m_renderer.size( ) ) }
+{
+	m_renderer += m_renderer_listener;
 }
 
 
@@ -66,7 +102,19 @@ auto shadertoy::run( const function< void( char, float ) >& frame_callback, cons
 
 		frame_callback( code, m_time );
 
-		m_renderer.fill_with( pixel_shader );
+		const auto& listener			=	*m_renderer_listener;
+		const auto& half_screen			=	listener.half_screen;
+		const auto  normalization_scale	=	listener.normalization_scale;
+		const g2f::point direction{ 1.0f, -1.0f };
+
+		//	converts terminal pixels to the float domain of the shader
+		auto to_terminal = [ &, pixel_shader, half_screen, normalization_scale, direction ]( const g2i::point& pixel ) -> byte
+		{
+			const g2f::point current{ pixel[ left_index ], pixel[ top_index ] };
+			const g2f::point coord = ( current - half_screen ) * direction * normalization_scale;
+			return	to_xterm( pixel_shader( coord ) );
+		};
+		m_renderer.fill_with( to_terminal );
 
 		m_renderer.print( { 1, 1 }, " | fps: "
 			+	to_string( m_fps.compute( ) )

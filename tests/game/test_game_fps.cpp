@@ -67,7 +67,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		//	limit change
 		println( "test 2: changing limit to 30 fps" );
-		monitor.set_limit( 30 );
+		monitor.limit( 30 );
 		monitor.compute( );
 		for( int i = 0; i < 20; ++i )
 		{

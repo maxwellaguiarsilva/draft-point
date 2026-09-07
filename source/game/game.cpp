@@ -35,10 +35,10 @@ using	::sak::to_lower_case;
 
 
 game::renderer_listener::renderer_listener( const g2i::point& new_size )
-{ on_resize( new_size ); }
+{ resize( new_size ); }
 
 
-void game::renderer_listener::on_resize( const g2i::point& new_size )
+void game::renderer_listener::resize( const g2i::point& new_size )
 {
 	start			=	{ 0, 0 };
 	end				=	{ new_size[ 0 ] - 1, new_size[ 1 ] - 1 };
@@ -53,7 +53,7 @@ game::game( renderer& renderer )
 	,m_fps{ }
 	,m_renderer_listener{ make_shared< renderer_listener >( m_renderer.size( ) ) }
 {
-	m_fps.set_limit( 60 );
+	m_fps.limit( 60 );
 	m_renderer += m_renderer_listener;
 }
 
@@ -83,10 +83,10 @@ auto game::run( ) -> void
 		{
 			switch( to_lower_case( code ) )
 			{
-				case 'w': m_player.set_direction( up );		break;
-				case 'a': m_player.set_direction( left );	break;
-				case 's': m_player.set_direction( down );	break;
-				case 'd': m_player.set_direction( right );	break;
+				case 'w': m_player.direction( up );		break;
+				case 'a': m_player.direction( left );	break;
+				case 's': m_player.direction( down );	break;
+				case 'd': m_player.direction( right );	break;
 				case 'q': exit_loop = true; break;
 			}
 			if( exit_loop )
@@ -106,8 +106,8 @@ auto game::run( ) -> void
 				" | fps: " + to_string( m_fps.compute( ) )
 			+ 	" | size: " + to_string( frame_size[ 0 ] ) + " x " + to_string( frame_size[ 1 ] )
 			+ 	" | player: " + to_string( position[ 0 ] ) + " x " + to_string( position[ 1 ] )
-			+ 	" | direction: " + use_direction( m_player.get_direction( ) ).name
-			+ 	" | length: " + to_string( position.get_length( ) )
+			+ 	" | direction: " + use_direction( m_player.direction( ) ).name
+			+ 	" | length: " + to_string( position.length( ) )
 			+ 	" | "
 		);
 		m_renderer.refresh( );

@@ -46,7 +46,7 @@ public:
 
 	delete_copy_move_ctc( fps );
 
-	auto set_limit( int limit ) -> void;
+	auto limit( int limit ) -> void;
 	auto compute( ) -> int;
 
 	bool enable	=	true;

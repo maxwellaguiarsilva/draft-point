@@ -86,6 +86,7 @@ public:
 
 	using	result	=	expected< void, error >;
 	using	error_messages	=	unordered_map< error, string >;
+	using	geometry	=	::sak::g2i;
 
 
 	terminal( );
@@ -94,19 +95,19 @@ public:
 	delete_copy_move_ctc( terminal );
 
 	auto clear_screen( bool full_reset = false ) -> void;
-	auto move_cursor( const g2i::point& position ) -> void;
-	auto print( const g2i::point& position, const string& text ) -> void;
+	auto move_cursor( const geometry::position& position ) -> void;
+	auto print( const geometry::position& position, const string& text ) -> void;
 	auto print( const string& text ) -> void;
 	auto refresh( ) -> void;
-	auto set_color( byte code, bool is_background = false ) -> void;
-	auto set_color( byte foreground, byte background ) -> void;
-	auto set_cursor( bool enable ) -> void;
-	auto set_raw_mode( bool enable ) -> result;
-	auto set_text_style( text_style style ) -> void;
-	auto size( ) const noexcept -> g2i::point;
+	auto color( byte code, bool is_background = false ) -> void;
+	auto color( byte foreground, byte background ) -> void;
+	auto cursor( bool enable ) -> void;
+	auto raw_mode( bool enable ) -> result;
+	auto style( text_style new_style ) -> void;
+	auto size( ) const noexcept -> geometry::size;
 
-	static auto get_error_message( const error& error_code ) noexcept -> const string&;
-	static auto query_size( ) -> g2i::point;
+	static auto error_message( const error& error_code ) noexcept -> const string&;
+	static auto query_size( ) -> geometry::size;
 	static auto read_char( ) -> char;
 
 
@@ -114,7 +115,7 @@ public:
 	{
 	public:
 		virtual ~listener( ) = default;
-		virtual void on_resize( const g2i::point& size ) = 0;
+		virtual void resize( const geometry::size& size ) = 0;
 	};
 	void operator +=( const shared_ptr< listener >& instance );
 

@@ -43,11 +43,11 @@ using	::std::this_thread::sleep_for;
 fps::fps( int limit )
 	:m_start_time{ high_resolution_clock::now( ) }
 {
-	set_limit( limit );
+	this->limit( limit );
 }
 
 
-auto fps::set_limit( int limit ) -> void
+auto fps::limit( int limit ) -> void
 {
 	ensure( between( limit, 1, 300 ), "the fps limit must be between 1 and 300!" );
 	m_limit = limit;

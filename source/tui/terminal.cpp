@@ -100,12 +100,12 @@ terminal::terminal( )
 	,m_foreground( 15 )
 	,m_background( 0 )
 {
-	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, get_error_message( tcgetattr_failed ) );
-	ensure( m_bounds.end not_eq zero, get_error_message( ioctl_failed ) );
+	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, error_message( tcgetattr_failed ) );
+	ensure( m_bounds.end not_eq zero, error_message( ioctl_failed ) );
 	ensure( m_bounds.start.is_inside( m_bounds.end ), "invalid terminal size" );
 
 	clear_screen( true );
-	( void )set_raw_mode( true );
+	( void )raw_mode( true );
 	refresh( );
 
 	sigset_t set;
@@ -132,7 +132,7 @@ terminal::terminal( )
 							auto lock = lock_guard( m_mutex );
 							m_bounds.end	=	current_size;
 						}
-						( void )m_dispatcher( &listener::on_resize, size( ) );
+						( void )m_dispatcher( &listener::resize, size( ) );
 					}
 				}
 			}
@@ -154,8 +154,8 @@ auto terminal::clear_screen( bool full_reset ) -> void
 {
 	if( full_reset )
 	{
-		set_text_style( text_style::reset );
-		if( auto result = set_raw_mode( false ); not result )
+		style( text_style::reset );
+		if( auto result = raw_mode( false ); not result )
 			print( result.error( ) );
 		
 		g2i::point start_position;
@@ -175,14 +175,14 @@ auto terminal::read_char( ) -> char
 	return	character;
 }
 
-auto terminal::move_cursor( const g2i::point& position ) -> void
+auto terminal::move_cursor( const geometry::position& position ) -> void
 { 
 	m_buffer << "\033[" << position[ top_index ] << ';' << position[ left_index ] << 'H';
 }
 
 auto terminal::print( const string& text ) -> void { m_buffer << text; }
 
-auto terminal::print( const g2i::point& position, const string& text ) -> void
+auto terminal::print( const geometry::position& position, const string& text ) -> void
 {
 	move_cursor( position );
 	print( text );
@@ -195,7 +195,7 @@ auto terminal::refresh( ) -> void
 	m_buffer.clear( );
 }
 
-auto terminal::set_color( byte code, bool background ) -> void
+auto terminal::color( byte code, bool background ) -> void
 {
 	byte& current = background ? m_background : m_foreground;
 	if( current == code ) return;
@@ -203,17 +203,17 @@ auto terminal::set_color( byte code, bool background ) -> void
 	m_buffer << ( background ? m_background_colors[ code ] : m_foreground_colors[ code ] );
 }
 
-auto terminal::set_color( byte foreground, byte background ) -> void
+auto terminal::color( byte foreground, byte background ) -> void
 {
-	set_color( foreground, false );
-	set_color( background, true );
+	color( foreground, false );
+	color( background, true );
 }
 
-auto terminal::set_cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }
+auto terminal::cursor( bool enable ) -> void { print( enable ? "\033[?25h" : "\033[?25l" ); }
 
-auto terminal::set_raw_mode( bool enable ) -> result
+auto terminal::raw_mode( bool enable ) -> result
 {
-	set_cursor( not enable );
+	cursor( not enable );
 	if( enable )
 	{
 		auto raw = m_original_termios;
@@ -230,18 +230,18 @@ auto terminal::set_raw_mode( bool enable ) -> result
 	return	{ };
 }
 
-auto terminal::set_text_style( text_style style ) -> void
+auto terminal::style( text_style new_style ) -> void
 {
-	if( style == text_style::reset )
+	if( new_style == text_style::reset )
 	{
 		m_foreground = 15;
 		m_background = 0;
 	}
 
-	m_buffer << m_text_styles[ static_cast< size_t >( style ) ];
+	m_buffer << m_text_styles[ static_cast< size_t >( new_style ) ];
 }
 
-auto terminal::query_size( ) -> g2i::point
+auto terminal::query_size( ) -> geometry::size
 {
 	winsize window_size;
 	if( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) not_eq 0 )
@@ -249,20 +249,20 @@ auto terminal::query_size( ) -> g2i::point
 	return	{ window_size.ws_col, window_size.ws_row };
 }
 
-auto terminal::size( ) const noexcept -> g2i::point
+auto terminal::size( ) const noexcept -> geometry::size
 {
 	auto lock = lock_guard( m_mutex );
 	return	m_bounds.end;
 }
 
-auto terminal::get_error_message( const error& error_code ) noexcept -> const string&
+auto terminal::error_message( const error& error_code ) noexcept -> const string&
 {
 	return	value_or( m_error_messages, error_code, m_unknown_error_message );	//	"terminal: unknown error"
 }
 
 void terminal::operator +=( const shared_ptr< listener >& instance ) { m_dispatcher += instance; }
 
-auto terminal::print( const error& error_code ) const noexcept -> void { m_error_output << get_error_message( error_code ) << endl; }
+auto terminal::print( const error& error_code ) const noexcept -> void { m_error_output << error_message( error_code ) << endl; }
 
 
 }

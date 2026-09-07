@@ -43,8 +43,8 @@ class player
 public:
 	explicit player( const g2i::point& position ) noexcept;
 
-	auto get_direction( ) const noexcept -> const direction&;
-	auto set_direction( const direction& heading ) noexcept -> void;
+	auto direction( ) const noexcept -> const ::game::direction&;
+	auto direction( const ::game::direction& heading ) noexcept -> void;
 
 	auto step_move( ) noexcept -> void;
 
@@ -52,7 +52,7 @@ public:
 	
 	g2i::point position;
 private:
-	direction m_direction;
+	::game::direction m_direction;
 };
 
 

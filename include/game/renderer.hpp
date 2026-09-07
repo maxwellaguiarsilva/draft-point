@@ -48,19 +48,19 @@ public:
 	{
 	public:
 		virtual ~listener( ) = default;
-		virtual void on_resize( const g2i::point& new_size ) = 0;
+		virtual void resize( const g2i::point& new_size ) = 0;
 	};
 
 	virtual ~renderer( ) noexcept = default;
 
-	virtual void clear( const byte color = 0 ) noexcept = 0;
+	virtual void clear( const byte value = 0 ) noexcept = 0;
 	virtual void refresh( ) = 0;
-	virtual void set_color( const byte color ) noexcept = 0;
+	virtual void color( const byte value ) noexcept = 0;
 	virtual void draw( const g2i::point& pixel ) noexcept = 0;
 	virtual void draw( const g2i::line& segment ) noexcept = 0;
 	virtual void draw( const g2i::rectangle& area, bool is_filled = true ) noexcept = 0;
 	virtual void print( const g2i::point& position, const string& text ) noexcept = 0;
-	virtual void fill_with( const function< g3f::point( g2f::point ) >& shader ) noexcept = 0;
+	virtual void fill_with( const function< byte( g2i::point ) >& shader ) noexcept = 0;
 
 	virtual auto size( ) const noexcept -> g2i::point = 0;
 

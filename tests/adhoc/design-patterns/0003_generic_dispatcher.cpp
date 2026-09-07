@@ -49,23 +49,23 @@ class button_listener
 {
 public:
 	virtual ~button_listener( ) = default;
-	virtual void on_clicked( const string& button_name ) const = 0;
-	virtual void on_hover( int duration ) const = 0;
+	virtual void clicked( const string& button_name ) const = 0;
+	virtual void hover( int duration ) const = 0;
 };
 
 
 class button_logger final : public button_listener 
 {
 public:
-	void on_clicked( const string& button_name ) const override { println( "button clicked: {}", button_name ); }
-	void on_hover( int duration ) const override { println( "hover: {}", duration ); }
+	void clicked( const string& button_name ) const override { println( "button clicked: {}", button_name ); }
+	void hover( int duration ) const override { println( "hover: {}", duration ); }
 };
 
 class unsafe_logger final : public button_listener
 {
 public:
-	void on_clicked( const string& button_name ) const override { throw runtime_error( format( "error on button clicked listener: {}", button_name ) ); }
-	void on_hover( int duration ) const override { throw runtime_error( format( "error on button hover listener: {}", duration ) ); }
+	void clicked( const string& button_name ) const override { throw runtime_error( format( "error on button clicked listener: {}", button_name ) ); }
+	void hover( int duration ) const override { throw runtime_error( format( "error on button hover listener: {}", duration ) ); }
 };
 
 
@@ -108,8 +108,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	notifier += normal;
 	notifier += unsafe;
 
-	handle_result( notifier( &button_listener::on_clicked, "button_start" ) );
-	handle_result( notifier( &button_listener::on_hover, 100 ) );
+	handle_result( notifier( &button_listener::clicked, "button_start" ) );
+	handle_result( notifier( &button_listener::hover, 100 ) );
 
 	return	exit_success;
 }

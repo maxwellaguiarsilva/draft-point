@@ -23,13 +23,10 @@
 
 
 #include <tui/renderer.hpp>
-#include <cmath>
 #include <ranges>
 #include <tui/terminal.hpp>
 #include <sak/using.hpp>
-#include <sak/math/math.hpp>
 #include <sak/ranges/transform.hpp>
-#include <tui/color.hpp>
 
 
 namespace tui {
@@ -52,9 +49,7 @@ __using( ::std::
 	,views::zip
 )
 __using( ::sak::ranges::, lazy_transform )
-__using( ::sak::math::, between, min )
 __using( ::sak::, line_to )
-__using( ::tui::color::, to_xterm )
 
 
 constexpr int width_index = 0, left_index = 0;
@@ -64,7 +59,7 @@ constexpr int height_index = 1, top_index = 1;
 struct renderer::terminal_listener final : public terminal::listener
 {
 	explicit terminal_listener( renderer& parent ) : m_renderer( parent ) { }
-	auto on_resize( const g2i::point& new_size ) -> void override { m_renderer.on_resize( new_size ); }
+	auto resize( const g2i::point& new_size ) -> void override { m_renderer.resize( new_size ); }
 	renderer& m_renderer;
 };
 
@@ -76,18 +71,18 @@ renderer::renderer( terminal& terminal )
 	,m_terminal_listener( make_shared< terminal_listener >( *this ) )
 {
 	m_terminal += m_terminal_listener;
-	on_resize( m_terminal.size( ) );
+	resize( m_terminal.size( ) );
 }
 
 
-auto renderer::clear( const byte color ) noexcept -> void
+auto renderer::clear( const byte value ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
-	fill( m_main, color );
+	fill( m_main, value );
 }
 
 
-auto renderer::set_color( const byte color ) noexcept -> void { m_color = color; }
+auto renderer::color( const byte value ) noexcept -> void { m_color = value; }
 
 
 auto renderer::draw( const g2i::line& line ) noexcept -> void
@@ -135,22 +130,17 @@ auto renderer::print( const g2i::point& position, const string& text ) noexcept 
 {
 	using	enum	::tui::terminal::text_style;
 	auto lock = lock_guard( m_mutex );
-	m_terminal.set_text_style( reset );
+	m_terminal.style( reset );
 	m_terminal.print( position, text );
 }
 
-auto renderer::fill_with( const function< g3f::point( g2f::point ) >& shader ) noexcept -> void
+auto renderer::fill_with( const function< byte( g2i::point ) >& shader ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
 	const int width = m_screen_size[ width_index ];
 	const int height = m_screen_size[ height_index ];
-	const g2f::point direction{ 1.0f, -1.0f };
 	for( auto [ row, column ] : cartesian_product( iota( 0, height ), iota( 0, width ) ) )
-	{
-		const g2f::point pixel{ column, row };
-		const g2f::point coord = ( pixel - m_half_screen ) * direction * m_normalization_scale;
-		m_main[ row * width + column ] = to_xterm( shader( coord ) );
-	}
+		m_main[ row * width + column ] = shader( g2i::point{ column, row } );
 }
 
 auto renderer::size( ) const noexcept -> g2i::point
@@ -166,16 +156,13 @@ auto renderer::plot_unsafe( int column, int row ) noexcept -> void
 		m_main[ index ] = m_color;
 }
 
-auto renderer::on_resize( const g2i::point& new_size ) -> void
+auto renderer::resize( const g2i::point& new_size ) -> void
 {
 	{
 		auto lock = lock_guard( m_mutex );
 		m_terminal_size = new_size;
 		m_screen_size = ( m_terminal_size - m_margin * 2 ) * g2i::point{ 1, 2 };
-		const size_t total_pixel_count = m_screen_size.get_product( );
-		const g2f::point screen_size{ m_screen_size[ width_index ], m_screen_size[ height_index ] };
-		m_normalization_scale = 2.0f / min( screen_size );
-		m_half_screen = screen_size / 2.0f;
+		const size_t total_pixel_count = m_screen_size.product( );
 		if( m_main.size( ) not_eq total_pixel_count )
 		{
 			m_main.resize( total_pixel_count );
@@ -184,7 +171,7 @@ auto renderer::on_resize( const g2i::point& new_size ) -> void
 	}
 	renderer::clear( );
 	renderer::refresh( );
-	( void )m_dispatcher( &listener::on_resize, m_screen_size );
+	( void )m_dispatcher( &listener::resize, m_screen_size );
 }
 
 auto renderer::refresh( ) -> void
@@ -194,7 +181,7 @@ auto renderer::refresh( ) -> void
 	unique_lock lock( m_mutex, try_to_lock );
 	if( not lock.owns_lock( ) ) return;
 
-	m_terminal.set_text_style( reset );
+	m_terminal.style( reset );
 	point cursor_position	=	{ 0, 0 };
 	auto grid_view = chunk( m_screen_size[ width_index ] ) | chunk( 2 );
 
@@ -215,7 +202,7 @@ auto renderer::refresh( ) -> void
 				if( cursor_position not_eq current )
 					m_terminal.move_cursor( current );
 
-				m_terminal.set_color( main_upper, main_lower );
+				m_terminal.color( main_upper, main_lower );
 				m_terminal.print( "\xe2\x96\x80" );
 				cursor_position = { current[ width_index ] + 1, current[ height_index ] };
 			}
