@@ -3,28 +3,27 @@
 Subject markdown for the SDL3 event dispatching and loop architecture.
 
 - Target hierarchy: `include/sak/sdl3/`
-- Key dependencies: `sak::pattern::dispatcher`, `sak::geometry::point`, `sak::sdl3::window`, `sak::sdl3::application`
+- Key dependencies: `sak::pattern::dispatcher`, `sak::geometry` (`g2i`, `g2f`), `sak::sdl3::window`, `sak::sdl3::application`
 - Scope: core architectural pattern for event consumption via OOP, RAII, and weak-reference dispatching.
 
 ## Overview & Architectural Principles
 
 The SDL3 C API delivers events through a C union (`SDL_Event`) polled sequentially in a loop. Raw events present several architectural liabilities:
 - **Primitive obsession:** Geometry data is packed into untyped integer or float fields (`data1`, `data2`, `x`, `y`) with meanings that change per event type.
-- **Type mismatch across sub-systems:** Window events deal in discrete integer pixels (`Sint32`), while mouse/touch events operate in continuous subpixel coordinates (`float`). Generic vector aliases (`vec2`) risk type dilution or accidental mixing.
 - **Leaky abstractions:** Client code (such as games or tools) is forced to include C headers, write procedural `switch` statements, and manage event dispatch manually.
 - **Coupling & lifetime risks:** Traditional callback systems often suffer from dangling pointers or tight coupling between event producers and consumers.
 
 The `sak::sdl3` event architecture encapsulates the event loop and dispatching through:
-1. **Scoped domain aliases:** Each class defines its own strongly typed semantics (`window::size`, `window::position`, `mouse::position`, `mouse::motion`), avoiding primitive obsession and making coordinate conversions explicit.
+1. **Geometry module alias:** Each class exposes the shared `sak::geometry` module through a single alias (`using geometry = ::sak::g2i;`) and references its named concepts (`geometry::position`, `geometry::size`, ...) directly, mirroring `tui::terminal` and `game::renderer`. Concepts are not redeclared per class.
 2. **Weak-reference observer pattern:** Subscriptions rely on `sak::pattern::dispatcher< t_listener >`, guaranteeing thread safety, exception isolation, and automatic garbage collection of expired listener instances.
 3. **Strict naming conventions:** No `on_`, `get_`, or `set_` prefixes. Listener methods reflect the action or state directly (`resize`, `move`, `close_requested`, `quit`).
 4. **Nested listener interfaces:** Observers are declared as nested classes (e.g. `window::listener`, `application::listener`), mirroring the pattern established by `tui::renderer::listener`.
 
 ---
 
-## Scoped Type Aliases
+## Geometry Alias
 
-Instead of a single global vector type, semantic aliases live inside their respective owner classes:
+Geometry concepts are not redeclared as per-concept aliases (`window::size`, `window::position`, ...). Each owner instead exposes the whole integer (or float) geometry module through one alias, exactly as `tui::terminal` and `game::renderer` already do:
 
 ```cpp
 namespace sak::sdl3 {
@@ -32,26 +31,21 @@ namespace sak::sdl3 {
 class window
 {
 public:
-	using	size		=	::sak::g2i::point;
-	using	position	=	::sak::g2i::point;
+	using	geometry	=	::sak::g2i;
 	//	...
 };
 
 class mouse
 {
 public:
-	using	position	=	::sak::g2f::point;
-	using	motion		=	::sak::g2f::point;
+	using	geometry	=	::sak::g2f;
 	//	...
 };
 
 }
 ```
 
-This guarantees:
-- **Discreteness where required:** Window boundaries and buffer sizes remain integer points (`g2i::point`).
-- **Precision where required:** Mouse cursor coordinates and high-frequency delta movements preserve subpixel float precision (`g2f::point`).
-- **Explicit conversions:** Converting between mouse space and window grid requires an intentional, typed conversion instead of implicit arithmetic errors.
+`geometry::position`, `geometry::size`, `geometry::line`, and `geometry::rectangle` are all derived from the same underlying `point`, so nothing else needs redeclaring. Integer and float geometry stay separate modules (`g2i` vs `g2f`), which keeps mouse space distinct from the window grid and makes any conversion between them an intentional, typed operation.
 
 ---
 
@@ -67,18 +61,17 @@ namespace sak::sdl3 {
 class window
 {
 public:
-	using	size		=	::sak::g2i::point;
-	using	position	=	::sak::g2i::point;
+	using	geometry	=	::sak::g2i;
 
 	class listener
 	{
 	public:
 		virtual ~listener( ) = default;
 
-		//	geometry events with strongly typed domain aliases
-		virtual void resize( const size& /*new_size*/ ) { }
-		virtual void pixel_resize( const size& /*pixel_size*/ ) { }
-		virtual void move( const position& /*new_position*/ ) { }
+		//	geometry events
+		virtual void resize( const geometry::size& new_size ) { }
+		virtual void pixel_resize( const geometry::size& pixel_size ) { }
+		virtual void move( const geometry::position& new_position ) { }
 
 		//	visibility and state transitions
 		virtual void show( ) { }
@@ -103,49 +96,24 @@ public:
 	{
 		switch( event.type )
 		{
-			case SDL_EVENT_WINDOW_RESIZED:
-				( void )m_dispatcher( &listener::resize, size{ event.data1, event.data2 } );
-				break;
-
 			case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
-				( void )m_dispatcher( &listener::pixel_resize, size{ event.data1, event.data2 } );
-				break;
-
+                ( void )m_dispatcher( &listener::pixel_resize, geometry::size{ event.data1, event.data2 } );
+                break;
+			case SDL_EVENT_WINDOW_RESIZED:
+                ( void )m_dispatcher( &listener::resize, geometry::size{ event.data1, event.data2 } );
+                break;
 			case SDL_EVENT_WINDOW_MOVED:
-				( void )m_dispatcher( &listener::move, position{ event.data1, event.data2 } );
-				break;
+                ( void )m_dispatcher( &listener::move, geometry::position{ event.data1, event.data2 } );
+                break;
 
-			case SDL_EVENT_WINDOW_SHOWN:
-				( void )m_dispatcher( &listener::show );
-				break;
-
-			case SDL_EVENT_WINDOW_HIDDEN:
-				( void )m_dispatcher( &listener::hide );
-				break;
-
-			case SDL_EVENT_WINDOW_MINIMIZED:
-				( void )m_dispatcher( &listener::minimize );
-				break;
-
-			case SDL_EVENT_WINDOW_MAXIMIZED:
-				( void )m_dispatcher( &listener::maximize );
-				break;
-
-			case SDL_EVENT_WINDOW_RESTORED:
-				( void )m_dispatcher( &listener::restore );
-				break;
-
-			case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-				( void )m_dispatcher( &listener::close_requested );
-				break;
-
-			case SDL_EVENT_WINDOW_FOCUS_GAINED:
-				( void )m_dispatcher( &listener::focus_gained );
-				break;
-
-			case SDL_EVENT_WINDOW_FOCUS_LOST:
-				( void )m_dispatcher( &listener::focus_lost );
-				break;
+			case SDL_EVENT_WINDOW_SHOWN:            ( void )m_dispatcher( &listener::show );            break;
+			case SDL_EVENT_WINDOW_HIDDEN:           ( void )m_dispatcher( &listener::hide );            break;
+			case SDL_EVENT_WINDOW_MINIMIZED:        ( void )m_dispatcher( &listener::minimize );        break;
+			case SDL_EVENT_WINDOW_MAXIMIZED:        ( void )m_dispatcher( &listener::maximize );        break;
+			case SDL_EVENT_WINDOW_RESTORED:         ( void )m_dispatcher( &listener::restore );         break;
+			case SDL_EVENT_WINDOW_CLOSE_REQUESTED:  ( void )m_dispatcher( &listener::close_requested ); break;
+			case SDL_EVENT_WINDOW_FOCUS_GAINED:     ( void )m_dispatcher( &listener::focus_gained );    break;
+			case SDL_EVENT_WINDOW_FOCUS_LOST:       ( void )m_dispatcher( &listener::focus_lost );      break;
 
 			default:
 				break;
@@ -169,6 +137,8 @@ Events belonging to the overall application lifecycle (such as quit signals) bel
 
 ```cpp
 namespace sak::sdl3 {
+
+__using( ::sak::math::, between )
 
 class application
 {
@@ -197,7 +167,7 @@ public:
 				continue;
 			}
 
-			if( event.type >= SDL_EVENT_WINDOW_FIRST and event.type <= SDL_EVENT_WINDOW_LAST )
+			if( between( event.type, SDL_EVENT_WINDOW_FIRST, SDL_EVENT_WINDOW_LAST ) )
 				if( auto* raw_window = SDL_GetWindowFromEvent( &event ) )
 					if( auto* window_instance = static_cast< window* >( SDL_GetPointerProperty( SDL_GetWindowProperties( raw_window ), "sak.window", nullptr ) ) )
 						window_instance->dispatch( event.window );
@@ -232,7 +202,7 @@ public:
 		: m_app( app )
 	{ }
 
-	void resize( const window::size& new_size ) override
+	void resize( const window::geometry::size& new_size ) override
 	{
 		gl_viewport( 0, 0, new_size[ 0 ], new_size[ 1 ] );
 	}
