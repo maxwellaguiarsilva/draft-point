@@ -61,14 +61,12 @@ __using( ::sak::ranges::
 )
 
 
-constexpr int left_index = 0;
-constexpr int top_index = 1;
-
-
+__using_constexpr( geometry::, left, top )
 __using( ::sak::, ensure, format )
 using	::sak::pattern::value_or;
 using	::sak::ranges::to;
 using	text_style	=	::tui::terminal::text_style;
+using	position	=	geometry::position;
 using	enum	::tui::terminal::error;
 
 
@@ -90,7 +88,7 @@ const array< string, 256 > terminal::m_background_colors	=	iota( 0, 256 )
 const array< string, 10 > terminal::m_text_styles	=	iota( 0, 10 )
 	|	lazy_transform( bind_front( format, "\033[{}m" ) )
 	|	to;
-constexpr auto zero = terminal::geometry::position( 0, 0 );
+constexpr auto zero = position( 0, 0 );
 
 
 terminal::terminal( )
@@ -177,7 +175,7 @@ auto terminal::read_char( ) -> char
 
 auto terminal::move_cursor( const geometry::position& position ) -> void
 { 
-	m_buffer << "\033[" << position[ top_index ] << ';' << position[ left_index ] << 'H';
+	m_buffer << "\033[" << top( position ) << ';' << left( position ) << 'H';
 }
 
 auto terminal::print( const string& text ) -> void { m_buffer << text; }

@@ -55,6 +55,7 @@ __using( ::std::
 	,unordered_map
 )
 using	::sak::byte;
+using	geometry	=	::sak::g2i;
 using	::sak::pattern::dispatcher;
 using	::termios;
 
@@ -86,7 +87,6 @@ public:
 
 	using	result	=	expected< void, error >;
 	using	error_messages	=	unordered_map< error, string >;
-	using	geometry	=	::sak::g2i;
 
 
 	terminal( );

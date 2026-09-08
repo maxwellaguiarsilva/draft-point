@@ -50,7 +50,7 @@ __using( ::std::
 )
 __using( ::sak::ranges::, lazy_transform )
 __using( ::sak::, line_to )
-__using_constexpr( ::sak::g2i::
+__using_constexpr( geometry::
 	,width
 	,height
 	,left
