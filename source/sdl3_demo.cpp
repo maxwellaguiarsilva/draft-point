@@ -36,14 +36,11 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <sak/sak.hpp>
 #include <sak/opengl/program.hpp>
-#include <sak/pattern/bitmask.hpp>
 #include <sak/ranges/contains.hpp>
 #include <sak/sdl3/application.hpp>
 #include <sak/sdl3/opengl/attributes.hpp>
 #include <sak/sdl3/opengl/context.hpp>
-#include <sak/sdl3/window.hpp>
 #include <SDL3/SDL.h>
 #include <game/fps.hpp>
 
@@ -101,7 +98,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,views::values
 	)
 	__using( ::sak::ranges::, contains )
-	using	::game::fps;
+	__using( ::game::, fps )
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
