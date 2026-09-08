@@ -50,10 +50,12 @@ __using( ::std::
 )
 __using( ::sak::ranges::, lazy_transform )
 __using( ::sak::, line_to )
-
-
-constexpr int width_index = 0, left_index = 0;
-constexpr int height_index = 1, top_index = 1;
+__using_constexpr( ::sak::g2i::
+	,width
+	,height
+	,left
+	,top
+)
 
 
 struct renderer::terminal_listener final : public terminal::listener
@@ -97,10 +99,10 @@ auto renderer::draw( const geometry::rectangle& area, bool is_filled ) noexcept 
 {
 	auto lock = lock_guard( m_mutex );
 	auto const area_bound = area.end - area.start + 1;
-	const auto crop_width = drop( area.start[ left_index ] ) | take( area_bound[ width_index ] );
-	auto rows = m_main | chunk( m_screen_size[ width_index ] )
-		| drop( area.start[ top_index ] )
-		| take( area_bound[ height_index ] )
+	const auto crop_width = drop( left( area.start ) ) | take( width( area_bound ) );
+	auto rows = m_main | chunk( width( m_screen_size ) )
+		| drop( top( area.start ) )
+		| take( height( area_bound ) )
 		| lazy_transform( crop_width );
 
 	if( is_filled )
@@ -113,10 +115,10 @@ auto renderer::draw( const geometry::rectangle& area, bool is_filled ) noexcept 
 	fill( rows.front( ), m_color );
 	fill( rows.back( ),  m_color );
 
-	for( auto row : iota( area.start[ top_index ], area.end[ top_index ] + 1 ) )
+	for( auto row : iota( top( area.start ), top( area.end ) + 1 ) )
 	{
-		plot_unsafe( geometry::position{ area.start[ left_index ], row } );
-		plot_unsafe( geometry::position{ area.end[ left_index ],   row } );
+		plot_unsafe( geometry::position{ left( area.start ), row } );
+		plot_unsafe( geometry::position{ left( area.end ),   row } );
 	}
 }
 
@@ -137,10 +139,10 @@ auto renderer::print( const geometry::position& position, const string& text ) n
 auto renderer::fill_with( const function< byte( geometry::position ) >& shader ) noexcept -> void
 {
 	auto lock = lock_guard( m_mutex );
-	const int width = m_screen_size[ width_index ];
-	const int height = m_screen_size[ height_index ];
-	for( auto [ row, column ] : cartesian_product( iota( 0, height ), iota( 0, width ) ) )
-		m_main[ row * width + column ] = shader( geometry::position{ column, row } );
+	const int columns = width( m_screen_size );
+	const int rows = height( m_screen_size );
+	for( auto [ row, column ] : cartesian_product( iota( 0, rows ), iota( 0, columns ) ) )
+		m_main[ row * columns + column ] = shader( geometry::position{ column, row } );
 }
 
 auto renderer::size( ) const noexcept -> geometry::size
@@ -151,7 +153,7 @@ auto renderer::size( ) const noexcept -> geometry::size
 
 auto renderer::plot_unsafe( const geometry::position& point ) noexcept -> void
 {
-	const size_t index = point[ height_index ] * m_screen_size[ width_index ] + point[ left_index ];
+	const size_t index = top( point ) * width( m_screen_size ) + left( point );
 	if( index < m_main.size( ) )
 		m_main[ index ] = m_color;
 }
@@ -183,11 +185,11 @@ auto renderer::refresh( ) -> void
 
 	m_terminal.style( reset );
 	position cursor_position	=	{ 0, 0 };
-	auto grid_view = chunk( m_screen_size[ width_index ] ) | chunk( 2 );
+	auto grid_view = chunk( width( m_screen_size ) ) | chunk( 2 );
 
-	for( auto [ row, main_row, copy_row ] : zip( iota( m_margin[ top_index ] + 1 ), m_main | grid_view, m_copy | grid_view ) )
+	for( auto [ row, main_row, copy_row ] : zip( iota( top( m_margin ) + 1 ), m_main | grid_view, m_copy | grid_view ) )
 		for( auto [ column, main_upper, main_lower, copy_upper, copy_lower ] : zip(
-			 iota( m_margin[ left_index ] + 1 )
+			 iota( left( m_margin ) + 1 )
 			,main_row.front( )
 			,main_row.back( )
 			,copy_row.front( )
@@ -204,7 +206,7 @@ auto renderer::refresh( ) -> void
 
 				m_terminal.color( main_upper, main_lower );
 				m_terminal.print( "\xe2\x96\x80" );
-				cursor_position = { current[ width_index ] + 1, current[ height_index ] };
+				cursor_position = { left( current ) + 1, top( current ) };
 			}
 	
 	m_terminal.refresh( );

@@ -41,7 +41,7 @@ game::renderer_listener::renderer_listener( const g2i::point& new_size )
 void game::renderer_listener::resize( const g2i::point& new_size )
 {
 	start			=	{ 0, 0 };
-	end				=	{ new_size[ 0 ] - 1, new_size[ 1 ] - 1 };
+	end				=	{ g2i::width( new_size ) - 1, g2i::height( new_size ) - 1 };
 	size			=	end - start + 1;
 	label_position	=	{ 1, 1 };
 }
@@ -49,7 +49,7 @@ void game::renderer_listener::resize( const g2i::point& new_size )
 
 game::game( renderer& renderer )
 	:m_renderer{ renderer }
-	,m_player{ { m_renderer.size( )[ 0 ] / 2, m_renderer.size( )[ 1 ] } }
+	,m_player{ { g2i::width( m_renderer.size( ) ) / 2, g2i::height( m_renderer.size( ) ) } }
 	,m_fps{ }
 	,m_renderer_listener{ make_shared< renderer_listener >( m_renderer.size( ) ) }
 {
@@ -104,8 +104,8 @@ auto game::run( ) -> void
 
 		m_renderer.print( label_position,
 				" | fps: " + to_string( m_fps.compute( ) )
-			+ 	" | size: " + to_string( frame_size[ 0 ] ) + " x " + to_string( frame_size[ 1 ] )
-			+ 	" | player: " + to_string( position[ 0 ] ) + " x " + to_string( position[ 1 ] )
+			+ 	" | size: " + to_string( g2i::width( frame_size ) ) + " x " + to_string( g2i::height( frame_size ) )
+			+ 	" | player: " + to_string( g2i::left( position ) ) + " x " + to_string( g2i::top( position ) )
 			+ 	" | direction: " + use_direction( m_player.direction( ) ).name
 			+ 	" | length: " + to_string( position.length( ) )
 			+ 	" | "

@@ -42,8 +42,6 @@ using	::std::chrono::duration;
 
 
 namespace {
-	constexpr int width_index = 0, left_index = 0;
-	constexpr int height_index = 1, top_index = 1;
 
 	//	maps rgb components in [ 0.0, 1.0 ] to an xterm color code ( byte )
 	struct __to_xterm
@@ -66,7 +64,7 @@ shadertoy::renderer_listener::renderer_listener( const g2i::point& new_size )
 
 void shadertoy::renderer_listener::resize( const g2i::point& new_size )
 {
-	const g2f::point screen_size{ new_size[ width_index ], new_size[ height_index ] };
+	const g2f::point screen_size{ g2i::width( new_size ), g2i::height( new_size ) };
 	normalization_scale	=	2.0f / min( screen_size );
 	half_screen			=	screen_size / 2.0f;
 }
@@ -110,7 +108,7 @@ auto shadertoy::run( const function< void( char, float ) >& frame_callback, cons
 		//	converts terminal pixels to the float domain of the shader
 		auto to_terminal = [ &, pixel_shader, half_screen, normalization_scale, direction ]( const g2i::point& pixel ) -> byte
 		{
-			const g2f::point current{ pixel[ left_index ], pixel[ top_index ] };
+			const g2f::point current{ g2i::left( pixel ), g2i::top( pixel ) };
 			const g2f::point coord = ( current - half_screen ) * direction * normalization_scale;
 			return	to_xterm( pixel_shader( coord ) );
 		};
