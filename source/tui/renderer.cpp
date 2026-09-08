@@ -151,9 +151,9 @@ auto renderer::size( ) const noexcept -> geometry::size
 	return	m_screen_size;
 }
 
-auto renderer::plot_unsafe( const geometry::position& point ) noexcept -> void
+auto renderer::plot_unsafe( const geometry::position& position ) noexcept -> void
 {
-	const size_t index = top( point ) * width( m_screen_size ) + left( point );
+	const size_t index = top( position ) * width( m_screen_size ) + left( position );
 	if( index < m_main.size( ) )
 		m_main[ index ] = m_color;
 }

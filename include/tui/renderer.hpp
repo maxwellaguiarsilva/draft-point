@@ -59,7 +59,7 @@ public:
 	void clear( const byte value = 0 ) noexcept override;
 	void refresh( ) override;
 	void color( const byte value ) noexcept override;
-	void draw( const geometry::position& point ) noexcept override;
+	void draw( const geometry::position& position ) noexcept override;
 	void draw( const geometry::line& line ) noexcept override;
 	void draw( const geometry::rectangle& rectangle, bool is_filled = true ) noexcept override;
 	void print( const geometry::position& position, const string& text ) noexcept override;
@@ -72,7 +72,7 @@ private:
 	struct terminal_listener;
 
 	void resize( const geometry::size& size );
-	void plot_unsafe( const geometry::position& point ) noexcept;
+	void plot_unsafe( const geometry::position& position ) noexcept;
 
 	terminal&	m_terminal;
 	buffer		m_copy;
