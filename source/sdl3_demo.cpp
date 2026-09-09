@@ -113,7 +113,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		//	create a raii window and opengl context, declared before gpu resources so they outlive them on destruction
 		attributes gl_attributes;
 		using	flag		=	window::flag;
-		window application_window( "modern opengl rgb triangle", 800, 600, window::window_flags{ flag::opengl, flag::resizable } );
+		window application_window( "modern opengl rgb triangle", { 800, 600 }, window::window_flags{ flag::opengl, flag::resizable } );
 		context gl_context( application_window );
 		ensure( gladLoadGL( gl_context.function_pointer( ) ) not_eq 0, "failed to load opengl functions with glad" );
 
