@@ -18,7 +18,8 @@ Rules for documenting an SDL3 API in its subject markdown:
 2. Represent the hierarchy with bullet levels.
 3. Do not include internal values or representations (e.g. numeric or hexadecimal codes).
 4. Declare a common name/prefix once in an upper level and, in the following levels, use only the remaining component, without repeating the full name.
-5. Do not add a description that merely paraphrases the symbol's name; include a description only when it adds a fact or value beyond the name itself.
+5. Do not add a description that merely paraphrases the symbol's name; include a description only when it adds a fact or value beyond the name itself. Interpreted aggressively: strip every reworking that adds no fact beyond the name, keeping only pure added facts.
+6. Do not use inline lists; always one item per line (each item its own list bullet or tree node). Interpreted literally: every multi-symbol inline group is split, each member on its own bullet — this covers region/enum member enumerations, long property lists, and parameter sets alike.
 
 ## Nodes
 
