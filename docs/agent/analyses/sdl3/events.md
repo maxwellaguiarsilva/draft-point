@@ -169,12 +169,26 @@ public:
 
 			if( between( event.type, SDL_EVENT_WINDOW_FIRST, SDL_EVENT_WINDOW_LAST ) )
 				if( auto* raw_window = SDL_GetWindowFromEvent( &event ) )
-					if( auto* window_instance = static_cast< window* >( SDL_GetPointerProperty( SDL_GetWindowProperties( raw_window ), "sak.window", nullptr ) ) )
-						window_instance->dispatch( event.window );
-		}
+					if( auto* raw_instance = static_cast< window* >( SDL_GetPointerProperty( SDL_GetWindowProperties( raw_window ), "sak.sdl3.window", nullptr ) ) )
+					{
+						//	reference alias keeps the dispatch body free of `->` noise (see style-guide indirection)
+						auto& window_instance	=	*raw_instance;	//	non-null guaranteed in this scope
+						window_instance.dispatch( event.window );
+					}
+	}
 
 		return	m_is_running;
 	}
+
+	//	possible alternative (user to evaluate): single-return helper that resolves the null case once,
+	//	binding a reference at the call site instead of an intermediate variable per dispatch site
+	//	auto& window_of( SDL_Window* handle )
+	//	{
+	//		void* p	=	SDL_GetPointerProperty( SDL_GetWindowProperties( handle ), "sak.sdl3.window", nullptr );
+	//		ensure( p not_eq nullptr, "window not owned by sak" );
+	//		return	*static_cast< window* >( p );
+	//	}
+	//	//	usage:	window_of( raw_window ).dispatch( event.window );
 
 	auto stop( ) noexcept -> void { m_is_running = false; }
 
