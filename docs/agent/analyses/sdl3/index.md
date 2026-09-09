@@ -10,6 +10,16 @@
 
 The strategy for analyzing and handling this problem is defined 100% by the owner, minutely, through specific instructions passed along the way.
 
+## Markdown documentation rules
+
+Rules for documenting an SDL3 API in its subject markdown:
+
+1. Group symbols by **semantic grouping identified during the API analysis**.
+2. Represent the hierarchy with bullet levels.
+3. Do not include internal values or representations (e.g. numeric or hexadecimal codes).
+4. Declare a common name/prefix once in an upper level and, in the following levels, use only the remaining component, without repeating the full name.
+5. Do not add a description that merely paraphrases the symbol's name; include a description only when it adds a fact or value beyond the name itself.
+
 ## Nodes
 
 - [Application](application.md) [#current] — RAII wrapper for the SDL3 application lifecycle.

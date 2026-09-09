@@ -193,18 +193,22 @@ private:
 The application developer focuses strictly on domain logic, inheriting from listener interfaces without touching SDL internals or raw C structures:
 
 ```cpp
+__using_constexpr( window::geometry::, width, height )
+
 class scene_controller final
 	: public window::listener
 	, public application::listener
 {
 public:
+	using	geometry	=	window::geometry;
+
 	explicit scene_controller( application& app )
 		: m_app( app )
 	{ }
 
-	void resize( const window::geometry::size& new_size ) override
+	void resize( const geometry::size& size ) override
 	{
-		gl_viewport( 0, 0, new_size[ 0 ], new_size[ 1 ] );
+		gl_viewport( 0, 0, width( size ), height( size ) );
 	}
 
 	void close_requested( ) override

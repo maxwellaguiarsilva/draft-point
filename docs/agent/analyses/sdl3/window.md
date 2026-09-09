@@ -19,32 +19,39 @@ Subject markdown for the `sak::sdl3::window` object.
 
 - `SDL_WindowFlags` — `typedef Uint64`. Mix of read/write window state; some immutable after `SDL_CreateWindow()`, some app-changeable, some altered by user/system.
   - Creating with `SDL_WINDOW_RESIZABLE` constrains the window to compositor-recommended dimensions within usable desktop space.
-  - `SDL_WINDOW_FULLSCREEN` (`0x0000000000000001`) — fullscreen mode.
-  - `SDL_WINDOW_OPENGL` (`0x0000000000000002`) — usable with an OpenGL context.
-  - `SDL_WINDOW_OCCLUDED` (`0x0000000000000004`) — window is occluded.
-  - `SDL_WINDOW_HIDDEN` (`0x0000000000000008`) — not mapped/shown; needs `SDL_ShowWindow()` to become visible.
-  - `SDL_WINDOW_BORDERLESS` (`0x0000000000000010`) — no decoration.
-  - `SDL_WINDOW_RESIZABLE` (`0x0000000000000020`) — resizable by user.
-  - `SDL_WINDOW_MINIMIZED` (`0x0000000000000040`) — minimized.
-  - `SDL_WINDOW_MAXIMIZED` (`0x0000000000000080`) — maximized.
-  - `SDL_WINDOW_MOUSE_GRABBED` (`0x0000000000000100`) — mouse input grabbed.
-  - `SDL_WINDOW_INPUT_FOCUS` (`0x0000000000000200`) — has input focus.
-  - `SDL_WINDOW_MOUSE_FOCUS` (`0x0000000000000400`) — has mouse focus.
-  - `SDL_WINDOW_EXTERNAL` (`0x0000000000000800`) — not created by SDL.
-  - `SDL_WINDOW_MODAL` (`0x0000000000001000`) — modal.
-  - `SDL_WINDOW_HIGH_PIXEL_DENSITY` (`0x0000000000002000`) — uses high pixel density back buffer if possible.
-  - `SDL_WINDOW_MOUSE_CAPTURE` (`0x0000000000004000`) — mouse captured (unrelated to `MOUSE_GRABBED`).
-  - `SDL_WINDOW_MOUSE_RELATIVE_MODE` (`0x0000000000008000`) — relative mode enabled.
-  - `SDL_WINDOW_ALWAYS_ON_TOP` (`0x0000000000010000`) — always above others.
-  - `SDL_WINDOW_UTILITY` (`0x0000000000020000`) — utility window, not in taskbar/window list.
-  - `SDL_WINDOW_TOOLTIP` (`0x0000000000040000`) — tooltip, no mouse/keyboard focus; requires a parent window.
-  - `SDL_WINDOW_POPUP_MENU` (`0x0000000000080000`) — popup menu; requires a parent window.
-  - `SDL_WINDOW_KEYBOARD_GRABBED` (`0x0000000000100000`) — keyboard input grabbed.
-  - `SDL_WINDOW_FILL_DOCUMENT` (`0x0000000000200000`) — fill-document mode (Emscripten only) `\since SDL 3.4.0`.
-  - `SDL_WINDOW_VULKAN` (`0x0000000010000000`) — usable for a Vulkan surface.
-  - `SDL_WINDOW_METAL` (`0x0000000020000000`) — usable for a Metal view.
-  - `SDL_WINDOW_TRANSPARENT` (`0x0000000040000000`) — transparent buffer.
-  - `SDL_WINDOW_NOT_FOCUSABLE` (`0x0000000080000000`) — not focusable.
+  - `SDL_WINDOW_*` — grouped by the `window::flag` categories below:
+    - window state that can be both requested and reported:
+      - `FULLSCREEN`
+      - `HIDDEN` — not mapped/shown; needs `SDL_ShowWindow()` to become visible.
+      - `MINIMIZED`
+      - `MAXIMIZED`
+      - `OCCLUDED`
+      - `BORDERLESS`
+      - `RESIZABLE`
+      - `ALWAYS_ON_TOP`
+      - `TRANSPARENT`
+      - `FILL_DOCUMENT` — Emscripten only `\since SDL 3.4.0`.
+    - focus and modality:
+      - `INPUT_FOCUS`
+      - `MOUSE_FOCUS`
+      - `NOT_FOCUSABLE`
+      - `MODAL`
+      - `EXTERNAL` — not created by SDL.
+    - pointer and keyboard capture:
+      - `MOUSE_GRABBED`
+      - `KEYBOARD_GRABBED`
+      - `MOUSE_CAPTURE` — unrelated to `MOUSE_GRABBED`.
+      - `MOUSE_RELATIVE_MODE`
+    - system window roles:
+      - `UTILITY` — not shown in the taskbar/window list.
+      - `TOOLTIP` — no mouse/keyboard focus; requires a parent window.
+      - `POPUP_MENU` — requires a parent window.
+    - graphics api selected at creation:
+      - `OPENGL`
+      - `VULKAN`
+      - `METAL`
+    - pixel density:
+      - `HIGH_PIXEL_DENSITY`
 - Position sentinels (`SDL_SetWindowPosition` x/y):
   - `SDL_WINDOWPOS_UNDEFINED_MASK` (`0x1FFF0000u`) — magic value used through the helpers below.
   - `SDL_WINDOWPOS_UNDEFINED_DISPLAY(X)` — don't care about position; `X` is the `SDL_DisplayID`.
