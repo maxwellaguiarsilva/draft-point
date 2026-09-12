@@ -7,34 +7,14 @@
 #include <meta>
 #include <memory>
 #include <print>
-#include <ranges>
 #include <string>
-#include <string_view>
 #include <vector>
 #include <exception>
 #include <sak/ensure.hpp>
+#include <sak/meta/override.hpp>
 #include <sak/ranges/contains.hpp>
 #include <sak/using.hpp>
 #include <sak/pattern/dispatcher.hpp>
-
-
-namespace
-{
-
-
-__using( ::std::, define_static_array, define_static_string, make_shared, shared_ptr, string_view, vector )
-__using( ::std::meta::
-	,access_context
-	,has_identifier
-	,identifier_of
-	,info
-	,is_function
-	,is_override
-	,is_special_member_function
-	,is_virtual
-	,members_of
-)
-__using( ::sak::pattern::, dispatcher )
 
 
 class window_listener
@@ -80,76 +60,11 @@ public:
 };
 
 
-template< typename t_base, typename t_derived >
-consteval auto overridden_methods( )
-{
-	vector< info > result;
-	for( auto method : members_of( ^^t_base, access_context::current( ) ) )
-	{
-		if( not is_function( method ) or is_special_member_function( method ) or not is_virtual( method ) )
-			continue;
-		for( auto candidate : members_of( ^^t_derived, access_context::current( ) ) )
-		{
-			if( not is_function( candidate ) or not is_override( candidate ) )
-				continue;
-			if( has_identifier( method ) and has_identifier( candidate ) and identifier_of( method ) == identifier_of( candidate ) )
-			{
-				result.push_back( method );
-				break;
-			}
-		}
-	}
-	return	result;
-}
-
-
-template< typename t_base, typename t_derived >
-consteval auto is_overridden( const string_view name ) -> bool
-{
-	for( auto method : overridden_methods< t_base, t_derived >( ) )
-		if( identifier_of( method ) == name )
-			return	true;
-	return	false;
-}
-
-
-template< typename t_base, typename t_derived >
-consteval auto overridden_names( )
-{
-	vector< const char* > result;
-	for( auto method : overridden_methods< t_base, t_derived >( ) )
-		result.push_back( define_static_string( identifier_of( method ) ) );
-	return	define_static_array( result );
-}
-
-
-template< info t_method >
-consteval auto method_pointer( )
-{
-	return	&[: t_method :];
-}
-
- 
-template< typename t_base, typename t_derived, info t_method >
-consteval auto is_overridden( )
-{
-	return	is_overridden< t_base, t_derived >( identifier_of( t_method ) );
-}
-
-
-template< info t_method, typename t_listener, typename... t_args >
-auto dispatch_reflected( dispatcher< t_listener >& dispatcher_instance, t_args&&... arguments )
-{
-	return	dispatcher_instance( &[: t_method :], arguments... );
-}
-
-
-}
-
-
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {
 	__using( ::sak::, exit_success, exit_failure, ensure )
+	__using( ::sak::meta::, overridden_names, overridden_methods, is_overridden, method_pointer, dispatch_reflected )
+	__using( ::sak::pattern::, dispatcher )
 	__using( ::std::, make_shared, shared_ptr, string, vector, println, exception )
 	__using( ::sak::ranges::, contains )
 
@@ -157,12 +72,12 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 	if( contains( arguments, { "-h", "--help" } ) )
 	{
-		println( "this executable is a battery of tests about: is_overrided" );
+		println( "this executable is a battery of tests about: sak/meta" );
 		return	exit_success;
 	}
 	try
 	{
-		println( "starting tests for: is_overrided" );
+		println( "starting tests for: sak/meta" );
 
 		constexpr auto names = overridden_names< window_listener, scene_controller >( );
 
@@ -194,7 +109,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		ensure( counter->m_move_count == 1, "move should have been dispatched once" );
 		println( "reflection to member pointer: resize={} move={}", counter->m_resize_count, counter->m_move_count );
 
-		println( "all tests for is_overrided passed" );
+		println( "all tests for sak/meta passed" );
 	}
 	catch( const exception& error )
 	{
@@ -204,5 +119,4 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 	return	exit_success;
 }
-
 
