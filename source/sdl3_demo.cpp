@@ -21,7 +21,6 @@
 #include <sak/opengl/program.hpp>
 #include <sak/ranges/contains.hpp>
 #include <sak/sdl3/application.hpp>
-#include <sak/sdl3/opengl/attributes.hpp>
 #include <sak/sdl3/opengl/context.hpp>
 #include <SDL3/SDL.h>
 #include <game/fps.hpp>
@@ -62,16 +61,33 @@ void main( )
 } 
 
 
+namespace {
+
+	class viewport_listener final : public ::sak::sdl3::window::listener
+	{
+	public:
+		using	geometry	=	::sak::sdl3::window::geometry;
+
+		void pixel_resize( const geometry::size& new_size ) override
+		{
+			gl_viewport( 0, 0, geometry::width( new_size ), geometry::height( new_size ) );
+		}
+	};
+
+}
+
+
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {
 	__using( ::sak::, exit_success, exit_failure, ensure )
 	__using( ::sak::opengl::, program, shader )
 	__using( ::sak::sdl3::, application, window )
-	__using( ::sak::sdl3::opengl::, attributes, context )
+	__using( ::sak::sdl3::opengl::, context )
 	__using( ::gl::, vertex_shader_source, fragment_shader_source )
 	__using( ::std::
 		,array
 		,format
+		,make_shared
 		,map
 		,println
 		,runtime_error
@@ -93,11 +109,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		application app;
 
 		//	create a raii window and opengl context, declared before gpu resources so they outlive them on destruction
-		attributes gl_attributes;
 		using	flag		=	window::flag;
-		window application_window( "modern opengl rgb triangle", { 800, 600 }, window::window_flags{ flag::opengl, flag::resizable } );
+		window application_window( "modern opengl rgb triangle", { 800, 600 }, { flag::opengl, flag::resizable } );
 		context gl_context( application_window );
-		ensure( gladLoadGL( gl_context.function_pointer( ) ) not_eq 0, "failed to load opengl functions with glad" );
 
 		//	triangle vertices stored as a compact array of structs
 		struct vertex
@@ -140,20 +154,12 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		fps frame_limiter( 60 );
 		frame_limiter.compute( );
 
-		bool is_running = true;
-		SDL_Event event;
+		//	the listener must outlive the dispatch, so it is held until run returns
+		auto viewport = make_shared< viewport_listener >( );
+		application_window += viewport;
 
-		//	simple event processing and rendering loop
-		while( is_running )
+		app.run( [ & ]( )
 		{
-			while( SDL_PollEvent( &event ) )
-			{
-				if( event.type == SDL_EVENT_QUIT )
-					is_running = false;
-				else if( event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED )
-					gl_viewport( 0, 0, event.window.data1, event.window.data2 );
-			}
-
 			gl_clear_color( 0.0f, 0.0f, 0.0f, 1.0f );
 			gl_clear( GL_COLOR_BUFFER_BIT );
 
@@ -162,7 +168,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 			application_window.swap( );
 			frame_limiter.compute( );
-		}
+		} );
 
 		//	clean up raw opengl objects while the context is still current;
 		//	the window raii destroys the context and sdl on its own scope exit
