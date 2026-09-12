@@ -18,6 +18,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <sak/geometry/geometry.hpp>
 #include <sak/opengl/program.hpp>
 #include <sak/ranges/contains.hpp>
 #include <sak/sdl3/application.hpp>
@@ -61,22 +62,6 @@ void main( )
 } 
 
 
-namespace {
-
-	class viewport_listener final : public ::sak::sdl3::window::listener
-	{
-	public:
-		using	geometry	=	::sak::sdl3::window::geometry;
-
-		void pixel_resize( const geometry::size& new_size ) override
-		{
-			gl_viewport( 0, 0, geometry::width( new_size ), geometry::height( new_size ) );
-		}
-	};
-
-}
-
-
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {
 	__using( ::sak::, exit_success, exit_failure, ensure )
@@ -87,7 +72,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::std::
 		,array
 		,format
-		,make_shared
 		,map
 		,println
 		,runtime_error
@@ -101,6 +85,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
 		return	println( "this executable is a modern opengl rgb triangle demo" ), exit_success;
+
+	using geometry	=	::sak::g3f;
+	using point		=	geometry::point;
 
 	try
 	{
@@ -116,8 +103,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		//	triangle vertices stored as a compact array of structs
 		struct vertex
 		{
-			float position[ 3 ];
-			float color[ 3 ];
+			point position;
+			point color;
 		};
 
 		constexpr array< vertex, 3 > vertices = { {
@@ -153,10 +140,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		//	initialize fps controller for 60 frames per second
 		fps frame_limiter( 60 );
 		frame_limiter.compute( );
-
-		//	the listener must outlive the dispatch, so it is held until run returns
-		auto viewport = make_shared< viewport_listener >( );
-		application_window += viewport;
 
 		app.run( [ & ]( )
 		{
