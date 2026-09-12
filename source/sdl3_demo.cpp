@@ -117,10 +117,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		context gl_context( application_window );
 		ensure( gladLoadGL( gl_context.function_pointer( ) ) not_eq 0, "failed to load opengl functions with glad" );
 
-		map< shader::type, shader > shader_map;
-		shader_map.try_emplace( shader::type::vertex, vertex_shader_source, shader::type::vertex );
-		shader_map.try_emplace( shader::type::fragment, fragment_shader_source, shader::type::fragment );
-
 		//	triangle vertices stored as a compact array of structs
 		struct vertex
 		{
@@ -152,6 +148,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		gl_enable_vertex_array_attrib( vertex_array, 1 );
 
 		//	shader program
+		map< shader::type, shader > shader_map;
+		shader_map.try_emplace( shader::type::vertex, vertex_shader_source, shader::type::vertex );
+		shader_map.try_emplace( shader::type::fragment, fragment_shader_source, shader::type::fragment );
 		const program shader_program( shader_map | values );
 		shader_program.use( );
 
