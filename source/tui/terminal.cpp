@@ -43,7 +43,7 @@ __using( ::sak::ranges::
 )
 
 
-__using_constexpr( geometry::, left, top )
+__using_inline( geometry::, left, top )
 __using( ::sak::, ensure, format )
 using	::sak::pattern::value_or;
 using	::sak::ranges::to;

@@ -32,7 +32,7 @@ __using( ::std::
 )
 __using( ::sak::ranges::, lazy_transform )
 __using( ::sak::, line_to )
-__using_constexpr( geometry::
+__using_inline( geometry::
 	,width
 	,height
 	,left

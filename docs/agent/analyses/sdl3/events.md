@@ -207,7 +207,7 @@ private:
 The application developer focuses strictly on domain logic, inheriting from listener interfaces without touching SDL internals or raw C structures:
 
 ```cpp
-__using_constexpr( window::geometry::, width, height )
+__using_inline( window::geometry::, width, height )
 
 class scene_controller final
 	: public window::listener
