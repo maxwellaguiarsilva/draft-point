@@ -1,5 +1,5 @@
 //	
-//	SPDX-FileCopyrightText: 2025 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+//	SPDX-FileCopyrightText: 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
 //	SPDX-License-Identifier: GPL-3.0-or-later
 //	
 
