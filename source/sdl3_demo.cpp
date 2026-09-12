@@ -96,8 +96,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		application app;
 
 		//	create a raii window and opengl context, declared before gpu resources so they outlive them on destruction
-		using	flag		=	window::flag;
-		window application_window( "modern opengl rgb triangle", { 800, 600 }, { flag::opengl, flag::resizable } );
+		using enum window::flag;
+		window application_window( "modern opengl rgb triangle", { opengl, resizable } );
 		context gl_context( application_window );
 
 		//	triangle vertices stored as a compact array of structs
