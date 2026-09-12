@@ -72,6 +72,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::std::
 		,array
 		,format
+		,make_shared
 		,map
 		,println
 		,runtime_error
@@ -99,6 +100,28 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		using enum window::flag;
 		window application_window( "modern opengl rgb triangle", { opengl, resizable } );
 		context gl_context( application_window );
+
+		struct keyboard_listener final : public window::listener
+		{
+			explicit keyboard_listener( window& target_window, application& target_application )
+				: m_window( target_window ), m_application( target_application )
+			{ }
+
+			void key_down( const SDL_KeyboardEvent& event ) override
+			{
+				if( event.key == SDLK_ESCAPE )
+					m_application.quit( );
+				else if( event.key == SDLK_F11 and not event.repeat )
+					m_window.toggle_fullscreen( );
+			}
+
+		private:
+			window&			m_window;
+			application&	m_application;
+		};
+
+		const auto key_listener = make_shared< keyboard_listener >( application_window, app );
+		application_window += key_listener;
 
 		//	triangle vertices stored as a compact array of structs
 		struct vertex
