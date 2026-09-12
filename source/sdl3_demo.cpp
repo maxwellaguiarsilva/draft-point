@@ -108,9 +108,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		};
 
 		constexpr array< vertex, 3 > vertices = { {
-			{ { 0.0f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-			{ { -0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-			{ { 0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
+			 {	{	0.0f	,0.5f	,0.0f	}	,{	1.0f	,0.0f	,0.0f	}	}
+			,{	{	-0.5f	,-0.5f	,0.0f	}	,{	0.0f	,1.0f	,0.0f	}	}
+			,{	{	0.5f	,-0.5f	,0.0f	}	,{	0.0f	,0.0f	,1.0f	}	}
 		} };
 
 		//	create and initialize objects with the modern direct state access api,
@@ -132,8 +132,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		//	shader program
 		map< shader::type, shader > shader_map;
-		shader_map.try_emplace( shader::type::vertex, vertex_shader_source, shader::type::vertex );
-		shader_map.try_emplace( shader::type::fragment, fragment_shader_source, shader::type::fragment );
+		using enum shader::type;
+		shader_map.try_emplace( vertex		,vertex_shader_source	,vertex		);
+		shader_map.try_emplace( fragment	,fragment_shader_source	,fragment	);
 		const program shader_program( shader_map | values );
 		shader_program.use( );
 
