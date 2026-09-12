@@ -209,7 +209,10 @@ auto main( const int /*argument_count*/, const char* /*argument_values*/[ ] ) ->
 						,( int( floor( position[ 0 ] / 8.0f ) + floor( position[ 2 ] / 8.0f ) ) & 1 )
 					);
 				else
-					material_color = 0.6f + 0.4f * ( ( vec3{ 1.0f, 1.2f, 1.5f } * result[ 1 ] * 0.01f ) | sine | to );
+				{
+					const vec3 wave = ( vec3{ 1.0f, 1.2f, 1.5f } * result[ 1 ] * 0.01f ) | sine | to;
+					material_color = 0.6f + 0.4f * wave;
+				}
 
 				color = material_color * (
 						clamp( dot( normal, light_direction ), 0.0f, 1.0f )
