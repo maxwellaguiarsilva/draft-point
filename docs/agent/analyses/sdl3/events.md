@@ -3,7 +3,7 @@
 Subject markdown for the SDL3 event dispatching and loop architecture.
 
 - Target hierarchy: `include/sak/sdl3/`
-- Key dependencies: `sak::pattern::dispatcher`, `sak::geometry` (`g2i`, `g2f`), `sak::sdl3::window`, `sak::sdl3::application`
+- Key dependencies: `sak::pattern::dispatcher`, `sak::pattern::listener_registry`, `sak::geometry` (`g2i`, `g2f`), `sak::sdl3::window`, `sak::sdl3::application`
 - Scope: core architectural pattern for event consumption via OOP, RAII, and weak-reference dispatching.
 
 ## Overview & Architectural Principles
@@ -16,8 +16,10 @@ The SDL3 C API delivers events through a C union (`SDL_Event`) polled sequential
 The `sak::sdl3` event architecture encapsulates the event loop and dispatching through:
 1. **Geometry module alias:** Each class exposes the shared `sak::geometry` module through a single alias (`using geometry = ::sak::g2i;`) and references its named concepts (`geometry::position`, `geometry::size`, ...) directly, mirroring `tui::terminal` and `game::renderer`. Concepts are not redeclared per class.
 2. **Weak-reference observer pattern:** Subscriptions rely on `sak::pattern::dispatcher< t_listener >`, guaranteeing thread safety, exception isolation, and automatic garbage collection of expired listener instances.
-3. **Strict naming conventions:** No `on_`, `get_`, or `set_` prefixes. Listener methods reflect the action or state directly (`resize`, `move`, `close_requested`, `quit`).
-4. **Nested listener interfaces:** Observers are declared as nested classes (e.g. `window::listener`, `application::listener`), mirroring the pattern established by `tui::renderer::listener`.
+3. **Registrar split:** The host exposes `listeners( )` returning a `sak::pattern::listener_registry< t_listener >&`, which only permits registration. The derived `dispatcher` adds the typed `dispatch` used privately by the host.
+4. **Reflected dispatch:** `dispatch< ^^listener::method >( arguments... )` resolves the listener slot by reflection and returns `void`. Listener failures are isolated per subscription and can be delivered to an optional error callback registered on the dispatcher at construction.
+5. **Strict naming conventions:** No `on_`, `get_`, or `set_` prefixes. Listener methods reflect the action or state directly (`resize`, `move`, `close_requested`, `quit`, `key_down`).
+6. **Nested listener interfaces:** Observers are declared as nested classes (e.g. `window::listener`, `application::listener`), mirroring the pattern established by `tui::renderer::listener`.
 
 ---
 
@@ -35,17 +37,10 @@ public:
 	//	...
 };
 
-class mouse
-{
-public:
-	using	geometry	=	::sak::g2f;
-	//	...
-};
-
 }
 ```
 
-`geometry::position`, `geometry::size`, `geometry::line`, and `geometry::rectangle` are all derived from the same underlying `point`, so nothing else needs redeclaring. Integer and float geometry stay separate modules (`g2i` vs `g2f`), which keeps mouse space distinct from the window grid and makes any conversion between them an intentional, typed operation.
+`geometry::position`, `geometry::size`, `geometry::line`, and `geometry::rectangle` are all derived from the same underlying `point`, so nothing else needs redeclaring. Integer and float geometry stay separate modules (`g2i` vs `g2f`), which makes any conversion between them an intentional, typed operation.
 
 ---
 
@@ -69,9 +64,9 @@ public:
 		virtual ~listener( ) = default;
 
 		//	geometry events
-		virtual void resize( const geometry::size& new_size ) { }
-		virtual void pixel_resize( const geometry::size& pixel_size ) { }
-		virtual void move( const geometry::position& new_position ) { }
+		virtual void resize( const geometry::size& ) { }
+		virtual void pixel_resize( const geometry::size& ) { }
+		virtual void move( const geometry::position& ) { }
 
 		//	visibility and state transitions
 		virtual void show( ) { }
@@ -84,36 +79,49 @@ public:
 		//	focus transitions
 		virtual void focus_gained( ) { }
 		virtual void focus_lost( ) { }
+
+		//	keyboard events
+		virtual void key_down( const SDL_KeyboardEvent& ) { }
+		virtual void key_up( const SDL_KeyboardEvent& ) { }
 	};
 
-	//	subscription operator matching the project convention
-	void operator +=( const shared_ptr< listener >& subject )
-	{
-		m_dispatcher += subject;
-	}
+	//	registration is exposed through the base registry; dispatch stays private to the host
+	auto listeners( ) noexcept -> listener_registry< listener >& { return m_dispatcher; }
 
 	auto dispatch( const SDL_WindowEvent& event ) -> void
 	{
 		switch( event.type )
 		{
 			case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
-                ( void )m_dispatcher( &listener::pixel_resize, geometry::size{ event.data1, event.data2 } );
-                break;
+				m_dispatcher.dispatch< ^^listener::pixel_resize >( geometry::size{ event.data1, event.data2 } );
+				break;
 			case SDL_EVENT_WINDOW_RESIZED:
-                ( void )m_dispatcher( &listener::resize, geometry::size{ event.data1, event.data2 } );
-                break;
+				m_dispatcher.dispatch< ^^listener::resize >( geometry::size{ event.data1, event.data2 } );
+				break;
 			case SDL_EVENT_WINDOW_MOVED:
-                ( void )m_dispatcher( &listener::move, geometry::position{ event.data1, event.data2 } );
-                break;
+				m_dispatcher.dispatch< ^^listener::move >( geometry::position{ event.data1, event.data2 } );
+				break;
 
-			case SDL_EVENT_WINDOW_SHOWN:            ( void )m_dispatcher( &listener::show );            break;
-			case SDL_EVENT_WINDOW_HIDDEN:           ( void )m_dispatcher( &listener::hide );            break;
-			case SDL_EVENT_WINDOW_MINIMIZED:        ( void )m_dispatcher( &listener::minimize );        break;
-			case SDL_EVENT_WINDOW_MAXIMIZED:        ( void )m_dispatcher( &listener::maximize );        break;
-			case SDL_EVENT_WINDOW_RESTORED:         ( void )m_dispatcher( &listener::restore );         break;
-			case SDL_EVENT_WINDOW_CLOSE_REQUESTED:  ( void )m_dispatcher( &listener::close_requested ); break;
-			case SDL_EVENT_WINDOW_FOCUS_GAINED:     ( void )m_dispatcher( &listener::focus_gained );    break;
-			case SDL_EVENT_WINDOW_FOCUS_LOST:       ( void )m_dispatcher( &listener::focus_lost );      break;
+			case SDL_EVENT_WINDOW_SHOWN:			m_dispatcher.dispatch< ^^listener::show >( );			break;
+			case SDL_EVENT_WINDOW_HIDDEN:			m_dispatcher.dispatch< ^^listener::hide >( );			break;
+			case SDL_EVENT_WINDOW_MINIMIZED:		m_dispatcher.dispatch< ^^listener::minimize >( );		break;
+			case SDL_EVENT_WINDOW_MAXIMIZED:		m_dispatcher.dispatch< ^^listener::maximize >( );		break;
+			case SDL_EVENT_WINDOW_RESTORED:			m_dispatcher.dispatch< ^^listener::restore >( );		break;
+			case SDL_EVENT_WINDOW_CLOSE_REQUESTED:	m_dispatcher.dispatch< ^^listener::close_requested >( );	break;
+			case SDL_EVENT_WINDOW_FOCUS_GAINED:		m_dispatcher.dispatch< ^^listener::focus_gained >( );	break;
+			case SDL_EVENT_WINDOW_FOCUS_LOST:		m_dispatcher.dispatch< ^^listener::focus_lost >( );		break;
+
+			default:
+				break;
+		}
+	}
+
+	auto dispatch( const SDL_KeyboardEvent& event ) -> void
+	{
+		switch( event.type )
+		{
+			case SDL_EVENT_KEY_DOWN:	m_dispatcher.dispatch< ^^listener::key_down >( event );	break;
+			case SDL_EVENT_KEY_UP:		m_dispatcher.dispatch< ^^listener::key_up >( event );		break;
 
 			default:
 				break;
@@ -143,17 +151,33 @@ __using( ::sak::math::, between )
 class application
 {
 public:
+	enum class flag : SDL_InitFlags
+	{
+		 audio		=	SDL_INIT_AUDIO
+		,video		=	SDL_INIT_VIDEO
+		,joystick	=	SDL_INIT_JOYSTICK
+		,haptic		=	SDL_INIT_HAPTIC
+		,gamepad	=	SDL_INIT_GAMEPAD
+		,events		=	SDL_INIT_EVENTS
+		,sensor		=	SDL_INIT_SENSOR
+		,camera		=	SDL_INIT_CAMERA
+	};
+
+	using	init_flags	=	bitmask< flag >;
+
+	explicit application( const init_flags flags = init_flags{ flag::video } )
+		: m_flags( flags )
+	{ ensure( SDL_Init( m_flags ), SDL_GetError( ) ); }
+
 	class listener
 	{
 	public:
 		virtual ~listener( ) = default;
+
 		virtual void quit( ) { }
 	};
 
-	void operator +=( const shared_ptr< listener >& subject )
-	{
-		m_dispatcher += subject;
-	}
+	auto listeners( ) noexcept -> listener_registry< listener >& { return m_dispatcher; }
 
 	auto poll( ) -> bool
 	{
@@ -162,43 +186,48 @@ public:
 		{
 			if( event.type == SDL_EVENT_QUIT )
 			{
-				( void )m_dispatcher( &listener::quit );
+				m_dispatcher.dispatch< ^^listener::quit >( );
 				m_is_running = false;
 				continue;
 			}
 
-			if( between( event.type, SDL_EVENT_WINDOW_FIRST, SDL_EVENT_WINDOW_LAST ) )
+			const bool is_window_event	=	between( event.type, SDL_EVENT_WINDOW_FIRST, SDL_EVENT_WINDOW_LAST );
+			const bool is_key_event		=	between( event.type, SDL_EVENT_KEY_DOWN, SDL_EVENT_KEY_UP );
+
+			if( is_window_event or is_key_event )
 				if( auto* raw_window = SDL_GetWindowFromEvent( &event ) )
 					if( auto* raw_instance = static_cast< window* >( SDL_GetPointerProperty( SDL_GetWindowProperties( raw_window ), "sak.sdl3.window", nullptr ) ) )
 					{
-						//	reference alias keeps the dispatch body free of `->` noise (see style-guide indirection)
-						auto& window_instance	=	*raw_instance;	//	non-null guaranteed in this scope
-						window_instance.dispatch( event.window );
+						//	reference alias keeps the dispatch body free of pointer noise
+						auto& window_instance	=	*raw_instance;
+						if( is_window_event )
+							window_instance.dispatch( event.window );
+						else
+							window_instance.dispatch( event.key );
 					}
-	}
+		}
 
 		return	m_is_running;
 	}
 
-	//	possible alternative (user to evaluate): single-return helper that resolves the null case once,
-	//	binding a reference at the call site instead of an intermediate variable per dispatch site
-	//	auto& window_of( SDL_Window* handle )
-	//	{
-	//		void* p	=	SDL_GetPointerProperty( SDL_GetWindowProperties( handle ), "sak.sdl3.window", nullptr );
-	//		ensure( p not_eq nullptr, "window not owned by sak" );
-	//		return	*static_cast< window* >( p );
-	//	}
-	//	//	usage:	window_of( raw_window ).dispatch( event.window );
+	auto run( const function< void( ) >& frame_action ) -> void
+	{
+		while( poll( ) )
+			frame_action( );
+	}
 
-	auto stop( ) noexcept -> void { m_is_running = false; }
+	auto quit( ) noexcept -> void { m_is_running = false; }
 
 private:
+	init_flags				m_flags;
 	dispatcher< listener >	m_dispatcher;
 	bool					m_is_running{ true };
 };
 
 }
 ```
+
+Window and keyboard events are routed to the owning `sak::sdl3::window` through the `"sak.sdl3.window"` pointer property set at construction, so every window instance dispatches to its own listeners regardless of which window produced the event.
 
 ---
 
@@ -216,8 +245,8 @@ class scene_controller final
 public:
 	using	geometry	=	window::geometry;
 
-	explicit scene_controller( application& app )
-		: m_app( app )
+	explicit scene_controller( application& target_application )
+		: m_application( target_application )
 	{ }
 
 	void resize( const geometry::size& size ) override
@@ -225,9 +254,15 @@ public:
 		gl_viewport( 0, 0, width( size ), height( size ) );
 	}
 
+	void key_down( const SDL_KeyboardEvent& event ) override
+	{
+		if( event.key == SDLK_ESCAPE )
+			m_application.quit( );
+	}
+
 	void close_requested( ) override
 	{
-		m_app.stop( );
+		m_application.quit( );
 	}
 
 	void quit( ) override
@@ -236,11 +271,11 @@ public:
 	}
 
 private:
-	application&	m_app;
+	application&	m_application;
 };
 ```
 
-Wiring observers in `main`:
+Wiring observers in `main` through the `listeners( )` registry:
 
 ```cpp
 auto main( ) -> int
@@ -250,17 +285,17 @@ auto main( ) -> int
 	__using( ::std::, make_shared )
 
 	application app;
-	window main_window( "demo", 800, 600 );
+	window main_window( "demo", { 800, 600 } );
 
 	auto controller = make_shared< scene_controller >( app );
-	main_window += controller;
-	app += controller;
+	main_window.listeners( ) += controller;
+	app.listeners( ) += controller;
 
-	while( app.poll( ) )
+	app.run( [ & ]( )
 	{
 		//	render frame
 		main_window.swap( );
-	}
+	} );
 
 	return	exit_success;
 }
