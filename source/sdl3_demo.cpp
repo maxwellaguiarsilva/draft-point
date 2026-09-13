@@ -161,7 +161,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		const program shader_program( shader_map | values );
 		shader_program.use( );
 
-		//	initialize fps controller for 60 frames per second
 		fps frame_limiter( 60 );
 		frame_limiter.compute( );
 
@@ -178,7 +177,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		} );
 
 		//	clean up raw opengl objects while the context is still current;
-		//	the window raii destroys the context and sdl on its own scope exit
 		gl_delete_vertex_arrays( 1, &vertex_array );
 		gl_delete_buffers( 1, &vertex_buffer );
 
