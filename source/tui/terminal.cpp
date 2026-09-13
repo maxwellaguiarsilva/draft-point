@@ -39,9 +39,10 @@ __using( ::sak::ranges::
 
 __using_inline( geometry::, left, top )
 __using( ::sak::, ensure, format )
-using	::sak::pattern::value_or;
+__using( ::sak::pattern::, operator|, value_or )
 using	::sak::ranges::to;
 using	text_style	=	::tui::terminal::text_style;
+using	enum	text_style;
 using	position	=	geometry::position;
 using	enum	::tui::terminal::error;
 
@@ -113,7 +114,7 @@ auto terminal::clear_screen( bool full_reset ) -> void
 {
 	if( full_reset )
 	{
-		style( text_style::reset );
+		style( reset );
 		if( auto result = raw_mode( false ); not result )
 			print( result.error( ) );
 		
@@ -191,13 +192,13 @@ auto terminal::raw_mode( bool enable ) -> result
 
 auto terminal::style( text_style new_style ) -> void
 {
-	if( new_style == text_style::reset )
+	if( new_style == reset )
 	{
 		m_foreground = 15;
 		m_background = 0;
 	}
 
-	m_buffer << m_text_styles[ static_cast< size_t >( new_style ) ];
+	m_buffer << ( m_text_styles | new_style );
 }
 
 auto terminal::query_size( const bool notify ) -> geometry::size

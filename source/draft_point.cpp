@@ -31,6 +31,7 @@ using	::sak::is_point;
 __using( ::sak::, byte, g2f, g3f )
 __using( ::sak::math::, sum, square, square_root, dot, length, normalize, cross, rotate, sine, cosine )
 __using( ::sak::ranges::, count_to, lazy_transform, to )
+__using( ::sak::pattern::, operator| )
 __using( ::std::views::, zip )
 
 using   vec2	=   g2f::point;
@@ -44,6 +45,7 @@ enum class axis
 	,axis_y
 	,axis_z
 };
+using	enum	axis;
 
 
 class sphere {
@@ -88,7 +90,7 @@ public:
 	}
 	auto turn( const axis axis_value, const float value ) noexcept
 	{
-		m_rotation[ static_cast< size_t >( axis_value ) ] += value;
+		( m_rotation | axis_value ) += value;
 		recompute_basis( );
 	}
 private:
@@ -96,9 +98,9 @@ private:
 	{
 		switch( axis_value )
 		{
-			case	axis::axis_x:		return	m_right;
-			case	axis::axis_y:		return	m_up;
-			case	axis::axis_z:		return	m_forward;
+			case	axis_x:		return	m_right;
+			case	axis_y:		return	m_up;
+			case	axis_z:		return	m_forward;
 			default:					return	m_right;
 		}
 	}
@@ -148,8 +150,8 @@ public:
 	auto angle( float value ) noexcept { m_angle = value; }
 	auto pulsation_cycle( ) const noexcept { return m_pulsation_cycle; }
 	auto pulsation_cycle( byte value ) noexcept { m_pulsation_cycle = value; }
-	auto move( const axis axis_value, const float value ) noexcept { m_center[ static_cast< size_t >( axis_value ) ] += value; }
-	auto turn( const axis axis_value, const float value ) noexcept { m_rotation[ static_cast< size_t >( axis_value ) ] += value; }
+	auto move( const axis axis_value, const float value ) noexcept { ( m_center | axis_value ) += value; }
+	auto turn( const axis axis_value, const float value ) noexcept { ( m_rotation | axis_value ) += value; }
 	auto element_position( const byte index ) const noexcept -> vec3
 	{
 		const float step = 2.0f * 3.14159265f / m_total;
@@ -262,31 +264,31 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 				switch( code )
 				{
 					//	camera, the inverted pattern between lowercase and uppercase is intentional
-					case 'W': cam.turn( axis::axis_x, -rotation_step ); break;
-					case 'S': cam.turn( axis::axis_x, +rotation_step ); break;
-					case 'a': cam.turn( axis::axis_y, -rotation_step ); break;
-					case 'd': cam.turn( axis::axis_y, +rotation_step ); break;
-					case 'Z': cam.turn( axis::axis_z, -rotation_step ); break;
-					case 'X': cam.turn( axis::axis_z, +rotation_step ); break;
-					case 'A': cam.move( axis::axis_x, -move_step ); break;
-					case 'D': cam.move( axis::axis_x, +move_step ); break;
-					case 'z': cam.move( axis::axis_y, -move_step ); break;
-					case 'x': cam.move( axis::axis_y, +move_step ); break;
-					case 's': cam.move( axis::axis_z, -move_step ); break;
-					case 'w': cam.move( axis::axis_z, +move_step ); break;
+					case 'W': cam.turn( axis_x, -rotation_step ); break;
+					case 'S': cam.turn( axis_x, +rotation_step ); break;
+					case 'a': cam.turn( axis_y, -rotation_step ); break;
+					case 'd': cam.turn( axis_y, +rotation_step ); break;
+					case 'Z': cam.turn( axis_z, -rotation_step ); break;
+					case 'X': cam.turn( axis_z, +rotation_step ); break;
+					case 'A': cam.move( axis_x, -move_step ); break;
+					case 'D': cam.move( axis_x, +move_step ); break;
+					case 'z': cam.move( axis_y, -move_step ); break;
+					case 'x': cam.move( axis_y, +move_step ); break;
+					case 's': cam.move( axis_z, -move_step ); break;
+					case 'w': cam.move( axis_z, +move_step ); break;
 					//	orbit
-					case 'J': orb.turn( axis::axis_x, -rotation_step ); break;
-					case 'L': orb.turn( axis::axis_x, +rotation_step ); break;
-					case 'K': orb.turn( axis::axis_y, -rotation_step ); break;
-					case 'I': orb.turn( axis::axis_y, +rotation_step ); break;
-					case 'O': orb.turn( axis::axis_z, -rotation_step ); break;
-					case 'P': orb.turn( axis::axis_z, +rotation_step ); break;
-					case 'k': orb.move( axis::axis_y, -move_step ); break;
-					case 'i': orb.move( axis::axis_y, +move_step ); break;
-					case 'j': orb.move( axis::axis_x, -move_step ); break;
-					case 'l': orb.move( axis::axis_x, +move_step ); break;
-					case 'o': orb.move( axis::axis_z, -move_step ); break;
-					case 'p': orb.move( axis::axis_z, +move_step ); break;
+					case 'J': orb.turn( axis_x, -rotation_step ); break;
+					case 'L': orb.turn( axis_x, +rotation_step ); break;
+					case 'K': orb.turn( axis_y, -rotation_step ); break;
+					case 'I': orb.turn( axis_y, +rotation_step ); break;
+					case 'O': orb.turn( axis_z, -rotation_step ); break;
+					case 'P': orb.turn( axis_z, +rotation_step ); break;
+					case 'k': orb.move( axis_y, -move_step ); break;
+					case 'i': orb.move( axis_y, +move_step ); break;
+					case 'j': orb.move( axis_x, -move_step ); break;
+					case 'l': orb.move( axis_x, +move_step ); break;
+					case 'o': orb.move( axis_z, -move_step ); break;
+					case 'p': orb.move( axis_z, +move_step ); break;
 				}
 
 				orb.angle( time * orb.speed( ) );
@@ -302,8 +304,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			{
 				constexpr float focal = 2.0f;
 				const vec3 direction = cam.forward( ) * focal
-					+	cam.right( ) * input[ static_cast< size_t >( axis::axis_x ) ]
-					+	cam.up( ) * input[ static_cast< size_t >( axis::axis_y ) ];
+					+	cam.right( ) * ( input | axis_x )
+					+	cam.up( ) * ( input | axis_y );
 
 				float best_distance = numeric_limits< float >::infinity( );
 				vec3 color = background_color;
