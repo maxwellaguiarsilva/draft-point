@@ -121,7 +121,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		};
 
 		const auto key_listener = make_shared< keyboard_listener >( application_window, app );
-		application_window += key_listener;
+		application_window.listeners( ) += key_listener;
 
 		//	triangle vertices stored as a compact array of structs
 		struct vertex

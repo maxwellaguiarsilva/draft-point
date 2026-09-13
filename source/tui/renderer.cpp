@@ -32,6 +32,7 @@ __using( ::std::
 )
 __using( ::sak::ranges::, lazy_transform )
 __using( ::sak::, line_to )
+__using( ::sak::meta::, dispatch_reflected )
 __using_inline( geometry::
 	,width
 	,height
@@ -54,7 +55,7 @@ renderer::renderer( terminal& terminal )
 	,m_color( 15 )
 	,m_terminal_listener( make_shared< terminal_listener >( *this ) )
 {
-	m_terminal += m_terminal_listener;
+	m_terminal.listeners( ) += m_terminal_listener;
 	resize( m_terminal.size( ) );
 }
 
@@ -155,7 +156,7 @@ auto renderer::resize( const geometry::size& new_size ) -> void
 	}
 	renderer::clear( );
 	renderer::refresh( );
-	( void )m_dispatcher( &listener::resize, m_screen_size );
+	( void )dispatch_reflected< ^^listener::resize >( m_dispatcher, m_screen_size );
 }
 
 auto renderer::refresh( ) -> void
@@ -194,7 +195,7 @@ auto renderer::refresh( ) -> void
 	m_terminal.refresh( );
 }
 
-void renderer::operator +=( const shared_ptr< listener >& subject ) { m_dispatcher += subject; }
+auto renderer::listeners( ) noexcept -> listener_registry< listener >& { return m_dispatcher; }
 
 
 }

@@ -10,6 +10,7 @@
 
 
 #include <game/geometry.hpp>
+#include <sak/pattern/dispatcher.hpp>
 
 
 namespace game {
@@ -21,6 +22,7 @@ __using( ::std::
 	,function
 )
 using	::sak::byte;
+using	::sak::pattern::listener_registry;
 
 
 class renderer
@@ -48,7 +50,7 @@ public:
 
 	virtual auto size( ) const noexcept -> geometry::size = 0;
 
-	virtual void operator +=( const shared_ptr< listener >& subject ) = 0;
+	virtual auto listeners( ) noexcept -> listener_registry< listener >& = 0;
 };
 
 

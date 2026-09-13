@@ -26,6 +26,7 @@ __using( ::std::
 	,vector
 )
 using	::sak::pattern::dispatcher;
+using	::sak::pattern::listener_registry;
 using	::sak::byte;
 
 
@@ -48,7 +49,7 @@ public:
 	void fill_with( const function< byte( geometry::position ) >& shader ) noexcept override;
 	auto size( ) const noexcept -> geometry::size override;
 
-	void operator +=( const shared_ptr< listener >& subject ) override;
+	auto listeners( ) noexcept -> listener_registry< listener >& override;
 
 private:
 	struct terminal_listener;

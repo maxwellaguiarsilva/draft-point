@@ -45,6 +45,7 @@ __using( ::sak::ranges::
 
 __using_inline( geometry::, left, top )
 __using( ::sak::, ensure, format )
+using	::sak::meta::dispatch_reflected;
 using	::sak::pattern::value_or;
 using	::sak::ranges::to;
 using	text_style	=	::tui::terminal::text_style;
@@ -112,7 +113,7 @@ terminal::terminal( )
 							auto lock = lock_guard( m_mutex );
 							m_bounds.end	=	current_size;
 						}
-						( void )m_dispatcher( &listener::resize, size( ) );
+						( void )dispatch_reflected< ^^listener::resize >( m_dispatcher, size( ) );
 					}
 				}
 			}
@@ -240,7 +241,7 @@ auto terminal::error_message( const error& error_code ) noexcept -> const string
 	return	value_or( m_error_messages, error_code, m_unknown_error_message );	//	"terminal: unknown error"
 }
 
-void terminal::operator +=( const shared_ptr< listener >& instance ) { m_dispatcher += instance; }
+auto terminal::listeners( ) noexcept -> listener_registry< listener >& { return m_dispatcher; }
 
 auto terminal::print( const error& error_code ) const noexcept -> void { m_error_output << error_message( error_code ) << endl; }
 

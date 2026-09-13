@@ -39,6 +39,7 @@ __using( ::std::
 using	::sak::byte;
 using	geometry	=	::sak::g2i;
 using	::sak::pattern::dispatcher;
+using	::sak::pattern::listener_registry;
 using	::termios;
 
 
@@ -99,7 +100,7 @@ public:
 		virtual ~listener( ) = default;
 		virtual void resize( const geometry::size& size ) = 0;
 	};
-	void operator +=( const shared_ptr< listener >& instance );
+	auto listeners( ) noexcept -> listener_registry< listener >&;
 
 private:
 	static const error_messages			m_error_messages;

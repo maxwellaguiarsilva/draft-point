@@ -56,7 +56,7 @@ shadertoy::shadertoy( ::tui::renderer& renderer )
 	:m_renderer{ renderer }
 	,m_renderer_listener{ make_shared< renderer_listener >( m_renderer.size( ) ) }
 {
-	m_renderer += m_renderer_listener;
+	m_renderer.listeners( ) += m_renderer_listener;
 }
 
 

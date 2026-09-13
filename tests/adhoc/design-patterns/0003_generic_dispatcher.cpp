@@ -25,6 +25,7 @@ __using( ::std::
 	,runtime_error
 )
 using	::sak::pattern::dispatcher;
+using	::sak::meta::dispatch_reflected;
 
 
 class button_listener
@@ -90,8 +91,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	notifier += normal;
 	notifier += unsafe;
 
-	handle_result( notifier( &button_listener::clicked, "button_start" ) );
-	handle_result( notifier( &button_listener::hover, 100 ) );
+	handle_result( dispatch_reflected< ^^button_listener::clicked >( notifier, "button_start" ) );
+	handle_result( dispatch_reflected< ^^button_listener::hover >( notifier, 100 ) );
 
 	return	exit_success;
 }

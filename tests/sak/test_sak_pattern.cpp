@@ -51,13 +51,21 @@ __using( ::std::
 	,rethrow_exception
 )
 using	::sak::pattern::dispatcher;
+using	::sak::meta::dispatch_reflected;
 using	::sak::ensure;
 
 
 struct mock_listener
 {
+	virtual ~mock_listener( ) = default;
+	virtual void event( ) = 0;
+};
+
+
+struct mock_observer final : public mock_listener
+{
 	bool called = false;
-	void event( ) { called = true; }
+	void event( ) override { called = true; }
 };
 
 
@@ -66,10 +74,10 @@ void test_dispatcher_basic_notification( )
 	println( "running: test_dispatcher_basic_notification" );
 	
 	dispatcher< mock_listener > dispatcher_instance;
-	auto listener_instance = make_shared< mock_listener >( );
+	auto listener_instance = make_shared< mock_observer >( );
 	
 	dispatcher_instance += listener_instance;
-	auto result = dispatcher_instance( &mock_listener::event );
+	auto result = dispatch_reflected< ^^mock_listener::event >( dispatcher_instance );
 	
 	ensure( result.has_value( ), "error: notification failed" );
 	ensure( listener_instance->called, "error: listener was not called" );
@@ -129,7 +137,7 @@ void test_dispatcher_complex_and_errors( )
 	dispatcher_instance += normal_logger;
 	dispatcher_instance += unsafe_logger_instance;
 
-	auto result = dispatcher_instance( &button_listener::clicked, "btn_test" );
+	auto result = dispatch_reflected< ^^button_listener::clicked >( dispatcher_instance, "btn_test" );
 	handle_result( result );
 	ensure( not result.has_value( ), "error: should have failed for one listener" );
 	ensure( result.error( ).size( ) == 1, "error: unexpected number of failures" );
@@ -145,13 +153,13 @@ void test_dispatcher_cleanup( )
 	dispatcher< mock_listener > dispatcher_instance;
 	
 	{
-		auto temp_listener = make_shared< mock_listener >( );
+		auto temp_listener = make_shared< mock_observer >( );
 		dispatcher_instance += temp_listener;
 	}
 	
 	//	at this point, the weak_ptr inside dispatcher is expired
 	//	the next call will trigger the cleanup mechanism
-	auto result = dispatcher_instance( &mock_listener::event );
+	auto result = dispatch_reflected< ^^mock_listener::event >( dispatcher_instance );
 	
 	ensure( result.has_value( ), "error: notification with expired listener failed" );
 	
