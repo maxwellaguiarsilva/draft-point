@@ -51,7 +51,6 @@ __using( ::std::
 	,rethrow_exception
 )
 using	::sak::pattern::dispatcher;
-using	::sak::meta::dispatch_reflected;
 using	::sak::ensure;
 
 
@@ -73,13 +72,15 @@ void test_dispatcher_basic_notification( )
 {
 	println( "running: test_dispatcher_basic_notification" );
 	
-	dispatcher< mock_listener > dispatcher_instance;
+	bool had_error = false;
+	auto record_error = [ & ]( const dispatcher< mock_listener >::error& ) { had_error = true; };
+	dispatcher< mock_listener > dispatcher_instance( record_error );
 	auto listener_instance = make_shared< mock_observer >( );
 	
 	dispatcher_instance += listener_instance;
-	auto result = dispatch_reflected< ^^mock_listener::event >( dispatcher_instance );
+	dispatcher_instance.dispatch< ^^mock_listener::event >( );
 	
-	ensure( result.has_value( ), "error: notification failed" );
+	ensure( not had_error, "error: notification failed" );
 	ensure( listener_instance->called, "error: listener was not called" );
 	
 	println( "   -> success: basic notification works" );
@@ -111,13 +112,10 @@ struct unsafe_logger final : public button_listener
 };
 
 
-void handle_result( const dispatcher< button_listener >::result& result )
+void handle_error( const dispatcher< button_listener >::error& failed_list )
 {
-	if( result.has_value( ) )
-		return;
-	
-	println( "   ! error: {} listeners failed", result.error( ).size( ) );
-	for( const auto& failed : result.error( ) )
+	println( "   ! error: {} listeners failed", failed_list.size( ) );
+	for( const auto& failed : failed_list )
 		if( auto locked = failed.listener.lock( ) )
 			try { rethrow_exception( failed.exception ); } catch( const exception& error ) {
 				println( "     - caught: {}", error.what( ) );
@@ -129,7 +127,13 @@ void test_dispatcher_complex_and_errors( )
 {
 	println( "running: test_dispatcher_complex_and_errors" );
 	
-	dispatcher< button_listener > dispatcher_instance;
+	dispatcher< button_listener >::error captured_errors;
+	auto on_error = [ & ]( const dispatcher< button_listener >::error& failed_list )
+		{
+			captured_errors = failed_list;
+			handle_error( failed_list );
+		};
+	dispatcher< button_listener > dispatcher_instance( on_error );
 	
 	auto normal_logger = make_shared< button_logger >( );
 	auto unsafe_logger_instance = make_shared< unsafe_logger >( );
@@ -137,10 +141,8 @@ void test_dispatcher_complex_and_errors( )
 	dispatcher_instance += normal_logger;
 	dispatcher_instance += unsafe_logger_instance;
 
-	auto result = dispatch_reflected< ^^button_listener::clicked >( dispatcher_instance, "btn_test" );
-	handle_result( result );
-	ensure( not result.has_value( ), "error: should have failed for one listener" );
-	ensure( result.error( ).size( ) == 1, "error: unexpected number of failures" );
+	dispatcher_instance.dispatch< ^^button_listener::clicked >( "btn_test" );
+	ensure( captured_errors.size( ) == 1, "error: unexpected number of failures" );
 	
 	println( "   -> success: complex interface and error handling verified" );
 }
@@ -150,7 +152,9 @@ void test_dispatcher_cleanup( )
 {
 	println( "running: test_dispatcher_cleanup" );
 	
-	dispatcher< mock_listener > dispatcher_instance;
+	bool had_error = false;
+	auto record_error = [ & ]( const dispatcher< mock_listener >::error& ) { had_error = true; };
+	dispatcher< mock_listener > dispatcher_instance( record_error );
 	
 	{
 		auto temp_listener = make_shared< mock_observer >( );
@@ -159,9 +163,9 @@ void test_dispatcher_cleanup( )
 	
 	//	at this point, the weak_ptr inside dispatcher is expired
 	//	the next call will trigger the cleanup mechanism
-	auto result = dispatch_reflected< ^^mock_listener::event >( dispatcher_instance );
+	dispatcher_instance.dispatch< ^^mock_listener::event >( );
 	
-	ensure( result.has_value( ), "error: notification with expired listener failed" );
+	ensure( not had_error, "error: notification with expired listener failed" );
 	
 	println( "   -> success: cleanup system executed safely" );
 }

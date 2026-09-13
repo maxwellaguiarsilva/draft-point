@@ -45,7 +45,6 @@ __using( ::sak::ranges::
 
 __using_inline( geometry::, left, top )
 __using( ::sak::, ensure, format )
-using	::sak::meta::dispatch_reflected;
 using	::sak::pattern::value_or;
 using	::sak::ranges::to;
 using	text_style	=	::tui::terminal::text_style;
@@ -113,7 +112,7 @@ terminal::terminal( )
 							auto lock = lock_guard( m_mutex );
 							m_bounds.end	=	current_size;
 						}
-						( void )dispatch_reflected< ^^listener::resize >( m_dispatcher, size( ) );
+						( void )m_dispatcher.dispatch< ^^listener::resize >( size( ) );
 					}
 				}
 			}

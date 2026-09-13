@@ -25,7 +25,6 @@ __using( ::std::
 	,runtime_error
 )
 using	::sak::pattern::dispatcher;
-using	::sak::meta::dispatch_reflected;
 
 
 class button_listener
@@ -52,14 +51,13 @@ public:
 };
 
 
-using	button_result	=	dispatcher<button_listener>::result;
+using	button_error	=	dispatcher<button_listener>::error;
 using	::std::rethrow_exception;
 
-void handle_result( const button_result& result ) {
-	if( result.has_value( ) )
-		return;
-	println( "error: {} listeners failed", result.error( ).size( ) );
-	for( const auto& failed : result.error( ) )
+void handle_error( const button_error& failed_list )
+{
+	println( "error: {} listeners failed", failed_list.size( ) );
+	for( const auto& failed : failed_list )
 		if( auto locked = failed.listener.lock( ) )
 			try { rethrow_exception( failed.exception ); } catch( const exception& error ) {
 				println( "    -   {}", error.what( ) );
@@ -84,15 +82,15 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 	println( "{}", vector< string >( argument_values, argument_values + argument_count ) | join_with( '\n' ) | to< string >( ) );
 
-	dispatcher<button_listener> notifier;
+	dispatcher<button_listener> notifier( handle_error );
 	
 	auto normal = make_shared<button_logger>( );
 	auto unsafe = make_shared<unsafe_logger>( );
 	notifier += normal;
 	notifier += unsafe;
 
-	handle_result( dispatch_reflected< ^^button_listener::clicked >( notifier, "button_start" ) );
-	handle_result( dispatch_reflected< ^^button_listener::hover >( notifier, 100 ) );
+	notifier.dispatch< ^^button_listener::clicked >( "button_start" );
+	notifier.dispatch< ^^button_listener::hover >( 100 );
 
 	return	exit_success;
 }

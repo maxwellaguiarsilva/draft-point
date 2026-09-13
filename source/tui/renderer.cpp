@@ -32,7 +32,6 @@ __using( ::std::
 )
 __using( ::sak::ranges::, lazy_transform )
 __using( ::sak::, line_to )
-__using( ::sak::meta::, dispatch_reflected )
 __using_inline( geometry::
 	,width
 	,height
@@ -156,7 +155,7 @@ auto renderer::resize( const geometry::size& new_size ) -> void
 	}
 	renderer::clear( );
 	renderer::refresh( );
-	( void )dispatch_reflected< ^^listener::resize >( m_dispatcher, m_screen_size );
+	( void )m_dispatcher.dispatch< ^^listener::resize >( m_screen_size );
 }
 
 auto renderer::refresh( ) -> void

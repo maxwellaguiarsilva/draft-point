@@ -63,7 +63,7 @@ public:
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {
 	__using( ::sak::, exit_success, exit_failure, ensure )
-	__using( ::sak::meta::, overridden_names, overridden_methods, is_overridden, method_pointer, dispatch_reflected )
+	__using( ::sak::meta::, overridden_names, overridden_methods, is_overridden, method_pointer )
 	__using( ::sak::pattern::, dispatcher )
 	__using( ::std::, make_shared, shared_ptr, string, vector, println, exception )
 	__using( ::sak::ranges::, contains )
@@ -102,8 +102,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		auto counter = make_shared< counting_listener >( );
 		window_dispatcher += counter;
 
-		( void )dispatch_reflected< ^^window_listener::resize >( window_dispatcher, 10, 20 );
-		( void )dispatch_reflected< ^^window_listener::move >( window_dispatcher, 5, 5 );
+		( void )window_dispatcher.dispatch< ^^window_listener::resize >( 10, 20 );
+		( void )window_dispatcher.dispatch< ^^window_listener::move >( 5, 5 );
 
 		ensure( counter->m_resize_count == 1, "resize should have been dispatched once" );
 		ensure( counter->m_move_count == 1, "move should have been dispatched once" );
