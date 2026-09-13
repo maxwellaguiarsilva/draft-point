@@ -90,7 +90,6 @@ public:
 	auto size( ) const noexcept -> geometry::size;
 
 	static auto error_message( const error& error_code ) noexcept -> const string&;
-	static auto query_size( ) -> geometry::size;
 	static auto read_char( ) -> char;
 
 
@@ -109,6 +108,7 @@ private:
 	static const array< string, 256 >	m_background_colors;
 	static const array< string, 10 >	m_text_styles;
 
+	auto query_size( const bool notify = true ) -> geometry::size;
 	auto print( const error& error_code ) const noexcept -> void;
 
 	ostream&		m_output;

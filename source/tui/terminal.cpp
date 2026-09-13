@@ -76,13 +76,11 @@ constexpr auto zero = position( 0, 0 );
 terminal::terminal( )
 	:m_output( cout )
 	,m_error_output( cerr )
-	,m_bounds( { 1, 1 }, query_size( ) )
 	,m_foreground( 15 )
 	,m_background( 0 )
 {
 	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, error_message( tcgetattr_failed ) );
-	ensure( m_bounds.end not_eq zero, error_message( ioctl_failed ) );
-	ensure( m_bounds.start.is_inside( m_bounds.end ), "invalid terminal size" );
+	query_size( false );
 
 	clear_screen( true );
 	( void )raw_mode( true );
@@ -97,26 +95,13 @@ terminal::terminal( )
 	{
 		int sig = 0;
 		while( not token.stop_requested( ) )
-		{
 			if( sigwait( &set, &sig ) == 0 )
 			{
 				if( token.stop_requested( ) )
 					break;
-
 				if( sig == SIGWINCH )
-				{
-					auto current_size = query_size( );
-					if( current_size not_eq zero )
-					{
-						{
-							auto lock = lock_guard( m_mutex );
-							m_bounds.end	=	current_size;
-						}
-						m_dispatcher.dispatch< ^^listener::resize >( size( ) );
-					}
-				}
+					query_size( );
 			}
-		}
 	} );
 }
 
@@ -221,12 +206,25 @@ auto terminal::style( text_style new_style ) -> void
 	m_buffer << m_text_styles[ static_cast< size_t >( new_style ) ];
 }
 
-auto terminal::query_size( ) -> geometry::size
+auto terminal::query_size( const bool notify ) -> geometry::size
 {
 	winsize window_size;
-	if( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) not_eq 0 )
-		return	{ 0, 0 };
-	return	{ window_size.ws_col, window_size.ws_row };
+	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) == 0, error_message( ioctl_failed ) );
+
+	const auto start	=	geometry::position{ 1, 1 };
+	const auto end		=	geometry::size{ window_size.ws_col, window_size.ws_row };
+	ensure( end not_eq zero, error_message( ioctl_failed ) );
+	ensure( start.is_inside( end ), "invalid terminal size" );
+
+	{
+		auto lock = lock_guard( m_mutex );
+		m_bounds = { start, end };
+	}
+
+	if( notify )
+		m_dispatcher.dispatch< ^^listener::resize >( size( ) );
+
+	return	end;
 }
 
 auto terminal::size( ) const noexcept -> geometry::size
