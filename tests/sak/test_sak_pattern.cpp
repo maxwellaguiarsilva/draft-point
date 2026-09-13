@@ -23,6 +23,7 @@
 #include <sak/pattern/bitmask.hpp>
 #include <sak/pattern/cast.hpp>
 #include <sak/pattern/dispatcher.hpp>
+#include <sak/pattern/enum.hpp>
 #include <sak/pattern/to_number.hpp>
 #include <sak/pattern/tupled.hpp>
 #include <sak/pattern/value_or.hpp>
@@ -38,6 +39,16 @@ enum class mock_flag : uint8_t
 	,write	=	1 << 1
 	,exec	=	1 << 2
 };
+using	enum	mock_flag;
+
+
+enum class sample
+{
+	 first	=	0
+	,second
+	,third
+};
+using	enum	sample;
 
 
 __using( ::std::
@@ -199,6 +210,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::sak::pattern::
 		,bitmask
 		,cast
+		,operator|
 		,to_number
 		,tupled
 		,value_or
@@ -298,45 +310,45 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		//	--------------------------------------------------
 		{
 			bitmask< mock_flag > mask;
-			ensure( not mask.any( mock_flag::read, mock_flag::write, mock_flag::exec ), "default bitmask should have no flags set" );
+			ensure( not mask.any( read, write, exec ), "default bitmask should have no flags set" );
 
-			mask.use( mock_flag::read );
-			ensure( mask.all( mock_flag::read ), "read flag should be set" );
-			ensure( not mask.all( mock_flag::read, mock_flag::write ), "read and write should not both be set" );
-			ensure( mask.any( mock_flag::read, mock_flag::write ), "at least read is set" );
+			mask.use( read );
+			ensure( mask.all( read ), "read flag should be set" );
+			ensure( not mask.all( read, write ), "read and write should not both be set" );
+			ensure( mask.any( read, write ), "at least read is set" );
 
-			mask.use( mock_flag::write, mock_flag::exec );
-			ensure( mask.all( mock_flag::read, mock_flag::write, mock_flag::exec ), "all flags should be set after variadic use" );
+			mask.use( write, exec );
+			ensure( mask.all( read, write, exec ), "all flags should be set after variadic use" );
 
-			mask.remove( mock_flag::write );
-			ensure( not mask.all( mock_flag::write ), "write flag should be removed" );
-			ensure( mask.all( mock_flag::read, mock_flag::exec ), "read and exec should remain set" );
+			mask.remove( write );
+			ensure( not mask.all( write ), "write flag should be removed" );
+			ensure( mask.all( read, exec ), "read and exec should remain set" );
 
-			mask.toggle( mock_flag::write, mock_flag::read );
-			ensure( mask.all( mock_flag::write ), "write flag should be toggled on" );
-			ensure( not mask.all( mock_flag::read ), "read flag should be toggled off" );
+			mask.toggle( write, read );
+			ensure( mask.all( write ), "write flag should be toggled on" );
+			ensure( not mask.all( read ), "read flag should be toggled off" );
 
-			mask.use( { mock_flag::read } );
-			ensure( mask.all( { mock_flag::read, mock_flag::write, mock_flag::exec } ), "all flags should be set via initializer_list" );
+			mask.use( { read } );
+			ensure( mask.all( { read, write, exec } ), "all flags should be set via initializer_list" );
 
-			mask.remove( { mock_flag::exec, mock_flag::read } );
-			ensure( not mask.any( mock_flag::exec, mock_flag::read ), "exec and read should be removed via initializer_list" );
-			ensure( mask.all( mock_flag::write ), "write flag should still be set" );
+			mask.remove( { exec, read } );
+			ensure( not mask.any( exec, read ), "exec and read should be removed via initializer_list" );
+			ensure( mask.all( write ), "write flag should still be set" );
 
-			mask.toggle( { mock_flag::write, mock_flag::read } );
-			ensure( mask.all( mock_flag::read ), "read should be toggled on" );
-			ensure( not mask.all( mock_flag::write ), "write should be toggled off" );
+			mask.toggle( { write, read } );
+			ensure( mask.all( read ), "read should be toggled on" );
+			ensure( not mask.all( write ), "write should be toggled off" );
 
 			mask.clear( );
-			ensure( not mask.any( mock_flag::read, mock_flag::write, mock_flag::exec ), "clear should reset all flags" );
+			ensure( not mask.any( read, write, exec ), "clear should reset all flags" );
 
-			bitmask< mock_flag > initialized_mask{ mock_flag::read, mock_flag::write };
-			ensure( initialized_mask.all( mock_flag::read, mock_flag::write ), "variadic constructor should initialize flags" );
-			ensure( not initialized_mask.all( mock_flag::exec ), "exec should not be initialized" );
+			bitmask< mock_flag > initialized_mask{ read, write };
+			ensure( initialized_mask.all( read, write ), "variadic constructor should initialize flags" );
+			ensure( not initialized_mask.all( exec ), "exec should not be initialized" );
 
-			bitmask< mock_flag > braced_mask{ { mock_flag::exec, mock_flag::write } };
-			ensure( braced_mask.all( mock_flag::exec, mock_flag::write ), "initializer_list constructor should initialize flags" );
-			ensure( not braced_mask.all( mock_flag::read ), "read should not be initialized" );
+			bitmask< mock_flag > braced_mask{ { exec, write } };
+			ensure( braced_mask.all( exec, write ), "initializer_list constructor should initialize flags" );
+			ensure( not braced_mask.all( read ), "read should not be initialized" );
 		}
 
 		//	--------------------------------------------------
@@ -344,11 +356,26 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		//	--------------------------------------------------
 		{
 			ensure( cast< int >( 3.14f ) == 3, "scalar cast from float to int should truncate" );
-			ensure( cast< uint8_t >( mock_flag::write ) == 2, "scalar cast from enum to uint8_t should match underlying" );
+			ensure( cast< uint8_t >( write ) == 2, "scalar cast from enum to uint8_t should match underlying" );
 
 			const array values = { 1.1f, 2.9f, 3.5f };
 			const array expected = { 1, 2, 3 };
 			ensure( all_of( zip( values | cast< int >, expected ), tupled( equal_to{ } ) ), "piped cast should convert range element-wise" );
+		}
+
+		//	--------------------------------------------------
+		//	enum
+		//	--------------------------------------------------
+		{
+			constexpr array< int, 3 > numbers = { 10, 20, 30 };
+			static_assert( ( numbers | second ) == 20 );
+
+			ensure( ( numbers | first ) == 10, "pipe enum index should yield the first value" );
+			ensure( ( numbers | second ) == 20, "pipe enum index should yield the second value" );
+			ensure( ( numbers | third ) == 30, "pipe enum index should yield the third value" );
+
+			const array< string, 3 > names = { "first", "second", "third" };
+			ensure( ( names | third ) == "third", "pipe enum index should work with strings" );
 		}
 
 		println( "all tests for sak/pattern passed" );
