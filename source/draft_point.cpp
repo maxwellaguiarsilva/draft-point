@@ -4,6 +4,9 @@
 //	
 
 
+//	attach-only-on-demand
+
+
 #include <climits>
 #include <cstdlib>
 #include <exception>
@@ -24,8 +27,8 @@
 
 namespace {
 
-__using( ::sak::, byte, g2f, g3f )
 using	::sak::is_point;
+__using( ::sak::, byte, g2f, g3f )
 __using( ::sak::math::, sum, square, square_root, dot, length, normalize, cross, rotate, sine, cosine )
 __using( ::sak::ranges::, count_to, lazy_transform, to )
 __using( ::std::views::, zip )
@@ -74,8 +77,8 @@ public:
 
 	auto position( ) const noexcept -> const vec3& { return m_position; }
 	auto position( const vec3& value ) noexcept { m_position = value; }
-	[ [ maybe_unused ] ] auto rotation( ) const noexcept -> const vec3& { return m_rotation; }
-	[ [ maybe_unused ] ] auto rotation( const vec3& value ) noexcept { m_rotation = value; recompute_basis( ); }
+	auto rotation( ) const noexcept -> const vec3& { return m_rotation; }
+	auto rotation( const vec3& value ) noexcept { m_rotation = value; recompute_basis( ); }
 	auto forward( ) const noexcept -> const vec3& { return m_forward; }
 	auto right( ) const noexcept -> const vec3& { return m_right; }
 	auto up( ) const noexcept -> const vec3& { return m_up; }
@@ -133,26 +136,20 @@ public:
 
 	auto center( ) const noexcept -> const vec3& { return m_center; }
 	auto center( const vec3& value ) noexcept { m_center = value; }
-	[ [ maybe_unused ] ] auto rotation( ) const noexcept -> const vec3& { return m_rotation; }
-	[ [ maybe_unused ] ] auto rotation( const vec3& value ) noexcept { m_rotation = value; }
+	auto rotation( ) const noexcept -> const vec3& { return m_rotation; }
+	auto rotation( const vec3& value ) noexcept { m_rotation = value; }
 	auto radius( ) const noexcept { return m_radius; }
 	auto radius( float value ) noexcept { m_radius = value; }
 	auto speed( ) const noexcept { return m_speed; }
 	auto speed( float value ) noexcept { m_speed = value; }
-	[ [ maybe_unused ] ] auto total( ) const noexcept { return m_total; }
-	[ [ maybe_unused ] ] auto total( byte value ) noexcept { m_total = value; }
+	auto total( ) const noexcept { return m_total; }
+	auto total( byte value ) noexcept { m_total = value; }
 	auto angle( ) const noexcept { return m_angle; }
 	auto angle( float value ) noexcept { m_angle = value; }
-	[ [ maybe_unused ] ] auto pulsation_cycle( ) const noexcept { return m_pulsation_cycle; }
-	[ [ maybe_unused ] ] auto pulsation_cycle( byte value ) noexcept { m_pulsation_cycle = value; }
-	auto move( const axis axis_value, const float value ) noexcept
-	{
-		m_center[ static_cast< size_t >( axis_value ) ] += value;
-	}
-	auto turn( const axis axis_value, const float value ) noexcept
-	{
-		m_rotation[ static_cast< size_t >( axis_value ) ] += value;
-	}
+	auto pulsation_cycle( ) const noexcept { return m_pulsation_cycle; }
+	auto pulsation_cycle( byte value ) noexcept { m_pulsation_cycle = value; }
+	auto move( const axis axis_value, const float value ) noexcept { m_center[ static_cast< size_t >( axis_value ) ] += value; }
+	auto turn( const axis axis_value, const float value ) noexcept { m_rotation[ static_cast< size_t >( axis_value ) ] += value; }
 	auto element_position( const byte index ) const noexcept -> vec3
 	{
 		const float step = 2.0f * 3.14159265f / m_total;
@@ -176,10 +173,7 @@ public:
 //	via the base-2 radical inverse (van der corput) of (index - 1)
 constexpr auto subdivision_value( byte index ) -> float
 {
-	if( index == 0 )
-		return	0.0f;
-	if( index == 1 )
-		return	1.0f;
+	if( index <= 1 ) return index;
 	float result = 0.0f;
 	float weight = 0.5f;
 	for( auto remaining = index - 1; remaining > 0; remaining >>= 1 )
