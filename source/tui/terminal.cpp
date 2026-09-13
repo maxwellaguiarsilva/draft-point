@@ -4,16 +4,10 @@
 //	
 
 
-#include <sak/sak.hpp>
 #include <sak/format.hpp>
 #include <sak/pattern/value_or.hpp>
-#include <sak/ranges/to.hpp>
-#include <sak/ranges/transform.hpp>
 #include <tui/terminal.hpp>
 #include <iostream>
-#include <functional>
-#include <format>
-#include <termios.h>
 #include <unistd.h>		//	stdin_fileno, read
 #include <sys/ioctl.h>	//	tiocgwinsz
 #include <csignal>
