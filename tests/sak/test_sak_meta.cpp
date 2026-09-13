@@ -102,8 +102,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		auto counter = make_shared< counting_listener >( );
 		window_dispatcher += counter;
 
-		( void )window_dispatcher.dispatch< ^^window_listener::resize >( 10, 20 );
-		( void )window_dispatcher.dispatch< ^^window_listener::move >( 5, 5 );
+		window_dispatcher.dispatch< ^^window_listener::resize >( 10, 20 );
+		window_dispatcher.dispatch< ^^window_listener::move >( 5, 5 );
 
 		ensure( counter->m_resize_count == 1, "resize should have been dispatched once" );
 		ensure( counter->m_move_count == 1, "move should have been dispatched once" );

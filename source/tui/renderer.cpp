@@ -155,7 +155,7 @@ auto renderer::resize( const geometry::size& new_size ) -> void
 	}
 	renderer::clear( );
 	renderer::refresh( );
-	( void )m_dispatcher.dispatch< ^^listener::resize >( m_screen_size );
+	m_dispatcher.dispatch< ^^listener::resize >( m_screen_size );
 }
 
 auto renderer::refresh( ) -> void

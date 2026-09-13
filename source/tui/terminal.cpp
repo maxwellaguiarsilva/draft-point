@@ -112,7 +112,7 @@ terminal::terminal( )
 							auto lock = lock_guard( m_mutex );
 							m_bounds.end	=	current_size;
 						}
-						( void )m_dispatcher.dispatch< ^^listener::resize >( size( ) );
+						m_dispatcher.dispatch< ^^listener::resize >( size( ) );
 					}
 				}
 			}
