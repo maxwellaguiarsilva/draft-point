@@ -29,21 +29,19 @@ __using( ::std::
 	,make_shared
 	,to_string
 )
-__using( ::std::views::
-	,iota
-)
 __using( ::sak::ranges::
 	,lazy_transform
+	,count_to
+	,to
 )
 
 
 __using_inline( geometry::, left, top )
 __using( ::sak::, ensure, format )
 __using( ::sak::pattern::, operator|, value_or )
-using	::sak::ranges::to;
+using	position	=	geometry::position;
 using	text_style	=	::tui::terminal::text_style;
 using	enum	text_style;
-using	position	=	geometry::position;
 using	enum	::tui::terminal::error;
 
 
@@ -56,15 +54,9 @@ const terminal::error_messages terminal::m_error_messages	=
 const string terminal::m_unknown_error_message	=	"terminal: unknown error";
 
 
-const array< string, 256 > terminal::m_foreground_colors	=	iota( 0, 256 )
-	|	lazy_transform( bind_front( format, "\033[{};5;{}m", 38 ) )
-	|	to;
-const array< string, 256 > terminal::m_background_colors	=	iota( 0, 256 )
-	|	lazy_transform( bind_front( format, "\033[{};5;{}m", 48 ) )
-	|	to;
-const array< string, 10 > terminal::m_text_styles	=	iota( 0, 10 )
-	|	lazy_transform( bind_front( format, "\033[{}m" ) )
-	|	to;
+const array< string, 256 > terminal::m_foreground_colors	=	count_to( 256 ) | lazy_transform( bind_front( format, "\033[{};5;{}m", 38 ) ) | to;
+const array< string, 256 > terminal::m_background_colors	=	count_to( 256 ) | lazy_transform( bind_front( format, "\033[{};5;{}m", 48 ) ) | to;
+const array< string,  10 > terminal::m_text_styles			=	count_to(  10 ) | lazy_transform( bind_front( format, "\033[{}m" ) ) | to;
 constexpr auto zero = position( 0, 0 );
 
 
