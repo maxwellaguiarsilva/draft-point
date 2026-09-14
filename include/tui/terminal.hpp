@@ -67,7 +67,6 @@ public:
 	};
 
 	using	result	=	expected< void, error >;
-	using	error_messages	=	array< string, 4 >;
 
 
 	terminal( );
@@ -87,7 +86,6 @@ public:
 	auto style( text_style new_style ) -> void;
 	auto size( ) const noexcept -> geometry::size;
 
-	static auto error_message( const error& error_code ) noexcept -> const string&;
 	static auto read_char( ) -> char;
 
 
@@ -100,7 +98,7 @@ public:
 	auto listeners( ) noexcept -> listener_registry< listener >&;
 
 private:
-	static const error_messages			m_error_messages;
+	static const array< string, 4 >		m_error_messages;
 	static const array< string, 256 >	m_foreground_colors;
 	static const array< string, 256 >	m_background_colors;
 	static const array< string, 10 >	m_text_styles;

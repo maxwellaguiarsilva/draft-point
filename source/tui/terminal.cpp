@@ -44,7 +44,7 @@ using	enum	text_style;
 using	enum	::tui::terminal::error;
 
 
-const terminal::error_messages terminal::m_error_messages	=
+const array< string, 4 > terminal::m_error_messages	=
 {
 	 "terminal: tcgetattr error"
 	,"terminal: tcsetattr error"
@@ -65,7 +65,7 @@ terminal::terminal( )
 	,m_foreground( 15 )
 	,m_background( 0 )
 {
-	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, error_message( tcgetattr_failed ) );
+	ensure( tcgetattr( STDIN_FILENO, &m_original_termios ) == 0, m_error_messages | tcgetattr_failed );
 	query_size( false );
 
 	clear_screen( true );
@@ -195,11 +195,11 @@ auto terminal::style( text_style new_style ) -> void
 auto terminal::query_size( const bool notify ) -> geometry::size
 {
 	winsize window_size;
-	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) == 0, error_message( ioctl_failed ) );
+	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) == 0, m_error_messages | ioctl_failed );
 
 	const auto start	=	geometry::position{ 1, 1 };
 	const auto end		=	geometry::size{ window_size.ws_col, window_size.ws_row };
-	ensure( end not_eq zero, error_message( ioctl_failed ) );
+	ensure( end not_eq zero, m_error_messages | ioctl_failed );
 	ensure( start.is_inside( end ), "invalid terminal size" );
 
 	{
@@ -219,14 +219,9 @@ auto terminal::size( ) const noexcept -> geometry::size
 	return	m_bounds.end;
 }
 
-auto terminal::error_message( const error& error_code ) noexcept -> const string&
-{
-	return	m_error_messages | error_code;
-}
-
 auto terminal::listeners( ) noexcept -> listener_registry< listener >& { return m_dispatcher; }
 
-auto terminal::print( const error& error_code ) const noexcept -> void { m_error_output << error_message( error_code ) << endl; }
+auto terminal::print( const error& error_code ) const noexcept -> void { m_error_output << ( m_error_messages | error_code ) << endl; }
 
 
 }
