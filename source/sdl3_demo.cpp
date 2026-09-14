@@ -25,7 +25,6 @@
 #include <sak/ranges/contains.hpp>
 #include <sak/sdl3/application.hpp>
 #include <sak/sdl3/opengl/context.hpp>
-#include <SDL3/SDL.h>
 #include <game/fps.hpp>
 
 
