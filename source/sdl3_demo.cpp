@@ -205,7 +205,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 			void key_down( const SDL_KeyboardEvent& event ) override
 			{
-				constexpr float rotation_step = 3.14159265f / 6.0f;
+				float rotation_step = 3.14159265f / static_cast< float >( m_mesh.count( ) * 2 );
 
 				if( event.key == SDLK_ESCAPE )
 					m_application.quit( );
