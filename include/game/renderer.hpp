@@ -33,6 +33,8 @@ public:
 	class listener
 	{
 	public:
+		using	registry	=	listener_registry< listener >;
+
 		virtual ~listener( ) = default;
 		virtual void resize( const geometry::size& new_size ) = 0;
 	};
@@ -50,7 +52,7 @@ public:
 
 	virtual auto size( ) const noexcept -> geometry::size = 0;
 
-	virtual auto listeners( ) noexcept -> listener_registry< listener >& = 0;
+	virtual auto listeners( ) noexcept -> listener::registry& = 0;
 };
 
 

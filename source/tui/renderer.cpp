@@ -194,7 +194,7 @@ auto renderer::refresh( ) -> void
 	m_terminal.refresh( );
 }
 
-auto renderer::listeners( ) noexcept -> listener_registry< listener >& { return m_dispatcher; }
+auto renderer::listeners( ) noexcept -> listener::registry& { return m_dispatcher; }
 
 
 }

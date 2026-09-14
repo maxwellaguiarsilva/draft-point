@@ -219,7 +219,7 @@ auto terminal::size( ) const noexcept -> geometry::size
 	return	m_bounds.end;
 }
 
-auto terminal::listeners( ) noexcept -> listener_registry< listener >& { return m_dispatcher; }
+auto terminal::listeners( ) noexcept -> listener::registry& { return m_dispatcher; }
 
 auto terminal::print( const error& error_code ) const noexcept -> void { m_error_output << ( m_error_messages | error_code ) << endl; }
 

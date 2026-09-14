@@ -92,10 +92,12 @@ public:
 	class listener
 	{
 	public:
+		using	registry	=	listener_registry< listener >;
+
 		virtual ~listener( ) = default;
 		virtual void resize( const geometry::size& size ) = 0;
 	};
-	auto listeners( ) noexcept -> listener_registry< listener >&;
+	auto listeners( ) noexcept -> listener::registry&;
 
 private:
 	static const array< string, 4 >		m_error_messages;
