@@ -157,11 +157,6 @@ void main( )
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {
-	__using( ::sak::, exit_success, exit_failure, ensure )
-	__using( ::sak::opengl::, program, shader )
-	__using( ::sak::sdl3::, application, window )
-	__using( ::sak::sdl3::opengl::, context )
-	__using( ::gl::, polygon, vertex_shader_source, fragment_shader_source )
 	__using( ::std::
 		,format
 		,make_shared
@@ -172,10 +167,15 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,vector
 		,views::values
 	)
+	__using( ::sak::, exit_success, exit_failure, ensure )
 	__using( ::sak::math::, between )
+	__using( ::sak::opengl::, program, shader )
 	__using( ::sak::pattern::, to_number, value_or )
 	__using( ::sak::ranges::, contains )
+	__using( ::sak::sdl3::, application, window )
+	__using( ::sak::sdl3::opengl::, context )
 	__using( ::game::, fps )
+	__using( ::gl::, polygon, vertex_shader_source, fragment_shader_source )
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
