@@ -27,4 +27,5 @@ Accessing this folder without reading the `README.md` file is prohibited.
 - [Tagging](tagging.md) — `group`/`class` tags, class ownership, enum scoping.
 - [Modernity tiers](tiers.md) [#current] — `canonical`/`traditional-core`/`obsolete` classification.
 - [Architecture](architecture.md) — `sak::opengl` context-agnostic.
+- [Buffer storage and updates](buffer-storage.md) — immutable storage, storage/mapping flags, ranged updates, one-store-many-objects, array-of-struct vs struct-of-array.
 - [`cpp-install-glad`](cpp-install-glad.md) — how the glad 4.6 core loader and its snake_case C++ wrapper are generated.
