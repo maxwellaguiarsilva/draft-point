@@ -20,6 +20,8 @@
 #include <vector>
 #include <sak/geometry/geometry.hpp>
 #include <sak/opengl/program.hpp>
+#include <sak/pattern/to_number.hpp>
+#include <sak/pattern/value_or.hpp>
 #include <sak/ranges/contains.hpp>
 #include <sak/sdl3/application.hpp>
 #include <sak/sdl3/opengl/context.hpp>
@@ -36,10 +38,11 @@ namespace gl {
 		,array
 		,size_t
 		,string
+		,vector
 	)
 	__using( ::std::views::, transform, zip )
-	__using( ::sak::math::, rotate )
-	__using( ::sak::ranges::, to )
+	__using( ::sak::math::, cosine, rotate, sine )
+	__using( ::sak::ranges::, count_to, to )
 	__using( ::sak::ranges::views::, rotated )
 
 	const string vertex_shader_source = R"glsl(
@@ -70,8 +73,21 @@ void main( )
 )glsl";
 
 
-	//	cpu-owned triangle, the authoritative geometry mirrored into the gpu vertex buffer
-	class triangle
+	//	the eight basic ansi colors, indexed by the rgb channel bits of the index
+	inline constexpr array< point, 8 > palette = { {
+		 {	0.0f	,0.0f	,0.0f	}
+		,{	1.0f	,0.0f	,0.0f	}
+		,{	0.0f	,1.0f	,0.0f	}
+		,{	1.0f	,1.0f	,0.0f	}
+		,{	0.0f	,0.0f	,1.0f	}
+		,{	1.0f	,0.0f	,1.0f	}
+		,{	0.0f	,1.0f	,1.0f	}
+		,{	1.0f	,1.0f	,1.0f	}
+	} };
+
+
+	//	regular polygon centered at the origin, the authoritative cpu geometry
+	class polygon
 	{
 	public:
 		struct vertex
@@ -79,6 +95,20 @@ void main( )
 			point position;
 			point color;
 		};
+
+		static constexpr float radius = 0.5f;
+
+		explicit polygon( const size_t total )
+			: m_vertices( )
+		{
+			const float step = 2.0f * 3.14159265f / total;
+			m_vertices.reserve( total );
+			for( const size_t index : count_to( total ) )
+				m_vertices.push_back( {
+					 {	radius * cosine( step * index )	,radius * sine( step * index )	,0.0f	}
+					,palette[ index % palette.size( ) ]
+				} );
+		}
 
 		auto turn( const float angle ) -> void
 		{
@@ -90,7 +120,7 @@ void main( )
 
 		auto cycle_colors( const bool forward ) -> void
 		{
-			const array< point, 3 > colors = m_vertices | transform( &vertex::color ) | rotated( forward ? 1 : 2 ) | to;
+			const vector< point > colors = m_vertices | transform( &vertex::color ) | rotated( forward ? 1 : m_vertices.size( ) - 1 ) | to;
 			for( auto [ current, color ] : zip( m_vertices, colors ) )
 				current.color = color;
 			m_changed = true;
@@ -104,14 +134,11 @@ void main( )
 		}
 
 		auto data( ) const noexcept -> const vertex* { return m_vertices.data( ); }
-		auto byte_size( ) const noexcept -> size_t { return sizeof( m_vertices ); }
+		auto byte_size( ) const noexcept -> size_t { return m_vertices.size( ) * sizeof( vertex ); }
+		auto count( ) const noexcept -> size_t { return m_vertices.size( ); }
 
 	private:
-		array< vertex, 3 > m_vertices{ {
-			 {	{	0.0f	,0.5f	,0.0f	}	,{	1.0f	,0.0f	,0.0f	}	}
-			,{	{	-0.5f	,-0.5f	,0.0f	}	,{	0.0f	,1.0f	,0.0f	}	}
-			,{	{	0.5f	,-0.5f	,0.0f	}	,{	0.0f	,0.0f	,1.0f	}	}
-		} };
+		vector< vertex > m_vertices;
 		bool m_changed{ false };
 	};
 
@@ -125,7 +152,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::sak::opengl::, program, shader )
 	__using( ::sak::sdl3::, application, window )
 	__using( ::sak::sdl3::opengl::, context )
-	__using( ::gl::, triangle, vertex_shader_source, fragment_shader_source )
+	__using( ::gl::, polygon, vertex_shader_source, fragment_shader_source )
 	__using( ::std::
 		,format
 		,make_shared
@@ -136,30 +163,35 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,vector
 		,views::values
 	)
+	__using( ::sak::math::, between )
+	__using( ::sak::pattern::, to_number, value_or )
 	__using( ::sak::ranges::, contains )
 	__using( ::game::, fps )
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
-		return	println( "this executable is a modern opengl rgb triangle demo" ), exit_success;
+		return	println( "this executable is a modern opengl rgb polygon demo" ), exit_success;
+
+	const int parsed_total = to_number( value_or( arguments, 1uz, string{ "8" } ), 0 );
+	const size_t total = between( parsed_total, 3, 16 ) ? parsed_total : 8;
 
 	try
 	{
-		println( "starting modern opengl rgb triangle example" );
+		println( "starting modern opengl rgb polygon example" );
 
 		application app;
 
 		//	create a raii window and opengl context, declared before gpu resources so they outlive them on destruction
 		using enum window::flag;
-		window application_window( "modern opengl rgb triangle", { opengl, resizable } );
+		window application_window( "modern opengl rgb polygon", { opengl, resizable } );
 		context gl_context( application_window );
 
 		//	cpu-owned geometry, rewritten by input and mirrored to the gpu when it changes
-		triangle mesh;
+		polygon mesh( total );
 
 		struct keyboard_listener final : public window::listener
 		{
-			keyboard_listener( window& target_window, application& target_application, triangle& target_mesh )
+			keyboard_listener( window& target_window, application& target_application, polygon& target_mesh )
 				: m_window( target_window ), m_application( target_application ), m_mesh( target_mesh )
 			{ }
 
@@ -184,7 +216,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		private:
 			window&			m_window;
 			application&	m_application;
-			triangle&		m_mesh;
+			polygon&		m_mesh;
 		};
 
 		const auto key_listener = make_shared< keyboard_listener >( application_window, app, mesh );
@@ -198,11 +230,11 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		gl_named_buffer_storage( vertex_buffer, mesh.byte_size( ), mesh.data( ), GL_DYNAMIC_STORAGE_BIT );
 
 		//	bind the buffer to the vertex array and describe the vertex layout
-		gl_vertex_array_vertex_buffer( vertex_array, 0, vertex_buffer, 0, sizeof( triangle::vertex ) );
-		gl_vertex_array_attrib_format( vertex_array, 0, 3, GL_FLOAT, GL_FALSE, offsetof( triangle::vertex, position ) );
+		gl_vertex_array_vertex_buffer( vertex_array, 0, vertex_buffer, 0, sizeof( polygon::vertex ) );
+		gl_vertex_array_attrib_format( vertex_array, 0, 3, GL_FLOAT, GL_FALSE, offsetof( polygon::vertex, position ) );
 		gl_vertex_array_attrib_binding( vertex_array, 0, 0 );
 		gl_enable_vertex_array_attrib( vertex_array, 0 );
-		gl_vertex_array_attrib_format( vertex_array, 1, 3, GL_FLOAT, GL_FALSE, offsetof( triangle::vertex, color ) );
+		gl_vertex_array_attrib_format( vertex_array, 1, 3, GL_FLOAT, GL_FALSE, offsetof( polygon::vertex, color ) );
 		gl_vertex_array_attrib_binding( vertex_array, 1, 0 );
 		gl_enable_vertex_array_attrib( vertex_array, 1 );
 
@@ -227,7 +259,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			gl_clear( GL_COLOR_BUFFER_BIT );
 
 			gl_bind_vertex_array( vertex_array );
-			gl_draw_arrays( GL_TRIANGLES, 0, 3 );
+			gl_draw_arrays( GL_TRIANGLE_FAN, 0, mesh.count( ) );
 
 			application_window.swap( );
 			frame_limiter.compute( );
@@ -237,7 +269,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		gl_delete_vertex_arrays( 1, &vertex_array );
 		gl_delete_buffers( 1, &vertex_buffer );
 
-		println( "modern opengl rgb triangle finished successfully" );
+		println( "modern opengl rgb polygon finished successfully" );
 	}
 	catch( const runtime_error& error )
 	{
