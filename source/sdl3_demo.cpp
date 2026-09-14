@@ -40,7 +40,7 @@ namespace gl {
 		,string
 		,vector
 	)
-	__using( ::std::views::, transform, zip )
+	__using( ::std::views::, drop, take, transform, zip )
 	__using( ::sak::math::, cosine, rotate, sine )
 	__using( ::sak::ranges::, count_to, to )
 	__using( ::sak::ranges::views::, rotated )
@@ -102,12 +102,14 @@ void main( )
 			: m_vertices( )
 		{
 			const float step = 2.0f * 3.14159265f / total;
-			m_vertices.reserve( total );
+			m_vertices.reserve( total + 2 );
+			m_vertices.push_back( { point{ 0.0f, 0.0f, 0.0f }, palette[ 0 ] } );
 			for( const size_t index : count_to( total ) )
 				m_vertices.push_back( {
 					 {	radius * cosine( step * index )	,radius * sine( step * index )	,0.0f	}
 					,palette[ index % palette.size( ) ]
 				} );
+			m_vertices.push_back( m_vertices[ 1 ] );
 		}
 
 		auto turn( const float angle ) -> void
@@ -120,9 +122,16 @@ void main( )
 
 		auto cycle_colors( const bool forward ) -> void
 		{
-			const vector< point > colors = m_vertices | transform( &vertex::color ) | rotated( forward ? 1 : m_vertices.size( ) - 1 ) | to;
-			for( auto [ current, color ] : zip( m_vertices, colors ) )
+			const size_t perimeter_count = m_vertices.size( ) - 2;
+			const vector< point > colors = m_vertices
+				|	drop( 1 )
+				|	take( perimeter_count )
+				|	transform( &vertex::color )
+				|	rotated( forward ? 1 : perimeter_count - 1 )
+				|	to;
+			for( auto [ current, color ] : zip( m_vertices | drop( 1 ), colors ) )
 				current.color = color;
+			m_vertices.back( ).color = m_vertices[ 1 ].color;
 			m_changed = true;
 		}
 
