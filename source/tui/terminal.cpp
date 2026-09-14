@@ -5,7 +5,6 @@
 
 
 #include <sak/format.hpp>
-#include <sak/pattern/value_or.hpp>
 #include <tui/terminal.hpp>
 #include <iostream>
 #include <unistd.h>		//	stdin_fileno, read
@@ -38,7 +37,7 @@ __using( ::sak::ranges::
 
 __using_inline( geometry::, left, top )
 __using( ::sak::, ensure, format )
-__using( ::sak::pattern::, operator|, value_or )
+__using( ::sak::pattern::, operator| )
 using	position	=	geometry::position;
 using	text_style	=	::tui::terminal::text_style;
 using	enum	text_style;
@@ -47,11 +46,11 @@ using	enum	::tui::terminal::error;
 
 const terminal::error_messages terminal::m_error_messages	=
 {
-	 { tcgetattr_failed	,"terminal: tcgetattr error" }
-	,{ tcsetattr_failed	,"terminal: tcsetattr error" }
-	,{ ioctl_failed		,"terminal: ioctl error" }
+	 "terminal: tcgetattr error"
+	,"terminal: tcsetattr error"
+	,"terminal: ioctl error"
+	,"terminal: unknown error"
 };
-const string terminal::m_unknown_error_message	=	"terminal: unknown error";
 
 
 const array< string, 256 > terminal::m_foreground_colors	=	count_to( 256 ) | lazy_transform( bind_front( format, "\033[{};5;{}m", 38 ) ) | to;
@@ -222,7 +221,7 @@ auto terminal::size( ) const noexcept -> geometry::size
 
 auto terminal::error_message( const error& error_code ) noexcept -> const string&
 {
-	return	value_or( m_error_messages, error_code, m_unknown_error_message );	//	"terminal: unknown error"
+	return	m_error_messages | error_code;
 }
 
 auto terminal::listeners( ) noexcept -> listener_registry< listener >& { return m_dispatcher; }

@@ -15,7 +15,6 @@
 #include <ostream>
 #include <sstream>
 #include <thread>
-#include <unordered_map>
 
 
 namespace tui {
@@ -34,7 +33,6 @@ __using( ::std::
 	,stop_token
 	,string
 	,unexpected
-	,unordered_map
 )
 using	::sak::byte;
 using	geometry	=	::sak::g2i;
@@ -69,7 +67,7 @@ public:
 	};
 
 	using	result	=	expected< void, error >;
-	using	error_messages	=	unordered_map< error, string >;
+	using	error_messages	=	array< string, 4 >;
 
 
 	terminal( );
@@ -103,7 +101,6 @@ public:
 
 private:
 	static const error_messages			m_error_messages;
-	static const string					m_unknown_error_message;
 	static const array< string, 256 >	m_foreground_colors;
 	static const array< string, 256 >	m_background_colors;
 	static const array< string, 10 >	m_text_styles;
