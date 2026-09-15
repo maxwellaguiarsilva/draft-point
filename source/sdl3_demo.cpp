@@ -40,34 +40,92 @@ namespace gl {
 		,vector
 	)
 	__using( ::std::views::, drop, take, transform, zip )
-	__using( ::sak::math::, cosine, rotate, sine )
+	__using( ::sak::math::, cosine, min, rotate, sine )
 	__using( ::sak::ranges::, count_to, to )
 	__using( ::sak::ranges::views::, rotated )
 
 	const string vertex_shader_source = R"glsl(
 #version 460 core
 
-layout( location = 0 ) in vec3 position;
-layout( location = 1 ) in vec3 color;
-
-out vec3 fragment_color;
+const vec2 vertices[ 4 ] = vec2[ 4 ](
+	vec2( -1.0, -1.0 ),
+	vec2(  1.0, -1.0 ),
+	vec2( -1.0,  1.0 ),
+	vec2(  1.0,  1.0 )
+);
 
 void main( )
 {
-	gl_Position = vec4( position, 1.0 );
-	fragment_color = color;
+	gl_Position = vec4( vertices[ gl_VertexID ], 0.0, 1.0 );
 }
 )glsl";
 
 	const string fragment_shader_source = R"glsl(
 #version 460 core
 
-in vec3 fragment_color;
+layout( location = 0 ) uniform int sphere_count;
+layout( location = 1 ) uniform vec2 resolution;
+
+layout( std430, binding = 0 ) readonly buffer sphere_buffer
+{
+	float raw_spheres[];
+};
+
 out vec4 final_color;
+
+struct sphere_t
+{
+	vec3 position;
+	float radius;
+	vec3 color;
+};
+
+sphere_t get_sphere( int index )
+{
+	int base_index = index * 7;
+	return sphere_t(
+		vec3( raw_spheres[ base_index + 0 ], raw_spheres[ base_index + 1 ], raw_spheres[ base_index + 2 ] ),
+		raw_spheres[ base_index + 3 ],
+		vec3( raw_spheres[ base_index + 4 ], raw_spheres[ base_index + 5 ], raw_spheres[ base_index + 6 ] )
+	);
+}
 
 void main( )
 {
-	final_color = vec4( fragment_color, 1.0 );
+	vec2 input_coord = ( gl_FragCoord.xy - 0.5 * resolution ) * ( 2.0 / min( resolution.x, resolution.y ) );
+
+	const float focal = 2.0;
+	const vec3 cam_position = vec3( 0.0, 0.0, -2.0 );
+	const vec3 cam_forward = vec3( 0.0, 0.0, 1.0 );
+	const vec3 cam_right = vec3( 1.0, 0.0, 0.0 );
+	const vec3 cam_up = vec3( 0.0, 1.0, 0.0 );
+
+	vec3 direction = cam_forward * focal + cam_right * input_coord.x + cam_up * input_coord.y;
+
+	float best_distance = 1e20;
+	const float edge_shade = 0.7;
+	const vec3 background_color = vec3( 0.0, 0.0, 0.0 );
+	vec3 color = background_color;
+
+	for( int index = 0; index < sphere_count; ++index )
+	{
+		sphere_t object = get_sphere( index );
+		vec3 hypotenuse = object.position - cam_position;
+		float dot_direction = dot( direction, direction );
+		float dot_hypotenuse_direction = dot( hypotenuse, direction );
+		float opposite_leg_squared = dot( hypotenuse, hypotenuse ) - ( dot_hypotenuse_direction * dot_hypotenuse_direction ) / dot_direction;
+		float radius_squared = object.radius * object.radius;
+		float ratio = opposite_leg_squared / radius_squared;
+		float distance = length( hypotenuse );
+
+		if( dot_hypotenuse_direction > 0.0 && distance < best_distance && ratio <= 1.0 )
+		{
+			best_distance = distance;
+			color = object.color * ( 1.0 - edge_shade * clamp( ratio, 0.0, 1.0 ) );
+		}
+	}
+
+	final_color = vec4( color, 1.0 );
 }
 )glsl";
 
@@ -85,52 +143,58 @@ void main( )
 	} };
 
 
+	struct sphere
+	{
+		using	geometry	=	::sak::g3f;
+		using	color		=	geometry::point;
+		using	position	=	geometry::position;
+
+		position	m_position;
+		float		radius;
+		color		m_color;
+	};	//	total 7 floats
+
+
 	//	regular polygon centered at the origin, the authoritative cpu geometry
 	class polygon
 	{
 	public:
-		struct vertex
-		{
-			point position;
-			point color;
-		};
-
-		static constexpr float radius = 0.5f;
+		static constexpr float polygon_radius = 0.5f;
 
 		explicit polygon( const size_t total )
-			: m_vertices( )
+			: m_spheres( )
 		{
 			const float step = 2.0f * 3.14159265f / total;
-			m_vertices.reserve( total + 2 );
-			m_vertices.push_back( { point{ 0.0f, 0.0f, 0.0f }, palette[ 0 ] } );
+			const float sphere_radius = min( 0.12f, 0.8f * polygon_radius * sine( 3.14159265f / total ) );
+			m_spheres.reserve( total + 1 );
+			m_spheres.push_back( { sphere::position{ 0.0f, 0.0f, 0.0f }, sphere_radius, palette[ 7 ] } );
 			for( const size_t index : count_to( total ) )
-				m_vertices.push_back( {
-					 {	radius * cosine( step * index )	,radius * sine( step * index )	,0.0f	}
-					,palette[ index % palette.size( ) ]
+				m_spheres.push_back( {
+					 sphere::position{ polygon_radius * cosine( step * index ), polygon_radius * sine( step * index ), 0.0f }
+					,sphere_radius
+					,palette[ ( index % 7 ) + 1 ]
 				} );
-			m_vertices.push_back( m_vertices[ 1 ] );
 		}
 
 		auto turn( const float angle ) -> void
 		{
-			const point axis{ 0.0f, 0.0f, 1.0f };
-			for( vertex& current : m_vertices )
-				current.position = rotate( current.position, axis, angle ) | to;
+			const sphere::position axis{ 0.0f, 0.0f, 1.0f };
+			for( sphere& current : m_spheres )
+				current.m_position = rotate( current.m_position, axis, angle ) | to;
 			m_changed = true;
 		}
 
 		auto cycle_colors( const bool forward ) -> void
 		{
-			const size_t perimeter_count = m_vertices.size( ) - 2;
-			const vector< point > colors = m_vertices
+			const size_t perimeter_count = m_spheres.size( ) - 1;
+			const vector< sphere::color > colors = m_spheres
 				|	drop( 1 )
 				|	take( perimeter_count )
-				|	transform( &vertex::color )
+				|	transform( &sphere::m_color )
 				|	rotated( forward ? 1 : perimeter_count - 1 )
 				|	to;
-			for( auto [ current, color ] : zip( m_vertices | drop( 1 ), colors ) )
-				current.color = color;
-			m_vertices.back( ).color = m_vertices[ 1 ].color;
+			for( auto [ current, color_value ] : zip( m_spheres | drop( 1 ), colors ) )
+				current.m_color = color_value;
 			m_changed = true;
 		}
 
@@ -141,12 +205,12 @@ void main( )
 			return	result;
 		}
 
-		auto data( ) const noexcept -> const vertex* { return m_vertices.data( ); }
-		auto byte_size( ) const noexcept -> size_t { return m_vertices.size( ) * sizeof( vertex ); }
-		auto count( ) const noexcept -> size_t { return m_vertices.size( ); }
+		auto data( ) const noexcept -> const sphere* { return m_spheres.data( ); }
+		auto byte_size( ) const noexcept -> size_t { return m_spheres.size( ) * sizeof( sphere ); }
+		auto count( ) const noexcept -> size_t { return m_spheres.size( ); }
 
 	private:
-		vector< vertex > m_vertices;
+		vector< sphere > m_spheres;
 		bool m_changed{ false };
 	};
 
@@ -178,20 +242,20 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
-		return	println( "this executable is a modern opengl rgb polygon demo" ), exit_success;
+		return	println( "this executable is a modern opengl rgb shadertoy demo" ), exit_success;
 
 	const int parsed_total = to_number( value_or( arguments, 1uz, string{ "8" } ), 0 );
 	const size_t total = between( parsed_total, 3, 16 ) ? parsed_total : 8;
 
 	try
 	{
-		println( "starting modern opengl rgb polygon example" );
+		println( "starting modern opengl rgb shadertoy example" );
 
 		application app;
 
 		//	create a raii window and opengl context, declared before gpu resources so they outlive them on destruction
 		using enum window::flag;
-		window application_window( "modern opengl rgb polygon", { opengl, resizable } );
+		window application_window( "modern opengl rgb shadertoy", { opengl, resizable } );
 		context gl_context( application_window );
 
 		//	cpu-owned geometry, rewritten by input and mirrored to the gpu when it changes
@@ -230,21 +294,13 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		const auto key_listener = make_shared< keyboard_listener >( application_window, app, mesh );
 		application_window.listeners( ) += key_listener;
 
-		//	allocate immutable storage with dynamic updates enabled, the modern replacement for the usage hint
+		//	allocate dummy vao and storage for spheres as shader storage buffer
 		GLuint vertex_array = 0;
 		gl_create_vertex_arrays( 1, &vertex_array );
-		GLuint vertex_buffer = 0;
-		gl_create_buffers( 1, &vertex_buffer );
-		gl_named_buffer_storage( vertex_buffer, mesh.byte_size( ), mesh.data( ), GL_DYNAMIC_STORAGE_BIT );
-
-		//	bind the buffer to the vertex array and describe the vertex layout
-		gl_vertex_array_vertex_buffer( vertex_array, 0, vertex_buffer, 0, sizeof( polygon::vertex ) );
-		gl_vertex_array_attrib_format( vertex_array, 0, 3, GL_FLOAT, GL_FALSE, offsetof( polygon::vertex, position ) );
-		gl_vertex_array_attrib_binding( vertex_array, 0, 0 );
-		gl_enable_vertex_array_attrib( vertex_array, 0 );
-		gl_vertex_array_attrib_format( vertex_array, 1, 3, GL_FLOAT, GL_FALSE, offsetof( polygon::vertex, color ) );
-		gl_vertex_array_attrib_binding( vertex_array, 1, 0 );
-		gl_enable_vertex_array_attrib( vertex_array, 1 );
+		GLuint sphere_buffer = 0;
+		gl_create_buffers( 1, &sphere_buffer );
+		gl_named_buffer_storage( sphere_buffer, mesh.byte_size( ), mesh.data( ), GL_DYNAMIC_STORAGE_BIT );
+		gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, 0, sphere_buffer );
 
 		//	shader program
 		map< shader::type, shader > shader_map;
@@ -261,13 +317,18 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		{
 			//	the cpu is the source of truth, so upload the mesh only when input rewrote it
 			if( mesh.consume_changed( ) )
-				gl_named_buffer_sub_data( vertex_buffer, 0, mesh.byte_size( ), mesh.data( ) );
+				gl_named_buffer_sub_data( sphere_buffer, 0, mesh.byte_size( ), mesh.data( ) );
+
+			const auto current_size = application_window.pixel_size( );
+			gl_viewport( 0, 0, current_size[ 0 ], current_size[ 1 ] );
+			gl_program_uniform_1i( shader_program.id( ), 0, static_cast< GLint >( mesh.count( ) ) );
+			gl_program_uniform_2f( shader_program.id( ), 1, static_cast< float >( current_size[ 0 ] ), static_cast< float >( current_size[ 1 ] ) );
 
 			gl_clear_color( 0.0f, 0.0f, 0.0f, 1.0f );
 			gl_clear( GL_COLOR_BUFFER_BIT );
 
 			gl_bind_vertex_array( vertex_array );
-			gl_draw_arrays( GL_TRIANGLE_FAN, 0, mesh.count( ) );
+			gl_draw_arrays( GL_TRIANGLE_STRIP, 0, 4 );
 
 			application_window.swap( );
 			frame_limiter.compute( );
@@ -275,9 +336,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		//	clean up raw opengl objects while the context is still current;
 		gl_delete_vertex_arrays( 1, &vertex_array );
-		gl_delete_buffers( 1, &vertex_buffer );
+		gl_delete_buffers( 1, &sphere_buffer );
 
-		println( "modern opengl rgb polygon finished successfully" );
+		println( "modern opengl rgb shadertoy finished successfully" );
 	}
 	catch( const runtime_error& error )
 	{
