@@ -43,6 +43,7 @@ namespace gl {
 	__using( ::sak::math::, cosine, min, rotate, sine )
 	__using( ::sak::ranges::, count_to, to )
 	__using( ::sak::ranges::views::, rotated )
+	__using( ::sak::sdl3::, application, window )
 
 	const string vertex_shader_source = R"glsl(
 #version 460 core
@@ -73,17 +74,17 @@ layout( std430, binding = 0 ) readonly buffer sphere_buffer
 
 out vec4 final_color;
 
-struct sphere_t
+struct sphere
 {
 	vec3 position;
 	float radius;
 	vec3 color;
 };
 
-sphere_t get_sphere( int index )
+sphere get_sphere( int index )
 {
 	int base_index = index * 7;
-	return sphere_t(
+	return sphere(
 		vec3( raw_spheres[ base_index + 0 ], raw_spheres[ base_index + 1 ], raw_spheres[ base_index + 2 ] ),
 		raw_spheres[ base_index + 3 ],
 		vec3( raw_spheres[ base_index + 4 ], raw_spheres[ base_index + 5 ], raw_spheres[ base_index + 6 ] )
@@ -109,7 +110,7 @@ void main( )
 
 	for( int index = 0; index < sphere_count; ++index )
 	{
-		sphere_t object = get_sphere( index );
+		sphere object = get_sphere( index );
 		vec3 hypotenuse = object.position - cam_position;
 		float dot_direction = dot( direction, direction );
 		float dot_hypotenuse_direction = dot( hypotenuse, direction );
@@ -215,6 +216,49 @@ void main( )
 	};
 
 
+	class window_listener final : public window::listener
+	{
+	public:
+		using	geometry	=	::sak::g2i;
+		__using_static( geometry::, width, height )
+
+		window_listener( window& target_window, application& target_application, polygon& target_mesh, const GLuint target_program_id )
+			: m_window( target_window ), m_application( target_application ), m_mesh( target_mesh ), m_program_id( target_program_id )
+		{
+			pixel_resize( target_window.pixel_size( ) );
+		}
+
+		void pixel_resize( const geometry::size& new_size ) override
+		{
+			gl_program_uniform_2f( m_program_id, 1, static_cast< float >( width( new_size ) ), static_cast< float >( height( new_size ) ) );
+		}
+
+		void key_down( const SDL_KeyboardEvent& event ) override
+		{
+			float rotation_step = 3.14159265f / static_cast< float >( m_mesh.count( ) * 2 );
+
+			if( event.key == SDLK_ESCAPE )
+				m_application.quit( );
+			else if( event.key == SDLK_F11 and not event.repeat )
+				m_window.toggle_fullscreen( );
+			else if( event.key == SDLK_LEFT )
+				m_mesh.turn( -rotation_step );
+			else if( event.key == SDLK_RIGHT )
+				m_mesh.turn( rotation_step );
+			else if( event.key == SDLK_UP )
+				m_mesh.cycle_colors( true );
+			else if( event.key == SDLK_DOWN )
+				m_mesh.cycle_colors( false );
+		}
+
+	private:
+		window&			m_window;
+		application&	m_application;
+		polygon&		m_mesh;
+		GLuint			m_program_id;
+	};
+
+
 } 
 
 
@@ -238,7 +282,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::sak::sdl3::, application, window )
 	__using( ::sak::sdl3::opengl::, context )
 	__using( ::game::, fps )
-	__using( ::gl::, polygon, vertex_shader_source, fragment_shader_source )
+	__using( ::gl::, polygon, window_listener, vertex_shader_source, fragment_shader_source )
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
@@ -261,39 +305,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		//	cpu-owned geometry, rewritten by input and mirrored to the gpu when it changes
 		polygon mesh( total );
 
-		struct keyboard_listener final : public window::listener
-		{
-			keyboard_listener( window& target_window, application& target_application, polygon& target_mesh )
-				: m_window( target_window ), m_application( target_application ), m_mesh( target_mesh )
-			{ }
-
-			void key_down( const SDL_KeyboardEvent& event ) override
-			{
-				float rotation_step = 3.14159265f / static_cast< float >( m_mesh.count( ) * 2 );
-
-				if( event.key == SDLK_ESCAPE )
-					m_application.quit( );
-				else if( event.key == SDLK_F11 and not event.repeat )
-					m_window.toggle_fullscreen( );
-				else if( event.key == SDLK_LEFT )
-					m_mesh.turn( -rotation_step );
-				else if( event.key == SDLK_RIGHT )
-					m_mesh.turn( rotation_step );
-				else if( event.key == SDLK_UP )
-					m_mesh.cycle_colors( true );
-				else if( event.key == SDLK_DOWN )
-					m_mesh.cycle_colors( false );
-			}
-
-		private:
-			window&			m_window;
-			application&	m_application;
-			polygon&		m_mesh;
-		};
-
-		const auto key_listener = make_shared< keyboard_listener >( application_window, app, mesh );
-		application_window.listeners( ) += key_listener;
-
 		//	allocate dummy vao and storage for spheres as shader storage buffer
 		GLuint vertex_array = 0;
 		gl_create_vertex_arrays( 1, &vertex_array );
@@ -310,6 +321,11 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		const program shader_program( shader_map | values );
 		shader_program.use( );
 
+		gl_program_uniform_1i( shader_program.id( ), 0, static_cast< GLint >( mesh.count( ) ) );
+
+		const auto listener = make_shared< window_listener >( application_window, app, mesh, shader_program.id( ) );
+		application_window.listeners( ) += listener;
+
 		fps frame_limiter( 60 );
 		frame_limiter.compute( );
 
@@ -318,11 +334,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			//	the cpu is the source of truth, so upload the mesh only when input rewrote it
 			if( mesh.consume_changed( ) )
 				gl_named_buffer_sub_data( sphere_buffer, 0, mesh.byte_size( ), mesh.data( ) );
-
-			const auto current_size = application_window.pixel_size( );
-			gl_viewport( 0, 0, current_size[ 0 ], current_size[ 1 ] );
-			gl_program_uniform_1i( shader_program.id( ), 0, static_cast< GLint >( mesh.count( ) ) );
-			gl_program_uniform_2f( shader_program.id( ), 1, static_cast< float >( current_size[ 0 ] ), static_cast< float >( current_size[ 1 ] ) );
 
 			gl_clear_color( 0.0f, 0.0f, 0.0f, 1.0f );
 			gl_clear( GL_COLOR_BUFFER_BIT );
