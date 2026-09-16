@@ -6,25 +6,38 @@
 
 #include <exception>
 #include <sak/using.hpp>
+#include <sak/math/math.hpp>
+#include <sak/ranges/count_to.hpp>
 #include <game/shadertoy.hpp>
 #include <tui/terminal.hpp>
 #include <tui/renderer.hpp>
-#include <sak/math/math.hpp>
-#include <cmath>
 #include <print>
 
 
 namespace {
 
 
-__using( ::std::, sin, cos, abs )
 __using( ::sak::, g2f, g3f )
-__using( ::sak::math::, sum, dot, exponential, hyperbolic_tangent )
-__using( ::sak::ranges::, to )
+__using( ::sak::ranges::, count_to, to )
+__using( ::sak::math::
+	,dot
+	,sine
+	,cosine
+	,absolute
+	,exponential
+	,hyperbolic_tangent
+)
+__using_static( g2f::, left, top )
 
 
-using   vec2    =   g2f::point;
-using   vec3    =   g3f::point;
+using	vec2	=	g2f::point;
+using	vec3	=	g3f::point;
+
+
+//	fractal iteration count of the palette loop below
+constexpr auto iteration_count = 8;
+//	shader clock runs twice as fast as wall time
+constexpr float time_scale = 2.0f;
 
 
 }
@@ -32,62 +45,72 @@ using   vec3    =   g3f::point;
 
 auto main( const int /*argument_count*/, const char* /*argument_values*/[ ] ) -> int
 {
-	__using( ::sak::, exit_success, exit_failure, g2f, g3f )
-	__using( ::std::, exception, sin, cos, abs, println )
-	
+	__using( ::sak::, exit_success, exit_failure )
+	__using( ::sak::math::
+		,dot
+		,sine
+		,cosine
+		,absolute
+		,exponential
+		,hyperbolic_tangent
+	)
+	__using_constexpr( g2f::, left, top )
+	__using( ::std::, exception, println )
+
 	try
 	{
 		::tui::terminal terminal;
 		::tui::renderer renderer( terminal );
 		::game::shadertoy shadertoy( renderer );
 
-		float global_t;
+		float elapsed = 0.0f;
 		shadertoy.run(
-			[ &global_t ]( char, float time ) -> void
+			[ & ]( char, float time ) -> void
 			{
-				global_t = time * 2.0f;
+				elapsed = time * time_scale;
 			},
-			[ &global_t ]( vec2 input ) -> vec3
+			[ & ]( vec2 input ) -> vec3
 			{
-				const float x = input[ 0 ];
-				const float y = input[ 1 ];
-				const float t = global_t;
+				//	normalized screen position with flipped y
+				vec2 normalized{ left( input ), -top( input ) };
 
-				//	vec2 p=(fc.xy*2.-r)/r.y
-				vec2 p{ x, -y };
-				
-				//	l+=abs(.7-dot(p,p))
-				float l = abs( 0.7f - dot( p, p ) );
-				
-				//	v=p*(1.-(l))/.2
-				vec2 v = p * ( 1.0f - l ) / 0.2f;
-				
-				//	o (vec3 for rgb)
-				vec3 o{ 0.01f, 0.01f, 0.01f };
+				//	distance to the bright ring
+				float ring = absolute( 0.7f - dot( normalized, normalized ) );
 
-				//	for(float i;i++<8.;o+=(sin(v.xyyx)+1.)*abs(v.x-v.y)*.2)v+=cos(v.yx*i+vec2(0,i)+t)/i+.7;
-				for( float i = 1.0f; i <= 8.0f; ++i )
+				//	seed of the fractal iteration
+				vec2 traced = normalized * ( 1.0f - ring ) / 0.2f;
+
+				//	accumulated color
+				vec3 color{ 0.01f, 0.01f, 0.01f };
+				for( auto iteration : count_to( iteration_count ) )
 				{
-					v = v + ( vec2{ cos( v[ 1 ] * i + t ), cos( v[ 0 ] * i + i + t ) } / i + 0.7f );
-					o = o + ( vec3{ sin( v[ 0 ] ), sin( v[ 1 ] ), sin( v[ 1 ] ) } + 1.0f ) * abs( v[ 0 ] - v[ 1 ] ) * 0.2f;
+					const float divisor = iteration + 1.0f;
+					const float horizontal = left( traced );
+					const float vertical = top( traced );
+					const vec2 drift{ cosine( vertical * divisor + elapsed ), cosine( horizontal * divisor + divisor + elapsed ) };
+					traced = traced + ( drift / divisor + 0.7f );
+					const vec3 wave{ sine( horizontal ), sine( vertical ), sine( vertical ) };
+					color = color + ( wave + 1.0f ) * absolute( horizontal - vertical ) * 0.2f;
 				}
 
-				//	o=tanh(exp(p.y*vec4(1,-1,-2,0))*exp(-4.*l.x)/o);
-				vec3 e = ( p[ 1 ] * vec3{ 1.0f, -1.0f, -2.0f } ) | exponential | to;
-				
-				e *= exponential( -4.0f * l );
-				
-				return	( e / o ) | hyperbolic_tangent | to;
+				//	vertical falloff through the exponential lift
+				vec3 falloff = ( top( normalized ) * vec3{ 1.0f, -1.0f, -2.0f } ) | exponential | to;
+				falloff *= exponential( -4.0f * ring );
+
+				return	( falloff / color ) | hyperbolic_tangent | to;
 			}
 		);
 	}
 	catch( const exception& error )
 	{
-		println( "error: {}", error.what( ) );
+		println( stderr, "error: {}", error.what( ) );
+		return	exit_failure;
+	}
+	catch( ... )
+	{
+		println( stderr, "error: an unknown exception occurred" );
 		return	exit_failure;
 	}
 
 	return	exit_success;
 }
-
-

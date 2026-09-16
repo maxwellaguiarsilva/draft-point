@@ -10,8 +10,6 @@
 #include <game/shadertoy.hpp>
 #include <tui/terminal.hpp>
 #include <tui/renderer.hpp>
-#include <cmath>
-#include <algorithm>
 #include <memory>
 #include <print>
 #include <vector>
@@ -20,19 +18,27 @@
 namespace {
 
 
-__using( ::std::
-	,min
-	,max
-	,floor
-)
 __using( ::std::, unique_ptr, make_unique, vector )
 __using( ::sak::, g2f, g3f )
 __using( ::sak::ranges::, to )
-__using( ::sak::math::, sum, sine, cosine, absolute, clamp, dot, length, normalize, cross )
+__using( ::sak::math::
+	,sine
+	,cosine
+	,absolute
+	,clamp
+	,min
+	,max
+	,round_down
+	,dot
+	,length
+	,normalize
+	,cross
+)
+__using_static( g2f::, left, top, width, height )
 
 
-using   vec2    =   g2f::point;
-using   vec3    =   g3f::point;
+using	vec2	=	g2f::point;
+using	vec3	=	g3f::point;
 
 
 constexpr auto clamp_vector( const auto& vector, float min_value, float max_value ) noexcept
@@ -41,6 +47,35 @@ constexpr auto clamp_vector( const auto& vector, float min_value, float max_valu
 }
 
 constexpr auto mix( const auto& first, const auto& second, float factor ) noexcept { return first * ( 1.0f - factor ) + second * factor; }
+
+
+//	closest ray intersection carries travel distance and surface material
+struct intersection
+{
+	float distance;
+	float material_id;
+};
+
+
+//	checkerboard blend factor from the floor plane coordinates
+constexpr auto checker_factor( vec3 position ) noexcept
+{
+	__using_constexpr( g3f::, left, depth )
+
+	return	( int( round_down( left( position ) / 8.0f ) ) + int( round_down( depth( position ) / 8.0f ) ) ) & 1;
+}
+
+
+//	combined diffuse plus ambient plus backlight response
+constexpr auto shade( vec3 normal, vec3 light_direction ) noexcept
+{
+	__using_constexpr( g3f::, top )
+
+	float diffuse = clamp( dot( normal, light_direction ), 0.0f, 1.0f );
+	float ambient = 0.3f + 0.2f * top( normal );
+	float backlight = 0.2f * clamp( dot( normal, -light_direction ), 0.0f, 1.0f );
+	return	diffuse + ambient + backlight;
+}
 
 
 struct primitive
@@ -66,7 +101,9 @@ struct plane final : primitive
 
 	auto sdf( vec3 point ) const -> float override
 	{
-		return	point[ 1 ] - m_position[ 1 ];
+		__using_constexpr( g3f::, top )
+
+		return	top( point ) - top( m_position );
 	}
 };
 
@@ -93,38 +130,40 @@ struct torus final : primitive
 
 	auto sdf( vec3 point ) const -> float override
 	{
+		__using_constexpr( g3f::, depth )
+
 		auto local = point - m_position;
-		vec2 relative_2d_position{ length( vec2{ local } ) - m_radii[ 0 ], local[ 2 ] };
-		return	length( relative_2d_position ) - m_radii[ 1 ];
+		vec2 relative_2d_position{ length( vec2{ local } ) - width( m_radii ), depth( local ) };
+		return	length( relative_2d_position ) - height( m_radii );
 	}
 };
 
 
-auto map( vec3 position, const vector< unique_ptr< primitive > >& primitives ) -> vec2
+auto map( vec3 position, const vector< unique_ptr< primitive > >& primitives ) -> intersection
 {
-	vec2 result{ 1e9f, -1.0f };
+	intersection result{ 1e9f, -1.0f };
 	for( const auto& pointer : primitives )
 	{
 		const auto& prim = *pointer;
 		float distance = prim.sdf( position );
-		if( distance < result[ 0 ] ) result = { distance, prim.material_id( ) };
+		if( distance < result.distance ) result = { distance, prim.material_id( ) };
 	}
 	return	result;
 }
 
-auto raycast( vec3 ray_origin, vec3 ray_direction, const vector< unique_ptr< primitive > >& primitives ) -> vec2
+auto raycast( vec3 ray_origin, vec3 ray_direction, const vector< unique_ptr< primitive > >& primitives ) -> intersection
 {
-	vec2 result{ -1.0f, -1.0f };
+	intersection result{ -1.0f, -1.0f };
 	float distance_travelled = 0.1f;
 	for( int index = 0; index < 64; ++index )
 	{
-		vec2 hit = map( ray_origin + ray_direction * distance_travelled, primitives );
-		if( absolute( hit[ 0 ] ) < ( 0.001f * distance_travelled ) )
+		intersection current = map( ray_origin + ray_direction * distance_travelled, primitives );
+		if( absolute( current.distance ) < ( 0.001f * distance_travelled ) )
 		{
-			result = { distance_travelled, hit[ 1 ] };
+			result = { distance_travelled, current.material_id };
 			break;
 		}
-		distance_travelled += hit[ 0 ];
+		distance_travelled += current.distance;
 		if( distance_travelled > 200.0f ) break;
 	}
 	return	result;
@@ -138,9 +177,9 @@ auto calc_normal( vec3 position, const vector< unique_ptr< primitive > >& primit
 	const vec3 offset_z{ 0.0f, 0.0f, epsilon };
 
 	return	normalize( vec3{
-		 map( position + offset_x, primitives )[ 0 ] - map( position - offset_x, primitives )[ 0 ]
-		,map( position + offset_y, primitives )[ 0 ] - map( position - offset_y, primitives )[ 0 ]
-		,map( position + offset_z, primitives )[ 0 ] - map( position - offset_z, primitives )[ 0 ]
+		 map( position + offset_x, primitives ).distance - map( position - offset_x, primitives ).distance
+		,map( position + offset_y, primitives ).distance - map( position - offset_y, primitives ).distance
+		,map( position + offset_z, primitives ).distance - map( position - offset_z, primitives ).distance
 	} );
 }
 
@@ -150,8 +189,15 @@ auto calc_normal( vec3 position, const vector< unique_ptr< primitive > >& primit
 auto main( const int /*argument_count*/, const char* /*argument_values*/[ ] ) -> int
 {
 	__using( ::sak::, exit_success, exit_failure )
-	__using( ::sak::math::, sine, cosine, clamp, exponential )
-	__using( ::std::, exception, floor, println )
+	__using( ::sak::math::
+		,sine
+		,cosine
+		,clamp
+		,exponential
+		,min
+		,max
+	)
+	__using( ::std::, exception, println )
 
 	try
 	{
@@ -189,45 +235,45 @@ auto main( const int /*argument_count*/, const char* /*argument_values*/[ ] ) ->
 			},
 			[ & ]( vec2 input ) -> vec3
 			{
-				vec3 ray_direction = normalize( camera_right * input[ 0 ] + camera_up * input[ 1 ] + camera_forward * 1.5f );
+				vec3 ray_direction = normalize( camera_right * left( input ) + camera_up * top( input ) + camera_forward * 1.5f );
 
-			vec3 color{ 0.0f, 0.0f, 0.0f };
-			vec2 result = raycast( ray_origin, ray_direction, primitives );
+				vec3 color{ 0.0f, 0.0f, 0.0f };
+				intersection result = raycast( ray_origin, ray_direction, primitives );
 
-			if( result[ 1 ] > -0.5f )
-			{
-				float distance = result[ 0 ];
-				vec3 position = ray_origin + ray_direction * distance;
-				vec3 normal = calc_normal( position, primitives );
-				vec3 light_direction = normalize( vec3{ -0.5f, 0.4f, -0.6f } );
-
-				vec3 material_color;
-				if( result[ 1 ] < 1.5f )
-					material_color = mix(
-						 vec3{ 0.2f, 0.2f, 0.1f }
-						,vec3{ 0.3f, 0.3f, 0.2f }
-						,( int( floor( position[ 0 ] / 8.0f ) + floor( position[ 2 ] / 8.0f ) ) & 1 )
-					);
-				else
+				if( result.material_id > -0.5f )
 				{
-					const vec3 wave = ( vec3{ 1.0f, 1.2f, 1.5f } * result[ 1 ] * 0.01f ) | sine | to;
-					material_color = 0.6f + 0.4f * wave;
+					float distance = result.distance;
+					vec3 position = ray_origin + ray_direction * distance;
+					vec3 normal = calc_normal( position, primitives );
+					vec3 light_direction = normalize( vec3{ -0.5f, 0.4f, -0.6f } );
+
+					vec3 material_color;
+					if( result.material_id < 1.5f )
+						material_color = mix(
+							 vec3{ 0.2f, 0.2f, 0.1f }
+							,vec3{ 0.3f, 0.3f, 0.2f }
+							,checker_factor( position )
+						);
+					else
+					{
+						const vec3 wave = ( vec3{ 1.0f, 1.2f, 1.5f } * result.material_id * 0.01f ) | sine | to;
+						material_color = 0.6f + 0.4f * wave;
+					}
+
+					color = material_color * shade( normal, light_direction );
+					color = mix( color, vec3{ 0.0f, 0.0f, 0.0f }, 1.0f - exponential( -0.0001f * distance ) );
 				}
 
-				color = material_color * (
-						clamp( dot( normal, light_direction ), 0.0f, 1.0f )
-					+	( 0.3f + 0.2f * normal[ 1 ] )
-					+	( 0.2f * clamp( dot( normal, -light_direction ), 0.0f, 1.0f ) )
-				);
-				color = mix( color, vec3{ 0.0f, 0.0f, 0.0f }, 1.0f - exponential( -0.0001f * distance ) );
-			}
-
-			return	clamp_vector( color, 0.0f, 1.0f );
+				return	clamp_vector( color, 0.0f, 1.0f );
 		} );
 
-	} catch( const exception& e )
+	} catch( const exception& error )
 	{
-		println( "error: {}", e.what( ) );
+		println( stderr, "error: {}", error.what( ) );
+		return	exit_failure;
+	} catch( ... )
+	{
+		println( stderr, "error: an unknown exception occurred" );
 		return	exit_failure;
 	}
 
