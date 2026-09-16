@@ -50,6 +50,17 @@ family_list = [
         ,"public_args": "prefix"
     }
     ,{
+         "name": "using_constexpr"
+        ,"file_path": "include/sak/expand64/using_constexpr.hpp"
+        ,"name_params": "p, a"
+        ,"name_body": "constexpr auto& a = p a;"
+        ,"chain_params": "p, a, ..."
+        ,"chain_call_args": "p, a"
+        ,"next_args": "p, __VA_ARGS__"
+        ,"public_params": "prefix, ..."
+        ,"public_args": "prefix"
+    }
+    ,{
          "name": "use_macro"
         ,"file_path": "include/sak/expand64/using_macro.hpp"
         ,"name_params": "a_macro, a_args"
