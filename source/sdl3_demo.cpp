@@ -70,7 +70,12 @@ layout( location = 1 ) uniform vec2 resolution;
 
 layout( std430, binding = 0 ) readonly buffer sphere_buffer
 {
-	float raw_spheres[];
+	float sphere_data[];
+};
+
+layout( std430, binding = 1 ) readonly buffer environment_buffer
+{
+	float environment_data[];
 };
 
 out vec4 final_color;
@@ -86,9 +91,40 @@ sphere get_sphere( int index )
 {
 	int base_index = index * 7;
 	return sphere(
-		vec3( raw_spheres[ base_index + 0 ], raw_spheres[ base_index + 1 ], raw_spheres[ base_index + 2 ] ),
-		raw_spheres[ base_index + 3 ],
-		vec3( raw_spheres[ base_index + 4 ], raw_spheres[ base_index + 5 ], raw_spheres[ base_index + 6 ] )
+		vec3( sphere_data[ base_index + 0 ], sphere_data[ base_index + 1 ], sphere_data[ base_index + 2 ] ),
+		sphere_data[ base_index + 3 ],
+		vec3( sphere_data[ base_index + 4 ], sphere_data[ base_index + 5 ], sphere_data[ base_index + 6 ] )
+	);
+}
+
+struct environment
+{
+	vec3 cam_position;
+	vec3 cam_forward;
+	vec3 cam_right;
+	vec3 cam_up;
+	vec3 background_color;
+	float focal;
+	float ambient;
+	float volume;
+};
+
+vec3 get_environment_vector( int base_index )
+{
+	return vec3( environment_data[ base_index ], environment_data[ base_index + 1 ], environment_data[ base_index + 2 ] );
+}
+
+environment get_environment( )
+{
+	return environment(
+		get_environment_vector( 0 ),
+		get_environment_vector( 3 ),
+		get_environment_vector( 6 ),
+		get_environment_vector( 9 ),
+		get_environment_vector( 12 ),
+		environment_data[ 15 ],
+		environment_data[ 16 ],
+		environment_data[ 17 ]
 	);
 }
 
@@ -96,23 +132,17 @@ void main( )
 {
 	vec2 input_coord = ( gl_FragCoord.xy - 0.5 * resolution ) * ( 2.0 / min( resolution.x, resolution.y ) );
 
-	const float focal = 2.0;
-	const vec3 cam_position = vec3( 0.0, 0.0, -2.0 );
-	const vec3 cam_forward = vec3( 0.0, 0.0, 1.0 );
-	const vec3 cam_right = vec3( 1.0, 0.0, 0.0 );
-	const vec3 cam_up = vec3( 0.0, 1.0, 0.0 );
+	const environment current_environment = get_environment( );
 
-	vec3 direction = cam_forward * focal + cam_right * input_coord.x + cam_up * input_coord.y;
+	vec3 direction = current_environment.cam_forward * current_environment.focal + current_environment.cam_right * input_coord.x + current_environment.cam_up * input_coord.y;
 
 	float best_distance = 1e20;
-	const float edge_shade = 0.7;
-	const vec3 background_color = vec3( 0.0, 0.0, 0.0 );
-	vec3 color = background_color;
+	vec3 color = current_environment.background_color;
 
 	for( int index = 0; index < sphere_count; ++index )
 	{
 		sphere object = get_sphere( index );
-		vec3 hypotenuse = object.position - cam_position;
+		vec3 hypotenuse = object.position - current_environment.cam_position;
 		float dot_direction = dot( direction, direction );
 		float dot_hypotenuse_direction = dot( hypotenuse, direction );
 		float opposite_leg_squared = dot( hypotenuse, hypotenuse ) - ( dot_hypotenuse_direction * dot_hypotenuse_direction ) / dot_direction;
@@ -123,7 +153,7 @@ void main( )
 		if( dot_hypotenuse_direction > 0.0 && distance < best_distance && ratio <= 1.0 )
 		{
 			best_distance = distance;
-			color = object.color * ( 1.0 - edge_shade * clamp( ratio, 0.0, 1.0 ) );
+			color = object.color * ( current_environment.ambient + current_environment.volume * sqrt( 1.0 - clamp( ratio, 0.0, 1.0 ) ) );
 		}
 	}
 
@@ -134,13 +164,13 @@ void main( )
 
 	//	the eight basic ansi colors, indexed by the rgb channel bits of the index
 	inline constexpr array< point, 8 > palette = { {
-		 {	0.3f	,0.3f	,0.3f	}
-		,{	1.0f	,0.3f	,0.3f	}
-		,{	0.3f	,1.0f	,0.3f	}
-		,{	1.0f	,1.0f	,0.3f	}
-		,{	0.3f	,0.3f	,1.0f	}
-		,{	1.0f	,0.3f	,1.0f	}
-		,{	0.3f	,1.0f	,1.0f	}
+		 {	0.0f	,0.0f	,0.0f	}
+		,{	1.0f	,0.0f	,0.0f	}
+		,{	0.0f	,1.0f	,0.0f	}
+		,{	1.0f	,1.0f	,0.0f	}
+		,{	0.0f	,0.0f	,1.0f	}
+		,{	1.0f	,0.0f	,1.0f	}
+		,{	0.0f	,1.0f	,1.0f	}
 		,{	1.0f	,1.0f	,1.0f	}
 	} };
 
@@ -155,6 +185,25 @@ void main( )
 		float		m_radius;
 		color		m_color;
 	};	//	total 7 floats
+
+
+	//	shared environment, transferred as flat floats and assembled manually on the gpu like spheres
+	struct environment
+	{
+		using	geometry	=	::sak::g3f;
+		using	position	=	geometry::position;
+		using	direction	=	geometry::point;
+		using	color		=	geometry::point;
+
+		position	m_cam_position;
+		direction	m_cam_forward;
+		direction	m_cam_right;
+		direction	m_cam_up;
+		color		m_background_color;
+		float		m_focal;
+		float		m_ambient;
+		float		m_volume;
+	};	//	total 18 floats
 
 
 	//	regular polygon centered at the origin, the authoritative cpu geometry
@@ -314,7 +363,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::sak::sdl3::opengl::, context )
 	__using( ::std::chrono::, duration, high_resolution_clock )
 	__using( ::game::, fps )
-	__using( ::gl::, polygon, window_listener, vertex_shader_source, fragment_shader_source )
+	__using( ::gl::, environment, polygon, window_listener, vertex_shader_source, fragment_shader_source )
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
@@ -355,6 +404,24 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		gl_program_uniform_1i( shader_program.id( ), 0, static_cast< GLint >( mesh.count( ) ) );
 
+		//	shared environment, uploaded once because it rarely changes
+		static_assert( sizeof( environment ) == 18 * sizeof( float ), "environment must stay tightly packed" );
+		const float ambient = 0.3f;
+		const environment environment_data = {
+			 {	0.0f	,0.0f	,-2.0f	}
+			,{	0.0f	,0.0f	,1.0f	}
+			,{	1.0f	,0.0f	,0.0f	}
+			,{	0.0f	,1.0f	,0.0f	}
+			,{	0.0f	,0.0f	,0.0f	}
+			,2.0f
+			,ambient
+			,1.0f - ambient
+		};
+		GLuint environment_buffer = 0;
+		gl_create_buffers( 1, &environment_buffer );
+		gl_named_buffer_storage( environment_buffer, sizeof( environment ), &environment_data, 0 );
+		gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, 1, environment_buffer );
+
 		const auto listener = make_shared< window_listener >( application_window, app, mesh, shader_program.id( ) );
 		application_window.listeners( ) += listener;
 
@@ -388,6 +455,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		//	clean up raw opengl objects while the context is still current;
 		gl_delete_vertex_arrays( 1, &vertex_array );
 		gl_delete_buffers( 1, &sphere_buffer );
+		gl_delete_buffers( 1, &environment_buffer );
 
 		println( "modern opengl rgb shadertoy finished successfully" );
 	}
