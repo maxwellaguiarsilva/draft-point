@@ -160,19 +160,19 @@ void main( )
 	class polygon
 	{
 	public:
-		static constexpr float polygon_radius = 0.5f;
+		static constexpr float polygon_radius = 0.7f;
 
 		explicit polygon( const size_t total )
 			: m_spheres( )
 		{
 			const float step = 2.0f * 3.14159265f / total;
-			const float sphere_radius = min( 0.12f, 0.8f * polygon_radius * sine( 3.14159265f / total ) );
+			const float sphere_radius = ( 0.8f * polygon_radius * sine( 3.14159265f / total ) );
 			m_spheres.reserve( total + 1 );
-			m_spheres.push_back( { sphere::position{ 0.0f, 0.0f, 0.0f }, sphere_radius, palette[ 7 ] } );
+			m_spheres.push_back( { sphere::position{ 0.0f, 0.0f, 1.0f }, sphere_radius, palette[ 7 ] } );
 			for( const size_t index : count_to( total ) )
 				m_spheres.push_back( {
-					 sphere::position{ polygon_radius * cosine( step * index ), polygon_radius * sine( step * index ), 0.0f }
-					,sphere_radius
+					 sphere::position{ polygon_radius * cosine( step * index ), polygon_radius * sine( step * index ), 1.0f }
+					,sphere_radius * cosine( step * index )
 					,palette[ ( index % 7 ) + 1 ]
 				} );
 		}
