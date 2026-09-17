@@ -158,7 +158,7 @@ void main( )
 	}
 
 	final_color = vec4( color, 1.0 );
-
+}
 )glsl";
 
 
@@ -444,9 +444,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			//	the cpu is the source of truth, so upload the mesh only when input rewrote it
 			if( mesh.consume_changed( ) )
 				gl_named_buffer_sub_data( sphere_buffer, 0, mesh.byte_size( ), mesh.data( ) );
-
-			gl_clear_color( 0.0f, 0.0f, 0.0f, 1.0f );
-			gl_clear( GL_COLOR_BUFFER_BIT );
 
 			gl_bind_vertex_array( vertex_array );
 			gl_draw_arrays( GL_TRIANGLE_STRIP, 0, 4 );
