@@ -158,7 +158,7 @@ void main( )
 	}
 
 	final_color = vec4( color, 1.0 );
-}
+
 )glsl";
 
 
@@ -284,7 +284,10 @@ void main( )
 		static constexpr float rotation_speed = 1.5f;
 
 		window_listener( window& target_window, application& target_application, polygon& target_mesh, const GLuint target_program_id )
-			: m_window( target_window ), m_application( target_application ), m_mesh( target_mesh ), m_program_id( target_program_id )
+			:m_window( target_window )
+			,m_application( target_application )
+			,m_mesh( target_mesh )
+			,m_program_id( target_program_id )
 		{
 			pixel_resize( target_window.pixel_size( ) );
 		}
