@@ -11,6 +11,7 @@
 
 
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <format>
 #include <map>
@@ -39,7 +40,7 @@ namespace gl {
 		,string
 		,vector
 	)
-	__using( ::std::views::, drop, take, transform, zip )
+	__using( ::std::views::, transform, zip )
 	__using( ::sak::math::, cosine, min, rotate, sine )
 	__using( ::sak::ranges::, count_to, to )
 	__using( ::sak::ranges::views::, rotated )
@@ -133,13 +134,13 @@ void main( )
 
 	//	the eight basic ansi colors, indexed by the rgb channel bits of the index
 	inline constexpr array< point, 8 > palette = { {
-		 {	0.0f	,0.0f	,0.0f	}
-		,{	1.0f	,0.0f	,0.0f	}
-		,{	0.0f	,1.0f	,0.0f	}
-		,{	1.0f	,1.0f	,0.0f	}
-		,{	0.0f	,0.0f	,1.0f	}
-		,{	1.0f	,0.0f	,1.0f	}
-		,{	0.0f	,1.0f	,1.0f	}
+		 {	0.3f	,0.3f	,0.3f	}
+		,{	1.0f	,0.3f	,0.3f	}
+		,{	0.3f	,1.0f	,0.3f	}
+		,{	1.0f	,1.0f	,0.3f	}
+		,{	0.3f	,0.3f	,1.0f	}
+		,{	1.0f	,0.3f	,1.0f	}
+		,{	0.3f	,1.0f	,1.0f	}
 		,{	1.0f	,1.0f	,1.0f	}
 	} };
 
@@ -151,7 +152,7 @@ void main( )
 		using	position	=	geometry::position;
 
 		position	m_position;
-		float		radius;
+		float		m_radius;
 		color		m_color;
 	};	//	total 7 floats
 
@@ -161,19 +162,20 @@ void main( )
 	{
 	public:
 		static constexpr float polygon_radius = 0.7f;
+		static constexpr float pulsation_speed = 3.0f;
+		static constexpr float pulsation_amplitude = 0.05f;
+		static constexpr float pulsation_phase_step = 3.14159265f / 2.0f;
 
 		explicit polygon( const size_t total )
-			: m_spheres( )
+			: m_spheres( ), m_base_radius( 0.8f * polygon_radius * sine( 3.14159265f / total ) )
 		{
 			const float step = 2.0f * 3.14159265f / total;
-			const float sphere_radius = ( 0.8f * polygon_radius * sine( 3.14159265f / total ) );
-			m_spheres.reserve( total + 1 );
-			m_spheres.push_back( { sphere::position{ 0.0f, 0.0f, 1.0f }, sphere_radius, palette[ 7 ] } );
+			m_spheres.reserve( total );
 			for( const size_t index : count_to( total ) )
 				m_spheres.push_back( {
 					 sphere::position{ polygon_radius * cosine( step * index ), polygon_radius * sine( step * index ), 1.0f }
-					,sphere_radius * cosine( step * index )
-					,palette[ ( index % 7 ) + 1 ]
+					,m_base_radius
+					,palette[ index % palette.size( ) ]
 				} );
 		}
 
@@ -187,14 +189,12 @@ void main( )
 
 		auto cycle_colors( const bool forward ) -> void
 		{
-			const size_t perimeter_count = m_spheres.size( ) - 1;
+			const size_t total = m_spheres.size( );
 			const vector< sphere::color > colors = m_spheres
-				|	drop( 1 )
-				|	take( perimeter_count )
 				|	transform( &sphere::m_color )
-				|	rotated( forward ? 1 : perimeter_count - 1 )
+				|	rotated( forward ? 1 : total - 1 )
 				|	to;
-			for( auto [ current, color_value ] : zip( m_spheres | drop( 1 ), colors ) )
+			for( auto [ current, color_value ] : zip( m_spheres, colors ) )
 				current.m_color = color_value;
 			m_changed = true;
 		}
@@ -206,12 +206,22 @@ void main( )
 			return	result;
 		}
 
+		auto update( const float delta_seconds ) -> void
+		{
+			m_time += delta_seconds;
+			for( const size_t index : count_to( m_spheres.size( ) ) )
+				m_spheres[ index ].m_radius = m_base_radius + pulsation_amplitude * sine( pulsation_speed * m_time + index * pulsation_phase_step );
+			m_changed = true;
+		}
+
 		auto data( ) const noexcept -> const sphere* { return m_spheres.data( ); }
 		auto byte_size( ) const noexcept -> size_t { return m_spheres.size( ) * sizeof( sphere ); }
 		auto count( ) const noexcept -> size_t { return m_spheres.size( ); }
 
 	private:
 		vector< sphere > m_spheres;
+		float m_base_radius;
+		float m_time{ 0.0f };
 		bool m_changed{ false };
 	};
 
@@ -221,6 +231,8 @@ void main( )
 	public:
 		using	geometry	=	::sak::g2i;
 		__using_static( geometry::, width, height )
+
+		static constexpr float rotation_speed = 1.5f;
 
 		window_listener( window& target_window, application& target_application, polygon& target_mesh, const GLuint target_program_id )
 			: m_window( target_window ), m_application( target_application ), m_mesh( target_mesh ), m_program_id( target_program_id )
@@ -233,22 +245,40 @@ void main( )
 			gl_program_uniform_2f( m_program_id, 1, static_cast< float >( width( new_size ) ), static_cast< float >( height( new_size ) ) );
 		}
 
+		auto turn_direction( ) const noexcept -> float { return m_turn_direction; }
+		auto turn_direction( const float value ) noexcept -> void { m_turn_direction = value; }
+
 		void key_down( const SDL_KeyboardEvent& event ) override
 		{
-			float rotation_step = 3.14159265f / static_cast< float >( m_mesh.count( ) * 2 );
-
 			if( event.key == SDLK_ESCAPE )
 				m_application.quit( );
 			else if( event.key == SDLK_F11 and not event.repeat )
 				m_window.toggle_fullscreen( );
 			else if( event.key == SDLK_LEFT )
-				m_mesh.turn( -rotation_step );
+				turn_direction( -1.0f );
 			else if( event.key == SDLK_RIGHT )
-				m_mesh.turn( rotation_step );
+				turn_direction( 1.0f );
 			else if( event.key == SDLK_UP )
 				m_mesh.cycle_colors( true );
 			else if( event.key == SDLK_DOWN )
 				m_mesh.cycle_colors( false );
+		}
+
+		void key_up( const SDL_KeyboardEvent& event ) override
+		{
+			if( event.key == SDLK_LEFT and turn_direction( ) < 0.0f )
+				turn_direction( 0.0f );
+			else if( event.key == SDLK_RIGHT and turn_direction( ) > 0.0f )
+				turn_direction( 0.0f );
+		}
+
+		void focus_lost( ) override { turn_direction( 0.0f ); }
+
+		auto update( const float delta_seconds ) -> void
+		{
+			if( turn_direction( ) not_eq 0.0f )
+				m_mesh.turn( turn_direction( ) * rotation_speed * delta_seconds );
+			m_mesh.update( delta_seconds );
 		}
 
 	private:
@@ -256,6 +286,7 @@ void main( )
 		application&	m_application;
 		polygon&		m_mesh;
 		GLuint			m_program_id;
+		float			m_turn_direction{ 0.0f };
 	};
 
 
@@ -281,6 +312,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::sak::ranges::, contains )
 	__using( ::sak::sdl3::, application, window )
 	__using( ::sak::sdl3::opengl::, context )
+	__using( ::std::chrono::, duration, high_resolution_clock )
 	__using( ::game::, fps )
 	__using( ::gl::, polygon, window_listener, vertex_shader_source, fragment_shader_source )
 
@@ -329,8 +361,16 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		fps frame_limiter( 60 );
 		frame_limiter.compute( );
 
+		auto last_time = high_resolution_clock::now( );
+
 		app.run( [ & ]( )
 		{
+			const auto current_time = high_resolution_clock::now( );
+			const duration< float > delta = current_time - last_time;
+			last_time = current_time;
+
+			listener->update( delta.count( ) );
+
 			//	the cpu is the source of truth, so upload the mesh only when input rewrote it
 			if( mesh.consume_changed( ) )
 				gl_named_buffer_sub_data( sphere_buffer, 0, mesh.byte_size( ), mesh.data( ) );
