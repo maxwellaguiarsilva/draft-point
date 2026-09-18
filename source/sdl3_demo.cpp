@@ -32,7 +32,10 @@
 namespace gl {
 
 	using	geometry	=	::sak::g3f;
-	using	point		=	geometry::point;
+	using	color		=	geometry::color;
+	using	position	=	geometry::position;
+	using	size		=	geometry::size;
+	using	direction	=	geometry::point;
 
 	__using( ::std::
 		,array
@@ -163,7 +166,7 @@ void main( )
 
 
 	//	the eight basic ansi colors, indexed by the rgb channel bits of the index
-	inline constexpr array< point, 8 > palette = { {
+	inline constexpr array< color, 8 > palette = { {
 		 {	0.0f	,0.0f	,0.0f	}
 		,{	1.0f	,0.0f	,0.0f	}
 		,{	0.0f	,1.0f	,0.0f	}
@@ -177,10 +180,6 @@ void main( )
 
 	struct sphere
 	{
-		using	geometry	=	::sak::g3f;
-		using	color		=	geometry::point;
-		using	position	=	geometry::position;
-
 		position	m_position;
 		float		m_radius;
 		color		m_color;
@@ -190,11 +189,6 @@ void main( )
 	//	shared environment, transferred as flat floats and assembled manually on the gpu like spheres
 	struct environment
 	{
-		using	geometry	=	::sak::g3f;
-		using	position	=	geometry::position;
-		using	direction	=	geometry::point;
-		using	color		=	geometry::point;
-
 		position	m_cam_position;
 		direction	m_cam_forward;
 		direction	m_cam_right;
@@ -222,7 +216,7 @@ void main( )
 			m_spheres.reserve( total );
 			for( const size_t index : count_to( total ) )
 				m_spheres.push_back( {
-					 sphere::position{ polygon_radius * cosine( step * index ), polygon_radius * sine( step * index ), 1.0f }
+					 position{ polygon_radius * cosine( step * index ), polygon_radius * sine( step * index ), 1.0f }
 					,m_base_radius
 					,palette[ index % palette.size( ) ]
 				} );
@@ -230,7 +224,7 @@ void main( )
 
 		auto turn( const float angle ) -> void
 		{
-			const sphere::position axis{ 0.0f, 0.0f, 1.0f };
+			const position axis{ 0.0f, 0.0f, 1.0f };
 			for( sphere& current : m_spheres )
 				current.m_position = rotate( current.m_position, axis, angle ) | to;
 			m_changed = true;
@@ -239,7 +233,7 @@ void main( )
 		auto cycle_colors( const bool forward ) -> void
 		{
 			const size_t total = m_spheres.size( );
-			const vector< sphere::color > colors = m_spheres
+			const vector< color > colors = m_spheres
 				|	transform( &sphere::m_color )
 				|	rotated( forward ? 1 : total - 1 )
 				|	to;
