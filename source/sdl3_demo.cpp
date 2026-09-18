@@ -90,13 +90,15 @@ struct sphere
 	vec3 color;
 };
 
+#define get_vec3_from( data, index ) vec3( data[ ( index ) ], data[ ( index ) + 1 ], data[ ( index ) + 2 ] )
+
 sphere get_sphere( int index )
 {
 	int base_index = index * 7;
 	return sphere(
-		vec3( sphere_data[ base_index + 0 ], sphere_data[ base_index + 1 ], sphere_data[ base_index + 2 ] ),
+		get_vec3_from( sphere_data, base_index + 0 ),
 		sphere_data[ base_index + 3 ],
-		vec3( sphere_data[ base_index + 4 ], sphere_data[ base_index + 5 ], sphere_data[ base_index + 6 ] )
+		get_vec3_from( sphere_data, base_index + 4 )
 	);
 }
 
@@ -112,19 +114,14 @@ struct environment
 	float volume;
 };
 
-vec3 get_environment_vector( int base_index )
-{
-	return vec3( environment_data[ base_index ], environment_data[ base_index + 1 ], environment_data[ base_index + 2 ] );
-}
-
 environment get_environment( )
 {
 	return environment(
-		get_environment_vector( 0 ),
-		get_environment_vector( 3 ),
-		get_environment_vector( 6 ),
-		get_environment_vector( 9 ),
-		get_environment_vector( 12 ),
+		get_vec3_from( environment_data, 0 ),
+		get_vec3_from( environment_data, 3 ),
+		get_vec3_from( environment_data, 6 ),
+		get_vec3_from( environment_data, 9 ),
+		get_vec3_from( environment_data, 12 ),
 		environment_data[ 15 ],
 		environment_data[ 16 ],
 		environment_data[ 17 ]
