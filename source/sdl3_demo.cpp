@@ -143,11 +143,9 @@ void main( )
 	{
 		sphere object = get_sphere( index );
 		vec3 hypotenuse = object.position - current_environment.cam_position;
-		float dot_direction = dot( direction, direction );
 		float dot_hypotenuse_direction = dot( hypotenuse, direction );
-		float opposite_leg_squared = dot( hypotenuse, hypotenuse ) - ( dot_hypotenuse_direction * dot_hypotenuse_direction ) / dot_direction;
-		float radius_squared = object.radius * object.radius;
-		float ratio = opposite_leg_squared / radius_squared;
+		float opposite_leg_squared = dot( hypotenuse, hypotenuse ) - ( dot_hypotenuse_direction * dot_hypotenuse_direction ) / dot( direction, direction );
+		float ratio = opposite_leg_squared / ( object.radius * object.radius );
 		float distance = length( hypotenuse );
 
 		if( dot_hypotenuse_direction > 0.0 && distance < best_distance && ratio <= 1.0 )
@@ -221,18 +219,16 @@ void main( )
 
 		auto turn( const float angle ) -> void
 		{
-			const position axis{ 0.0f, 0.0f, 1.0f };
 			for( sphere& current : m_spheres )
-				current.m_position = rotate( current.m_position, axis, angle ) | to;
+				current.m_position = rotate( current.m_position, position{ 0.0f, 0.0f, 1.0f }, angle ) | to;
 			m_changed = true;
 		}
 
 		auto cycle_colors( const bool forward ) -> void
 		{
-			const size_t total = m_spheres.size( );
 			const vector< color > colors = m_spheres
 				|	transform( &sphere::m_color )
-				|	rotated( forward ? 1 : total - 1 )
+				|	rotated( forward ? 1 : m_spheres.size( ) - 1 )
 				|	to;
 			for( auto [ current, color_value ] : zip( m_spheres, colors ) )
 				current.m_color = color_value;
@@ -241,9 +237,7 @@ void main( )
 
 		auto consume_changed( ) noexcept -> bool
 		{
-			const bool result = m_changed;
-			m_changed = false;
-			return	result;
+			return	::std::exchange( m_changed, false );
 		}
 
 		auto update( const float delta_seconds ) -> void
@@ -364,7 +358,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		return	println( "this executable is a modern opengl rgb shadertoy demo" ), exit_success;
 
 	const int parsed_total = to_number( value_or( arguments, 1uz, string{ "8" } ), 0 );
-	const size_t total = between( parsed_total, 3, 16 ) ? parsed_total : 8;
 
 	try
 	{
@@ -378,7 +371,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		context gl_context( application_window );
 
 		//	cpu-owned geometry, rewritten by input and mirrored to the gpu when it changes
-		polygon mesh( total );
+		polygon mesh( between( parsed_total, 3, 16 ) ? parsed_total : 8 );
 
 		//	allocate dummy vao and storage for spheres as shader storage buffer
 		GLuint vertex_array = 0;
@@ -427,10 +420,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		app.run( [ & ]( )
 		{
 			const auto current_time = high_resolution_clock::now( );
-			const duration< float > delta = current_time - last_time;
+			listener->update( duration< float >( current_time - last_time ).count( ) );
 			last_time = current_time;
-
-			listener->update( delta.count( ) );
 
 			//	the cpu is the source of truth, so upload the mesh only when input rewrote it
 			if( mesh.consume_changed( ) )
