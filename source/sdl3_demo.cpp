@@ -10,16 +10,8 @@
 #define GLAD_GL_IMPLEMENTATION
 
 
-#include <array>
-#include <chrono>
-#include <cstddef>
 #include <format>
 #include <map>
-#include <ranges>
-#include <string>
-#include <utility>
-#include <vector>
-#include <sak/geometry/geometry.hpp>
 #include <sak/opengl/program.hpp>
 #include <sak/pattern/to_number.hpp>
 #include <sak/pattern/value_or.hpp>
