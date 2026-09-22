@@ -1,7 +1,6 @@
 ---
 description: It helps the user to work on the analysis of a subject that is documented in the form of a subject tree.
 agent: build
-model: deepseek/deepseek-v4-flash
 ---
 
 **Rules:**

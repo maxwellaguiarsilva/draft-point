@@ -1,7 +1,6 @@
 ---
 description: Uploads all related Git repositories (draft-point and its sibling project-mcp-tools) by pulling, committing changes grouped by topic, and pushing to their remotes.
 agent: build
-model: deepseek/deepseek-v4-flash
 ---
 
 This workspace spans two Git repositories:
