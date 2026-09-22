@@ -4,21 +4,10 @@
 //	
 
 
-#include <array>
-#include <exception>
-#include <functional>
-#include <print>
-#include <ranges>
-#include <string>
 #include <vector>
-#include <sak/ensure.hpp>
-#include <sak/using.hpp>
 #include <sak/ranges/chunk.hpp>
 #include <sak/ranges/count_to.hpp>
 #include <sak/ranges/fold_left_first.hpp>
-#include <sak/ranges/operators.hpp>
-#include <sak/ranges/to.hpp>
-#include <sak/ranges/transform.hpp>
 #include <sak/geometry/point.hpp>
 
 

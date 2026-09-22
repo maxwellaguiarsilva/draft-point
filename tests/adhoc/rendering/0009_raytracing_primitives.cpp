@@ -4,12 +4,7 @@
 //	
 
 
-#include <exception>
-#include <sak/using.hpp>
 #include <game/shadertoy.hpp>
-#include <tui/terminal.hpp>
-#include <tui/renderer.hpp>
-#include <print>
 
 
 namespace {

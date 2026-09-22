@@ -4,20 +4,9 @@
 //	
 
 
-#include <array>
-#include <exception>
-#include <print>
-#include <ranges>
-#include <string>
 #include <typeinfo>
 #include <vector>
-#include <sak/ensure.hpp>
-#include <sak/using.hpp>
-#include <sak/math/math.hpp>
-#include <sak/math/vector.hpp>
 #include <sak/geometry/point.hpp>
-#include <sak/ranges/to.hpp>
-#include <sak/ranges/transform.hpp>
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int

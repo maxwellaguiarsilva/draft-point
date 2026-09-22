@@ -9,10 +9,8 @@
 #define header_guard_803317754
 
 
-#include <sak/sak.hpp>
 #include <tui/renderer.hpp>
 #include <game/fps.hpp>
-#include <functional>
 
 
 namespace game {

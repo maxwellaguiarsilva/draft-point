@@ -4,14 +4,7 @@
 //	
 
 
-#include <exception>
-#include <sak/using.hpp>
-#include <sak/math/math.hpp>
-#include <sak/ranges/count_to.hpp>
 #include <game/shadertoy.hpp>
-#include <tui/terminal.hpp>
-#include <tui/renderer.hpp>
-#include <print>
 
 
 namespace {

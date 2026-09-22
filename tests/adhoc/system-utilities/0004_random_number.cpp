@@ -6,7 +6,6 @@
 
 #include <print>
 #include <ranges>
-#include <string>
 #include <vector>
 #include <exception>
 #include <sak/ensure.hpp>

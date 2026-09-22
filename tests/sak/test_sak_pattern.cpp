@@ -4,26 +4,11 @@
 //	
 
 
-#include <algorithm>
-#include <array>
-#include <exception>
 #include <format>
-#include <functional>
 #include <map>
-#include <memory>
-#include <print>
-#include <ranges>
-#include <stdexcept>
-#include <string>
 #include <unordered_map>
-#include <utility>
-#include <vector>
-#include <sak/ensure.hpp>
-#include <sak/using.hpp>
 #include <sak/pattern/bitmask.hpp>
-#include <sak/pattern/cast.hpp>
 #include <sak/pattern/dispatcher.hpp>
-#include <sak/pattern/enum.hpp>
 #include <sak/pattern/to_number.hpp>
 #include <sak/pattern/tupled.hpp>
 #include <sak/pattern/value_or.hpp>

@@ -4,15 +4,7 @@
 //	
 
 
-#include <exception>
-#include <sak/using.hpp>
-#include <sak/math/vector.hpp>
 #include <game/shadertoy.hpp>
-#include <tui/terminal.hpp>
-#include <tui/renderer.hpp>
-#include <memory>
-#include <print>
-#include <vector>
 
 
 namespace {

@@ -8,20 +8,9 @@
 
 
 #include <climits>
-#include <cstdlib>
-#include <exception>
 #include <limits>
-#include <print>
-#include <ranges>
-#include <vector>
-#include <sak/sak.hpp>
-#include <sak/math/math.hpp>
-#include <sak/ranges/count_to.hpp>
-#include <sak/ranges/transform.hpp>
 #include <sak/pattern/value_or.hpp>
 #include <sak/pattern/to_number.hpp>
-#include <tui/renderer.hpp>
-#include <tui/terminal.hpp>
 #include <game/shadertoy.hpp>
 
 

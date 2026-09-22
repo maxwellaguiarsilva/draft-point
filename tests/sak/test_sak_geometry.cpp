@@ -4,18 +4,8 @@
 //	
 
 
-#include <array>
-#include <exception>
-#include <print>
-#include <ranges>
-#include <string>
 #include <vector>
-#include <sak/ensure.hpp>
-#include <sak/using.hpp>
 #include <sak/geometry/geometry.hpp>
-#include <sak/geometry/line_view.hpp>
-#include <sak/geometry/point.hpp>
-#include <sak/ranges/to.hpp>
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
