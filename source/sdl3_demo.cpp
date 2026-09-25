@@ -63,15 +63,8 @@ void main( )
 layout( location = 0 ) uniform int sphere_count;
 layout( location = 1 ) uniform vec2 resolution;
 
-layout( std430, binding = 0 ) readonly buffer sphere_buffer
-{
-	float sphere_data[];
-};
-
-layout( std430, binding = 1 ) readonly buffer environment_buffer
-{
-	float environment_data[];
-};
+layout( std430, binding = 0 ) readonly buffer sphere_buffer { float sphere_data[]; };
+layout( std430, binding = 1 ) readonly buffer environment_buffer { float environment_data[]; };
 
 out vec4 final_color;
 
@@ -227,10 +220,7 @@ void main( )
 			m_changed = true;
 		}
 
-		auto consume_changed( ) noexcept -> bool
-		{
-			return	::std::exchange( m_changed, false );
-		}
+		auto consume_changed( ) noexcept -> bool { return ::std::exchange( m_changed, false ); }
 
 		auto update( const float delta_seconds ) -> void
 		{
@@ -271,7 +261,8 @@ void main( )
 
 		void pixel_resize( const geometry::size& new_size ) override
 		{
-			gl_program_uniform_2f( m_program_id, 1, static_cast< float >( width( new_size ) ), static_cast< float >( height( new_size ) ) );
+			auto float_size = static_cast< ::sak::g2f::size >( new_size );
+			gl_program_uniform_2f( m_program_id, 1, width( new_size ), height( new_size ) );
 		}
 
 		auto turn_direction( ) const noexcept -> float { return m_turn_direction; }
