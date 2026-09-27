@@ -71,6 +71,17 @@ family_list = [
         ,"public_params": "a_macro, ..."
         ,"public_args": "a_macro"
     }
+    ,{
+         "name": "using_alias"
+        ,"file_path": "include/sak/expand64/using_alias.hpp"
+        ,"name_params": "p, a"
+        ,"name_body": "using\ta = p a;"
+        ,"chain_params": "p, a, ..."
+        ,"chain_call_args": "p, a"
+        ,"next_args": "p, __VA_ARGS__"
+        ,"public_params": "prefix, ..."
+        ,"public_args": "prefix"
+    }
 ]
 
 

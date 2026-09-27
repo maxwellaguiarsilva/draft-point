@@ -23,18 +23,9 @@
 
 namespace gl {
 
-	using	geometry	=	::sak::g3f;
-	using	color		=	geometry::color;
-	using	position	=	geometry::position;
-	using	size		=	geometry::size;
-	using	direction	=	geometry::point;
-
-	__using( ::std::
-		,array
-		,size_t
-		,string
-		,vector
-	)
+	using	direction	=	::sak::g3f::point;
+	__using_alias( ::sak::g3f::, color, position, size )
+	__using( ::std::, array, size_t, string, vector )
 	__using( ::std::views::, transform, zip )
 	__using( ::sak::math::, cosine, min, rotate, sine )
 	__using( ::sak::ranges::, count_to, to )
@@ -45,16 +36,13 @@ namespace gl {
 #version 460 core
 
 const vec2 vertices[ 4 ] = vec2[ 4 ](
-	vec2( -1.0, -1.0 ),
-	vec2(  1.0, -1.0 ),
-	vec2( -1.0,  1.0 ),
-	vec2(  1.0,  1.0 )
+	 vec2( -1.0, -1.0 )
+	,vec2(  1.0, -1.0 )
+	,vec2( -1.0,  1.0 )
+	,vec2(  1.0,  1.0 )
 );
 
-void main( )
-{
-	gl_Position = vec4( vertices[ gl_VertexID ], 0.0, 1.0 );
-}
+void main( ) { gl_Position = vec4( vertices[ gl_VertexID ], 0.0, 1.0 ); }
 )glsl";
 
 	const string fragment_shader_source = R"glsl(
@@ -255,15 +243,9 @@ void main( )
 			,m_application( target_application )
 			,m_mesh( target_mesh )
 			,m_program_id( target_program_id )
-		{
-			pixel_resize( target_window.pixel_size( ) );
-		}
+		{ pixel_resize( target_window.pixel_size( ) ); }
 
-		void pixel_resize( const geometry::size& new_size ) override
-		{
-			auto float_size = static_cast< ::sak::g2f::size >( new_size );
-			gl_program_uniform_2f( m_program_id, 1, width( new_size ), height( new_size ) );
-		}
+		void pixel_resize( const geometry::size& new_size ) override { gl_program_uniform_2f( m_program_id, 1, width( new_size ), height( new_size ) ); }
 
 		auto turn_direction( ) const noexcept -> float { return m_turn_direction; }
 		auto turn_direction( const float value ) noexcept -> void { m_turn_direction = value; }
