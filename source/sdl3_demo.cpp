@@ -111,14 +111,14 @@ namespace gl {
 
 	//	the eight basic ansi colors, indexed by the rgb channel bits of the index
 	inline constexpr array< color, 8 > palette = { {
-		 {	0.0f	,0.0f	,0.0f	}
-		,{	1.0f	,0.0f	,0.0f	}
-		,{	0.0f	,1.0f	,0.0f	}
-		,{	1.0f	,1.0f	,0.0f	}
-		,{	0.0f	,0.0f	,1.0f	}
-		,{	1.0f	,0.0f	,1.0f	}
-		,{	0.0f	,1.0f	,1.0f	}
-		,{	1.0f	,1.0f	,1.0f	}
+		 {	0.0f	,0.0f	,0.0f	,1.0f	}
+		,{	1.0f	,0.0f	,0.0f	,1.0f	}
+		,{	0.0f	,1.0f	,0.0f	,1.0f	}
+		,{	1.0f	,1.0f	,0.0f	,1.0f	}
+		,{	0.0f	,0.0f	,1.0f	,1.0f	}
+		,{	1.0f	,0.0f	,1.0f	,1.0f	}
+		,{	0.0f	,1.0f	,1.0f	,1.0f	}
+		,{	1.0f	,1.0f	,1.0f	,1.0f	}
 	} };
 
 
@@ -127,7 +127,7 @@ namespace gl {
 		position	m_position;
 		float		m_radius;
 		color		m_color;
-	};	//	total 7 floats
+	};	//	total 8 floats
 
 
 	//	shared environment, transferred as flat floats and assembled manually on the gpu like spheres
@@ -141,7 +141,7 @@ namespace gl {
 		float		m_focal;
 		float		m_ambient;
 		float		m_volume;
-	};	//	total 18 floats
+	};	//	total 19 floats
 
 
 	//	regular polygon centered at the origin, the authoritative cpu geometry
@@ -330,14 +330,14 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		gl_program_uniform_1i( shader_program.id( ), 0, static_cast< GLint >( mesh.count( ) ) );
 
 		//	shared environment, uploaded once because it rarely changes
-		static_assert( sizeof( environment ) == 18 * sizeof( float ), "environment must stay tightly packed" );
+		static_assert( sizeof( environment ) == 19 * sizeof( float ), "environment must stay tightly packed" );
 		const float ambient = 0.3f;
 		const environment environment_data = {
 			 {	0.0f	,0.0f	,-2.0f	}
 			,{	0.0f	,0.0f	,1.0f	}
 			,{	1.0f	,0.0f	,0.0f	}
 			,{	0.0f	,1.0f	,0.0f	}
-			,{	0.0f	,0.0f	,0.0f	}
+			,{	0.0f	,0.0f	,0.0f	,1.0f	}
 			,2.0f
 			,ambient
 			,1.0f - ambient

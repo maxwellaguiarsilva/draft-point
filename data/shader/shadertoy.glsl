@@ -24,18 +24,18 @@ struct sphere
 {
 	vec3 position;
 	float radius;
-	vec3 color;
+	vec4 color;
 };
 
 #define get_vec3_from( data, index ) vec3( data[ ( index ) ], data[ ( index ) + 1 ], data[ ( index ) + 2 ] )
 
 sphere get_sphere( int index )
 {
-	int base_index = index * 7;
+	int base_index = index * 8;
 	return sphere(
 		get_vec3_from( sphere_data, base_index + 0 ),
 		sphere_data[ base_index + 3 ],
-		get_vec3_from( sphere_data, base_index + 4 )
+		vec4( sphere_data[ base_index + 4 ], sphere_data[ base_index + 5 ], sphere_data[ base_index + 6 ], sphere_data[ base_index + 7 ] )
 	);
 }
 
@@ -45,7 +45,7 @@ struct environment
 	vec3 cam_forward;
 	vec3 cam_right;
 	vec3 cam_up;
-	vec3 background_color;
+	vec4 background_color;
 	float focal;
 	float ambient;
 	float volume;
@@ -58,10 +58,10 @@ environment get_environment( )
 		get_vec3_from( environment_data, 3 ),
 		get_vec3_from( environment_data, 6 ),
 		get_vec3_from( environment_data, 9 ),
-		get_vec3_from( environment_data, 12 ),
-		environment_data[ 15 ],
+		vec4( environment_data[ 12 ], environment_data[ 13 ], environment_data[ 14 ], environment_data[ 15 ] ),
 		environment_data[ 16 ],
-		environment_data[ 17 ]
+		environment_data[ 17 ],
+		environment_data[ 18 ]
 	);
 }
 
@@ -74,7 +74,7 @@ void main( )
 	vec3 direction = current_environment.cam_forward * current_environment.focal + current_environment.cam_right * input_coord.x + current_environment.cam_up * input_coord.y;
 
 	float best_distance = 1e20;
-	vec3 color = current_environment.background_color;
+	vec3 color = current_environment.background_color.rgb;
 
 	for( int index = 0; index < sphere_count; ++index )
 	{
@@ -88,7 +88,7 @@ void main( )
 		if( dot_hypotenuse_direction > 0.0 && distance < best_distance && ratio <= 1.0 )
 		{
 			best_distance = distance;
-			color = object.color * ( current_environment.ambient + current_environment.volume * sqrt( 1.0 - clamp( ratio, 0.0, 1.0 ) ) );
+			color = object.color.rgb * ( current_environment.ambient + current_environment.volume * sqrt( 1.0 - clamp( ratio, 0.0, 1.0 ) ) );
 		}
 	}
 
