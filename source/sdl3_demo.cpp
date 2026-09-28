@@ -12,6 +12,10 @@
 
 #include <format>
 #include <map>
+#include <memory>
+#include <meta>
+#include <string>
+#include <sak/fso/text_file.hpp>
 #include <sak/opengl/program.hpp>
 #include <sak/pattern/to_number.hpp>
 #include <sak/pattern/value_or.hpp>
@@ -26,111 +30,83 @@ namespace gl {
 	using	direction	=	::sak::g3f::point;
 	__using_alias( ::sak::g3f::, color, position, size )
 	__using( ::std::, array, size_t, string, vector )
+	__using( ::std::, define_static_array, define_static_string, make_unique, map, unique_ptr )
+	__using( ::std::meta::, enumerators_of, identifier_of )
 	__using( ::std::views::, transform, zip )
+	__using( ::sak::, ensure )
+	__using( ::sak::fso::, text_file )
 	__using( ::sak::math::, cosine, min, rotate, sine )
+	__using( ::sak::opengl::, shader )
 	__using( ::sak::ranges::, count_to, to )
 	__using( ::sak::ranges::views::, rotated )
 	__using( ::sak::sdl3::, application, window )
 
-	const string vertex_shader_source = R"glsl(
-#version 460 core
 
-const vec2 vertices[ 4 ] = vec2[ 4 ](
-	 vec2( -1.0, -1.0 )
-	,vec2(  1.0, -1.0 )
-	,vec2( -1.0,  1.0 )
-	,vec2(  1.0,  1.0 )
-);
-
-void main( ) { gl_Position = vec4( vertices[ gl_VertexID ], 0.0, 1.0 ); }
-)glsl";
-
-	const string fragment_shader_source = R"glsl(
-#version 460 core
-
-layout( location = 0 ) uniform int sphere_count;
-layout( location = 1 ) uniform vec2 resolution;
-
-layout( std430, binding = 0 ) readonly buffer sphere_buffer { float sphere_data[]; };
-layout( std430, binding = 1 ) readonly buffer environment_buffer { float environment_data[]; };
-
-out vec4 final_color;
-
-struct sphere
-{
-	vec3 position;
-	float radius;
-	vec3 color;
-};
-
-#define get_vec3_from( data, index ) vec3( data[ ( index ) ], data[ ( index ) + 1 ], data[ ( index ) + 2 ] )
-
-sphere get_sphere( int index )
-{
-	int base_index = index * 7;
-	return sphere(
-		get_vec3_from( sphere_data, base_index + 0 ),
-		sphere_data[ base_index + 3 ],
-		get_vec3_from( sphere_data, base_index + 4 )
-	);
-}
-
-struct environment
-{
-	vec3 cam_position;
-	vec3 cam_forward;
-	vec3 cam_right;
-	vec3 cam_up;
-	vec3 background_color;
-	float focal;
-	float ambient;
-	float volume;
-};
-
-environment get_environment( )
-{
-	return environment(
-		get_vec3_from( environment_data, 0 ),
-		get_vec3_from( environment_data, 3 ),
-		get_vec3_from( environment_data, 6 ),
-		get_vec3_from( environment_data, 9 ),
-		get_vec3_from( environment_data, 12 ),
-		environment_data[ 15 ],
-		environment_data[ 16 ],
-		environment_data[ 17 ]
-	);
-}
-
-void main( )
-{
-	vec2 input_coord = ( gl_FragCoord.xy - 0.5 * resolution ) * ( 2.0 / min( resolution.x, resolution.y ) );
-
-	const environment current_environment = get_environment( );
-
-	vec3 direction = current_environment.cam_forward * current_environment.focal + current_environment.cam_right * input_coord.x + current_environment.cam_up * input_coord.y;
-
-	float best_distance = 1e20;
-	vec3 color = current_environment.background_color;
-
-	for( int index = 0; index < sphere_count; ++index )
+	//	one marked section per shader type, the marker is the enum identifier plus a -shader suffix
+	struct shader_section
 	{
-		sphere object = get_sphere( index );
-		vec3 hypotenuse = object.position - current_environment.cam_position;
-		float dot_hypotenuse_direction = dot( hypotenuse, direction );
-		float opposite_leg_squared = dot( hypotenuse, hypotenuse ) - ( dot_hypotenuse_direction * dot_hypotenuse_direction ) / dot( direction, direction );
-		float ratio = opposite_leg_squared / ( object.radius * object.radius );
-		float distance = length( hypotenuse );
+		const char*		m_marker;
+		shader::type	m_type;
+	};
 
-		if( dot_hypotenuse_direction > 0.0 && distance < best_distance && ratio <= 1.0 )
+	consteval auto shader_sections( )
+	{
+		vector< shader_section > sections;
+		template for( constexpr auto enumerator : define_static_array( enumerators_of( ^^shader::type ) ) )
 		{
-			best_distance = distance;
-			color = object.color * ( current_environment.ambient + current_environment.volume * sqrt( 1.0 - clamp( ratio, 0.0, 1.0 ) ) );
+			const string marker = "//\t" + string( identifier_of( enumerator ) ) + "-shader";
+			sections.push_back( { define_static_string( marker ), [: enumerator :] } );
 		}
+		return	define_static_array( sections );
 	}
 
-	final_color = vec4( color, 1.0 );
-}
-)glsl";
+	constexpr auto shader_sections_list = shader_sections( );
+
+
+	//	combined glsl files are split on marker lines and compiled once per name
+	class shader_loader
+	{
+	public:
+		explicit shader_loader( const string& base_path = "data/shader" )
+			:m_base_path( base_path )
+		{ }
+
+		auto operator[ ]( const string& name ) -> const map< shader::type, shader >&
+		{
+			if( not m_cache.contains( name ) )
+				m_cache.emplace( name, load( name ) );
+			return	*m_cache.at( name );
+		}
+
+	private:
+		auto load( const string& name ) -> unique_ptr< map< shader::type, shader > >
+		{
+			text_file file( m_base_path + "/" + name + ".glsl" );
+			ensure( file.exists( ), "shader file not found: " + name );
+			ensure( file.content( ).has_value( ), "unable to read shader file: " + name );
+			const string& content = file.content( ).value( );
+			auto table = make_unique< map< shader::type, shader > >( );
+			for( const shader_section& section : shader_sections_list )
+			{
+				const size_t position = content.find( section.m_marker );
+				if( position == string::npos )
+					continue;
+				const size_t marker_end = content.find( '\n', position );
+				ensure( marker_end not_eq string::npos, "shader section marker must end with a newline: " + name );
+				const size_t begin = marker_end + 1;
+				size_t end = content.size( );
+				for( const shader_section& other : shader_sections_list )
+					if( const size_t other_position = content.find( other.m_marker, begin ); other_position not_eq string::npos and other_position < end )
+						end = other_position;
+				table->try_emplace( section.m_type, content.substr( begin, end - begin ), section.m_type );
+			}
+			ensure( not table->empty( ), "no shader section found in shader file: " + name );
+			return	table;
+		}
+
+		string m_base_path;
+		map< string, unique_ptr< map< shader::type, shader > > > m_cache;
+	};
 
 
 	//	the eight basic ansi colors, indexed by the rgb channel bits of the index
@@ -316,7 +292,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::sak::sdl3::opengl::, context )
 	__using( ::std::chrono::, duration, high_resolution_clock )
 	__using( ::game::, fps )
-	__using( ::gl::, environment, polygon, window_listener, vertex_shader_source, fragment_shader_source )
+	__using( ::gl::, environment, polygon, shader_loader, window_listener )
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
@@ -346,12 +322,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		gl_named_buffer_storage( sphere_buffer, mesh.byte_size( ), mesh.data( ), GL_DYNAMIC_STORAGE_BIT );
 		gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, 0, sphere_buffer );
 
-		//	shader program
-		map< shader::type, shader > shader_map;
-		using enum shader::type;
-		shader_map.try_emplace( vertex		,vertex_shader_source	,vertex		);
-		shader_map.try_emplace( fragment	,fragment_shader_source	,fragment	);
-		const program shader_program( shader_map | values );
+		//	shader program loaded on demand from data/shader
+		shader_loader loader;
+		const program shader_program( loader[ "shadertoy" ] | values );
 		shader_program.use( );
 
 		gl_program_uniform_1i( shader_program.id( ), 0, static_cast< GLint >( mesh.count( ) ) );
