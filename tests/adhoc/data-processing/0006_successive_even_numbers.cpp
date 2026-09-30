@@ -8,7 +8,6 @@
 #include <vector>
 #include <exception>
 #include <sak/ensure.hpp>
-#include <sak/using.hpp>
 #include <array>
 #include <cstddef>
 #include <random>
