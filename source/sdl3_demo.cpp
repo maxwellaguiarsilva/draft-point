@@ -12,9 +12,6 @@
 
 #include <format>
 #include <map>
-#include <memory>
-#include <meta>
-#include <string>
 #include <sak/fso/text_file.hpp>
 #include <sak/opengl/program.hpp>
 #include <sak/pattern/to_number.hpp>
