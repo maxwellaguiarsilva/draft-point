@@ -293,3 +293,10 @@ Refactor the raymarching primitives test (`0007_raymarching_primitives`) so that
 ### Verification
 - Compile and run test 0007 or run project compilation tools to ensure correctness.
 
+---
+
+## Fix: `sak::ranges::to` Proxy Conversion Ambiguity
+
+### Progress
+- **Session 1 ( constraining the `to` proxy ) — done.** Fixed the proxy conversion ambiguity in `include/sak/ranges/to.hpp`: added the `materializes< t_target, t_range >` concept gating `__to_proxy::operator t_target`, gated the generic `__to_impl::apply` with `requires( is_class_v< t_target > or is_union_v< t_target > )` to mirror `std::ranges::to`, and added `__to_impl< const t_target >` delegation for cv-qualified destinations. Rationale: a class target with a `convertible_to` scalar constructor ( e.g. `point` ) previously created two equally-ranked user-defined conversions in `point p = expr | to;`; the constraint makes `convertible_to< proxy, scalar >` false while specialized targets still materialize. Files touched: `include/sak/ranges/to.hpp` and `docs/agent/sak/cpp/ranges.md` ( both physically in `project-mcp-tools` ) plus this entry. Full build passed; sak tests passed.
+
