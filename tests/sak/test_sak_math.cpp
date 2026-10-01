@@ -5,7 +5,6 @@
 
 
 #include <typeinfo>
-#include <vector>
 #include <sak/geometry/point.hpp>
 
 

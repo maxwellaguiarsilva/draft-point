@@ -4,7 +4,6 @@
 //	
 
 
-#include <vector>
 #include <sak/ranges/chunk.hpp>
 #include <sak/ranges/count_to.hpp>
 #include <sak/ranges/fold_left_first.hpp>

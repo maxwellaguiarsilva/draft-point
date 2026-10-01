@@ -4,7 +4,6 @@
 //	
 
 
-#include <vector>
 #include <sak/geometry/geometry.hpp>
 
 
