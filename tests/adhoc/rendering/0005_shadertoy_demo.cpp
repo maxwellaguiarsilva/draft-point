@@ -107,3 +107,5 @@ auto main( const int /*argument_count*/, const char* /*argument_values*/[ ] ) ->
 
 	return	exit_success;
 }
+
+
