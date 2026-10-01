@@ -72,6 +72,17 @@ family_list = [
         ,"public_args": "a_macro"
     }
     ,{
+         "name": "use_macro_list"
+        ,"file_path": "include/sak/expand64/using_macro_list.hpp"
+        ,"name_params": "a_args, a_macro"
+        ,"name_body": "__use_macro( a_macro, __use_macro_list_unpack a_args )"
+        ,"chain_params": "a_args, a_macro, ..."
+        ,"chain_call_args": "a_args, a_macro"
+        ,"next_args": "a_args, __VA_ARGS__"
+        ,"public_params": "a_args, ..."
+        ,"public_args": "a_args"
+    }
+    ,{
          "name": "using_alias"
         ,"file_path": "include/sak/expand64/using_alias.hpp"
         ,"name_params": "p, a"
