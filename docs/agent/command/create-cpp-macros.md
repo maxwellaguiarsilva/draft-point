@@ -16,7 +16,7 @@ You are requested to analyze and refactor symmetric methods, overloads, or funct
    - Multi-line macros use `\` continuation at the end of lines.
    - Comma-delimited arguments to macros must respect spacing rules: `( a_name, a_param1, a_param2 )`.
    - Macros that instantiate multiple members or overloads should eliminate boilerplate and repeated patterns while preserving exact semantics, types, and const/noexcept correctness.
-   - When applicable, variadic macros or helper macros like `__use_macro` (from `sak/using.hpp`) can be used to invoke definitions over list groups.
+   - When applicable, variadic macros or helper macros like `__use_macro` and `__use_macro_list` (from `sak/using.hpp`) can be used to invoke definitions over list groups.
 4. **Validation Pipeline:**
    - Run `cpp_code_verifier` on the modified file.
    - Run `cpp_compile` to guarantee no compiler errors.
