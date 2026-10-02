@@ -12,6 +12,7 @@
 
 #include <format>
 #include <map>
+#include <regex>
 #include <sak/fso/text_file.hpp>
 #include <sak/opengl/program.hpp>
 #include <sak/pattern/to_number.hpp>
@@ -27,37 +28,25 @@ namespace gl {
 	using	direction	=	::sak::g3f::point;
 	__using_alias( ::sak::g3f::, color, position, size )
 	__using( ::std::, array, size_t, string, vector )
-	__using( ::std::, define_static_array, define_static_string, make_unique, map, unique_ptr )
+	__using( ::std::, define_static_array, make_unique, map, unique_ptr )
+	__using( ::std::, regex, sregex_iterator )
 	__using( ::std::meta::, enumerators_of, identifier_of )
+	__using( ::std::regex_constants::, ECMAScript, multiline )
 	__using( ::std::views::, transform, zip )
 	__using( ::sak::, ensure )
 	__using( ::sak::fso::, text_file )
 	__using( ::sak::math::, cosine, min, rotate, sine )
 	__using( ::sak::opengl::, shader )
-	__using( ::sak::ranges::, count_to, to )
+	__using( ::sak::ranges::, contains, count_to, to )
 	__using( ::sak::ranges::views::, rotated )
 	__using( ::sak::sdl3::, application, window )
 
 
-	//	one marked section per shader type, the marker is the enum identifier plus a -shader suffix
-	struct shader_section
+	//	reflection stays in constant evaluation, runtime only joins identifiers
+	consteval auto shader_type_enumerators( )
 	{
-		const char*		m_marker;
-		shader::type	m_type;
-	};
-
-	consteval auto shader_sections( )
-	{
-		vector< shader_section > sections;
-		template for( constexpr auto enumerator : define_static_array( enumerators_of( ^^shader::type ) ) )
-		{
-			const string marker = "//\t" + string( identifier_of( enumerator ) ) + "-shader";
-			sections.push_back( { define_static_string( marker ), [: enumerator :] } );
-		}
-		return	define_static_array( sections );
+		return	define_static_array( enumerators_of( ^^shader::type ) );
 	}
-
-	constexpr auto shader_sections_list = shader_sections( );
 
 
 	//	combined glsl files are split on marker lines and compiled once per name
@@ -76,26 +65,36 @@ namespace gl {
 		}
 
 	private:
-		auto load( const string& name ) -> unique_ptr< map< shader::type, shader > >
+		auto load( const string& name ) const -> unique_ptr< map< shader::type, shader > >
 		{
 			text_file file( m_base_path + "/" + name + ".glsl" );
 			ensure( file.exists( ), "shader file not found: " + name );
 			ensure( file.content( ).has_value( ), "unable to read shader file: " + name );
 			const string& content = file.content( ).value( );
 			auto table = make_unique< map< shader::type, shader > >( );
-			for( const shader_section& section : shader_sections_list )
+			map< string, shader::type > kind_by_name;
+			string alternation;
+			template for( constexpr auto enumerator : shader_type_enumerators( ) )
 			{
-				const size_t position = content.find( section.m_marker );
-				if( position == string::npos )
+				const string identifier( identifier_of( enumerator ) );
+				kind_by_name.emplace( identifier, [: enumerator :] );
+				if( not alternation.empty( ) )
+					alternation += "|";
+				alternation += identifier;
+			}
+			const string expression = "^//\\t(" + alternation + ")-shader\\r?\\n([\\s\\S]*?)(?=^//\\t(?:" + alternation + ")-shader\\r?\\n|$)";
+			const regex section_pattern( expression, ECMAScript | multiline );
+			const sregex_iterator first( content.begin( ), content.end( ), section_pattern );
+			const sregex_iterator last;
+			for( auto iterator = first; iterator not_eq last; ++iterator )
+			{
+				const string section_name = ( *iterator )[ 1 ].str( );
+				const string body = ( *iterator )[ 2 ].str( );
+				if( body.find_first_not_of( " \t\r\n" ) == string::npos )
 					continue;
-				const size_t marker_end = content.find( '\n', position );
-				ensure( marker_end not_eq string::npos, "shader section marker must end with a newline: " + name );
-				const size_t begin = marker_end + 1;
-				size_t end = content.size( );
-				for( const shader_section& other : shader_sections_list )
-					if( const size_t other_position = content.find( other.m_marker, begin ); other_position not_eq string::npos and other_position < end )
-						end = other_position;
-				table->try_emplace( section.m_type, content.substr( begin, end - begin ), section.m_type );
+				const shader::type kind = kind_by_name.at( section_name );
+				ensure( not contains( *table, kind ), "duplicate shader section: " + section_name + " in " + name );
+				table->try_emplace( kind, body, kind );
 			}
 			ensure( not table->empty( ), "no shader section found in shader file: " + name );
 			return	table;
