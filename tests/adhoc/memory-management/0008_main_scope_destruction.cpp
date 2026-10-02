@@ -99,10 +99,7 @@ struct probe final
 //	registered with atexit: it reports the fate of the probe as the exit status and halts further cleanup
 auto report_probe_status( ) -> void { ::std::_Exit( flag_probe_destroyed ? probe_destroyed_status : probe_leaked_status ); }
 
-auto child_status( const string& program_path, const string& mode ) -> int
-{
-	return	WEXITSTATUS( ::std::system( ( program_path + " " + mode ).c_str( ) ) );
-}
+auto child_status( const string& program_path, const string& mode ) -> int { return WEXITSTATUS( ::std::system( ( program_path + " " + mode ).c_str( ) ) ); }
 
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int

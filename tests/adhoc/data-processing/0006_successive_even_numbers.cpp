@@ -45,21 +45,12 @@ auto main( const int /*argument_count*/, const char* /*argument_values*/[ ] ) ->
 		mt19937 generator( device( ) );
 		uniform_int_distribution< int > distribution( 0, 255 );
 
-		generate( random_bytes, [ & ]( )
-		{
-			return	static_cast< byte >( distribution( generator ) );
-		} );
+		generate( random_bytes, [ & ]( ) { return static_cast< byte >( distribution( generator ) ); } );
 
-		auto is_even = [ ]( const byte byte_value ) noexcept
-		{
-			return	to_integer< int >( byte_value ) % 2 == 0;
-		};
+		auto is_even = [ ]( const byte byte_value ) noexcept { return to_integer< int >( byte_value ) % 2 == 0; };
 
 		auto successive_evens = random_bytes
-			| chunk_by( [ &is_even ]( const byte first, const byte second ) noexcept
-				{
-					return	is_even( first ) and is_even( second );
-				} );
+			| chunk_by( [ &is_even ]( const byte first, const byte second ) noexcept { return is_even( first ) and is_even( second ); } );
 
 		for_each( successive_evens, [ &random_bytes, &is_even ]( const auto range )
 		{

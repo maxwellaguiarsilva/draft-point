@@ -30,10 +30,7 @@ using	vec2	=	g2f::point;
 using	vec3	=	g3f::point;
 
 //	glsl-like helper for c++ using sak::point
-constexpr auto clamp_vector( const auto& vector, float min_value, float max_value ) noexcept
-{
-	return	vector | clamp( min_value, max_value ) | to;
-}
+constexpr auto clamp_vector( const auto& vector, float min_value, float max_value ) noexcept { return vector | clamp( min_value, max_value ) | to; }
 
 constexpr auto mix( const auto& first, const auto& second, float factor ) noexcept { return first * ( 1.0f - factor ) + second * factor; }
 
