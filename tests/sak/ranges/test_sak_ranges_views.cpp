@@ -56,7 +56,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		{
 			const vector< int > values = { 5, 6 };
 			ptrdiff_t expected_index = 0;
-			for( auto [ index, val ] : values bitor enumerate )
+			for( auto [ index, val ] : values | enumerate )
 			{
 				ensure( index == expected_index, "index should match expected sequence on pipe" );
 				ensure( val == expected_index + 5, "value should match expected sum on pipe" );
