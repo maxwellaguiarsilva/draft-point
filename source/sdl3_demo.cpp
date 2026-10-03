@@ -61,8 +61,7 @@ namespace gl {
 		auto load( const string& name ) const -> map< shader::type, shader >
 		{
 			text_file file( m_base_path + "/" + name + ".glsl" );
-			ensure( file.exists( ), "shader file not found: " + name );
-			ensure( file.content( ).has_value( ), "unable to read shader file: " + name );
+			ensure( file.exists( ) and file.content( ).has_value( ), "unable to read shader file: " + name );
 			const string& content = file.content( ).value( );
 			map< shader::type, shader > table;
 			map< string, shader::type > kind_by_name;
