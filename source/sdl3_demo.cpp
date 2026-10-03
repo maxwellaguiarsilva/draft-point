@@ -42,13 +42,6 @@ namespace gl {
 	__using( ::sak::sdl3::, application, window )
 
 
-	//	reflection stays in constant evaluation, runtime only joins identifiers
-	consteval auto shader_type_enumerators( )
-	{
-		return	define_static_array( enumerators_of( ^^shader::type ) );
-	}
-
-
 	//	combined glsl files are split on marker lines and compiled once per name
 	class shader_loader
 	{
@@ -74,7 +67,7 @@ namespace gl {
 			map< shader::type, shader > table;
 			map< string, shader::type > kind_by_name;
 			string alternation;
-			template for( constexpr auto enumerator : shader_type_enumerators( ) )
+			template for( constexpr auto enumerator : define_static_array( enumerators_of( ^^shader::type ) ) )
 			{
 				const string identifier( identifier_of( enumerator ) );
 				kind_by_name.emplace( identifier, [: enumerator :] );
