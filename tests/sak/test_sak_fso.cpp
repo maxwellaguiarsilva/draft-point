@@ -35,16 +35,16 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		text_file sample( sample_path );
 		ensure( not sample.exists( ), "new text_file must not exist" );
-		ensure( not sample.modified_at( ).has_value( ), "new text_file must have no modified_at" );
-		ensure( not sample.created_at( ).has_value( ), "new text_file must have no created_at" );
-		ensure( not sample.content( ).has_value( ), "new text_file must have no content" );
+		ensure( sample.modified_at( ) == text_file::time_point{ }, "new text_file must have no modified_at" );
+		ensure( sample.created_at( ) == text_file::time_point{ }, "new text_file must have no created_at" );
+		ensure( sample.content( ).empty( ), "new text_file must have empty content" );
 
 		const auto message = sample.write( "hello\n" );
 		ensure( message == "created file: " + sample_path.string( ) + "\n", "write must report the created file" );
 		ensure( sample.exists( ), "written text_file must exist" );
-		ensure( sample.content( ).value( ) == "hello\n", "written content must round-trip" );
-		ensure( sample.modified_at( ).has_value( ), "written text_file must have modified_at" );
-		ensure( sample.created_at( ).has_value( ), "written text_file must have created_at" );
+		ensure( sample.content( ) == "hello\n", "written content must round-trip" );
+		ensure( sample.modified_at( ) not_eq text_file::time_point{ }, "written text_file must have modified_at" );
+		ensure( sample.created_at( ) not_eq text_file::time_point{ }, "written text_file must have created_at" );
 
 		ensure( sample.name( ) == "note", "name must not include the extension" );
 		ensure( sample.extension( ) == "txt", "extension must not include the dot" );
@@ -58,7 +58,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		file missing( root / "missing.bin" );
 		ensure( not missing.exists( ), "missing file must not exist" );
-		ensure( not missing.modified_at( ).has_value( ), "missing file must have no modified_at" );
+		ensure( missing.modified_at( ) == file::time_point{ }, "missing file must have no modified_at" );
 
 		remove_all( root );
 
