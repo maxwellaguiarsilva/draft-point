@@ -74,7 +74,7 @@ namespace gl {
 					alternation += "|";
 				alternation += identifier;
 			}
-			const string expression = "^//\\t(" + alternation + ")-shader\\r?\\n([\\s\\S]*?)(?=^//\\t(?:" + alternation + ")-shader\\r?\\n|$)";
+			const string expression = "^//\\t(" + alternation + ")-shader[\\r\\n]([\\s\\S]*?)^//\\t\\1-shader";
 			const regex section_pattern( expression, ECMAScript | multiline );
 			const sregex_iterator first( content.begin( ), content.end( ), section_pattern );
 			const sregex_iterator last;

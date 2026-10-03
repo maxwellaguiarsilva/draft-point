@@ -9,6 +9,8 @@ const vec2 vertices[ 4 ] = vec2[ 4 ](
 );
 
 void main( ) { gl_Position = vec4( vertices[ gl_VertexID ], 0.0, 1.0 ); }
+//	vertex-shader
+
 //	fragment-shader
 #version 460 core
 
@@ -94,3 +96,5 @@ void main( )
 
 	final_color = vec4( color, 1.0 );
 }
+
+//	fragment-shader
