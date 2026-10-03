@@ -28,7 +28,7 @@ namespace gl {
 	using	direction	=	::sak::g3f::point;
 	__using_alias( ::sak::g3f::, color, position, size )
 	__using( ::std::, array, size_t, string, vector )
-	__using( ::std::, define_static_array, make_unique, map, unique_ptr )
+	__using( ::std::, define_static_array, map )
 	__using( ::std::, regex, sregex_iterator )
 	__using( ::std::meta::, enumerators_of, identifier_of )
 	__using( ::std::regex_constants::, ECMAScript, multiline )
@@ -61,17 +61,17 @@ namespace gl {
 		{
 			if( not m_cache.contains( name ) )
 				m_cache.emplace( name, load( name ) );
-			return	*m_cache.at( name );
+			return	m_cache.at( name );
 		}
 
 	private:
-		auto load( const string& name ) const -> unique_ptr< map< shader::type, shader > >
+		auto load( const string& name ) const -> map< shader::type, shader >
 		{
 			text_file file( m_base_path + "/" + name + ".glsl" );
 			ensure( file.exists( ), "shader file not found: " + name );
 			ensure( file.content( ).has_value( ), "unable to read shader file: " + name );
 			const string& content = file.content( ).value( );
-			auto table = make_unique< map< shader::type, shader > >( );
+			map< shader::type, shader > table;
 			map< string, shader::type > kind_by_name;
 			string alternation;
 			template for( constexpr auto enumerator : shader_type_enumerators( ) )
@@ -93,15 +93,15 @@ namespace gl {
 				if( body.find_first_not_of( " \t\r\n" ) == string::npos )
 					continue;
 				const shader::type kind = kind_by_name.at( section_name );
-				ensure( not contains( *table, kind ), "duplicate shader section: " + section_name + " in " + name );
-				table->try_emplace( kind, body, kind );
+				ensure( not contains( table, kind ), "duplicate shader section: " + section_name + " in " + name );
+				table.try_emplace( kind, body, kind );
 			}
-			ensure( not table->empty( ), "no shader section found in shader file: " + name );
+			ensure( not table.empty( ), "no shader section found in shader file: " + name );
 			return	table;
 		}
 
 		string m_base_path;
-		map< string, unique_ptr< map< shader::type, shader > > > m_cache;
+		map< string, map< shader::type, shader > > m_cache;
 	};
 
 
