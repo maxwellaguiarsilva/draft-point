@@ -12,12 +12,12 @@
 
 #include <format>
 #include <map>
-#include <regex>
 #include <sak/fso/text_file.hpp>
 #include <sak/opengl/program.hpp>
 #include <sak/pattern/to_number.hpp>
 #include <sak/pattern/value_or.hpp>
 #include <sak/ranges/contains.hpp>
+#include <sak/ranges/views/regex_matches.hpp>
 #include <sak/sdl3/application.hpp>
 #include <sak/sdl3/opengl/context.hpp>
 #include <game/fps.hpp>
@@ -27,18 +27,32 @@ namespace gl {
 
 	using	direction	=	::sak::g3f::point;
 	__using_alias( ::sak::g3f::, color, position, size )
-	__using( ::std::, array, size_t, string, vector )
+	__using( ::std::
+		,array
+		,pair
+		,size_t
+		,smatch
+		,string
+		,string_view
+		,vector
+	)
 	__using( ::std::, define_static_array, exchange, map )
-	__using( ::std::, regex, sregex_iterator )
+	__using( ::std::, regex )
 	__using( ::std::meta::, enumerators_of, identifier_of )
 	__using( ::std::regex_constants::, ECMAScript, multiline )
-	__using( ::std::views::, transform, zip )
+	__using( ::std::views::
+		,filter
+		,join_with
+		,keys
+		,transform
+		,zip
+	)
 	__using( ::sak::, ensure )
 	__using( ::sak::fso::, text_file )
 	__using( ::sak::math::, cosine, min, rotate, sine )
 	__using( ::sak::opengl::, shader )
 	__using( ::sak::ranges::, contains, count_to, to )
-	__using( ::sak::ranges::views::, rotated )
+	__using( ::sak::ranges::views::, regex_matches, rotated )
 	__using( ::sak::sdl3::, application, window )
 
 
@@ -62,32 +76,26 @@ namespace gl {
 		{
 			text_file file( m_base_path + "/" + name + ".glsl" );
 			ensure( file.exists( ), "unable to read shader file: " + name );
-			const string& content = file.content( );
-			map< shader::type, shader > table;
+
 			map< string, shader::type > kind_by_name;
-			string alternation;
 			template for( constexpr auto enumerator : define_static_array( enumerators_of( ^^shader::type ) ) )
-			{
-				const string identifier( identifier_of( enumerator ) );
-				kind_by_name.emplace( identifier, [: enumerator :] );
-				if( not alternation.empty( ) )
-					alternation += "|";
-				alternation += identifier;
-			}
+				kind_by_name.emplace( string( identifier_of( enumerator ) ), [: enumerator :] );
+
+			const string alternation = kind_by_name | keys | join_with( string_view{ "|" } ) | to;
 			const string expression = "^//\\t(" + alternation + ")-shader[\\r\\n]([\\s\\S]*?)^//\\t\\1-shader";
-			const regex section_pattern( expression, ECMAScript | multiline );
-			const sregex_iterator first( content.begin( ), content.end( ), section_pattern );
-			const sregex_iterator last;
-			for( auto iterator = first; iterator not_eq last; ++iterator )
+			const vector< pair< string, string > > sections = file.content( )
+				|	regex_matches( regex( expression, ECMAScript | multiline ) )
+				|	transform( [ ]( const smatch& match ) { return pair{ match[ 1 ].str( ), match[ 2 ].str( ) }; } )
+				|	to;
+
+			map< shader::type, shader > table;
+			for( const auto& [ section_name, body ] : sections )
 			{
-				const string section_name = ( *iterator )[ 1 ].str( );
-				const string body = ( *iterator )[ 2 ].str( );
-				if( body.find_first_not_of( " \t\r\n" ) == string::npos )
-					continue;
 				const shader::type kind = kind_by_name.at( section_name );
 				ensure( not contains( table, kind ), "duplicate shader section: " + section_name + " in " + name );
 				table.try_emplace( kind, body, kind );
 			}
+
 			ensure( not table.empty( ), "no shader section found in shader file: " + name );
 			return	table;
 		}
@@ -163,10 +171,7 @@ namespace gl {
 
 		auto cycle_colors( const bool forward ) -> void
 		{
-			const vector< color > colors = m_spheres
-				|	transform( &sphere::m_color )
-				|	rotated( forward ? 1 : m_spheres.size( ) - 1 )
-				|	to;
+			const vector< color > colors = m_spheres | transform( &sphere::m_color ) | rotated( forward ? 1 : m_spheres.size( ) - 1 ) | to;
 			for( auto [ current, color_value ] : zip( m_spheres, colors ) )
 				current.m_color = color_value;
 			m_changed = true;
