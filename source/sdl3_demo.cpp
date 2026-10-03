@@ -28,7 +28,7 @@ namespace gl {
 	using	direction	=	::sak::g3f::point;
 	__using_alias( ::sak::g3f::, color, position, size )
 	__using( ::std::, array, size_t, string, vector )
-	__using( ::std::, define_static_array, map )
+	__using( ::std::, define_static_array, exchange, map )
 	__using( ::std::, regex, sregex_iterator )
 	__using( ::std::meta::, enumerators_of, identifier_of )
 	__using( ::std::regex_constants::, ECMAScript, multiline )
@@ -180,7 +180,7 @@ namespace gl {
 			m_changed = true;
 		}
 
-		auto consume_changed( ) noexcept -> bool { return ::std::exchange( m_changed, false ); }
+		auto consume_changed( ) noexcept -> bool { return exchange( m_changed, false ); }
 
 		auto update( const float delta_seconds ) -> void
 		{
@@ -303,7 +303,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		application app;
 
 		//	create a raii window and opengl context, declared before gpu resources so they outlive them on destruction
-		using enum window::flag;
+		using	enum	window::flag;
 		window application_window( "modern opengl rgb shadertoy", { opengl, resizable } );
 		context gl_context( application_window );
 
