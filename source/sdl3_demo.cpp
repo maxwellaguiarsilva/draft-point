@@ -25,30 +25,23 @@
 
 namespace gl {
 
-	using	direction	=	::sak::g3f::point;
-	__using_alias( ::sak::g3f::, color, position, size )
 	__using( ::std::
 		,array
+		,define_static_array
 		,make_unique
+		,map
 		,pair
+		,regex
 		,size_t
-		,smatch
+		,smatch 
 		,string
 		,string_view
 		,unique_ptr
 		,vector
 	)
-	__using( ::std::, define_static_array, map )
-	__using( ::std::, regex )
 	__using( ::std::meta::, enumerators_of, identifier_of )
 	__using( ::std::regex_constants::, ECMAScript, multiline )
-	__using( ::std::views::
-		,filter
-		,join_with
-		,keys
-		,transform
-		,zip
-	)
+	__using( ::std::views::, filter, join_with, keys, transform, zip )
 	__using( ::sak::, ensure )
 	__using( ::sak::fso::, text_file )
 	__using( ::sak::math::, cosine, min, rotate, sine )
@@ -56,6 +49,8 @@ namespace gl {
 	__using( ::sak::ranges::, contains, count_to, to )
 	__using( ::sak::ranges::views::, regex_matches, rotated )
 	__using( ::sak::sdl3::, application, window )
+	__using_alias( ::sak::g3f::, color, position, size )
+	using	direction	=	::sak::g3f::point;
 
 
 	//	combined glsl files are split on marker lines and compiled once per name
