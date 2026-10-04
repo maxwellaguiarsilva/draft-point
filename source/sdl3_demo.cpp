@@ -103,16 +103,9 @@ namespace gl {
 
 
 	//	the eight basic ansi colors, indexed by the rgb channel bits of the index
-	inline constexpr array< color, 8 > palette = { {
-		 {	0.0f	,0.0f	,0.0f	,1.0f	}
-		,{	1.0f	,0.0f	,0.0f	,1.0f	}
-		,{	0.0f	,1.0f	,0.0f	,1.0f	}
-		,{	1.0f	,1.0f	,0.0f	,1.0f	}
-		,{	0.0f	,0.0f	,1.0f	,1.0f	}
-		,{	1.0f	,0.0f	,1.0f	,1.0f	}
-		,{	0.0f	,1.0f	,1.0f	,1.0f	}
-		,{	1.0f	,1.0f	,1.0f	,1.0f	}
-	} };
+	inline constexpr array< color, 8 > palette = count_to( 8uz )
+		|	transform( [ ]( const size_t index ) { return color{ ( index >> 0 ) & 1, ( index >> 1 ) & 1, ( index >> 2 ) & 1, 1.0f }; } )
+		|	to;
 
 
 	struct sphere
@@ -142,7 +135,6 @@ namespace gl {
 		struct handle
 		{
 			~handle( ) noexcept { gl_delete_buffers( 1, &m_id ); }
-
 			GLuint	m_id{ 0 };
 		};
 
