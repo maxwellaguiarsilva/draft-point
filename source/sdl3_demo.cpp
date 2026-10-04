@@ -29,14 +29,16 @@ namespace gl {
 	__using_alias( ::sak::g3f::, color, position, size )
 	__using( ::std::
 		,array
+		,make_unique
 		,pair
 		,size_t
 		,smatch
 		,string
 		,string_view
+		,unique_ptr
 		,vector
 	)
-	__using( ::std::, define_static_array, exchange, map )
+	__using( ::std::, define_static_array, map )
 	__using( ::std::, regex )
 	__using( ::std::meta::, enumerators_of, identifier_of )
 	__using( ::std::regex_constants::, ECMAScript, multiline )
@@ -126,18 +128,73 @@ namespace gl {
 	};	//	total 8 floats
 
 
-	//	shared environment, transferred as flat floats and assembled manually on the gpu like spheres
-	struct environment
+	//	raii shader storage buffer shared by the geometry and the environment, holding the opengl object on their behalf
+	class shader_storage_buffer
 	{
-		position	m_cam_position;
-		direction	m_cam_forward;
-		direction	m_cam_right;
-		direction	m_cam_up;
-		color		m_background_color;
-		float		m_focal;
-		float		m_ambient;
-		float		m_volume;
-	};	//	total 19 floats
+	public:
+		shader_storage_buffer( const GLuint binding_index, const size_t size_in_bytes, const void* initial_data = nullptr )
+			:m_handle( make_unique< handle >( ) )
+		{
+			gl_create_buffers( 1, &m_handle->m_id );
+			gl_named_buffer_storage( m_handle->m_id, size_in_bytes, initial_data, GL_DYNAMIC_STORAGE_BIT );
+			gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, binding_index, m_handle->m_id );
+		}
+
+		auto update( const size_t size_in_bytes, const void* data ) const noexcept -> void
+		{ gl_named_buffer_sub_data( m_handle->m_id, 0, size_in_bytes, data ); }
+
+	private:
+		struct handle
+		{
+			~handle( ) noexcept { gl_delete_buffers( 1, &m_id ); }
+
+			GLuint	m_id{ 0 };
+		};
+
+		unique_ptr< handle > m_handle;
+	};
+
+
+	//	shared environment, transferred as flat floats and assembled manually on the gpu like spheres
+	class environment
+	{
+	public:
+		environment( )
+			:m_buffer( 1, sizeof( data ) )
+		{
+			const float ambient = 0.3f;
+			m_data = data{
+				 {	0.0f	,0.0f	,-2.0f	}
+				,{	0.0f	,0.0f	,1.0f	}
+				,{	1.0f	,0.0f	,0.0f	}
+				,{	0.0f	,1.0f	,0.0f	}
+				,{	0.0f	,0.0f	,0.0f	,1.0f	}
+				,2.0f
+				,ambient
+				,1.0f - ambient
+			};
+			static_assert( sizeof( data ) == 19 * sizeof( float ), "environment must stay tightly packed" );
+			update( );
+		}
+
+		auto update( ) const noexcept -> void { m_buffer.update( sizeof( data ), &m_data ); }
+
+	private:
+		struct data
+		{
+			position	m_cam_position;
+			direction	m_cam_forward;
+			direction	m_cam_right;
+			direction	m_cam_up;
+			color		m_background_color;
+			float		m_focal;
+			float		m_ambient;
+			float		m_volume;
+		};
+
+		shader_storage_buffer m_buffer;
+		data m_data;
+	};
 
 
 	//	regular polygon centered at the origin, the authoritative cpu geometry
@@ -150,7 +207,9 @@ namespace gl {
 		static constexpr float pulsation_phase_step = 3.14159265f / 2.0f;
 
 		explicit polygon( const size_t total )
-			: m_spheres( ), m_base_radius( 0.8f * polygon_radius * sine( 3.14159265f / total ) )
+			: m_spheres( )
+			,m_base_radius( 0.8f * polygon_radius * sine( 3.14159265f / total ) )
+			,m_buffer( 0, total * sizeof( sphere ) )
 		{
 			const float step = 2.0f * 3.14159265f / total;
 			m_spheres.reserve( total );
@@ -160,13 +219,14 @@ namespace gl {
 					,m_base_radius
 					,palette[ index % palette.size( ) ]
 				} );
+			flush( );
 		}
 
 		auto turn( const float angle ) -> void
 		{
 			for( sphere& current : m_spheres )
 				current.m_position = rotate( current.m_position, position{ 0.0f, 0.0f, 1.0f }, angle ) | to;
-			m_changed = true;
+			flush( );
 		}
 
 		auto cycle_colors( const bool forward ) -> void
@@ -174,17 +234,15 @@ namespace gl {
 			const vector< color > colors = m_spheres | transform( &sphere::m_color ) | rotated( forward ? 1 : m_spheres.size( ) - 1 ) | to;
 			for( auto [ current, color_value ] : zip( m_spheres, colors ) )
 				current.m_color = color_value;
-			m_changed = true;
+			flush( );
 		}
-
-		auto consume_changed( ) noexcept -> bool { return exchange( m_changed, false ); }
 
 		auto update( const float delta_seconds ) -> void
 		{
 			m_time += delta_seconds;
 			for( const size_t index : count_to( m_spheres.size( ) ) )
 				m_spheres[ index ].m_radius = m_base_radius + pulsation_amplitude * sine( pulsation_speed * m_time + index * pulsation_phase_step );
-			m_changed = true;
+			flush( );
 		}
 
 		auto data( ) const noexcept -> const sphere* { return m_spheres.data( ); }
@@ -192,10 +250,12 @@ namespace gl {
 		auto count( ) const noexcept -> size_t { return m_spheres.size( ); }
 
 	private:
+		auto flush( ) noexcept -> void { m_buffer.update( byte_size( ), data( ) ); }
+
 		vector< sphere > m_spheres;
 		float m_base_radius;
+		shader_storage_buffer m_buffer;
 		float m_time{ 0.0f };
-		bool m_changed{ false };
 	};
 
 
@@ -307,13 +367,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		//	cpu-owned geometry, rewritten by input and mirrored to the gpu when it changes
 		polygon mesh( between( parsed_total, 3, 16 ) ? parsed_total : 8 );
 
-		//	allocate dummy vao and storage for spheres as shader storage buffer
+		//	allocate dummy vao for the full screen triangle strip
 		GLuint vertex_array = 0;
 		gl_create_vertex_arrays( 1, &vertex_array );
-		GLuint sphere_buffer = 0;
-		gl_create_buffers( 1, &sphere_buffer );
-		gl_named_buffer_storage( sphere_buffer, mesh.byte_size( ), mesh.data( ), GL_DYNAMIC_STORAGE_BIT );
-		gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, 0, sphere_buffer );
 
 		//	shader program loaded on demand from data/shader
 		shader_loader loader;
@@ -322,23 +378,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		gl_program_uniform_1i( shader_program.id( ), 0, static_cast< GLint >( mesh.count( ) ) );
 
-		//	shared environment, uploaded once because it rarely changes
-		static_assert( sizeof( environment ) == 19 * sizeof( float ), "environment must stay tightly packed" );
-		const float ambient = 0.3f;
-		const environment environment_data = {
-			 {	0.0f	,0.0f	,-2.0f	}
-			,{	0.0f	,0.0f	,1.0f	}
-			,{	1.0f	,0.0f	,0.0f	}
-			,{	0.0f	,1.0f	,0.0f	}
-			,{	0.0f	,0.0f	,0.0f	,1.0f	}
-			,2.0f
-			,ambient
-			,1.0f - ambient
-		};
-		GLuint environment_buffer = 0;
-		gl_create_buffers( 1, &environment_buffer );
-		gl_named_buffer_storage( environment_buffer, sizeof( environment ), &environment_data, 0 );
-		gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, 1, environment_buffer );
+		//	shared environment owns its gpu buffer and uploads itself
+		environment scene_environment;
 
 		const auto listener = make_shared< window_listener >( application_window, app, mesh, shader_program.id( ) );
 		application_window.listeners( ) += listener;
@@ -354,10 +395,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			listener->update( duration< float >( current_time - last_time ).count( ) );
 			last_time = current_time;
 
-			//	the cpu is the source of truth, so upload the mesh only when input rewrote it
-			if( mesh.consume_changed( ) )
-				gl_named_buffer_sub_data( sphere_buffer, 0, mesh.byte_size( ), mesh.data( ) );
-
 			gl_bind_vertex_array( vertex_array );
 			gl_draw_arrays( GL_TRIANGLE_STRIP, 0, 4 );
 
@@ -367,8 +404,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		//	clean up raw opengl objects while the context is still current;
 		gl_delete_vertex_arrays( 1, &vertex_array );
-		gl_delete_buffers( 1, &sphere_buffer );
-		gl_delete_buffers( 1, &environment_buffer );
 
 		println( "modern opengl rgb shadertoy finished successfully" );
 	}
