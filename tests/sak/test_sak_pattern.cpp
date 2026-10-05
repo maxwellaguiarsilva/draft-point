@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <sak/pattern/bitmask.hpp>
 #include <sak/pattern/dispatcher.hpp>
-#include <sak/pattern/to_number.hpp>
+#include <sak/pattern/parse.hpp>
 #include <sak/pattern/tupled.hpp>
 #include <sak/pattern/value_or.hpp>
 
@@ -196,7 +196,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,bitmask
 		,cast
 		,operator|
-		,to_number
+		,parse
 		,tupled
 		,value_or
 	)
@@ -217,17 +217,40 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		test_dispatcher_cleanup( );
 
 		//	--------------------------------------------------
-		//	to_number
+		//	parse
 		//	--------------------------------------------------
-		ensure( to_number( string{ "42" }, 0 ) == 42, "valid integer should be parsed" );
-		ensure( to_number( string{ "-7" }, 0 ) == -7, "negative integer should be parsed" );
-		ensure( to_number( string{ "5" }, byte{ 8 } ) == 5, "type should be deduced from the default value" );
-		ensure( to_number( string{ "3.5" }, 0.0 ) == 3.5, "floating point should be parsed" );
+		ensure( parse( string{ "42" }, 0 ) == 42, "valid integer should be parsed" );
+		ensure( parse( string{ "-7" }, 0 ) == -7, "negative integer should be parsed" );
+		ensure( parse( string{ "5" }, byte{ 8 } ) == 5, "type should be deduced from the default value" );
+		ensure( parse( string{ "3.5" }, 0.0 ) == 3.5, "floating point should be parsed" );
 
-		ensure( to_number( string{ "" }, 7 ) == 7, "empty string should yield the default value" );
-		ensure( to_number( string{ "abc" }, 0 ) == 0, "non-numeric string should yield the default value" );
-		ensure( to_number( string{ "8abc" }, 0 ) == 0, "trailing garbage should fail full consumption" );
-		ensure( to_number( string{ "99999999999999999999999999" }, 0 ) == 0, "out-of-range value should yield the default value" );
+		ensure( parse( string{ "" }, 7 ) == 7, "empty string should yield the default value" );
+		ensure( parse( string{ "abc" }, 0 ) == 0, "non-numeric string should yield the default value" );
+		ensure( parse( string{ "8abc" }, 0 ) == 0, "trailing garbage should fail full consumption" );
+		ensure( parse( string{ "99999999999999999999999999" }, 0 ) == 0, "out-of-range value should yield the default value" );
+
+		{
+			const int scalar = string{ "123" } | parse;
+			ensure( scalar == 123, "piped text should parse into the deduced scalar type" );
+		}
+
+		{
+			const vector< string > text_list = { "10", "20", "30" };
+			const vector< int > parsed_list = text_list | parse;
+			ensure( parsed_list == vector< int >{ 10, 20, 30 }, "text list should parse element-wise into a container" );
+		}
+
+		{
+			const vector< string > mixed_list = { "7", "no", "9" };
+			const vector< int > parsed_mixed = mixed_list | parse;
+			ensure( parsed_mixed == vector< int >{ 7, 0, 9 }, "invalid element should fall back to zero by default" );
+		}
+
+		{
+			const array< string, 3 > raw_values = { "3", "x", "5" };
+			const array< byte, 3 > parsed_values = raw_values | parse( byte{ 9 } );
+			ensure( parsed_values == array< byte, 3 >{ 3, 9, 5 }, "text list with a bound fallback should parse element-wise" );
+		}
 
 		//	--------------------------------------------------
 		//	tupled

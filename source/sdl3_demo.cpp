@@ -14,7 +14,7 @@
 #include <map>
 #include <sak/fso/text_file.hpp>
 #include <sak/opengl/program.hpp>
-#include <sak/pattern/to_number.hpp>
+#include <sak/pattern/parse.hpp>
 #include <sak/pattern/value_or.hpp>
 #include <sak/ranges/contains.hpp>
 #include <sak/ranges/views/regex_matches.hpp>
@@ -326,7 +326,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::sak::, exit_success, exit_failure, ensure )
 	__using( ::sak::math::, between )
 	__using( ::sak::opengl::, program, shader )
-	__using( ::sak::pattern::, to_number, value_or )
+	__using( ::sak::pattern::, parse, value_or )
 	__using( ::sak::ranges::, contains )
 	__using( ::sak::sdl3::, application, window )
 	__using( ::sak::sdl3::opengl::, context )
@@ -338,7 +338,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	if( contains( arguments, { "-h", "--help" } ) )
 		return	println( "this executable is a modern opengl rgb shadertoy demo" ), exit_success;
 
-	const int parsed_total = to_number( value_or( arguments, 1uz, string{ "8" } ), 0 );
+	const int parsed_total = parse( value_or( arguments, 1uz, string{ "8" } ), 0 );
 
 	try
 	{

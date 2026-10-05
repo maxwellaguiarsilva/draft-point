@@ -10,7 +10,7 @@
 #include <climits>
 #include <limits>
 #include <sak/pattern/value_or.hpp>
-#include <sak/pattern/to_number.hpp>
+#include <sak/pattern/parse.hpp>
 #include <game/shadertoy.hpp>
 
 
@@ -219,7 +219,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,vector
 	)
 	__using( ::sak::, exit_success, exit_failure )
-	__using( ::sak::pattern::, value_or, to_number )
+	__using( ::sak::pattern::, value_or, parse )
 	__using( ::sak::math::, sine, cosine, between )
 
 	try
@@ -230,7 +230,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		const vector< string > arguments( argument_values, argument_values + argument_count );
 		const string total_default{ "8" };
-		const int parsed = to_number( value_or( arguments, 1uz, total_default ), 0 );
+		const int parsed = parse( value_or( arguments, 1uz, total_default ), 0 );
 		const byte total = between( parsed, 1, 255 ) ? parsed : 8;
 
 		const vector< vec3 > colors_list = count_to( total ) | lazy_transform( bind_back( create_color< >, 0.5f, 1.0f ) ) | to;
