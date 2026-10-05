@@ -26,6 +26,7 @@ env.bak/
 tools/venv/
 .env
 .env/
+.local/
 
 #	old files/directories
 .old/

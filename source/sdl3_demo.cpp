@@ -121,24 +121,24 @@ namespace gl {
 	{
 	public:
 		shader_storage_buffer( const GLuint binding_index, const size_t size_in_bytes, const void* initial_data = nullptr )
-			:m_handle( make_unique< handle >( ) )
+			:m_raii( make_unique< raii_destructor >( ) )
 		{
-			gl_create_buffers( 1, &m_handle->m_id );
-			gl_named_buffer_storage( m_handle->m_id, size_in_bytes, initial_data, GL_DYNAMIC_STORAGE_BIT );
-			gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, binding_index, m_handle->m_id );
+			gl_create_buffers( 1, &m_raii->m_id );
+			gl_named_buffer_storage( m_raii->m_id, size_in_bytes, initial_data, GL_DYNAMIC_STORAGE_BIT );
+			gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, binding_index, m_raii->m_id );
 		}
 
 		auto update( const size_t size_in_bytes, const void* data ) const noexcept -> void
-		{ gl_named_buffer_sub_data( m_handle->m_id, 0, size_in_bytes, data ); }
+		{ gl_named_buffer_sub_data( m_raii->m_id, 0, size_in_bytes, data ); }
 
 	private:
-		struct handle
+		struct raii_destructor
 		{
-			~handle( ) noexcept { gl_delete_buffers( 1, &m_id ); }
+			~raii_destructor( ) noexcept { gl_delete_buffers( 1, &m_id ); }
 			GLuint	m_id{ 0 };
 		};
 
-		unique_ptr< handle > m_handle;
+		unique_ptr< raii_destructor > m_raii;
 	};
 
 
