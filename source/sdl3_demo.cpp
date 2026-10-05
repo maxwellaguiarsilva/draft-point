@@ -123,15 +123,20 @@ namespace gl {
 		shader_storage_buffer( const GLuint binding_index, const size_t size_in_bytes, const void* initial_data = nullptr )
 			:m_raii( make_unique< raii_destructor >( ) )
 		{
-			gl_create_buffers( 1, &m_raii->m_id );
-			gl_named_buffer_storage( m_raii->m_id, size_in_bytes, initial_data, GL_DYNAMIC_STORAGE_BIT );
-			gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, binding_index, m_raii->m_id );
+			GLuint buffer_id = 0;
+			gl_create_buffers( 1, &buffer_id );
+			id( buffer_id );
+			gl_named_buffer_storage( id( ), size_in_bytes, initial_data, GL_DYNAMIC_STORAGE_BIT );
+			gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, binding_index, id( ) );
 		}
 
 		auto update( const size_t size_in_bytes, const void* data ) const noexcept -> void
-		{ gl_named_buffer_sub_data( m_raii->m_id, 0, size_in_bytes, data ); }
+		{ gl_named_buffer_sub_data( id( ), 0, size_in_bytes, data ); }
 
 	private:
+		auto id( ) const noexcept -> GLuint { return m_raii->m_id; }
+		auto id( const GLuint value ) noexcept -> void { m_raii->m_id = value; }
+
 		struct raii_destructor
 		{
 			~raii_destructor( ) noexcept { gl_delete_buffers( 1, &m_id ); }
