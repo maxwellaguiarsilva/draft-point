@@ -1,8 +1,7 @@
 # `value_or` Indexed Overload
 
-The first design step of the original
-[`value_or` + `to_number` proposal](../cpp/value-or-indexed-and-to-number.md),
-split into this document and [to-number-niebloid.md](to-number-niebloid.md).
+The first design step of the original `value_or` + `parse` proposal,
+split into this document and [parse-niebloid.md](parse-niebloid.md).
 This part records the **plan**: extending `sak::pattern::value_or` with an
 overload for indexed containers.
 
@@ -11,7 +10,7 @@ overload for indexed containers.
 Refactor the `$1` argument parsing in `tests/adhoc/rendering/0010_sphere.cpp` so the
 `if ( arguments.size( ) > 1 )` guard disappears, the default value is declared on the
 stack, and the access is expressed as a lookup. The conversion and range validation
-halves are handled by `to_number` ([to-number-niebloid.md](to-number-niebloid.md)).
+halves are handled by `parse` ([parse-niebloid.md](parse-niebloid.md)).
 
 ---
 
@@ -111,4 +110,4 @@ if( pointer == total_value.data( ) + total_value.size( ) and error == errc{ } an
 
 The size guard is gone; the default is a stack lvalue (no temporaries are accepted, since
 the functor returns `const&`). The conversion and validation machinery remain — those
-move to `to_number` in the [companion document](to-number-niebloid.md).
+move to `parse` in the [companion document](parse-niebloid.md).
