@@ -22,14 +22,15 @@ layout( std430, binding = 1 ) readonly buffer environment_buffer { float environ
 
 out vec4 final_color;
 
+#define get_vec3_from( data, index ) vec3( data[ ( index ) ], data[ ( index ) + 1 ], data[ ( index ) + 2 ] )
+#define square( value ) ( ( value ) * ( value ) )
+
 struct sphere
 {
 	vec3 position;
 	float radius;
 	vec4 color;
 };
-
-#define get_vec3_from( data, index ) vec3( data[ ( index ) ], data[ ( index ) + 1 ], data[ ( index ) + 2 ] )
 
 sphere get_sphere( int index )
 {
@@ -83,8 +84,8 @@ void main( )
 		sphere object = get_sphere( index );
 		vec3 hypotenuse = object.position - current_environment.cam_position;
 		float dot_hypotenuse_direction = dot( hypotenuse, direction );
-		float opposite_leg_squared = dot( hypotenuse, hypotenuse ) - ( dot_hypotenuse_direction * dot_hypotenuse_direction ) / dot( direction, direction );
-		float ratio = opposite_leg_squared / ( object.radius * object.radius );
+		float opposite_leg_squared = dot( hypotenuse, hypotenuse ) - square( dot_hypotenuse_direction ) / dot( direction, direction );
+		float ratio = opposite_leg_squared / square( object.radius );
 		float distance = length( hypotenuse );
 
 		if( dot_hypotenuse_direction > 0.0 && distance < best_distance && ratio <= 1.0 )
