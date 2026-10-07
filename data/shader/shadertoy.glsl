@@ -42,12 +42,17 @@ sphere get_sphere( int index )
 	);
 }
 
+struct camera
+{
+	vec3 position;
+	vec3 forward;
+	vec3 right;
+	vec3 up;
+};
+
 struct environment
 {
-	vec3 cam_position;
-	vec3 cam_forward;
-	vec3 cam_right;
-	vec3 cam_up;
+	camera camera;
 	vec4 background_color;
 	float focal;
 	float ambient;
@@ -57,10 +62,12 @@ struct environment
 environment get_environment( )
 {
 	return environment(
-		get_vec3_from( environment_data, 0 ),
-		get_vec3_from( environment_data, 3 ),
-		get_vec3_from( environment_data, 6 ),
-		get_vec3_from( environment_data, 9 ),
+		camera(
+			get_vec3_from( environment_data, 0 ),
+			get_vec3_from( environment_data, 3 ),
+			get_vec3_from( environment_data, 6 ),
+			get_vec3_from( environment_data, 9 )
+		),
 		vec4( environment_data[ 12 ], environment_data[ 13 ], environment_data[ 14 ], environment_data[ 15 ] ),
 		environment_data[ 16 ],
 		environment_data[ 17 ],
@@ -74,7 +81,7 @@ void main( )
 
 	const environment current_environment = get_environment( );
 
-	vec3 direction = current_environment.cam_forward * current_environment.focal + current_environment.cam_right * input_coord.x + current_environment.cam_up * input_coord.y;
+	vec3 direction = current_environment.camera.forward * current_environment.focal + current_environment.camera.right * input_coord.x + current_environment.camera.up * input_coord.y;
 
 	float best_distance = 1e20;
 	vec3 color = current_environment.background_color.rgb;
@@ -82,7 +89,7 @@ void main( )
 	for( int index = 0; index < sphere_count; ++index )
 	{
 		sphere object = get_sphere( index );
-		vec3 hypotenuse = object.position - current_environment.cam_position;
+		vec3 hypotenuse = object.position - current_environment.camera.position;
 		float dot_hypotenuse_direction = dot( hypotenuse, direction );
 		float opposite_leg_squared = dot( hypotenuse, hypotenuse ) - square( dot_hypotenuse_direction ) / dot( direction, direction );
 		float ratio = opposite_leg_squared / square( object.radius );

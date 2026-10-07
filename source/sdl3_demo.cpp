@@ -156,10 +156,12 @@ namespace gl {
 		{
 			const float ambient = 0.3f;
 			m_data = data{
-				 {	0.0f	,0.0f	,-2.0f	}
-				,{	0.0f	,0.0f	,1.0f	}
-				,{	1.0f	,0.0f	,0.0f	}
-				,{	0.0f	,1.0f	,0.0f	}
+				 camera{
+					 {	0.0f	,0.0f	,-2.0f	}
+					,{	0.0f	,0.0f	,1.0f	}
+					,{	1.0f	,0.0f	,0.0f	}
+					,{	0.0f	,1.0f	,0.0f	}
+				 }
 				,{	0.0f	,0.0f	,0.0f	,1.0f	}
 				,2.0f
 				,ambient
@@ -172,16 +174,21 @@ namespace gl {
 		auto update( ) const noexcept -> void { m_buffer.update( sizeof( data ), &m_data ); }
 
 	private:
+		struct camera
+		{
+			position	m_position;
+			direction	m_forward;
+			direction	m_right;
+			direction	m_up;
+		};
+
 		struct data
 		{
-			position	m_cam_position;
-			direction	m_cam_forward;
-			direction	m_cam_right;
-			direction	m_cam_up;
-			color		m_background_color;
-			float		m_focal;
-			float		m_ambient;
-			float		m_volume;
+			camera	m_camera;
+			color	m_background_color;
+			float	m_focal;
+			float	m_ambient;
+			float	m_volume;
 		};
 
 		shader_storage_buffer m_buffer;
