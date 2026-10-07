@@ -22,53 +22,50 @@ layout( std430, binding = 1 ) readonly buffer environment_buffer { float environ
 
 out vec4 final_color;
 
-#define get_vec3_from( data, index ) vec3( data[ ( index ) ], data[ ( index ) + 1 ], data[ ( index ) + 2 ] )
+#define vec3_from( data, index ) vec3( data[ ( index ) ], data[ ( index ) + 1 ], data[ ( index ) + 2 ] )
+#define vec4_from( data, index ) vec4( data[ ( index ) ], data[ ( index ) + 1 ], data[ ( index ) + 2 ], data[ ( index ) + 3 ] )
 #define square( value ) ( ( value ) * ( value ) )
 
 struct sphere
 {
-	vec3 position;
-	float radius;
-	vec4 color;
+	vec3	position;
+	float	radius;
+	vec4	color;
 };
 
 sphere get_sphere( int index )
 {
-	int base_index = index * 8;
-	return sphere(
-		get_vec3_from( sphere_data, base_index + 0 ),
-		sphere_data[ base_index + 3 ],
-		vec4( sphere_data[ base_index + 4 ], sphere_data[ base_index + 5 ], sphere_data[ base_index + 6 ], sphere_data[ base_index + 7 ] )
-	);
+	int	base_index = index * 8;
+	return sphere( vec3_from( sphere_data, base_index + 0 ), sphere_data[ base_index + 3 ], vec4_from( sphere_data, base_index + 4 ));
 }
 
 struct camera
 {
-	vec3 position;
-	vec3 forward;
-	vec3 right;
-	vec3 up;
+	vec3	position;
+	vec3	forward;
+	vec3	right;
+	vec3	up;
 };
 
 struct environment
 {
-	camera camera;
-	vec4 background_color;
-	float focal;
-	float ambient;
-	float volume;
+	camera	camera;
+	vec4	background_color;
+	float	focal;
+	float	ambient;
+	float	volume;
 };
 
 environment get_environment( )
 {
 	return environment(
 		camera(
-			get_vec3_from( environment_data, 0 ),
-			get_vec3_from( environment_data, 3 ),
-			get_vec3_from( environment_data, 6 ),
-			get_vec3_from( environment_data, 9 )
+			vec3_from( environment_data, 0 ),
+			vec3_from( environment_data, 3 ),
+			vec3_from( environment_data, 6 ),
+			vec3_from( environment_data, 9 )
 		),
-		vec4( environment_data[ 12 ], environment_data[ 13 ], environment_data[ 14 ], environment_data[ 15 ] ),
+		vec4_from( environment_data, 12 ),
 		environment_data[ 16 ],
 		environment_data[ 17 ],
 		environment_data[ 18 ]
@@ -77,23 +74,23 @@ environment get_environment( )
 
 void main( )
 {
-	vec2 input_coord = ( gl_FragCoord.xy - 0.5 * resolution ) * ( 2.0 / min( resolution.x, resolution.y ) );
+	vec2	input_coord = ( gl_FragCoord.xy - 0.5 * resolution ) * ( 2.0 / min( resolution.x, resolution.y ) );
 
-	const environment current_environment = get_environment( );
+	const	environment	current_environment = get_environment( );
 
-	vec3 direction = current_environment.camera.forward * current_environment.focal + current_environment.camera.right * input_coord.x + current_environment.camera.up * input_coord.y;
+	vec3	direction = current_environment.camera.forward * current_environment.focal + current_environment.camera.right * input_coord.x + current_environment.camera.up * input_coord.y;
 
-	float best_distance = 1e20;
-	vec3 color = current_environment.background_color.rgb;
+	float	best_distance = 1e20;
+	vec3	color = current_environment.background_color.rgb;
 
 	for( int index = 0; index < sphere_count; ++index )
 	{
-		sphere object = get_sphere( index );
-		vec3 hypotenuse = object.position - current_environment.camera.position;
-		float dot_hypotenuse_direction = dot( hypotenuse, direction );
-		float opposite_leg_squared = dot( hypotenuse, hypotenuse ) - square( dot_hypotenuse_direction ) / dot( direction, direction );
-		float ratio = opposite_leg_squared / square( object.radius );
-		float distance = length( hypotenuse );
+		sphere	object = get_sphere( index );
+		vec3	hypotenuse = object.position - current_environment.camera.position;
+		float	dot_hypotenuse_direction = dot( hypotenuse, direction );
+		float	opposite_leg_squared = dot( hypotenuse, hypotenuse ) - square( dot_hypotenuse_direction ) / dot( direction, direction );
+		float	ratio = opposite_leg_squared / square( object.radius );
+		float	distance = length( hypotenuse );
 
 		if( dot_hypotenuse_direction > 0.0 && distance < best_distance && ratio <= 1.0 )
 		{
