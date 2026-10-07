@@ -88,11 +88,12 @@ void main( )
 		sphere	object = get_sphere( index );
 		vec3	hypotenuse = object.position - current_environment.camera.position;
 		float	dot_hypotenuse_direction = dot( hypotenuse, direction );
+		if( dot_hypotenuse_direction <= 0.0 ) continue;
 		float	opposite_leg_squared = dot( hypotenuse, hypotenuse ) - square( dot_hypotenuse_direction ) / dot( direction, direction );
 		float	ratio = opposite_leg_squared / square( object.radius );
 		float	distance = length( hypotenuse );
 
-		if( dot_hypotenuse_direction > 0.0 && distance < best_distance && ratio <= 1.0 )
+		if( distance < best_distance && ratio <= 1.0 )
 		{
 			best_distance = distance;
 			color = object.color.rgb * ( current_environment.ambient + current_environment.volume * sqrt( 1.0 - clamp( ratio, 0.0, 1.0 ) ) );
