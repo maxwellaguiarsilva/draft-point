@@ -116,7 +116,7 @@ namespace gl {
 	};	//	total 8 floats
 
 
-	//	raii shader storage buffer shared by the geometry and the environment, holding the opengl object on their behalf
+	//	raii shader storage buffer shared by the models, holding the opengl object on their behalf
 	class shader_storage_buffer
 	{
 	public:
@@ -147,7 +147,7 @@ namespace gl {
 	};
 
 
-	//	shared environment, transferred as flat floats and assembled manually on the gpu like spheres
+	//	shared environment, transferred as flat floats and assembled manually on the gpu
 	class environment
 	{
 	public:
@@ -156,39 +156,57 @@ namespace gl {
 		{
 			const float ambient = 0.3f;
 			m_data = data{
-				 camera{
-					 {	0.0f	,0.0f	,-2.0f	}
-					,{	0.0f	,0.0f	,1.0f	}
-					,{	1.0f	,0.0f	,0.0f	}
-					,{	0.0f	,1.0f	,0.0f	}
-				 }
-				,{	0.0f	,0.0f	,0.0f	,1.0f	}
+				 {	0.0f	,0.0f	,0.0f	,1.0f	}
 				,2.0f
 				,ambient
 				,1.0f - ambient
 			};
-			static_assert( sizeof( data ) == 19 * sizeof( float ), "environment must stay tightly packed" );
+			static_assert( sizeof( data ) == 7 * sizeof( float ), "environment must stay tightly packed" );
 			update( );
 		}
 
 		auto update( ) const noexcept -> void { m_buffer.update( sizeof( data ), &m_data ); }
 
 	private:
-		struct camera
+		struct data
+		{
+			color	m_background_color;
+			float	m_focal;
+			float	m_ambient;
+			float	m_volume;
+		};
+
+		shader_storage_buffer m_buffer;
+		data m_data;
+	};
+
+
+	//	shared camera, transferred as flat floats and assembled manually on the gpu
+	class camera
+	{
+	public:
+		camera( )
+			:m_buffer( 1, sizeof( data ) )
+		{
+			m_data = data{
+				 {	0.0f	,0.0f	,-2.0f	}
+				,{	0.0f	,0.0f	,1.0f	}
+				,{	1.0f	,0.0f	,0.0f	}
+				,{	0.0f	,1.0f	,0.0f	}
+			};
+			static_assert( sizeof( data ) == 12 * sizeof( float ), "camera must stay tightly packed" );
+			update( );
+		}
+
+		auto update( ) const noexcept -> void { m_buffer.update( sizeof( data ), &m_data ); }
+
+	private:
+		struct data
 		{
 			position	m_position;
 			direction	m_forward;
 			direction	m_right;
 			direction	m_up;
-		};
-
-		struct data
-		{
-			camera	m_camera;
-			color	m_background_color;
-			float	m_focal;
-			float	m_ambient;
-			float	m_volume;
 		};
 
 		shader_storage_buffer m_buffer;
@@ -208,7 +226,7 @@ namespace gl {
 		explicit polygon( const size_t total )
 			: m_spheres( )
 			,m_base_radius( 0.8f * polygon_radius * sine( 3.14159265f / total ) )
-			,m_buffer( 1, total * sizeof( sphere ) )
+			,m_buffer( 2, total * sizeof( sphere ) )
 		{
 			const float step = 2.0f * 3.14159265f / total;
 			m_spheres.reserve( total );
@@ -344,7 +362,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::sak::sdl3::opengl::, context )
 	__using( ::std::chrono::, duration, high_resolution_clock )
 	__using( ::game::, fps )
-	__using( ::gl::, environment, polygon, shader_loader, window_listener )
+	__using( ::gl::, camera, environment, polygon, shader_loader, window_listener )
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
@@ -377,8 +395,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		gl_program_uniform_1i( shader_program.id( ), 0, static_cast< GLint >( mesh.count( ) ) );
 
-		//	shared environment owns its gpu buffer and uploads itself
+		//	shared environment and camera own their gpu buffers and upload themselves
 		environment scene_environment;
+		camera scene_camera;
 
 		const auto listener = make_shared< window_listener >( application_window, app, mesh, shader_program.id( ) );
 		application_window.listeners( ) += listener;
