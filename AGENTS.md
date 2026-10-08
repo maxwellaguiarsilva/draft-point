@@ -9,3 +9,5 @@ This project is an educational exploration with the following guidelines:
 - Includes transitive: execute the command `cpp-include-tree --flg-auto-fix` in the terminal.
 - Never explicitly and redundantly redeclare what is already happening through transitivity of the consuming element. Example: a class that has unique_ptr does not need to explicitly delete the copy constructor.
 
+- When creating a temporary/ephemeral C++ test unit, prefer using mcp tool `cpp_create_test` with the adhoc flag + `cpp_compile`, instead of `/tmp/ + manual command g++`.
+
