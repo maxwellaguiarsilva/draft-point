@@ -12,6 +12,7 @@
 
 #include <format>
 #include <map>
+#include <span>
 #include <sak/fso/text_file.hpp>
 #include <sak/opengl/program.hpp>
 #include <sak/pattern/parse.hpp>
@@ -28,18 +29,30 @@ namespace gl {
 	__using( ::std::
 		,array
 		,define_static_array
+		,is_trivially_copyable_v
 		,make_unique
 		,map
 		,pair
+		,ptrdiff_t
 		,regex
 		,size_t
 		,smatch 
+		,span
 		,string
 		,string_view
 		,unique_ptr
 		,vector
 	)
-	__using( ::std::meta::, enumerators_of, identifier_of )
+	__using( ::std::meta::
+		,access_context
+		,enumerators_of
+		,identifier_of
+		,info
+		,nonstatic_data_members_of
+		,offset_of
+		,size_of
+		,type_of
+	)
 	__using( ::std::regex_constants::, ECMAScript, multiline )
 	__using( ::std::views::, filter, join_with, keys, transform, zip )
 	__using( ::sak::, ensure )
@@ -116,26 +129,51 @@ namespace gl {
 	};	//	total 8 floats
 
 
-	//	raii shader storage buffer shared by the models, holding the opengl object on their behalf
+	//	a type whose bytes are a contiguous payload with no padding, matching the flat float arrays read on the gpu
+	consteval auto has_no_padding( const info type ) -> bool
+	{
+		ptrdiff_t offset = 0;
+		for( const auto member : nonstatic_data_members_of( type, access_context::current( ) ) )
+		{
+			if( offset_of( member ).bytes not_eq offset )
+				return	false;
+			offset += static_cast< ptrdiff_t >( size_of( type_of( member ) ) );
+		}
+		return	offset == static_cast< ptrdiff_t >( size_of( type ) );
+	}
+
+	template< typename t_type >
+	concept is_flat = has_no_padding( ^^t_type ) and is_trivially_copyable_v< t_type >;
+
+	//	raii shader storage buffer owning a heap array of packed payloads and binding it as an ssbo
+	template< typename t_payload >
 	class shader_storage_buffer
 	{
 	public:
-		shader_storage_buffer( const GLuint binding_index, const size_t size_in_bytes, const void* initial_data = nullptr )
+		static_assert( is_flat< t_payload >, "the ssbo payload must be a tightly packed flat structure" );
+
+		shader_storage_buffer( const GLuint binding_index, const size_t count )
 			:m_raii( make_unique< raii_destructor >( ) )
+			,m_data( make_unique< t_payload[ ] >( count ) )
+			,m_count( count )
 		{
 			GLuint buffer_id = 0;
 			gl_create_buffers( 1, &buffer_id );
 			id( buffer_id );
-			gl_named_buffer_storage( id( ), size_in_bytes, initial_data, GL_DYNAMIC_STORAGE_BIT );
+			gl_named_buffer_storage( id( ), byte_size( ), nullptr, GL_DYNAMIC_STORAGE_BIT );
 			gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, binding_index, id( ) );
 		}
 
-		auto update( const size_t size_in_bytes, const void* data ) const noexcept -> void
-		{ gl_named_buffer_sub_data( id( ), 0, size_in_bytes, data ); }
+		auto flush( ) const noexcept -> void { gl_named_buffer_sub_data( id( ), 0, byte_size( ), m_data.get( ) ); }
+
+		auto operator[ ]( const size_t index ) noexcept -> t_payload& { return m_data[ index ]; }
+		auto data( ) const noexcept -> t_payload* { return m_data.get( ); }
+		auto count( ) const noexcept -> size_t { return m_count; }
 
 	private:
 		auto id( ) const noexcept -> GLuint { return m_raii->m_id; }
 		auto id( const GLuint value ) noexcept -> void { m_raii->m_id = value; }
+		auto byte_size( ) const noexcept -> size_t { return m_count * sizeof( t_payload ); }
 
 		struct raii_destructor
 		{
@@ -144,74 +182,29 @@ namespace gl {
 		};
 
 		unique_ptr< raii_destructor > m_raii;
+		unique_ptr< t_payload[ ] > m_data;
+		size_t m_count;
 	};
 
 
 	//	shared environment, transferred as flat floats and assembled manually on the gpu
-	class environment
+	struct environment
 	{
-	public:
-		environment( )
-			:m_buffer( 0, sizeof( data ) )
-		{
-			const float ambient = 0.3f;
-			m_data = data{
-				 {	0.0f	,0.0f	,0.0f	,1.0f	}
-				,2.0f
-				,ambient
-				,1.0f - ambient
-			};
-			static_assert( sizeof( data ) == 7 * sizeof( float ), "environment must stay tightly packed" );
-			update( );
-		}
-
-		auto update( ) const noexcept -> void { m_buffer.update( sizeof( data ), &m_data ); }
-
-	private:
-		struct data
-		{
-			color	m_background_color;
-			float	m_focal;
-			float	m_ambient;
-			float	m_volume;
-		};
-
-		shader_storage_buffer m_buffer;
-		data m_data;
-	};
+		color	m_background_color;
+		float	m_focal;
+		float	m_ambient;
+		float	m_volume;
+	};	//	total 7 floats
 
 
 	//	shared camera, transferred as flat floats and assembled manually on the gpu
-	class camera
+	struct camera
 	{
-	public:
-		camera( )
-			:m_buffer( 1, sizeof( data ) )
-		{
-			m_data = data{
-				 {	0.0f	,0.0f	,-2.0f	}
-				,{	0.0f	,0.0f	,1.0f	}
-				,{	1.0f	,0.0f	,0.0f	}
-				,{	0.0f	,1.0f	,0.0f	}
-			};
-			static_assert( sizeof( data ) == 12 * sizeof( float ), "camera must stay tightly packed" );
-			update( );
-		}
-
-		auto update( ) const noexcept -> void { m_buffer.update( sizeof( data ), &m_data ); }
-
-	private:
-		struct data
-		{
-			position	m_position;
-			direction	m_forward;
-			direction	m_right;
-			direction	m_up;
-		};
-
-		shader_storage_buffer m_buffer;
-		data m_data;
-	};
+		position	m_position;
+		direction	m_forward;
+		direction	m_right;
+		direction	m_up;
+	};	//	total 12 floats
 
 
 	//	regular polygon centered at the origin, the authoritative cpu geometry
@@ -224,54 +217,50 @@ namespace gl {
 		static constexpr float pulsation_phase_step = 3.14159265f / 2.0f;
 
 		explicit polygon( const size_t total )
-			: m_spheres( )
+			:m_storage( 2, total )
 			,m_base_radius( 0.8f * polygon_radius * sine( 3.14159265f / total ) )
-			,m_buffer( 2, total * sizeof( sphere ) )
 		{
 			const float step = 2.0f * 3.14159265f / total;
-			m_spheres.reserve( total );
 			for( const size_t index : count_to( total ) )
-				m_spheres.push_back( {
+				m_storage[ index ] = sphere{
 					 position{ polygon_radius * cosine( step * index ), polygon_radius * sine( step * index ), 1.0f }
 					,m_base_radius
 					,palette[ index % palette.size( ) ]
-				} );
-			flush( );
+				};
+			m_storage.flush( );
 		}
 
 		auto turn( const float angle ) -> void
 		{
-			for( sphere& current : m_spheres )
+			for( sphere& current : spheres( ) )
 				current.m_position = rotate( current.m_position, position{ 0.0f, 0.0f, 1.0f }, angle ) | to;
-			flush( );
+			m_storage.flush( );
 		}
 
 		auto cycle_colors( const bool forward ) -> void
 		{
-			const vector< color > colors = m_spheres | transform( &sphere::m_color ) | rotated( forward ? 1 : m_spheres.size( ) - 1 ) | to;
-			for( auto [ current, color_value ] : zip( m_spheres, colors ) )
+			const auto objects = spheres( );
+			const vector< color > reordered = objects | transform( &sphere::m_color ) | rotated( forward ? 1 : objects.size( ) - 1 ) | to;
+			for( auto [ current, color_value ] : zip( objects, reordered ) )
 				current.m_color = color_value;
-			flush( );
+			m_storage.flush( );
 		}
 
 		auto update( const float delta_seconds ) -> void
 		{
 			m_time += delta_seconds;
-			for( const size_t index : count_to( m_spheres.size( ) ) )
-				m_spheres[ index ].m_radius = m_base_radius + pulsation_amplitude * sine( pulsation_speed * m_time + index * pulsation_phase_step );
-			flush( );
+			for( const size_t index : count_to( m_storage.count( ) ) )
+				m_storage[ index ].m_radius = m_base_radius + pulsation_amplitude * sine( pulsation_speed * m_time + index * pulsation_phase_step );
+			m_storage.flush( );
 		}
 
-		auto data( ) const noexcept -> const sphere* { return m_spheres.data( ); }
-		auto byte_size( ) const noexcept -> size_t { return m_spheres.size( ) * sizeof( sphere ); }
-		auto count( ) const noexcept -> size_t { return m_spheres.size( ); }
+		auto count( ) const noexcept -> size_t { return m_storage.count( ); }
 
 	private:
-		auto flush( ) noexcept -> void { m_buffer.update( byte_size( ), data( ) ); }
+		auto spheres( ) noexcept -> span< sphere > { return { m_storage.data( ), m_storage.count( ) }; }
 
-		vector< sphere > m_spheres;
+		shader_storage_buffer< sphere > m_storage;
 		float m_base_radius;
-		shader_storage_buffer m_buffer;
 		float m_time{ 0.0f };
 	};
 
@@ -362,7 +351,14 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	__using( ::sak::sdl3::opengl::, context )
 	__using( ::std::chrono::, duration, high_resolution_clock )
 	__using( ::game::, fps )
-	__using( ::gl::, camera, environment, polygon, shader_loader, window_listener )
+	__using( ::gl::
+		,camera
+		,environment
+		,polygon
+		,shader_loader
+		,shader_storage_buffer
+		,window_listener
+	)
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
@@ -395,9 +391,13 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 		gl_program_uniform_1i( shader_program.id( ), 0, static_cast< GLint >( mesh.count( ) ) );
 
-		//	shared environment and camera own their gpu buffers and upload themselves
-		environment scene_environment;
-		camera scene_camera;
+		//	shared environment and camera live in typed storage buffers and are uploaded to the gpu
+		shader_storage_buffer< environment > scene_environment{ 0, 1 };
+		shader_storage_buffer< camera > scene_camera{ 1, 1 };
+		scene_environment[ 0 ] = environment{ { 0.0f, 0.0f, 0.0f, 1.0f }, 2.0f, 0.3f, 0.7f };
+		scene_camera[ 0 ] = camera{ { 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } };
+		scene_environment.flush( );
+		scene_camera.flush( );
 
 		const auto listener = make_shared< window_listener >( application_window, app, mesh, shader_program.id( ) );
 		application_window.listeners( ) += listener;
