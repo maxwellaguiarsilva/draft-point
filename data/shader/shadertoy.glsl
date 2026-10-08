@@ -14,12 +14,11 @@ void main( ) { gl_Position = vec4( vertices[ gl_VertexID ], 0.0, 1.0 ); }
 //	fragment-shader
 #version 460 core
 
-layout( location = 0 ) uniform int sphere_count;
 layout( location = 1 ) uniform vec2 resolution;
 
-layout( std430, binding = 0 ) readonly buffer environment_buffer { float environment_data[]; };
-layout( std430, binding = 1 ) readonly buffer camera_buffer { float camera_data[]; };
-layout( std430, binding = 2 ) readonly buffer sphere_buffer { float sphere_data[]; };
+layout( std430, binding = 0 ) readonly buffer environment_buffer { uint count; uint stride; float data[]; } environment_ssbo;
+layout( std430, binding = 1 ) readonly buffer camera_buffer { uint count; uint stride; float data[]; } camera_ssbo;
+layout( std430, binding = 2 ) readonly buffer sphere_buffer { uint count; uint stride; float data[]; } sphere_ssbo;
 
 out vec4 final_color;
 
@@ -35,13 +34,14 @@ struct environment
 	float	volume;
 };
 
-environment get_environment( )
+environment ssbo_environment( int index )
 {
+	int	base_index = index * int( environment_ssbo.stride );
 	return environment(
-		vec4_from( environment_data, 0 ),
-		environment_data[ 4 ],
-		environment_data[ 5 ],
-		environment_data[ 6 ]
+		vec4_from( environment_ssbo.data, base_index + 0 ),
+		environment_ssbo.data[ base_index + 4 ],
+		environment_ssbo.data[ base_index + 5 ],
+		environment_ssbo.data[ base_index + 6 ]
 	);
 }
 
@@ -53,13 +53,14 @@ struct camera
 	vec3	up;
 };
 
-camera get_camera( )
+camera ssbo_camera( int index )
 {
+	int	base_index = index * int( camera_ssbo.stride );
 	return camera(
-		vec3_from( camera_data, 0 ),
-		vec3_from( camera_data, 3 ),
-		vec3_from( camera_data, 6 ),
-		vec3_from( camera_data, 9 )
+		vec3_from( camera_ssbo.data, base_index + 0 ),
+		vec3_from( camera_ssbo.data, base_index + 3 ),
+		vec3_from( camera_ssbo.data, base_index + 6 ),
+		vec3_from( camera_ssbo.data, base_index + 9 )
 	);
 }
 
@@ -70,27 +71,27 @@ struct sphere
 	vec4	color;
 };
 
-sphere get_sphere( int index )
+sphere ssbo_sphere( int index )
 {
-	int	base_index = index * 8;
-	return sphere( vec3_from( sphere_data, base_index + 0 ), sphere_data[ base_index + 3 ], vec4_from( sphere_data, base_index + 4 ));
+	int	base_index = index * int( sphere_ssbo.stride );
+	return sphere( vec3_from( sphere_ssbo.data, base_index + 0 ), sphere_ssbo.data[ base_index + 3 ], vec4_from( sphere_ssbo.data, base_index + 4 ));
 }
 
 void main( )
 {
 	vec2	input_coord = ( gl_FragCoord.xy - 0.5 * resolution ) * ( 2.0 / min( resolution.x, resolution.y ) );
 
-	const	environment	current_environment = get_environment( );
-	const	camera	current_camera = get_camera( );
+	const	environment	current_environment = ssbo_environment( 0 );
+	const	camera	current_camera = ssbo_camera( 0 );
 
 	vec3	direction = current_camera.forward * current_environment.focal + current_camera.right * input_coord.x + current_camera.up * input_coord.y;
 
 	float	best_distance = 1e20;
 	vec3	color = current_environment.background_color.rgb;
 
-	for( int index = 0; index < sphere_count; ++index )
+	for( int index = 0; index < int( sphere_ssbo.count ); ++index )
 	{
-		sphere	object = get_sphere( index );
+		sphere	object = ssbo_sphere( index );
 		vec3	hypotenuse = object.position - current_camera.position;
 		float	dot_hypotenuse_direction = dot( hypotenuse, direction );
 		if( dot_hypotenuse_direction <= 0.0 ) continue;

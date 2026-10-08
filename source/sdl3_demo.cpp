@@ -145,12 +145,20 @@ namespace gl {
 	template< typename t_type >
 	concept is_flat = has_no_padding( ^^t_type ) and is_trivially_copyable_v< t_type >;
 
+	//	element count and float stride prefixed to every ssbo payload so the shader iterates generically
+	struct ssbo_header
+	{
+		GLuint	m_count;
+		GLuint	m_stride;
+	};
+
 	//	raii shader storage buffer owning a heap array of packed payloads and binding it as an ssbo
 	template< typename t_payload >
 	class shader_storage_buffer
 	{
 	public:
 		static_assert( is_flat< t_payload >, "the ssbo payload must be a tightly packed flat structure" );
+		static_assert( sizeof( ssbo_header ) == 2 * sizeof( GLuint ), "the ssbo header must be two tightly packed integers" );
 
 		shader_storage_buffer( const GLuint binding_index, const size_t count )
 			:m_raii( make_unique< raii_destructor >( ) )
@@ -162,9 +170,11 @@ namespace gl {
 			id( buffer_id );
 			gl_named_buffer_storage( id( ), byte_size( ), nullptr, GL_DYNAMIC_STORAGE_BIT );
 			gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, binding_index, id( ) );
+			const ssbo_header header{ static_cast< GLuint >( count ), static_cast< GLuint >( sizeof( t_payload ) / sizeof( float ) ) };
+			gl_named_buffer_sub_data( id( ), 0, sizeof( header ), &header );
 		}
 
-		auto flush( ) const noexcept -> void { gl_named_buffer_sub_data( id( ), 0, byte_size( ), m_data.get( ) ); }
+		auto flush( ) const noexcept -> void { gl_named_buffer_sub_data( id( ), sizeof( ssbo_header ), payload_size( ), m_data.get( ) ); }
 
 		auto operator[ ]( const size_t index ) noexcept -> t_payload& { return m_data[ index ]; }
 		auto data( ) const noexcept -> t_payload* { return m_data.get( ); }
@@ -173,7 +183,8 @@ namespace gl {
 	private:
 		auto id( ) const noexcept -> GLuint { return m_raii->m_id; }
 		auto id( const GLuint value ) noexcept -> void { m_raii->m_id = value; }
-		auto byte_size( ) const noexcept -> size_t { return m_count * sizeof( t_payload ); }
+		auto byte_size( ) const noexcept -> size_t { return sizeof( ssbo_header ) + payload_size( ); }
+		auto payload_size( ) const noexcept -> size_t { return m_count * sizeof( t_payload ); }
 
 		struct raii_destructor
 		{
@@ -388,8 +399,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		shader_loader loader;
 		const program shader_program( loader[ "shadertoy" ] | values );
 		shader_program.use( );
-
-		gl_program_uniform_1i( shader_program.id( ), 0, static_cast< GLint >( mesh.count( ) ) );
 
 		//	shared environment and camera live in typed storage buffers and are uploaded to the gpu
 		shader_storage_buffer< environment > scene_environment{ 0, 1 };
