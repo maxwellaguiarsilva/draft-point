@@ -17,27 +17,14 @@ void main( ) { gl_Position = vec4( vertices[ gl_VertexID ], 0.0, 1.0 ); }
 layout( location = 0 ) uniform int sphere_count;
 layout( location = 1 ) uniform vec2 resolution;
 
-layout( std430, binding = 0 ) readonly buffer sphere_buffer { float sphere_data[]; };
-layout( std430, binding = 1 ) readonly buffer environment_buffer { float environment_data[]; };
+layout( std430, binding = 1 ) readonly buffer sphere_buffer { float sphere_data[]; };
+layout( std430, binding = 0 ) readonly buffer environment_buffer { float environment_data[]; };
 
 out vec4 final_color;
 
 #define vec3_from( data, index ) vec3( data[ ( index ) ], data[ ( index ) + 1 ], data[ ( index ) + 2 ] )
 #define vec4_from( data, index ) vec4( data[ ( index ) ], data[ ( index ) + 1 ], data[ ( index ) + 2 ], data[ ( index ) + 3 ] )
 #define square( value ) ( ( value ) * ( value ) )
-
-struct sphere
-{
-	vec3	position;
-	float	radius;
-	vec4	color;
-};
-
-sphere get_sphere( int index )
-{
-	int	base_index = index * 8;
-	return sphere( vec3_from( sphere_data, base_index + 0 ), sphere_data[ base_index + 3 ], vec4_from( sphere_data, base_index + 4 ));
-}
 
 struct camera
 {
@@ -70,6 +57,19 @@ environment get_environment( )
 		environment_data[ 17 ],
 		environment_data[ 18 ]
 	);
+}
+
+struct sphere
+{
+	vec3	position;
+	float	radius;
+	vec4	color;
+};
+
+sphere get_sphere( int index )
+{
+	int	base_index = index * 8;
+	return sphere( vec3_from( sphere_data, base_index + 0 ), sphere_data[ base_index + 3 ], vec4_from( sphere_data, base_index + 4 ));
 }
 
 void main( )

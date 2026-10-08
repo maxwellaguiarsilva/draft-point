@@ -152,7 +152,7 @@ namespace gl {
 	{
 	public:
 		environment( )
-			:m_buffer( 1, sizeof( data ) )
+			:m_buffer( 0, sizeof( data ) )
 		{
 			const float ambient = 0.3f;
 			m_data = data{
@@ -208,7 +208,7 @@ namespace gl {
 		explicit polygon( const size_t total )
 			: m_spheres( )
 			,m_base_radius( 0.8f * polygon_radius * sine( 3.14159265f / total ) )
-			,m_buffer( 0, total * sizeof( sphere ) )
+			,m_buffer( 1, total * sizeof( sphere ) )
 		{
 			const float step = 2.0f * 3.14159265f / total;
 			m_spheres.reserve( total );
