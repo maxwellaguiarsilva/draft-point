@@ -70,9 +70,7 @@ namespace gl {
 	class shader_loader
 	{
 	public:
-		explicit shader_loader( const string& base_path = "data/shader" )
-			:m_base_path( base_path )
-		{ }
+		explicit shader_loader( const string& base_path = "data/shader" ) :m_base_path( base_path ) { }
 
 		auto operator[ ]( const string& name ) -> const map< shader::type, shader >&
 		{
