@@ -57,7 +57,13 @@ namespace gl {
 	__using( ::std::views::, filter, join_with, keys, transform, zip )
 	__using( ::sak::, ensure )
 	__using( ::sak::fso::, text_file )
-	__using( ::sak::math::, cosine, min, rotate, sine )
+	__using( ::sak::math::
+		,bit_of
+		,cosine
+		,min
+		,rotate
+		,sine
+	)
 	__using( ::sak::opengl::, shader )
 	__using( ::sak::ranges::, contains, count_to, to )
 	__using( ::sak::ranges::views::, regex_matches, rotated )
@@ -115,7 +121,7 @@ namespace gl {
 
 	//	the eight basic ansi colors, indexed by the rgb channel bits of the index
 	inline constexpr array< color, 8 > palette = count_to( 8uz )
-		|	transform( [ ]( const size_t index ) { return color{ ( index >> 0 ) & 1, ( index >> 1 ) & 1, ( index >> 2 ) & 1, 1.0f }; } )
+		|	transform( [ ]( const size_t index ) { return color{ bit_of( index, 0 ), bit_of( index, 1 ), bit_of( index, 2 ), 1.0f }; } )
 		|	to;
 
 

@@ -18,7 +18,19 @@ namespace {
 
 using	::sak::is_point;
 __using( ::sak::, byte, g2f, g3f )
-__using( ::sak::math::, sum, square, square_root, dot, length, normalize, cross, rotate, sine, cosine )
+__using( ::sak::math::
+	,sum
+	,square
+	,square_root
+	,dot
+	,length
+	,normalize
+	,cross
+	,rotate
+	,sine
+	,cosine
+	,bit_of
+)
 __using( ::sak::ranges::, count_to, lazy_transform, to )
 __using( ::sak::pattern::, operator| )
 __using( ::std::views::, zip )
@@ -182,7 +194,7 @@ constexpr auto deinterleave( byte index, size_t dimension, size_t dimensions ) -
 {
 	byte channel_index = 0;
 	for( size_t source_bit = dimension, dest_bit = 0; source_bit < sizeof( byte ) * CHAR_BIT; source_bit += dimensions, ++dest_bit )
-		channel_index |= ( ( index >> source_bit ) & 1 ) << dest_bit;
+		channel_index |= bit_of( index, source_bit ) << dest_bit;
 	return	channel_index;
 }
 

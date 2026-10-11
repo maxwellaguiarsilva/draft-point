@@ -25,6 +25,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	)
 	__using( ::sak::math::
 		,absolute
+		,bit_of
 		,cross
 		,is_triplet
 		,length
@@ -204,6 +205,34 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 			//	const point< float, 3 > chained = direction | normalize | rotate( axis_z, half_pi ) | to;
 			//	ensure( length( chained ) == 1.0f, "chained direct-application pipe failed" );
+		}
+
+		//	--------------------------------------------------
+		//	bit_of
+		//	--------------------------------------------------
+
+		//	scalar extraction of a known bit pattern, several positions including bit 0
+		{
+			constexpr int pattern = 0b10110010;
+			ensure( bit_of( pattern, 0 ) == 0, "bit_of bit 0 failed" );
+			ensure( bit_of( pattern, 1 ) == 1, "bit_of bit 1 failed" );
+			ensure( bit_of( pattern, 2 ) == 0, "bit_of bit 2 failed" );
+			ensure( bit_of( pattern, 4 ) == 1, "bit_of bit 4 failed" );
+			ensure( bit_of( pattern, 7 ) == 1, "bit_of bit 7 failed" );
+			println( "bit_of scalar extraction passed" );
+		}
+
+		//	range pipeline: range | bit_of( n ) extracts bit n element-wise
+		{
+			vector< int > values = { 0b0001, 0b0010, 0b0011, 0b1110 };
+			const vector< int > expected = { 1, 0, 1, 0 };
+			int position = 0;
+			for( const auto bit : values | bit_of( 0 ) )
+			{
+				ensure( bit == expected[ position ], "range | bit_of( 0 ) failed" );
+				++position;
+			}
+			println( "bit_of range pipeline passed" );
 		}
 
 		println( "all tests for sak/math passed" );
