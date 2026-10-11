@@ -149,12 +149,6 @@ namespace gl {
 	template< typename t_type >
 	concept is_flat = has_no_padding( ^^t_type ) and is_trivially_copyable_v< t_type >;
 
-	//	element count and float stride prefixed to every ssbo payload so the shader iterates generically
-	struct ssbo_header
-	{
-		GLuint	m_count;
-		GLuint	m_stride;
-	};
 
 	//	raii shader storage buffer owning a heap array of packed payloads; binding is a separate explicit step
 	template< typename t_payload >
@@ -162,7 +156,9 @@ namespace gl {
 	{
 	public:
 		static_assert( is_flat< t_payload >, "the ssbo payload must be a tightly packed flat structure" );
-		static_assert( sizeof( ssbo_header ) == 2 * sizeof( GLuint ), "the ssbo header must be two tightly packed integers" );
+		
+		//	element count and float stride prefixed to every ssbo payload so the shader iterates generically
+		struct ssbo_header { GLuint m_count; GLuint m_stride; };
 
 		shader_storage_buffer( const size_t count )
 			:m_raii( make_unique< raii_destructor >( ) )
