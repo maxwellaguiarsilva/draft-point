@@ -162,18 +162,20 @@ namespace gl {
 			:m_raii( make_unique< raii_destructor >( ) )
 			,m_data( make_unique< t_payload[ ] >( count ) )
 			,m_count( count )
+			,m_payload_size( count * sizeof( t_payload ) )
+			,m_byte_size( sizeof( ssbo_header ) + m_payload_size )
 		{
 			GLuint buffer_id = 0;
 			gl_create_buffers( 1, &buffer_id );
 			id( buffer_id );
-			gl_named_buffer_storage( id( ), byte_size( ), nullptr, GL_DYNAMIC_STORAGE_BIT );
-			const ssbo_header header{ static_cast< GLuint >( count ), static_cast< GLuint >( sizeof( t_payload ) / sizeof( float ) ) };
+			gl_named_buffer_storage( id( ), m_byte_size, nullptr, GL_DYNAMIC_STORAGE_BIT );
+			const ssbo_header header{ static_cast< GLuint >( count ), sizeof( t_payload ) / sizeof( float ) };
 			gl_named_buffer_sub_data( id( ), 0, sizeof( header ), &header );
 		}
 
 		auto bind( const GLuint binding_index ) const noexcept -> void { gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, binding_index, id( ) ); }
 
-		auto flush( ) const noexcept -> void { gl_named_buffer_sub_data( id( ), sizeof( ssbo_header ), payload_size( ), m_data.get( ) ); }
+		auto flush( ) const noexcept -> void { gl_named_buffer_sub_data( id( ), sizeof( ssbo_header ), m_payload_size, m_data.get( ) ); }
 
 		auto operator[ ]( const size_t index ) noexcept -> t_payload& { return m_data[ index ]; }
 		auto data( ) const noexcept -> t_payload* { return m_data.get( ); }
@@ -182,8 +184,6 @@ namespace gl {
 	private:
 		auto id( ) const noexcept -> GLuint { return m_raii->m_id; }
 		auto id( const GLuint value ) noexcept -> void { m_raii->m_id = value; }
-		auto byte_size( ) const noexcept -> size_t { return sizeof( ssbo_header ) + payload_size( ); }
-		auto payload_size( ) const noexcept -> size_t { return m_count * sizeof( t_payload ); }
 
 		struct raii_destructor
 		{
@@ -194,6 +194,8 @@ namespace gl {
 		unique_ptr< raii_destructor > m_raii;
 		unique_ptr< t_payload[ ] > m_data;
 		size_t m_count;
+		const size_t m_payload_size;
+		const size_t m_byte_size;
 	};
 
 
