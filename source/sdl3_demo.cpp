@@ -135,7 +135,7 @@ namespace gl {
 		{
 			if( offset_of( member ).bytes not_eq offset )
 				return	false;
-			offset += static_cast< ptrdiff_t >( size_of( type_of( member ) ) );
+			offset += size_of( type_of( member ) );
 		}
 		return	offset == static_cast< ptrdiff_t >( size_of( type ) );
 	}
