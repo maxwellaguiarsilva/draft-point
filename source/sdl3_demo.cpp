@@ -150,7 +150,7 @@ namespace gl {
 		GLuint	m_stride;
 	};
 
-	//	raii shader storage buffer owning a heap array of packed payloads and binding it as an ssbo
+	//	raii shader storage buffer owning a heap array of packed payloads; binding is a separate explicit step
 	template< typename t_payload >
 	class shader_storage_buffer
 	{
@@ -158,7 +158,7 @@ namespace gl {
 		static_assert( is_flat< t_payload >, "the ssbo payload must be a tightly packed flat structure" );
 		static_assert( sizeof( ssbo_header ) == 2 * sizeof( GLuint ), "the ssbo header must be two tightly packed integers" );
 
-		shader_storage_buffer( const GLuint binding_index, const size_t count )
+		shader_storage_buffer( const size_t count )
 			:m_raii( make_unique< raii_destructor >( ) )
 			,m_data( make_unique< t_payload[ ] >( count ) )
 			,m_count( count )
@@ -167,10 +167,11 @@ namespace gl {
 			gl_create_buffers( 1, &buffer_id );
 			id( buffer_id );
 			gl_named_buffer_storage( id( ), byte_size( ), nullptr, GL_DYNAMIC_STORAGE_BIT );
-			gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, binding_index, id( ) );
 			const ssbo_header header{ static_cast< GLuint >( count ), static_cast< GLuint >( sizeof( t_payload ) / sizeof( float ) ) };
 			gl_named_buffer_sub_data( id( ), 0, sizeof( header ), &header );
 		}
+
+		auto bind( const GLuint binding_index ) const noexcept -> void { gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, binding_index, id( ) ); }
 
 		auto flush( ) const noexcept -> void { gl_named_buffer_sub_data( id( ), sizeof( ssbo_header ), payload_size( ), m_data.get( ) ); }
 
@@ -225,8 +226,10 @@ namespace gl {
 		static constexpr float pulsation_amplitude = 0.05f;
 		static constexpr float pulsation_phase_step = 3.14159265f / 2.0f;
 
+		shader_storage_buffer< sphere > m_storage;
+
 		explicit polygon( const size_t total )
-			:m_storage( 2, total )
+			:m_storage( total )
 			,m_base_radius( 0.8f * polygon_radius * sine( 3.14159265f / total ) )
 		{
 			const float step = 2.0f * 3.14159265f / total;
@@ -268,7 +271,6 @@ namespace gl {
 	private:
 		auto spheres( ) noexcept -> span< sphere > { return { m_storage.data( ), m_storage.count( ) }; }
 
-		shader_storage_buffer< sphere > m_storage;
 		float m_base_radius;
 		float m_time{ 0.0f };
 	};
@@ -399,8 +401,11 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		shader_program.use( );
 
 		//	shared environment and camera live in typed storage buffers and are uploaded to the gpu
-		shader_storage_buffer< environment > scene_environment{ 0, 1 };
-		shader_storage_buffer< camera > scene_camera{ 1, 1 };
+		shader_storage_buffer< environment > scene_environment{ 1 };
+		shader_storage_buffer< camera > scene_camera{ 1 };
+		scene_environment.bind( 0 );
+		scene_camera.bind( 1 );
+		mesh.m_storage.bind( 2 );
 		scene_environment[ 0 ] = environment{ { 0.0f, 0.0f, 0.0f, 1.0f }, 2.0f, 0.3f, 0.7f };
 		scene_camera[ 0 ] = camera{ { 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } };
 		scene_environment.flush( );
