@@ -173,8 +173,7 @@ namespace gl {
 			gl_named_buffer_sub_data( id( ), 0, sizeof( header ), &header );
 		}
 
-		auto bind( const GLuint binding_index ) const noexcept -> void { gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, binding_index, id( ) ); }
-
+		auto bind( const GLuint index ) const noexcept -> void { gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, index, id( ) ); }
 		auto flush( ) const noexcept -> void { gl_named_buffer_sub_data( id( ), sizeof( ssbo_header ), m_payload_size, m_data.get( ) ); }
 
 		auto operator[ ]( const size_t index ) noexcept -> t_payload& { return m_data[ index ]; }
