@@ -223,10 +223,10 @@ namespace gl {
 	{
 	public:
 		pulsation(
-			 const float radius = 1.0f
-			,const float speed = 1.0f
-			,const float amplitude = 1.0f
-			,const float slices = 1.0f
+			 const float radius		=	1.0f
+			,const float speed		=	1.0f
+			,const float amplitude	=	1.0f
+			,const float slices		=	1.0f
 		)
 			:m_radius( radius )
 			,m_speed( speed )
@@ -236,10 +236,8 @@ namespace gl {
 
 		auto radius( ) const noexcept -> float { return m_radius; }
 		auto radius( const float value ) noexcept -> void { m_radius = value; }
-
 		auto speed( ) const noexcept -> float { return m_speed; }
 		auto speed( const float value ) noexcept -> void { m_speed = value; }
-
 		auto amplitude( ) const noexcept -> float { return m_amplitude; }
 		auto amplitude( const float value ) noexcept -> void { m_amplitude = value; }
 
@@ -250,8 +248,8 @@ namespace gl {
 			m_phase_step = 2.0f * 3.14159265f / value;
 		}
 
-		auto radius_at( const float time, const float element_index ) const noexcept -> float
-		{ return m_radius + m_amplitude * sine( m_speed * time + element_index * m_phase_step ); }
+		auto radius_at( const float time, const float index ) const noexcept -> float
+		{ return m_radius + m_amplitude * sine( m_speed * time + index * m_phase_step ); }
 
 	private:
 		float	m_radius;
