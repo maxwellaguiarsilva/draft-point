@@ -218,26 +218,67 @@ namespace gl {
 	};	//	total 12 floats
 
 
+	//	temporal pulsation applied to the radius of each element around the origin
+	class pulsation
+	{
+	public:
+		pulsation(
+			 const float radius = 1.0f
+			,const float speed = 1.0f
+			,const float amplitude = 1.0f
+			,const float slices = 1.0f
+		)
+			:m_radius( radius )
+			,m_speed( speed )
+			,m_amplitude( amplitude )
+			,m_slices( slices )
+		{ pulsation::slices( m_slices ); }
+
+		auto radius( ) const noexcept -> float { return m_radius; }
+		auto radius( const float value ) noexcept -> void { m_radius = value; }
+
+		auto speed( ) const noexcept -> float { return m_speed; }
+		auto speed( const float value ) noexcept -> void { m_speed = value; }
+
+		auto amplitude( ) const noexcept -> float { return m_amplitude; }
+		auto amplitude( const float value ) noexcept -> void { m_amplitude = value; }
+
+		auto slices( ) const noexcept -> float { return m_slices; }
+		auto slices( const float value ) noexcept -> void
+		{
+			m_slices = value;
+			m_phase_step = 2.0f * 3.14159265f / value;
+		}
+
+		auto radius_at( const float time, const float element_index ) const noexcept -> float
+		{ return m_radius + m_amplitude * sine( m_speed * time + element_index * m_phase_step ); }
+
+	private:
+		float	m_radius;
+		float	m_speed;
+		float	m_amplitude;
+		float	m_slices;
+		float	m_phase_step;
+	};
+
+
 	//	regular polygon centered at the origin, the authoritative cpu geometry
 	class polygon
 	{
 	public:
 		static constexpr float polygon_radius = 0.7f;
-		static constexpr float pulsation_speed = 3.0f;
-		static constexpr float pulsation_amplitude = 0.05f;
-		static constexpr float pulsation_phase_step = 3.14159265f / 2.0f;
 
 		shader_storage_buffer< sphere > m_storage;
 
 		explicit polygon( const size_t total )
 			:m_storage( total )
-			,m_base_radius( 0.8f * polygon_radius * sine( 3.14159265f / total ) )
+			,m_pulsation( 0.8f * polygon_radius * sine( 3.14159265f / total ), 3.0f, 0.05f, 4.0f )
 		{
 			const float step = 2.0f * 3.14159265f / total;
 			for( const size_t index : count_to( total ) )
 				m_storage[ index ] = sphere{
 					 position{ polygon_radius * cosine( step * index ), polygon_radius * sine( step * index ), 1.0f }
-					,m_base_radius
+					,m_pulsation.radius( )
 					,palette[ index % palette.size( ) ]
 				};
 			m_storage.flush( );
@@ -263,7 +304,7 @@ namespace gl {
 		{
 			m_time += delta_seconds;
 			for( const size_t index : count_to( m_storage.count( ) ) )
-				m_storage[ index ].m_radius = m_base_radius + pulsation_amplitude * sine( pulsation_speed * m_time + index * pulsation_phase_step );
+				m_storage[ index ].m_radius = m_pulsation.radius_at( m_time, index );
 			m_storage.flush( );
 		}
 
@@ -272,7 +313,7 @@ namespace gl {
 	private:
 		auto spheres( ) noexcept -> span< sphere > { return { m_storage.data( ), m_storage.count( ) }; }
 
-		float m_base_radius;
+		pulsation m_pulsation;
 		float m_time{ 0.0f };
 	};
 
