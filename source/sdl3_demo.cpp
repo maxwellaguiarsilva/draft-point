@@ -53,6 +53,7 @@ namespace gl {
 		,size_of
 		,type_of
 	)
+	__using( ::std::numbers::, pi_v )
 	__using( ::std::regex_constants::, ECMAScript, multiline )
 	__using( ::std::views::, filter, join_with, keys, transform, zip )
 	__using( ::sak::, ensure )
@@ -247,7 +248,7 @@ namespace gl {
 		auto slices( const float value ) noexcept -> void
 		{
 			m_slices = value;
-			m_phase_step = 2.0f * 3.14159265f / value;
+			m_phase_step = 2.0f * pi_v< float > / value;
 		}
 
 		auto radius_at( const float time, const float index ) const noexcept -> float
@@ -272,9 +273,9 @@ namespace gl {
 
 		explicit polygon( const size_t total )
 			:m_storage( total )
-			,m_pulsation( 0.8f * polygon_radius * sine( 3.14159265f / total ), 3.0f, 0.05f, 4.0f )
+			,m_pulsation( 0.8f * polygon_radius * sine( pi_v< float > / total ), 3.0f, 0.05f, 4.0f )
 		{
-			const float step = 2.0f * 3.14159265f / total;
+			const float step = 2.0f * pi_v< float > / total;
 			for( const size_t index : count_to( total ) )
 				m_storage[ index ] = sphere{
 					 position{ polygon_radius * cosine( step * index ), polygon_radius * sine( step * index ), 1.0f }

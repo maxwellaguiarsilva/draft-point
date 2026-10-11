@@ -33,6 +33,7 @@ __using( ::sak::math::
 )
 __using( ::sak::ranges::, count_to, lazy_transform, to )
 __using( ::sak::pattern::, operator| )
+__using( ::std::numbers::, pi_v )
 __using( ::std::views::, zip )
 
 using   vec2	=   g2f::point;
@@ -155,7 +156,7 @@ public:
 	auto turn( const axis axis_value, const float value ) noexcept { ( m_rotation | axis_value ) += value; }
 	auto element_position( const byte index ) const noexcept -> vec3
 	{
-		const float step = 2.0f * 3.14159265f / m_total;
+		const float step = 2.0f * pi_v< float > / m_total;
 		const float element_angle = m_angle + index * step;
 		vec3 position{ cosine( element_angle ), sine( element_angle ), sine( element_angle ) };
 		const float tilt_angle = length( m_rotation );
@@ -165,7 +166,7 @@ public:
 	}
 	auto element_pulsation( const byte index ) const noexcept -> float
 	{
-		const float step = 2.0f * 3.14159265f / m_total;
+		const float step = 2.0f * pi_v< float > / m_total;
 		const float phase = ( index % m_pulsation_cycle == 0 ) ? 1.0f : -1.0f;
 		return	0.5f * ( 1.0f + phase * cosine( ( m_angle + index * step ) * m_total ) );
 	}
