@@ -12,8 +12,8 @@
 namespace game {
 
 
-using	::std::to_string;
-using	::sak::to_lower_case;
+__using( ::std::, to_string )
+__using( ::sak::, to_lower_case )
 
 
 game::renderer_listener::renderer_listener( const g2i::point& new_size )

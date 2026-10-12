@@ -34,10 +34,9 @@ __using( ::std::
 	,string
 	,unexpected
 )
-using	::sak::byte;
+__using( ::sak::, byte )
 using	geometry	=	::sak::g2i;
-using	::sak::pattern::dispatcher;
-using	::sak::pattern::listener_registry;
+__using( ::sak::pattern::, dispatcher, listener_registry )
 using	::termios;
 
 

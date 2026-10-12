@@ -16,13 +16,9 @@
 namespace game {
 
 
-__using( ::std::
-	,shared_ptr
-	,string
-	,function
-)
-using	::sak::byte;
-using	::sak::pattern::listener_registry;
+__using( ::std::, shared_ptr, string, function )
+__using( ::sak::, byte )
+__using( ::sak::pattern::, listener_registry )
 
 
 class renderer

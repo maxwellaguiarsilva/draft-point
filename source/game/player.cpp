@@ -11,7 +11,7 @@ namespace game {
 
 
 using	enum	::game::direction;
-using	::game::use_direction;
+__using( ::game::, use_direction )
 
 player::player( const g2i::point& position ) noexcept
 	:position{ position }

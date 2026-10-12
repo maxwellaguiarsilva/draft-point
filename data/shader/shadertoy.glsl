@@ -14,14 +14,13 @@ void main( ) { gl_Position = vec4( vertices[ gl_VertexID ], 0.0, 1.0 ); }
 //	fragment-shader
 #version 460 core
 
-layout( location = 1 ) uniform vec2 resolution;
-
 layout( std430, binding = 0 ) readonly buffer environment_buffer { uint count; uint stride; float data[]; } environment_ssbo;
 layout( std430, binding = 1 ) readonly buffer camera_buffer { uint count; uint stride; float data[]; } camera_ssbo;
 layout( std430, binding = 2 ) readonly buffer sphere_buffer { uint count; uint stride; float data[]; } sphere_ssbo;
 
 out vec4 final_color;
 
+#define vec2_from( data, index ) vec2( data[ ( index ) ], data[ ( index ) + 1u ] )
 #define vec3_from( data, index ) vec3( data[ ( index ) ], data[ ( index ) + 1u ], data[ ( index ) + 2u ] )
 #define vec4_from( data, index ) vec4( data[ ( index ) ], data[ ( index ) + 1u ], data[ ( index ) + 2u ], data[ ( index ) + 3u ] )
 #define square( value ) ( ( value ) * ( value ) )
@@ -32,6 +31,7 @@ struct environment
 	float	focal;
 	float	ambient;
 	float	volume;
+	vec2	resolution;
 };
 
 environment ssbo_environment( uint index )
@@ -42,6 +42,7 @@ environment ssbo_environment( uint index )
 		,environment_ssbo.data[ base_index + 4u ]
 		,environment_ssbo.data[ base_index + 5u ]
 		,environment_ssbo.data[ base_index + 6u ]
+		,vec2_from( environment_ssbo.data, base_index + 7u )
 	);
 }
 
@@ -83,9 +84,13 @@ sphere ssbo_sphere( uint index )
 
 void main( )
 {
-	vec2	input_coord = ( gl_FragCoord.xy - 0.5 * resolution ) * ( 2.0 / min( resolution.x, resolution.y ) );
-
 	const	environment	s_environment = ssbo_environment( 0u );
+	const	vec2	frame_resolution = s_environment.resolution;
+	vec2	input_coord = ( gl_FragCoord.xy - 0.5 * frame_resolution ) * ( 2.0 / min(
+		 frame_resolution.x
+		,frame_resolution.y
+	) );
+
 	const	camera	s_camera = ssbo_camera( 0u );
 	vec3	direction = s_camera.forward * s_environment.focal + s_camera.right * input_coord.x + s_camera.up * input_coord.y;
 	float	best_distance = 1e20;

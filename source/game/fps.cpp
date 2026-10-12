@@ -12,14 +12,14 @@
 namespace game {
 
 
-using	::sak::math::between;
-using	::sak::ensure;
+__using( ::sak::math::, between )
+__using( ::sak::, ensure )
 __using( ::std::chrono::
 	,microseconds
 	,high_resolution_clock
 	,duration_cast
 )
-using	::std::this_thread::sleep_for;
+__using( ::std::this_thread::, sleep_for )
 
 
 fps::fps( int limit )

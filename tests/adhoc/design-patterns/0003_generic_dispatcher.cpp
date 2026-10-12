@@ -18,7 +18,7 @@ __using( ::std::
 	,exception
 	,runtime_error
 )
-using	::sak::pattern::dispatcher;
+__using( ::sak::pattern::, dispatcher )
 
 
 class button_listener
@@ -46,7 +46,7 @@ public:
 
 
 using	button_error	=	dispatcher<button_listener>::error;
-using	::std::rethrow_exception;
+__using( ::std::, rethrow_exception )
 
 void handle_error( const button_error& failed_list )
 {

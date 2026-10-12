@@ -13,8 +13,8 @@
 #include <thread>
 
 
-using	::std::println;
-using	::sak::ensure;
+__using( ::std::, println )
+__using( ::sak::, ensure )
 
 
 //	gets and prints the current terminal size ( rows and columns )

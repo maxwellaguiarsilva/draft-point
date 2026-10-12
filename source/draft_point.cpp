@@ -16,8 +16,7 @@
 
 namespace {
 
-using	::sak::is_point;
-__using( ::sak::, byte, g2f, g3f )
+__using( ::sak::, is_point, byte, g2f, g3f )
 __using( ::sak::math::
 	,sum
 	,square

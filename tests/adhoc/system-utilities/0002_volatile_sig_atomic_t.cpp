@@ -12,8 +12,8 @@
 #include <game/fps.hpp>
 
 
-using	::std::println;
-using	::sak::ensure;
+__using( ::std::, println )
+__using( ::sak::, ensure )
 
 
 //	needs to be `volatile` to be `signal_thread_safe`

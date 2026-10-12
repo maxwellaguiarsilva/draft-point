@@ -14,13 +14,10 @@
 namespace game {
 
 
-using	::std::function;
-using	::std::make_shared;
-using	::sak::byte;
-using	::sak::math::min;
-using	::std::to_string;
-using	::std::chrono::high_resolution_clock;
-using	::std::chrono::duration;
+__using( ::std::, function, make_shared, to_string )
+__using( ::sak::, byte )
+__using( ::sak::math::, min )
+__using( ::std::chrono::, high_resolution_clock, duration )
 
 
 namespace {

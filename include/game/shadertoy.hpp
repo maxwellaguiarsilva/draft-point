@@ -16,9 +16,8 @@
 namespace game {
 
 
-using	::std::function;
-using	::std::shared_ptr;
-using	::sak::byte;
+__using( ::std::, function, shared_ptr )
+__using( ::sak::, byte )
 
 
 class shadertoy

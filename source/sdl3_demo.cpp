@@ -15,6 +15,7 @@
 #include <span>
 #include <sak/fso/text_file.hpp>
 #include <sak/opengl/program.hpp>
+#include <sak/opengl/vertex_array.hpp>
 #include <sak/pattern/parse.hpp>
 #include <sak/pattern/value_or.hpp>
 #include <sak/ranges/contains.hpp>
@@ -65,6 +66,7 @@ namespace gl {
 	__using( ::sak::sdl3::, application, window )
 	__using_alias( ::sak::g3f::, color, position, size )
 	using	direction	=	::sak::g3f::point;
+	using	planar_point	=	::sak::g2f::point;
 
 
 	//	combined glsl files are split on marker lines and compiled once per name
@@ -202,7 +204,8 @@ namespace gl {
 		float	m_focal;
 		float	m_ambient;
 		float	m_volume;
-	};	//	total 7 floats
+		planar_point	m_resolution;
+	};	//	total 9 floats
 
 
 	//	shared camera, transferred as flat floats and assembled manually on the gpu
@@ -321,14 +324,23 @@ namespace gl {
 
 		static constexpr float rotation_speed = 1.5f;
 
-		window_listener( window& target_window, application& target_application, polygon& target_mesh, const GLuint target_program_id )
+		window_listener(
+			 window& target_window
+			,application& target_application
+			,polygon& target_mesh
+			,shader_storage_buffer< environment >& target_environment
+		)
 			:m_window( target_window )
 			,m_application( target_application )
 			,m_mesh( target_mesh )
-			,m_program_id( target_program_id )
+			,m_environment( target_environment )
 		{ pixel_resize( target_window.pixel_size( ) ); }
 
-		void pixel_resize( const geometry::size& new_size ) override { gl_program_uniform_2f( m_program_id, 1, width( new_size ), height( new_size ) ); }
+		void pixel_resize( const geometry::size& new_size ) override
+		{
+			m_environment[ 0 ].m_resolution = planar_point{ width( new_size ), height( new_size ) };
+			m_environment.flush( );
+		}
 
 		auto turn_direction( ) const noexcept -> float { return m_turn_direction; }
 		auto turn_direction( const float value ) noexcept -> void { m_turn_direction = value; }
@@ -370,7 +382,7 @@ namespace gl {
 		window&			m_window;
 		application&	m_application;
 		polygon&		m_mesh;
-		GLuint			m_program_id;
+		shader_storage_buffer< environment >&	m_environment;
 		float			m_turn_direction{ 0.0f };
 	};
 
@@ -392,7 +404,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	)
 	__using( ::sak::, exit_success, exit_failure, ensure )
 	__using( ::sak::math::, between )
-	__using( ::sak::opengl::, program, shader )
+	__using( ::sak::opengl::, program, shader, vertex_array )
 	__using( ::sak::pattern::, parse, value_or )
 	__using( ::sak::ranges::, contains )
 	__using( ::sak::sdl3::, application, window )
@@ -429,8 +441,9 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		polygon mesh( between( parsed_total, 3, 16 ) ? parsed_total : 8 );
 
 		//	allocate dummy vao for the full screen triangle strip
-		GLuint vertex_array = 0;
-		gl_create_vertex_arrays( 1, &vertex_array );
+		const vertex_array dummy_vertex_array;
+		//	bound once because the vertex array binding persists across frames
+		dummy_vertex_array.bind( );
 
 		//	shader program loaded on demand from data/shader
 		shader_loader loader;
@@ -443,12 +456,23 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		scene_environment.bind( 0 );
 		scene_camera.bind( 1 );
 		mesh.m_storage.bind( 2 );
-		scene_environment[ 0 ] = environment{ { 0.0f, 0.0f, 0.0f, 1.0f }, 2.0f, 0.3f, 0.7f };
+		scene_environment[ 0 ] = environment{
+			 { 0.0f, 0.0f, 0.0f, 1.0f }
+			,2.0f
+			,0.3f
+			,0.7f
+			,{ 0.0f, 0.0f }
+		};
 		scene_camera[ 0 ] = camera{ { 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } };
 		scene_environment.flush( );
 		scene_camera.flush( );
 
-		const auto listener = make_shared< window_listener >( application_window, app, mesh, shader_program.id( ) );
+		const auto listener = make_shared< window_listener >(
+			 application_window
+			,app
+			,mesh
+			,scene_environment
+		);
 		application_window.listeners( ) += listener;
 
 		fps frame_limiter( 60 );
@@ -462,15 +486,11 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			listener->update( duration< float >( current_time - last_time ).count( ) );
 			last_time = current_time;
 
-			gl_bind_vertex_array( vertex_array );
 			gl_draw_arrays( GL_TRIANGLE_STRIP, 0, 4 );
 
 			application_window.swap( );
 			frame_limiter.compute( );
 		} );
-
-		//	clean up raw opengl objects while the context is still current;
-		gl_delete_vertex_arrays( 1, &vertex_array );
 
 		println( "modern opengl rgb shadertoy finished successfully" );
 	}

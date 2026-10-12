@@ -46,8 +46,8 @@ __using( ::std::
 	,runtime_error
 	,rethrow_exception
 )
-using	::sak::pattern::dispatcher;
-using	::sak::ensure;
+__using( ::sak::pattern::, dispatcher )
+__using( ::sak::, ensure )
 
 
 struct mock_listener

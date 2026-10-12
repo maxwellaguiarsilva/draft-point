@@ -16,7 +16,7 @@
 namespace game {
 
 
-using	::game::direction;
+__using( ::game::, direction )
 using	enum	::game::direction;
 
 

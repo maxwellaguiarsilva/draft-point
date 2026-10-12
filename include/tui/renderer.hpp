@@ -25,8 +25,8 @@ __using( ::std::
 	,string
 	,vector
 )
-using	::sak::pattern::dispatcher;
-using	::sak::byte;
+__using( ::sak::pattern::, dispatcher )
+__using( ::sak::, byte )
 
 
 class renderer final : public ::game::renderer

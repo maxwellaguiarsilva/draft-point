@@ -13,9 +13,8 @@
 #include <game/fps.hpp>
 
 
-using	::std::println;
-using	::std::atomic_flag;
-using	::sak::ensure;
+__using( ::std::, println, atomic_flag )
+__using( ::sak::, ensure )
 
 
 atomic_flag flag_window_changed;

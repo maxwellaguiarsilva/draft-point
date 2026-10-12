@@ -16,10 +16,8 @@
 namespace game {
 
 
-using	::game::player;
-using	::game::fps;
-using	::std::shared_ptr;
-using	::std::make_shared;
+__using( ::game::, player, fps )
+__using( ::std::, shared_ptr, make_shared )
 
 
 class game

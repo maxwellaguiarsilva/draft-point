@@ -22,7 +22,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,println
 		,exception
 	)
-	using	::game::fps;
+	__using( ::game::, fps )
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	for( const auto& value : arguments )

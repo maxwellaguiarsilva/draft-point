@@ -15,7 +15,7 @@
 namespace game {
 
 
-using	::std::string;
+__using( ::std::, string )
 
 
 enum class direction
