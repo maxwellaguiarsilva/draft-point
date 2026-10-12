@@ -266,14 +266,14 @@ namespace gl {
 	public:
 		static constexpr float polygon_radius = 0.7f;
 
-		shader_storage_buffer< sphere > m_storage;
+		shader_storage_buffer< sphere >& m_storage;
 
-		explicit polygon( const size_t total )
-			:m_storage( total )
-			,m_pulsation( 0.8f * polygon_radius * sine( pi_v< float > / total ), 3.0f, 0.05f, 4.0f )
+		explicit polygon( shader_storage_buffer< sphere >& storage )
+			:m_storage( storage )
+			,m_pulsation( 0.8f * polygon_radius * sine( pi_v< float > / m_storage.count( ) ), 3.0f, 0.05f, 4.0f )
 		{
-			const float step = 2.0f * pi_v< float > / total;
-			for( const size_t index : count_to( total ) )
+			const float step = 2.0f * pi_v< float > / m_storage.count( );
+			for( const size_t index : count_to( m_storage.count( ) ) )
 				m_storage[ index ] = sphere{
 					 position{ polygon_radius * cosine( step * index ), polygon_radius * sine( step * index ), 1.0f }
 					,m_pulsation.radius( )
@@ -393,11 +393,10 @@ namespace gl {
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {
 	__using( ::std::
-		,format
 		,make_shared
-		,map
 		,println
 		,runtime_error
+		,size_t
 		,string
 		,vector
 		,views::values
@@ -417,6 +416,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,polygon
 		,shader_loader
 		,shader_storage_buffer
+		,sphere
 		,window_listener
 	)
 
@@ -437,8 +437,17 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		window application_window( "modern opengl rgb shadertoy", { opengl, resizable } );
 		context gl_context( application_window );
 
+		//	shared environment, camera and spheres live in typed storage buffers owned by main
+		const size_t total = between( parsed_total, 3, 16 ) ? parsed_total : 8uz;
+		shader_storage_buffer< environment > scene_environment{ 1 };
+		shader_storage_buffer< camera > scene_camera{ 1 };
+		shader_storage_buffer< sphere > scene_spheres{ total };
+		scene_environment.bind( 0 );
+		scene_camera.bind( 1 );
+		scene_spheres.bind( 2 );
+
 		//	cpu-owned geometry, rewritten by input and mirrored to the gpu when it changes
-		polygon mesh( between( parsed_total, 3, 16 ) ? parsed_total : 8 );
+		polygon mesh( scene_spheres );
 
 		//	allocate dummy vao for the full screen triangle strip
 		const vertex_array dummy_vertex_array;
@@ -450,12 +459,6 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		const program shader_program( loader[ "shadertoy" ] | values );
 		shader_program.use( );
 
-		//	shared environment and camera live in typed storage buffers and are uploaded to the gpu
-		shader_storage_buffer< environment > scene_environment{ 1 };
-		shader_storage_buffer< camera > scene_camera{ 1 };
-		scene_environment.bind( 0 );
-		scene_camera.bind( 1 );
-		mesh.m_storage.bind( 2 );
 		scene_environment[ 0 ] = environment{
 			 { 0.0f, 0.0f, 0.0f, 1.0f }
 			,2.0f
