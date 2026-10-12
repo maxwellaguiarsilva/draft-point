@@ -450,8 +450,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		polygon mesh( scene_spheres );
 
 		//	allocate dummy vao for the full screen triangle strip
-		const vertex_array dummy_vertex_array;
 		//	bound once because the vertex array binding persists across frames
+		const vertex_array dummy_vertex_array;
 		dummy_vertex_array.bind( );
 
 		//	shader program loaded on demand from data/shader
