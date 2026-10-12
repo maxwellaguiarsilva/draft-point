@@ -58,13 +58,7 @@ namespace gl {
 	__using( ::std::views::, filter, join_with, keys, transform, zip )
 	__using( ::sak::, ensure )
 	__using( ::sak::fso::, text_file )
-	__using( ::sak::math::
-		,bit_of
-		,cosine
-		,min
-		,rotate
-		,sine
-	)
+	__using( ::sak::math::, bit_of, cosine, min, rotate, sine )
 	__using( ::sak::opengl::, shader )
 	__using( ::sak::ranges::, contains, count_to, to )
 	__using( ::sak::ranges::views::, regex_matches, rotated )
