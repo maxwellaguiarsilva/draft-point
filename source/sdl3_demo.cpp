@@ -29,7 +29,9 @@ namespace gl {
 
 	__using( ::std::
 		,array
+		,declval
 		,define_static_array
+		,enable_shared_from_this
 		,is_trivially_copyable_v
 		,make_unique
 		,map
@@ -44,6 +46,7 @@ namespace gl {
 		,unique_ptr
 		,vector
 	)
+	__using( ::std::chrono::, duration, high_resolution_clock )
 	__using( ::std::meta::
 		,access_context
 		,enumerators_of
@@ -56,17 +59,20 @@ namespace gl {
 	)
 	__using( ::std::numbers::, pi_v )
 	__using( ::std::regex_constants::, ECMAScript, multiline )
-	__using( ::std::views::, filter, join_with, keys, transform, zip )
+	__using( ::std::views::, join_with, keys, transform, values, zip )
 	__using( ::sak::, ensure )
 	__using( ::sak::fso::, text_file )
-	__using( ::sak::math::, bit_of, cosine, min, rotate, sine )
-	__using( ::sak::opengl::, shader )
+	__using( ::sak::math::, between, bit_of, cosine, rotate, sine )
+	__using( ::sak::opengl::, program, shader, vertex_array )
 	__using( ::sak::ranges::, contains, count_to, to )
 	__using( ::sak::ranges::views::, regex_matches, rotated )
 	__using( ::sak::sdl3::, application, window )
-	__using_alias( ::sak::g3f::, color, position, size )
+	__using( ::sak::sdl3::opengl::, context )
+	__using( ::game::, fps )
+	__using_alias( ::sak::g3f::, color, position )
 	using	direction	=	::sak::g3f::point;
 	using	planar_point	=	::sak::g2f::point;
+	using	shader_table	=	map< shader::type, shader >;
 
 
 	//	combined glsl files are split on marker lines and compiled once per name
@@ -75,7 +81,7 @@ namespace gl {
 	public:
 		explicit shader_loader( const string& base_path = "data/shader" ) :m_base_path( base_path ) { }
 
-		auto operator[ ]( const string& name ) -> const map< shader::type, shader >&
+		auto operator[ ]( const string& name ) -> const shader_table&
 		{
 			if( not m_cache.contains( name ) )
 				m_cache.emplace( name, load( name ) );
@@ -83,7 +89,7 @@ namespace gl {
 		}
 
 	private:
-		auto load( const string& name ) const -> map< shader::type, shader >
+		auto load( const string& name ) const -> shader_table
 		{
 			text_file file( m_base_path + "/" + name + ".glsl" );
 			ensure( file.exists( ), "unable to read shader file: " + name );
@@ -99,7 +105,7 @@ namespace gl {
 				|	transform( [ ]( const smatch& match ) { return pair{ match[ 1 ].str( ), match[ 2 ].str( ) }; } )
 				|	to;
 
-			map< shader::type, shader > table;
+			shader_table table;
 			for( const auto& [ section_name, body ] : sections )
 			{
 				const shader::type kind = kind_by_name.at( section_name );
@@ -112,7 +118,7 @@ namespace gl {
 		}
 
 		string m_base_path;
-		map< string, map< shader::type, shader > > m_cache;
+		map< string, shader_table > m_cache;
 	};
 
 
@@ -316,30 +322,71 @@ namespace gl {
 	};
 
 
-	class window_listener final : public window::listener
+	class demo_logic final : public window::listener, public enable_shared_from_this< demo_logic >
 	{
 	public:
 		using	geometry	=	::sak::g2i;
+		using	enum	window::flag;
 		__using_static( geometry::, width, height )
 
 		static constexpr float rotation_speed = 1.5f;
 
-		window_listener(
-			 window& target_window
-			,application& target_application
-			,polygon& target_mesh
-			,shader_storage_buffer< environment >& target_environment
-		)
-			:m_window( target_window )
-			,m_application( target_application )
-			,m_mesh( target_mesh )
-			,m_environment( target_environment )
-		{ pixel_resize( target_window.pixel_size( ) ); }
+		explicit demo_logic( const size_t sphere_count )
+			:m_application( )
+			,m_window( "modern opengl rgb shadertoy", { opengl, resizable } )
+			,m_context( m_window )
+			,m_scene_environment( 1 )
+			,m_scene_camera( 1 )
+			,m_scene_spheres( between( sphere_count, 3uz, 16uz ) ? sphere_count : 8uz )
+			,m_mesh( m_scene_spheres )
+			,m_loader( )
+			,m_shader_program( m_loader[ "shadertoy" ] | values )
+		{
+			m_scene_environment.bind( 0 );
+			m_scene_camera.bind( 1 );
+			m_scene_spheres.bind( 2 );
+
+			m_vertex_array.bind( );
+			m_shader_program.use( );
+
+			m_scene_environment[ 0 ] = environment{
+				 { 0.0f, 0.0f, 0.0f, 1.0f }
+				,2.0f
+				,0.3f
+				,0.7f
+				,{ 0.0f, 0.0f }
+			};
+			m_scene_camera[ 0 ] = camera{ { 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } };
+			m_scene_environment.flush( );
+			m_scene_camera.flush( );
+
+			pixel_resize( m_window.pixel_size( ) );
+		}
+
+		auto run( ) -> void
+		{
+			m_window.listeners( ) += shared_from_this( );
+
+			m_frame_limiter.compute( );
+			auto last_time = high_resolution_clock::now( );
+
+			m_application.run( [ & ]( )
+			{
+				const auto current_time = high_resolution_clock::now( );
+				update( duration< float >( current_time - last_time ).count( ) );
+				last_time = current_time;
+
+				gl_draw_arrays( GL_TRIANGLE_STRIP, 0, 4 );
+
+				m_window.swap( );
+				m_frame_limiter.compute( );
+			} );
+		}
 
 		void pixel_resize( const geometry::size& new_size ) override
 		{
-			m_environment[ 0 ].m_resolution = planar_point{ width( new_size ), height( new_size ) };
-			m_environment.flush( );
+			m_scene_environment[ 0 ].m_resolution = planar_point{ width( new_size ), height( new_size ) };
+			m_scene_environment.flush( );
 		}
 
 		auto turn_direction( ) const noexcept -> float { return m_turn_direction; }
@@ -371,6 +418,9 @@ namespace gl {
 
 		void focus_lost( ) override { turn_direction( 0.0f ); }
 
+	private:
+		using	shader_range	=	decltype( declval< const shader_table& >( ) | values );
+
 		auto update( const float delta_seconds ) -> void
 		{
 			if( turn_direction( ) not_eq 0.0f )
@@ -378,12 +428,18 @@ namespace gl {
 			m_mesh.update( delta_seconds );
 		}
 
-	private:
-		window&			m_window;
-		application&	m_application;
-		polygon&		m_mesh;
-		shader_storage_buffer< environment >&	m_environment;
-		float			m_turn_direction{ 0.0f };
+		application	m_application;
+		window		m_window;
+		context		m_context;
+		shader_storage_buffer< environment >	m_scene_environment;
+		shader_storage_buffer< camera >	m_scene_camera;
+		shader_storage_buffer< sphere >	m_scene_spheres;
+		polygon		m_mesh;
+		vertex_array	m_vertex_array;
+		shader_loader	m_loader;
+		program< shader_range >	m_shader_program;
+		fps		m_frame_limiter{ 60 };
+		float		m_turn_direction{ 0.0f };
 	};
 
 
@@ -392,33 +448,11 @@ namespace gl {
 
 auto main( const int argument_count, const char* argument_values[ ] ) -> int
 {
-	__using( ::std::
-		,make_shared
-		,println
-		,runtime_error
-		,size_t
-		,string
-		,vector
-		,views::values
-	)
-	__using( ::sak::, exit_success, exit_failure, ensure )
-	__using( ::sak::math::, between )
-	__using( ::sak::opengl::, program, shader, vertex_array )
+	__using( ::std::, make_shared, println, runtime_error, string, vector )
+	__using( ::sak::, exit_success, exit_failure )
 	__using( ::sak::pattern::, parse, value_or )
 	__using( ::sak::ranges::, contains )
-	__using( ::sak::sdl3::, application, window )
-	__using( ::sak::sdl3::opengl::, context )
-	__using( ::std::chrono::, duration, high_resolution_clock )
-	__using( ::game::, fps )
-	__using( ::gl::
-		,camera
-		,environment
-		,polygon
-		,shader_loader
-		,shader_storage_buffer
-		,sphere
-		,window_listener
-	)
+	__using( ::gl::, demo_logic )
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
@@ -430,70 +464,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	{
 		println( "starting modern opengl rgb shadertoy example" );
 
-		application app;
-
-		//	create a raii window and opengl context, declared before gpu resources so they outlive them on destruction
-		using	enum	window::flag;
-		window application_window( "modern opengl rgb shadertoy", { opengl, resizable } );
-		context gl_context( application_window );
-
-		//	shared environment, camera and spheres live in typed storage buffers owned by main
-		const size_t total = between( parsed_total, 3, 16 ) ? parsed_total : 8uz;
-		shader_storage_buffer< environment > scene_environment{ 1 };
-		shader_storage_buffer< camera > scene_camera{ 1 };
-		shader_storage_buffer< sphere > scene_spheres{ total };
-		scene_environment.bind( 0 );
-		scene_camera.bind( 1 );
-		scene_spheres.bind( 2 );
-
-		//	cpu-owned geometry, rewritten by input and mirrored to the gpu when it changes
-		polygon mesh( scene_spheres );
-
-		//	allocate dummy vao for the full screen triangle strip
-		//	bound once because the vertex array binding persists across frames
-		const vertex_array dummy_vertex_array;
-		dummy_vertex_array.bind( );
-
-		//	shader program loaded on demand from data/shader
-		shader_loader loader;
-		const program shader_program( loader[ "shadertoy" ] | values );
-		shader_program.use( );
-
-		scene_environment[ 0 ] = environment{
-			 { 0.0f, 0.0f, 0.0f, 1.0f }
-			,2.0f
-			,0.3f
-			,0.7f
-			,{ 0.0f, 0.0f }
-		};
-		scene_camera[ 0 ] = camera{ { 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } };
-		scene_environment.flush( );
-		scene_camera.flush( );
-
-		const auto listener = make_shared< window_listener >(
-			 application_window
-			,app
-			,mesh
-			,scene_environment
-		);
-		application_window.listeners( ) += listener;
-
-		fps frame_limiter( 60 );
-		frame_limiter.compute( );
-
-		auto last_time = high_resolution_clock::now( );
-
-		app.run( [ & ]( )
-		{
-			const auto current_time = high_resolution_clock::now( );
-			listener->update( duration< float >( current_time - last_time ).count( ) );
-			last_time = current_time;
-
-			gl_draw_arrays( GL_TRIANGLE_STRIP, 0, 4 );
-
-			application_window.swap( );
-			frame_limiter.compute( );
-		} );
+		const auto demo = make_shared< demo_logic >( parsed_total );
+		demo->run( );
 
 		println( "modern opengl rgb shadertoy finished successfully" );
 	}
