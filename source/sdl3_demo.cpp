@@ -70,7 +70,7 @@ namespace gl {
 	__using( ::sak::sdl3::opengl::, context )
 	__using( ::game::, fps )
 	__using_alias( ::sak::g3f::, color, position )
-	using	direction	=	::sak::g3f::point;
+	using	direction		=	::sak::g3f::point;
 	using	planar_point	=	::sak::g2f::point;
 	using	shader_table	=	map< shader::type, shader >;
 
