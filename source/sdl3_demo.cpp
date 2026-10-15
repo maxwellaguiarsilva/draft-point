@@ -338,7 +338,7 @@ namespace gl {
 			,m_scene_environment( 1 )
 			,m_scene_camera( 1 )
 			,m_scene_spheres( between( sphere_count, 3uz, 16uz ) ? sphere_count : 8uz )
-			,m_mesh( m_scene_spheres )
+			,m_polygon( m_scene_spheres )
 			,m_loader( )
 			,m_shader_program( m_loader[ "shadertoy" ] | values )
 		{
@@ -403,9 +403,9 @@ namespace gl {
 			else if( event.key == SDLK_RIGHT )
 				turn_direction( 1.0f );
 			else if( event.key == SDLK_UP )
-				m_mesh.cycle_colors( true );
+				m_polygon.cycle_colors( true );
 			else if( event.key == SDLK_DOWN )
-				m_mesh.cycle_colors( false );
+				m_polygon.cycle_colors( false );
 		}
 
 		void key_up( const SDL_KeyboardEvent& event ) override
@@ -424,8 +424,8 @@ namespace gl {
 		auto update( const float delta_seconds ) -> void
 		{
 			if( turn_direction( ) not_eq 0.0f )
-				m_mesh.turn( turn_direction( ) * rotation_speed * delta_seconds );
-			m_mesh.update( delta_seconds );
+				m_polygon.turn( turn_direction( ) * rotation_speed * delta_seconds );
+			m_polygon.update( delta_seconds );
 		}
 
 		application	m_application;
@@ -434,7 +434,7 @@ namespace gl {
 		shader_storage_buffer< environment >	m_scene_environment;
 		shader_storage_buffer< camera >	m_scene_camera;
 		shader_storage_buffer< sphere >	m_scene_spheres;
-		polygon		m_mesh;
+		polygon		m_polygon;
 		vertex_array	m_vertex_array;
 		shader_loader	m_loader;
 		program< shader_range >	m_shader_program;
