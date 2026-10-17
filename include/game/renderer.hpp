@@ -10,7 +10,6 @@
 
 
 #include <game/geometry.hpp>
-#include <sak/pattern/dispatcher.hpp>
 
 
 namespace game {

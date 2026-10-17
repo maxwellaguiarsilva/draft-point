@@ -9,7 +9,6 @@
 #define header_guard_278153203
 
 
-#include <sak/pattern/dispatcher.hpp>
 #include <sak/geometry/geometry.hpp>
 #include <termios.h>
 #include <ostream>
