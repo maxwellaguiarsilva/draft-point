@@ -340,7 +340,7 @@ namespace gl {
 			,m_scene_spheres( between( sphere_count, 3uz, 16uz ) ? sphere_count : 8uz )
 			,m_polygon( m_scene_spheres )
 			,m_loader( )
-			,m_shader_program( m_loader[ "shadertoy" ] | values )
+			,m_shader_program( m_loader[ "sdl3-shadertoy" ] | values )
 		{
 			m_scene_environment.bind( 0 );
 			m_scene_camera.bind( 1 );
