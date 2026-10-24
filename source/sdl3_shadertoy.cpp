@@ -115,14 +115,6 @@ namespace gl {
 	};
 
 
-	struct sphere
-	{
-		position	m_position;
-		float		m_radius;
-		color		m_color;
-	};	//	total 8 floats
-
-
 	//	a type whose bytes are a contiguous payload with no padding, matching the flat float arrays read on the gpu
 	consteval auto has_no_padding( const info type ) -> bool
 	{
@@ -209,6 +201,14 @@ namespace gl {
 		direction	m_right;
 		direction	m_up;
 	};	//	total 12 floats
+
+	struct sphere
+	{
+		position	m_position;
+		float		m_radius;
+		color		m_color;
+	};	//	total 8 floats
+
 
 
 	class demo_logic final : public window::listener, public enable_shared_from_this< demo_logic >
