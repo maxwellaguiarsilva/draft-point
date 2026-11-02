@@ -34,10 +34,10 @@ The reflection generator does not exist in the code yet. The programs described 
 - `has_no_padding` reflects over `nonstatic_data_members_of` with `access_context::current( )` and walks the members in declaration order, accumulating `size_of( type_of( member ) )`.
 - For each member it compares the accumulated offset against `offset_of( member ).bytes`. Any gap between members, any leading gap, or any trailing gap makes the check fail: the accumulated total must also equal `size_of( type )`.
 - `is_flat` combines that check with `is_trivially_copyable_v`, so the payload has a contiguous byte image and no copy semantics that would alter its bytes.
-- `shader_storage_buffer` asserts the concept, which means a payload that gains padding cannot be uploaded, and the failure happens at compile time on the declaration instead of at runtime in the shader.
+- `shader::storage_buffer` asserts the concept, which means a payload that gains padding cannot be uploaded, and the failure happens at compile time on the declaration instead of at runtime in the shader.
 - The concept does not inspect the element types of the members. It constrains shape and copyability only.
 
-### `shader_storage_buffer`
+### `shader::storage_buffer`
 
 - The class is an RAII owner of one OpenGL buffer plus one heap array of payloads.
 - The constructor takes only the element count. It allocates `unique_ptr<t_payload[]>` of that count, creates the buffer, and reserves `sizeof( ssbo_header ) + count * sizeof( t_payload )` bytes of dynamic storage.
@@ -124,9 +124,9 @@ The direction recorded by this document replaces the handwritten declarations wi
 
 ## Where the technique is demonstrated
 
-- `tests/adhoc/0010_sdl3_demo.cpp` with `data/shader/sdl3-demo.glsl` is the primary case. The CPU side builds a variable number of spheres, and the polygon geometry is uploaded through `shader_storage_buffer<sphere>`; the fragment shader loops over `sphere_ssbo.count` and picks the nearest hit.
+- `tests/adhoc/0010_sdl3_demo.cpp` with `data/shader/sdl3-demo.glsl` is the primary case. The CPU side builds a variable number of spheres, and the polygon geometry is uploaded through `shader::storage_buffer<sphere>`; the fragment shader loops over `sphere_ssbo.count` and picks the nearest hit.
 - `source/sdl3_shadertoy.cpp` with `data/shader/sdl3-shadertoy.glsl` is the static variant. It holds two fixed spheres and moves the camera, so it exercises the same payloads and the same GLSL blocks with a fixed count.
-- Both programs carry the same three payloads, the same `is_flat` check, the same buffer class, and the same handwritten GLSL blocks. The duplication between them is the duplication the reflection generator is meant to remove.
+- The payload declarations and the handwritten GLSL blocks remain duplicated in both files, while `has_no_padding`, `is_flat`, and `shader::storage_buffer` come from `sak/opengl/shader.hpp`.
 
 ## Architectural limits
 

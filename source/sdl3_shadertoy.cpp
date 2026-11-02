@@ -24,23 +24,11 @@ namespace gl {
 		,array
 		,declval
 		,enable_shared_from_this
-		,is_trivially_copyable_v
-		,make_unique
-		,ptrdiff_t
 		,size_t
 		,string
-		,unique_ptr
 		,vector
 	)
 	__using( ::std::chrono::, duration, high_resolution_clock )
-	__using( ::std::meta::
-		,access_context
-		,info
-		,nonstatic_data_members_of
-		,offset_of
-		,size_of
-		,type_of
-	)
 	__using( ::std::views::, values )
 	__using( ::sak::opengl::, program, shader, vertex_array )
 	__using( ::sak::ranges::, contains )
@@ -51,73 +39,6 @@ namespace gl {
 	__using_static( ::sak::g3f::, zero )
 	using	direction		=	::sak::g3f::point;
 	using	planar_point	=	::sak::g2f::point;
-
-
-	//	a type whose bytes are a contiguous payload with no padding, matching the flat float arrays read on the gpu
-	consteval auto has_no_padding( const info type ) -> bool
-	{
-		ptrdiff_t offset = 0;
-		for( const auto member : nonstatic_data_members_of( type, access_context::current( ) ) )
-		{
-			if( offset_of( member ).bytes not_eq offset )
-				return	false;
-			offset += size_of( type_of( member ) );
-		}
-		return	offset == static_cast< ptrdiff_t >( size_of( type ) );
-	}
-
-	template< typename t_type >
-	concept is_flat = has_no_padding( ^^t_type ) and is_trivially_copyable_v< t_type >;
-
-
-	//	raii shader storage buffer owning a heap array of packed payloads; binding is a separate explicit step
-	template< typename t_payload >
-	class shader_storage_buffer
-	{
-	public:
-		static_assert( is_flat< t_payload >, "the ssbo payload must be a tightly packed flat structure" );
-		
-		//	element count and float stride prefixed to every ssbo payload so the shader iterates generically
-		struct ssbo_header { GLuint m_count; GLuint m_stride; };
-
-		shader_storage_buffer( const size_t count )
-			:m_raii( make_unique< raii_destructor >( ) )
-			,m_data( make_unique< t_payload[ ] >( count ) )
-			,m_count( count )
-			,m_payload_size( count * sizeof( t_payload ) )
-			,m_byte_size( sizeof( ssbo_header ) + m_payload_size )
-		{
-			GLuint buffer_id = 0;
-			gl_create_buffers( 1, &buffer_id );
-			id( buffer_id );
-			gl_named_buffer_storage( id( ), m_byte_size, nullptr, GL_DYNAMIC_STORAGE_BIT );
-			const ssbo_header header{ static_cast< GLuint >( count ), sizeof( t_payload ) / sizeof( float ) };
-			gl_named_buffer_sub_data( id( ), 0, sizeof( header ), &header );
-		}
-
-		auto bind( const GLuint index ) const noexcept -> void { gl_bind_buffer_base( GL_SHADER_STORAGE_BUFFER, index, id( ) ); }
-		auto flush( ) const noexcept -> void { gl_named_buffer_sub_data( id( ), sizeof( ssbo_header ), m_payload_size, m_data.get( ) ); }
-
-		auto operator[ ]( const size_t index ) noexcept -> t_payload& { return m_data[ index ]; }
-		auto data( ) const noexcept -> t_payload* { return m_data.get( ); }
-		auto count( ) const noexcept -> size_t { return m_count; }
-
-	private:
-		auto id( ) const noexcept -> GLuint { return m_raii->m_id; }
-		auto id( const GLuint value ) noexcept -> void { m_raii->m_id = value; }
-
-		struct raii_destructor
-		{
-			~raii_destructor( ) noexcept { gl_delete_buffers( 1, &m_id ); }
-			GLuint	m_id{ 0 };
-		};
-
-		unique_ptr< raii_destructor > m_raii;
-		unique_ptr< t_payload[ ] > m_data;
-		size_t m_count;
-		const size_t m_payload_size;
-		const size_t m_byte_size;
-	};
 
 
 	//	shared environment, transferred as flat floats and assembled manually on the gpu
@@ -146,7 +67,6 @@ namespace gl {
 		float		m_radius;
 		color		m_color;
 	};	//	total 8 floats
-
 
 
 	class demo_logic final : public window::listener, public enable_shared_from_this< demo_logic >
@@ -279,9 +199,9 @@ namespace gl {
 		application	m_application;
 		window		m_window;
 		context		m_context;
-		shader_storage_buffer< environment >	m_scene_environment;
-		shader_storage_buffer< camera >	m_scene_camera;
-		shader_storage_buffer< sphere >	m_scene_spheres;
+		shader::storage_buffer< environment >	m_scene_environment;
+		shader::storage_buffer< camera >	m_scene_camera;
+		shader::storage_buffer< sphere >	m_scene_spheres;
 		vertex_array	m_vertex_array;
 		shader::loader	m_loader;
 		program< shader_range >	m_shader_program;
