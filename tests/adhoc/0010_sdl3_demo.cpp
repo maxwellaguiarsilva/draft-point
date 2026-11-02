@@ -193,21 +193,21 @@ namespace gl {
 			:m_application( )
 			,m_window( "modern opengl rgb shadertoy", { opengl, resizable } )
 			,m_context( m_window )
-			,m_scene_environment( 1 )
-			,m_scene_camera( 1 )
-			,m_scene_spheres( between( sphere_count, 3uz, 16uz ) ? sphere_count : 8uz )
-			,m_polygon( m_scene_spheres )
+			,m_environment( 1 )
+			,m_camera( 1 )
+			,m_spheres( between( sphere_count, 3uz, 16uz ) ? sphere_count : 8uz )
+			,m_polygon( m_spheres )
 			,m_loader( )
 			,m_shader_program( m_loader[ "sdl3-demo" ] | values )
 		{
-			m_scene_environment.bind( 0 );
-			m_scene_camera.bind( 1 );
-			m_scene_spheres.bind( 2 );
+			m_environment.bind( 0 );
+			m_camera.bind( 1 );
+			m_spheres.bind( 2 );
 
 			m_vertex_array.bind( );
 			m_shader_program.use( );
 
-			m_scene_environment[ 0 ] = environment{
+			m_environment[ 0 ] = environment{
 				 { 0.0f, 0.0f, 0.0f, 1.0f }
 				,2.0f
 				,0.3f
@@ -215,9 +215,9 @@ namespace gl {
 				,{ 0.0f, 0.0f }
 				,0.0f
 			};
-			m_scene_camera[ 0 ] = camera{ { 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } };
-			m_scene_environment.flush( );
-			m_scene_camera.flush( );
+			m_camera[ 0 ] = camera{ { 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } };
+			m_environment.flush( );
+			m_camera.flush( );
 
 			pixel_resize( m_window.pixel_size( ) );
 		}
@@ -245,9 +245,9 @@ namespace gl {
 		void pixel_resize( const geometry::size& new_size ) override
 		{
 			const auto screen_size = planar_point{ new_size };
-			m_scene_environment[ 0 ].m_half_screen_size = screen_size / 2.0f;
-			m_scene_environment[ 0 ].m_coordinate_scale = 2.0f / min( screen_size );
-			m_scene_environment.flush( );
+			m_environment[ 0 ].m_half_screen_size = screen_size / 2.0f;
+			m_environment[ 0 ].m_coordinate_scale = 2.0f / min( screen_size );
+			m_environment.flush( );
 		}
 
 		auto turn_direction( ) const noexcept -> float { return m_turn_direction; }
@@ -292,9 +292,9 @@ namespace gl {
 		application	m_application;
 		window		m_window;
 		context		m_context;
-		shader::storage_buffer< environment >	m_scene_environment;
-		shader::storage_buffer< camera >	m_scene_camera;
-		shader::storage_buffer< sphere >	m_scene_spheres;
+		shader::storage_buffer< environment >	m_environment;
+		shader::storage_buffer< camera >	m_camera;
+		shader::storage_buffer< sphere >	m_spheres;
 		polygon		m_polygon;
 		vertex_array	m_vertex_array;
 		shader::loader	m_loader;

@@ -83,20 +83,20 @@ namespace gl {
 			:m_application( )
 			,m_window( "modern opengl rgb shadertoy", { opengl, resizable } )
 			,m_context( m_window )
-			,m_scene_environment( 1 )
-			,m_scene_camera( 1 )
-			,m_scene_spheres( 2 )
+			,m_environment( 1 )
+			,m_camera( 1 )
+			,m_spheres( 2 )
 			,m_loader( )
 			,m_shader_program( m_loader[ "sdl3-shadertoy" ] | values )
 		{
-			m_scene_environment.bind( 0 );
-			m_scene_camera.bind( 1 );
-			m_scene_spheres.bind( 2 );
+			m_environment.bind( 0 );
+			m_camera.bind( 1 );
+			m_spheres.bind( 2 );
 
 			m_vertex_array.bind( );
 			m_shader_program.use( );
 
-			m_scene_environment[ 0 ] = environment{
+			m_environment[ 0 ] = environment{
 				 { 0.0f, 0.0f, 0.0f, 1.0f }
 				,2.0f
 				,0.3f
@@ -104,20 +104,20 @@ namespace gl {
 				,{ 0.0f, 0.0f }
 				,0.0f
 			};
-			m_scene_camera[ 0 ] = camera{ { 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } };
-			m_scene_spheres[ 0 ] = sphere{
+			m_camera[ 0 ] = camera{ { 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } };
+			m_spheres[ 0 ] = sphere{
 				 { -0.55f, 0.0f, 1.0f }
 				,0.45f
 				,{ 1.0f, 0.0f, 0.0f, 1.0f }
 			};
-			m_scene_spheres[ 1 ] = sphere{
+			m_spheres[ 1 ] = sphere{
 				 { 0.55f, 0.0f, 1.0f }
 				,0.45f
 				,{ 0.0f, 0.0f, 1.0f, 1.0f }
 			};
-			m_scene_environment.flush( );
-			m_scene_camera.flush( );
-			m_scene_spheres.flush( );
+			m_environment.flush( );
+			m_camera.flush( );
+			m_spheres.flush( );
 
 			pixel_resize( m_window.pixel_size( ) );
 		}
@@ -145,9 +145,9 @@ namespace gl {
 		void pixel_resize( const geometry::size& new_size ) override
 		{
 			const auto screen_size = planar_point{ new_size };
-			m_scene_environment[ 0 ].m_half_screen_size = screen_size / 2.0f;
-			m_scene_environment[ 0 ].m_coordinate_scale = 2.0f / min( screen_size );
-			m_scene_environment.flush( );
+			m_environment[ 0 ].m_half_screen_size = screen_size / 2.0f;
+			m_environment[ 0 ].m_coordinate_scale = 2.0f / min( screen_size );
+			m_environment.flush( );
 		}
 
 		void key_down( const SDL_KeyboardEvent& event ) override
@@ -192,20 +192,20 @@ namespace gl {
 		{
 			if( m_movement == zero )
 				return;
-			camera& current = m_scene_camera[ 0 ];
+			camera& current = m_camera[ 0 ];
 			const position world_direction = current.m_right * m_movement[ 0 ]
 				+ current.m_forward * m_movement[ 1 ]
 				+ current.m_up * m_movement[ 2 ];
 			current.m_position += world_direction * ( camera_speed * delta_seconds );
-			m_scene_camera.flush( );
+			m_camera.flush( );
 		}
 
 		application	m_application;
 		window		m_window;
 		context		m_context;
-		shader::storage_buffer< environment >	m_scene_environment;
-		shader::storage_buffer< camera >	m_scene_camera;
-		shader::storage_buffer< sphere >	m_scene_spheres;
+		shader::storage_buffer< environment >	m_environment;
+		shader::storage_buffer< camera >	m_camera;
+		shader::storage_buffer< sphere >	m_spheres;
 		vertex_array	m_vertex_array;
 		shader::loader	m_loader;
 		program< shader_range >	m_shader_program;
