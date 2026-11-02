@@ -11,12 +11,8 @@
 
 
 #include <format>
-#include <map>
-#include <sak/fso/text_file.hpp>
 #include <sak/opengl/program.hpp>
 #include <sak/opengl/vertex_array.hpp>
-#include <sak/ranges/contains.hpp>
-#include <sak/ranges/views/regex_matches.hpp>
 #include <sak/sdl3/application.hpp>
 #include <sak/sdl3/opengl/context.hpp>
 #include <game/fps.hpp>
@@ -26,93 +22,33 @@ namespace gl {
 
 	__using( ::std::
 		,declval
-		,define_static_array
 		,enable_shared_from_this
 		,is_trivially_copyable_v
 		,make_unique
-		,map
-		,pair
 		,ptrdiff_t
-		,regex
 		,size_t
-		,smatch 
 		,string
-		,string_view
 		,unique_ptr
 		,vector
 	)
 	__using( ::std::chrono::, duration, high_resolution_clock )
 	__using( ::std::meta::
 		,access_context
-		,enumerators_of
-		,identifier_of
 		,info
 		,nonstatic_data_members_of
 		,offset_of
 		,size_of
 		,type_of
 	)
-	__using( ::std::regex_constants::, ECMAScript, multiline )
-	__using( ::std::views::, join_with, keys, transform, values )
-	__using( ::sak::, ensure )
-	__using( ::sak::fso::, text_file )
+	__using( ::std::views::, values )
 	__using( ::sak::opengl::, program, shader, vertex_array )
-	__using( ::sak::ranges::, contains, to )
-	__using( ::sak::ranges::views::, regex_matches )
+	__using( ::sak::ranges::, contains )
 	__using( ::sak::sdl3::, application, window )
 	__using( ::sak::sdl3::opengl::, context )
 	__using( ::game::, fps )
 	__using_alias( ::sak::g3f::, color, position )
 	using	direction		=	::sak::g3f::point;
 	using	planar_point	=	::sak::g2f::point;
-	using	shader_table	=	map< shader::type, shader >;
-
-
-	//	combined glsl files are split on marker lines and compiled once per name
-	class shader_loader
-	{
-	public:
-		explicit shader_loader( const string& base_path = "data/shader" ) :m_base_path( base_path ) { }
-
-		auto operator[ ]( const string& name ) -> const shader_table&
-		{
-			if( not m_cache.contains( name ) )
-				m_cache.emplace( name, load( name ) );
-			return	m_cache.at( name );
-		}
-
-	private:
-		auto load( const string& name ) const -> shader_table
-		{
-			text_file file( m_base_path + "/" + name + ".glsl" );
-			ensure( file.exists( ), "unable to read shader file: " + name );
-
-			map< string, shader::type > kind_by_name;
-			template for( constexpr auto enumerator : define_static_array( enumerators_of( ^^shader::type ) ) )
-				kind_by_name.emplace( string( identifier_of( enumerator ) ), [: enumerator :] );
-
-			const string alternation = kind_by_name | keys | join_with( string_view{ "|" } ) | to;
-			const string expression = "^//\\t(" + alternation + ")-shader[\\r\\n]([\\s\\S]*?)^//\\t\\1-shader";
-			const vector< pair< string, string > > sections = file.content( )
-				|	regex_matches( regex( expression, ECMAScript | multiline ) )
-				|	transform( [ ]( const smatch& match ) { return pair{ match[ 1 ].str( ), match[ 2 ].str( ) }; } )
-				|	to;
-
-			shader_table table;
-			for( const auto& [ section_name, body ] : sections )
-			{
-				const shader::type kind = kind_by_name.at( section_name );
-				ensure( not contains( table, kind ), "duplicate shader section: " + section_name + " in " + name );
-				table.try_emplace( kind, body, kind );
-			}
-
-			ensure( not table.empty( ), "no shader section found in shader file: " + name );
-			return	table;
-		}
-
-		string m_base_path;
-		map< string, shader_table > m_cache;
-	};
 
 
 	//	a type whose bytes are a contiguous payload with no padding, matching the flat float arrays read on the gpu
@@ -325,7 +261,7 @@ namespace gl {
 		}
 
 	private:
-		using	shader_range	=	decltype( declval< const shader_table& >( ) | values );
+		using	shader_range	=	decltype( declval< const shader::table& >( ) | values );
 
 		auto update( const float delta_seconds ) -> void
 		{
@@ -347,7 +283,7 @@ namespace gl {
 		shader_storage_buffer< camera >	m_scene_camera;
 		shader_storage_buffer< sphere >	m_scene_spheres;
 		vertex_array	m_vertex_array;
-		shader_loader	m_loader;
+		shader::loader	m_loader;
 		program< shader_range >	m_shader_program;
 		fps		m_frame_limiter{ 60 };
 		bool		m_forward_pressed{ false };

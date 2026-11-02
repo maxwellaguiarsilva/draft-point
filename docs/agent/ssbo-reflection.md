@@ -8,7 +8,7 @@ Generate, from C++ reflection, the GLSL declarations that expose the CPU-side pa
 
 ## Demo-locality
 
-This is an experiment that lives entirely in the demo. Every piece of code it adds or changes stays in `source/sdl3_demo.cpp` and in the fragment section of `data/shader/shadertoy.glsl`. There is no current plan to move any part of it to `sak` or to any other module.
+The payload registry, the generator, and the buffer code stay in `tests/adhoc/0010_sdl3_demo.cpp`, and the generated declarations replace the handwritten blocks in the fragment section of `data/shader/sdl3-demo.glsl`. The injection happens inside the shared loader, which lives in `include/sak/opengl/shader.hpp`, so that header changes in the injection phase. The rest of `sak` and every other module stay out of scope.
 
 ## Related documents
 
@@ -29,19 +29,21 @@ Read these before editing:
 
 - Do not enter `docs/agent/analyses/opengl/opengl-tag/`. The OpenGL index prohibits access without reading its README first, and this task does not need that folder.
 - Scope every search to an explicit path. Filter `.venv` and `__pycache__` directories.
-- Do not modify `../project-mcp-tools`.
+- The only file outside `tests/adhoc/0010_sdl3_demo.cpp` that may change is `include/sak/opengl/shader.hpp`, through the symlink, exclusively for the `shader::loader` injection.
 
 ## Scope
 
 In scope:
 
-- `source/sdl3_demo.cpp`: the payload structs, the payload registry, `shader_storage_buffer`, `shader_loader`, `polygon`, and the buffer construction sites.
-- `data/shader/shadertoy.glsl`: the fragment section only. The vertex section is not modified.
+- `tests/adhoc/0010_sdl3_demo.cpp`: the payload structs, the payload registry, `shader_storage_buffer`, `polygon`, and the buffer construction.
+- `data/shader/sdl3-demo.glsl`: the fragment section only. The vertex section is not modified.
+- `include/sak/opengl/shader.hpp`: the `shader::loader` injection only.
 
 Out of scope:
 
-- `sak` and every other module. No file outside `source/sdl3_demo.cpp` and the fragment section of `data/shader/shadertoy.glsl` is touched.
-- The `resolution` uniform and its literal location `1`, which `window_listener::pixel_resize` also sets by literal. It stays hand-synced.
+- `source/sdl3_shadertoy.cpp` and `data/shader/sdl3-shadertoy.glsl`, the separate static two-sphere app. Neither is modified.
+- The rest of `sak` and every other module.
+- `environment.m_resolution`, which `demo_logic::pixel_resize` writes and `flush()` uploads. It stays synchronized by `pixel_resize`.
 - The `final_color` output.
 - Payload members that are not floats.
 
@@ -49,24 +51,24 @@ Out of scope:
 
 Verified from the code and docs:
 
-- `shader_loader::load` reads `data/shader/<name>.glsl`, splits sections on the marker lines `//\t<kind>-shader`, and builds one `shader( body, kind )` per section.
+- `shader::loader::load` reads `data/shader/<name>.glsl`, splits sections on the marker lines `//\t<kind>-shader`, and builds one `shader( body, kind )` per section. The loader is the nested `loader` class of `shader` in `include/sak/opengl/shader.hpp`, and it caches one `shader::table` per file name.
 - `shader` takes `( const string& source, const type shader_type = vertex )`. The `type` enumerators are `vertex`, `fragment`, `geometry`, `tess_control`, `tess_evaluation`, and `compute`. Compile and link failures throw `runtime_error` with the driver info log.
 - `shader_storage_buffer<t_payload>( count )` creates a buffer, writes a header `{ count, stride }` where stride is the payload size in floats, and uploads the payload with `flush()`. A separate `bind( binding_index )` call makes the buffer visible to the shader.
 - `is_flat` is `has_no_padding` plus `is_trivially_copyable`. It does not check element types.
-- Binding numbers are typed by hand on both sides. GLSL uses `binding = 0` for environment, `1` for camera, and `2` for sphere. C++ constructs with the count only (`{ 1 }` for environment, `{ 1 }` for camera, and `( total )` for the sphere buffer in `polygon`) and binds explicitly with `bind( 0 )`, `bind( 1 )`, and `bind( 2 )`.
+- Binding numbers are typed by hand on both sides. GLSL uses `binding = 0` for environment, `1` for camera, and `2` for sphere. C++ constructs with the count only (`{ 1 }` for environment, `{ 1 }` for camera, and the clamped `sphere_count` for the sphere buffer in the `demo_logic` constructor) and binds explicitly with `bind( 0 )`, `bind( 1 )`, and `bind( 2 )`.
 - GLSL field names equal the C++ member names with the `m_` prefix removed. GLSL struct names equal the C++ type names. The current accessors are `ssbo_<name>( uint )`, the block types are `<name>_buffer`, and the instances are `<name>_ssbo`.
-- Payload layouts: `environment` is 7 floats (color, focal, ambient, volume). `camera` is 12 floats (position, forward, right, up, each 3 floats). `sphere` is 8 floats (position, radius, color).
-- `sak::opengl` contains raw GL wrappers and the `shader` and `program` classes. It has no buffer or SSBO abstraction. That is not a reason to extend `sak`: the reflection work stays in the demo.
+- Payload layouts: `environment` is 9 floats (color, focal, ambient, volume, resolution). `camera` is 12 floats (position, forward, right, up, each 3 floats). `sphere` is 8 floats (position, radius, color).
+- `sak::opengl` contains `shader`, with the nested `type`, `table`, and `loader`, and `program`. It has no buffer or SSBO abstraction. That is not a reason to extend `sak`: the reflection work stays in the demo.
 - The toolchain is g++ with C++26. The `cpp_compile` tool is configured for it.
 
 ## Decisions
 
-- The fragment prelude stays authored. The `.glsl` fragment section keeps `#version 460 core`, the `resolution` uniform, `out vec4 final_color;`, helper macros such as `square`, and `main`.
+- The fragment prelude stays authored. The `.glsl` fragment section keeps `#version 460 core`, `out vec4 final_color;`, helper macros such as `square`, and `main`. Resolution is not a uniform: it is the `m_resolution` member of the `environment` payload.
 - The generator emits only SSBO blocks, struct definitions, and accessors.
 - The payload registry is an explicit ordered list: `environment`, `camera`, `sphere`.
 - Binding is never part of construction. `shader_storage_buffer` allocates and uploads in its constructor and exposes a mandatory `bind( binding_index )` call afterwards. The class does not consult the registry; the index comes from the registry and is passed by the code responsible for aligning the current context with the program in use. A binding index is current-context state shared by every program, not program state, so the call belongs to that alignment step rather than to the buffer.
-- All the code stays in `source/sdl3_demo.cpp`. The demo is both the experiment and the final location.
-- The payload layout stays a flat float array with the existing `ssbo_header`. Typed `std430` arrays are rejected. In `std430`, `vec3` has a 16-byte base alignment. The C++ layout of `camera` places its four 12-byte vectors at offsets 0, 12, 24, and 36, but `std430` would place them at 0, 16, 32, and 48. `environment` is 28 bytes in C++, but a `std430` array of it would have a 32-byte stride. Matching `std430` would require padding the C++ payloads, which the no-padding rule forbids. Reads use float indices computed from `offset_of( member ).bytes / sizeof( float )`.
+- The registry, the generator, and the buffer code stay in `tests/adhoc/0010_sdl3_demo.cpp`, and the demo is both the experiment and the final location. The generated block is injected by `shader::loader` in `include/sak/opengl/shader.hpp`, which is the only change outside the demo.
+- The payload layout stays a flat float array with the existing `ssbo_header`. Typed `std430` arrays are rejected. In `std430`, `vec3` has a 16-byte base alignment. The C++ layout of `camera` places its four 12-byte vectors at offsets 0, 12, 24, and 36, but `std430` would place them at 0, 16, 32, and 48. `environment` is 36 bytes in C++, but a `std430` array of it would have a 48-byte stride. Matching `std430` would require padding the C++ payloads, which the no-padding rule forbids. Reads use float indices computed from `offset_of( member ).bytes / sizeof( float )`.
 
 ## Design
 
@@ -98,14 +100,14 @@ A `static_assert` against the GLSL keyword and reserved-word list rejects member
 
 ### Injection
 
-- `shader_loader::load` inserts the generated block into each fragment section, immediately after the `#version` line. An `ensure` verifies that the section starts with `#version`.
+- `shader::loader::load` in `include/sak/opengl/shader.hpp` inserts the generated block into each fragment section, immediately after the `#version` line. An `ensure` verifies that the section starts with `#version`.
 - Immediately after the inserted block, the loader emits a `#line` directive. Its value is the line number, within that section, of the first authored line after `#version`, so driver errors point at authored lines.
 - Vertex sections are not changed.
 - The generated block must not reference any authored declaration.
 
 ### Authored fragment section after the change
 
-The fragment section contains `#version 460 core`, the `resolution` uniform, `out vec4 final_color;`, the helper macros that stay authored, and `main`. The handwritten SSBO blocks, struct definitions, accessor functions, and the `vec3_from` and `vec4_from` macros are removed.
+The fragment section contains `#version 460 core`, `out vec4 final_color;`, the helper macros that stay authored, and `main`. Resolution reaches the shader through the `environment` payload. The handwritten SSBO blocks, struct definitions, accessor functions, and the `vec3_from` and `vec4_from` macros are removed.
 
 ## Phases
 
@@ -113,22 +115,22 @@ Run one phase at a time. Each phase finishes and validates before the next start
 
 ### Phase 1: registry and binding
 
-1. Add the payload registry to `source/sdl3_demo.cpp`. The three payload structs stay in this file; no new header is created.
-2. Replace the three hand-typed indices passed to `bind` in `main` with the index each payload type has in the registry. The constructor and the `bind` method already exist; `shader_storage_buffer` does not consult the registry, so the call site derives the index and passes it.
+1. Add the payload registry to `tests/adhoc/0010_sdl3_demo.cpp`. The three payload structs stay in this file; no new header is created.
+2. Replace the three hand-typed indices passed to `bind` in the `demo_logic` constructor with the index each payload type has in the registry. The constructor and the `bind` method already exist; `shader_storage_buffer` does not consult the registry, so the call site derives the index and passes it.
 3. Do not change the GLSL.
 4. Validate: the main session runs `cpp_compile`, then runs the demo. Behavior must match the pre-change build.
 
 ### Phase 2: generator
 
-1. Implement the leaf mapping, the generator, and the static checks in `source/sdl3_demo.cpp`.
+1. Implement the leaf mapping, the generator, and the static checks in `tests/adhoc/0010_sdl3_demo.cpp`.
 2. Create an ad-hoc test with `cpp_create_test` using the adhoc flag. The test prints the generated block. The main session builds it with `cpp_compile`.
-3. Save the printed block and the current handwritten SSBO code from `data/shader/shadertoy.glsl` under `/tmp/opencode`. Compare names, member order, member types, and offsets with a tool such as `rg` and `diff` on extracted lines. Expression form may differ. Do not compare by reading.
+3. Save the printed block and the current handwritten SSBO code from `data/shader/sdl3-demo.glsl` under `/tmp/opencode`. Compare names, member order, member types, and offsets with a tool such as `rg` and `diff` on extracted lines. Expression form may differ. Do not compare by reading.
 
 ### Phase 3: wire in
 
 1. Before editing, the main session builds and runs the pre-change program and keeps its rendered output for comparison.
-2. Implement the injection in `shader_loader`.
-3. Delete the handwritten SSBO blocks, struct definitions, accessor functions, and the `vec3_from` and `vec4_from` macros from the fragment section.
+2. Implement the injection in `shader::loader` in `include/sak/opengl/shader.hpp`.
+3. Delete the handwritten SSBO blocks, struct definitions, accessor functions, and the `vec3_from` and `vec4_from` macros from the fragment section of `data/shader/sdl3-demo.glsl`.
 4. The main session builds and runs the program. Compare the output with the pre-change output.
 
 ### Phase 4: validation
