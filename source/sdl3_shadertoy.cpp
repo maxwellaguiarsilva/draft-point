@@ -21,6 +21,7 @@
 namespace gl {
 
 	__using( ::std::
+		,array
 		,declval
 		,enable_shared_from_this
 		,is_trivially_copyable_v
@@ -230,49 +231,47 @@ namespace gl {
 				m_application.quit( );
 			else if( event.key == SDLK_F11 and not event.repeat )
 				m_window.toggle_fullscreen( );
-			else if( event.key == SDLK_W )
-				m_forward_pressed = true;
-			else if( event.key == SDLK_S )
-				m_backward_pressed = true;
-			else if( event.key == SDLK_A )
-				m_left_pressed = true;
-			else if( event.key == SDLK_D )
-				m_right_pressed = true;
+			else
+				for( const auto& entry : key_movements )
+					if( event.key == entry.m_key )
+						m_movement[ entry.m_axis ] = entry.m_value;
 		}
 
 		void key_up( const SDL_KeyboardEvent& event ) override
 		{
-			if( event.key == SDLK_W )
-				m_forward_pressed = false;
-			else if( event.key == SDLK_S )
-				m_backward_pressed = false;
-			else if( event.key == SDLK_A )
-				m_left_pressed = false;
-			else if( event.key == SDLK_D )
-				m_right_pressed = false;
+			for( const auto& entry : key_movements )
+				if( event.key == entry.m_key and m_movement[ entry.m_axis ] == entry.m_value )
+					m_movement[ entry.m_axis ] = 0.0f;
 		}
 
-		void focus_lost( ) override
-		{
-			m_forward_pressed = false;
-			m_backward_pressed = false;
-			m_left_pressed = false;
-			m_right_pressed = false;
-		}
+		void focus_lost( ) override { m_movement = { }; }
 
 	private:
 		using	shader_range	=	decltype( declval< const shader::table& >( ) | values );
 
+		struct key_movement
+		{
+			SDL_Keycode	m_key;
+			size_t		m_axis;
+			float		m_value;
+		};
+
+		static constexpr array< key_movement, 4 > key_movements{ {
+			 { SDLK_W, 1, 1.0f }
+			,{ SDLK_S, 1, -1.0f }
+			,{ SDLK_A, 0, -1.0f }
+			,{ SDLK_D, 0, 1.0f }
+		} };
+
 		auto update( const float delta_seconds ) -> void
 		{
-			const float horizontal = m_right_pressed - m_left_pressed;
-			const float depth = m_forward_pressed - m_backward_pressed;
-			if( horizontal == 0.0f and depth == 0.0f )
+			if( m_movement == position{ } )
 				return;
-			const float distance = camera_speed * delta_seconds;
-			position& current = m_scene_camera[ 0 ].m_position;
-			current[ 0 ] += horizontal * distance;
-			current[ 2 ] += depth * distance;
+			camera& current = m_scene_camera[ 0 ];
+			const position world_direction = current.m_right * m_movement[ 0 ]
+				+ current.m_forward * m_movement[ 1 ]
+				+ current.m_up * m_movement[ 2 ];
+			current.m_position += world_direction * ( camera_speed * delta_seconds );
 			m_scene_camera.flush( );
 		}
 
@@ -286,10 +285,7 @@ namespace gl {
 		shader::loader	m_loader;
 		program< shader_range >	m_shader_program;
 		fps		m_frame_limiter{ 60 };
-		bool		m_forward_pressed{ false };
-		bool		m_backward_pressed{ false };
-		bool		m_left_pressed{ false };
-		bool		m_right_pressed{ false };
+		position	m_movement{ };
 	};
 
 
