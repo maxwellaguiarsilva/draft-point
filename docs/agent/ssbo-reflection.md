@@ -1,155 +1,135 @@
 # SSBO Reflection
 
-Status: planned. No phase has started.
+The file name joins two ideas. *SSBO* is the shader storage buffer object, the OpenGL buffer type through which the CPU hands bulk data to a shader. *Reflection* is the C++26 compile-time inspection of a type: its members, their order, their types, their sizes, and their byte offsets. The document describes a technique for deriving the GLSL side of the exchange from the reflection of the C++ side, so that a single declaration defines the contract instead of two handwritten copies of it.
 
-## Objective
+The reflection generator does not exist in the code yet. The programs described here still carry the handwritten GLSL form, and the reflection direction is the design this document records as the goal of the technique.
 
-Generate, from C++ reflection, the GLSL declarations that expose the CPU-side payload structs to the fragment shader through shader storage buffers (SSBOs). The authored fragment code contains only `main` and the helpers it needs. Binding indices and every generated declaration are derived automatically.
+## Why the document exists
 
-## Demo-locality
+- A shader storage buffer is raw memory on both sides. Nothing in OpenGL validates that the C++ struct and the GLSL block describe the same layout.
+- CPU and GPU must agree on four things at once: the byte layout of each payload, the order of the fields, the names of the fields, and the binding index of the buffer.
+- The handwritten form duplicates the C++ declaration inside the `.glsl` file. Every field is restated as a GLSL member, every offset is restated as a numeric literal, and every binding is restated as an integer on both sides.
+- A duplicated declaration can drift. Adding, removing, reordering, or retyping a C++ member leaves the GLSL copy valid and compilable, so the divergence appears only as wrong pixels or as silent misreads of unrelated fields.
+- Reflection removes the duplication: the GLSL declarations become a function of the C++ types, and a change to a payload propagates to the shader by construction.
 
-The payload registry, the generator, and the buffer code stay in `tests/adhoc/0010_sdl3_demo.cpp`, and the generated declarations replace the handwritten blocks in the fragment section of `data/shader/sdl3-demo.glsl`. The injection happens inside the shared loader, which lives in `include/sak/opengl/shader.hpp`, so that header changes in the injection phase. The rest of `sak` and every other module stay out of scope.
+## The exchange
 
-## Related documents
+- The payload travels as a plain array of floats. Neither side ever shares a struct, a pointer, or a typed block layout.
+- A small header precedes the array: `uint count` and `uint stride`. `count` is the number of elements in the buffer, and `stride` is the size of one element expressed in floats rather than bytes.
+- The stride lets the shader address element `index` with `base_index = index * stride` and then read fields at fixed float offsets from that base, so the shader needs no knowledge of byte sizes or alignment.
+- The CPU side owns the authoritative copy and the GPU side receives a copy at explicit points in time. There is no mapping, no coherence protocol, and no shared memory.
 
-- [C++ style guide](style-guide/cpp.md), which imports [common style rules](style-guide/all.md)
-- [OpenGL architecture](analyses/opengl/architecture.md)
-- [Buffer storage and updates](analyses/opengl/buffer-storage.md)
+## CPU side
 
-## Required reading
+### Payloads
 
-Read these before editing:
+- A payload is a plain aggregate of trivially copyable members, declared in the file that owns the data.
+- `environment` carries the frame-independent scene state: background color, focal length, ambient term, volume term, and resolution.
+- `camera` carries the view basis: position, forward, right, and up.
+- `sphere` carries one scene element: position, radius, and color.
+- The payload types are the only description of the layout. The float counts, the offsets, and the GLSL members are all consequences of these declarations.
 
-- `docs/agent/style-guide/cpp.md` and `docs/agent/style-guide/all.md`
-- `include/sak/using.hpp`
-- `include/sak/sak.hpp`
-- `../project-mcp-tools/README.md`, relative to the project root, because validation uses its tools
+### `is_flat`
 
-## Prohibited access
+- `has_no_padding` reflects over `nonstatic_data_members_of` with `access_context::current( )` and walks the members in declaration order, accumulating `size_of( type_of( member ) )`.
+- For each member it compares the accumulated offset against `offset_of( member ).bytes`. Any gap between members, any leading gap, or any trailing gap makes the check fail: the accumulated total must also equal `size_of( type )`.
+- `is_flat` combines that check with `is_trivially_copyable_v`, so the payload has a contiguous byte image and no copy semantics that would alter its bytes.
+- `shader_storage_buffer` asserts the concept, which means a payload that gains padding cannot be uploaded, and the failure happens at compile time on the declaration instead of at runtime in the shader.
+- The concept does not inspect the element types of the members. It constrains shape and copyability only.
 
-- Do not enter `docs/agent/analyses/opengl/opengl-tag/`. The OpenGL index prohibits access without reading its README first, and this task does not need that folder.
-- Scope every search to an explicit path. Filter `.venv` and `__pycache__` directories.
-- The only file outside `tests/adhoc/0010_sdl3_demo.cpp` that may change is `include/sak/opengl/shader.hpp`, through the symlink, exclusively for the `shader::loader` injection.
+### `shader_storage_buffer`
 
-## Scope
+- The class is an RAII owner of one OpenGL buffer plus one heap array of payloads.
+- The constructor takes only the element count. It allocates `unique_ptr<t_payload[]>` of that count, creates the buffer, and reserves `sizeof( ssbo_header ) + count * sizeof( t_payload )` bytes of dynamic storage.
+- It writes the header immediately, computing `stride` as `sizeof( t_payload ) / sizeof( float )`. The float-unit stride is what makes the shader independent of byte sizes.
+- The host-side array is reachable through `operator[]`, `data( )`, and `count( )`. Callers mutate elements in place; nothing is uploaded by those accesses.
+- `flush( )` uploads the whole array with one `glNamedBufferSubData` at offset `sizeof( ssbo_header )`, the exact size of the payload region.
+- `bind( index )` performs `glBindBufferBase` for the shader storage target at the given binding index.
+- Binding is separate from construction. A binding index is current-context state shared by every program, not a property of the buffer, so allocation and binding are distinct steps and the buffer class never decides an index on its own.
+- A destructor object owned through `unique_ptr` deletes the buffer, and the payload array is released with the class, so both resources follow the same lifetime.
 
-In scope:
+## GPU side
 
-- `tests/adhoc/0010_sdl3_demo.cpp`: the payload structs, the payload registry, `shader_storage_buffer`, `polygon`, and the buffer construction.
-- `data/shader/sdl3-demo.glsl`: the fragment section only. The vertex section is not modified.
-- `include/sak/opengl/shader.hpp`: the `shader::loader` injection only.
+- Each payload has a block declaration that fixes the binding index, then a struct that mirrors the payload, then an accessor that rebuilds one element from the float array.
 
-Out of scope:
+```glsl
+layout( std430, binding = N ) readonly buffer <name>_buffer { uint count; uint stride; float data[]; } <name>_ssbo;
+```
 
-- `source/sdl3_shadertoy.cpp` and `data/shader/sdl3-shadertoy.glsl`, the separate static two-sphere app. Neither is modified.
-- The rest of `sak` and every other module.
-- `environment.m_resolution`, which `demo_logic::pixel_resize` writes and `flush()` uploads. It stays synchronized by `pixel_resize`.
-- The `final_color` output.
-- Payload members that are not floats.
+- The block carries the same `count` and `stride` header the CPU wrote, so the shader can loop over `count` and scale by `stride` without constants.
+- The block type is `<name>_buffer` and the instance is `<name>_ssbo`, so the header members are read as `<name>_ssbo.count` and `<name>_ssbo.stride`.
+- `readonly` states that the shader only reads the buffer. The block uses `std430` as its layout qualifier, and the shader storage block itself is the construct that admits the runtime-sized `float data[]` array.
+- The struct `<name>` restates each payload member in declaration order, with GLSL types chosen by kind: `float` for scalars, `vec2`, `vec3`, and `vec4` for the vector members.
+- The accessor has the shape `ssbo_<name>( uint index )`. It computes `base_index = index * <name>_ssbo.stride`, reads scalars as `data[ base_index + k ]`, and assembles vectors from consecutive reads through the `vec2_from`, `vec3_from`, and `vec4_from` macros.
+- The `k` values are the float offsets of the members. They are literals in the handwritten form: `0`, `3`, `4`, and so on, each derived by hand from the C++ declaration.
+- `main` calls `ssbo_environment( 0u )` and `ssbo_camera( 0u )` once, and `ssbo_sphere( index )` inside a loop bounded by `sphere_ssbo.count`.
+- Resolution is not a uniform. It reaches the fragment shader as the `resolution` member of the `environment` payload and is refreshed whenever the window size changes.
 
-## Current state
+## Layout facts
 
-Verified from the code and docs:
+| payload | members | floats | bytes |
+| --- | --- | --- | --- |
+| `environment` | color (4), focal (1), ambient (1), volume (1), resolution (2) | 9 | 36 |
+| `camera` | position (3), forward (3), right (3), up (3) | 12 | 48 |
+| `sphere` | position (3), radius (1), color (4) | 8 | 32 |
 
-- `shader::loader::load` reads `data/shader/<name>.glsl`, splits sections on the marker lines `//\t<kind>-shader`, and builds one `shader( body, kind )` per section. The loader is the nested `loader` class of `shader` in `include/sak/opengl/shader.hpp`, and it caches one `shader::table` per file name.
-- `shader` takes `( const string& source, const type shader_type = vertex )`. The `type` enumerators are `vertex`, `fragment`, `geometry`, `tess_control`, `tess_evaluation`, and `compute`. Compile and link failures throw `runtime_error` with the driver info log.
-- `shader_storage_buffer<t_payload>( count )` creates a buffer, writes a header `{ count, stride }` where stride is the payload size in floats, and uploads the payload with `flush()`. A separate `bind( binding_index )` call makes the buffer visible to the shader.
-- `is_flat` is `has_no_padding` plus `is_trivially_copyable`. It does not check element types.
-- Binding numbers are typed by hand on both sides. GLSL uses `binding = 0` for environment, `1` for camera, and `2` for sphere. C++ constructs with the count only (`{ 1 }` for environment, `{ 1 }` for camera, and the clamped `sphere_count` for the sphere buffer in the `demo_logic` constructor) and binds explicitly with `bind( 0 )`, `bind( 1 )`, and `bind( 2 )`.
-- GLSL field names equal the C++ member names with the `m_` prefix removed. GLSL struct names equal the C++ type names. The current accessors are `ssbo_<name>( uint )`, the block types are `<name>_buffer`, and the instances are `<name>_ssbo`.
-- Payload layouts: `environment` is 9 floats (color, focal, ambient, volume, resolution). `camera` is 12 floats (position, forward, right, up, each 3 floats). `sphere` is 8 floats (position, radius, color).
-- `sak::opengl` contains `shader`, with the nested `type`, `table`, and `loader`, and `program`. It has no buffer or SSBO abstraction. That is not a reason to extend `sak`: the reflection work stays in the demo.
-- The toolchain is g++ with C++26. The `cpp_compile` tool is configured for it.
+- The byte counts equal the float counts because every member is a `float` or an aggregate of `float`, and `is_flat` guarantees no gap between them.
+- The GLSL field names are the C++ member names without the `m_` prefix, so `m_background_color` appears as `background_color` and `m_resolution` as `resolution`.
+- The GLSL struct names equal the C++ type names, and the accessor names are those types prefixed with `ssbo_`.
+- The binding indices are `0` for `environment`, `1` for `camera`, and `2` for `sphere`, and they appear once in the GLSL block declaration and once in the CPU `bind` call.
 
-## Decisions
+## Why flat floats instead of typed `std430` arrays
 
-- The fragment prelude stays authored. The `.glsl` fragment section keeps `#version 460 core`, `out vec4 final_color;`, helper macros such as `square`, and `main`. Resolution is not a uniform: it is the `m_resolution` member of the `environment` payload.
-- The generator emits only SSBO blocks, struct definitions, and accessors.
-- The payload registry is an explicit ordered list: `environment`, `camera`, `sphere`.
-- Binding is never part of construction. `shader_storage_buffer` allocates and uploads in its constructor and exposes a mandatory `bind( binding_index )` call afterwards. The class does not consult the registry; the index comes from the registry and is passed by the code responsible for aligning the current context with the program in use. A binding index is current-context state shared by every program, not program state, so the call belongs to that alignment step rather than to the buffer.
-- The registry, the generator, and the buffer code stay in `tests/adhoc/0010_sdl3_demo.cpp`, and the demo is both the experiment and the final location. The generated block is injected by `shader::loader` in `include/sak/opengl/shader.hpp`, which is the only change outside the demo.
-- The payload layout stays a flat float array with the existing `ssbo_header`. Typed `std430` arrays are rejected. In `std430`, `vec3` has a 16-byte base alignment. The C++ layout of `camera` places its four 12-byte vectors at offsets 0, 12, 24, and 36, but `std430` would place them at 0, 16, 32, and 48. `environment` is 36 bytes in C++, but a `std430` array of it would have a 48-byte stride. Matching `std430` would require padding the C++ payloads, which the no-padding rule forbids. Reads use float indices computed from `offset_of( member ).bytes / sizeof( float )`.
+The obvious alternative is to declare the block with the real struct type and let the driver apply `std430` to an array of it. That alternative does not match the C++ layout, because `std430` imposes alignment that plain C++ aggregates do not.
 
-## Design
+- In `std430`, `vec3` has a 16-byte base alignment even though it occupies 12 bytes.
+- `camera` is four consecutive `vec3`. C++ places them at byte offsets 0, 12, 24, and 36, for a total of 48 bytes. A `std430` array of the same struct would place them at 0, 16, 32, and 48, for a total of 64 bytes, with four bytes of padding after each vector.
+- `environment` begins with a `vec4` background color, which gives the struct a 16-byte alignment under `std430`, and ends with a `vec2` resolution. The C++ type is 36 bytes, but a `std430` array of it would use a 48-byte stride and read every element after the first from the wrong place.
+- Matching `std430` would require adding padding members to the C++ payloads so both sides agree. The payloads are deliberately padding-free, and `is_flat` rejects any padding, so the padded form is not available.
+- The float array avoids the whole question. Alignment and padding are properties of the block members, not of the `float` elements, so the only remaining agreement is the order of the floats and their offsets, which reflection can derive.
+- The generator derives reads from `offset_of( member ).bytes / sizeof( float )`, converting a C++ byte offset into a float index. Because `is_flat` proves the layout is contiguous, that division is exact and no rounding or alignment correction is involved. The handwritten accessors state the same offsets as integer literals.
+- The cost is that vector members lose their typed form in the buffer and must be rebuilt on the GPU from consecutive floats, which is what the `vec*_from` macros do.
+
+## Reflection direction
+
+The direction recorded by this document replaces the handwritten declarations with generated ones.
 
 ### Payload registry
 
-- The registry is an ordered list of payload types. A type's binding is its position in the list, computed at compile time. The order `environment`, `camera`, `sphere` yields bindings 0, 1, and 2, which match today's values.
-- `shader_storage_buffer` does not consult the registry. Its constructor takes only the element count; binding is a separate, mandatory `bind( binding_index )` call after construction.
-- The registry is the source of the index that call receives. A payload type that is not in the registry fails a `static_assert` where the index is derived.
+- The registry is an ordered list of payload types. A type's binding index is its position in the list, computed at compile time, so `environment`, `camera`, and `sphere` yield 0, 1, and 2.
+- The buffer class does not consult the registry. It still allocates from a count, and the index it is bound with comes from the registry at the call site.
+- A payload type absent from the registry fails a `static_assert` where the index is derived, so a payload cannot be uploaded without a binding.
 
 ### Leaf type mapping
 
-- `float` maps to `float`.
-- The `sak::g3f` position and direction types map to `vec3`.
-- The `sak::g3f` color type maps to `vec4`.
-- A `static_assert` checks that each mapped type's `sizeof` equals its component count times `sizeof( float )`.
-- An unmapped member type is a compile error.
+- A small table maps each supported member type to a GLSL type: `float` to `float`, the 3-component position and direction types to `vec3`, the 4-component color type to `vec4`, and the 2-component planar point to `vec2`.
+- A `static_assert` checks that each mapped type's `sizeof` equals its component count times `sizeof( float )`, so the mapping itself is verified against the size the float arithmetic assumes.
+- An unmapped member type is a compile error, which keeps the supported set closed and explicit.
 
 ### Generator
 
-For each registry entry, a `template for` over `define_static_array( nonstatic_data_members_of( ^^t_payload, access_context::current( ) ) )` emits the following. The loop uses the same idiom the loader already uses for `shader::type`.
-
-- `layout( std430, binding = N ) readonly buffer <name>_buffer { uint count; uint stride; float data[]; } <name>_ssbo;`, where `N` is the registry binding.
-- `struct <name>` with one member per C++ member, in declaration order. Member names come from `identifier_of` with the `m_` prefix removed. Member types come from the leaf mapping.
-- `<name> ssbo_<name>( uint index )`, which computes `base = index * <name>_ssbo.stride`, reads each member from `data[ base + k ]` where `k = offset_of( member ).bytes / sizeof( float )`, and builds vector members from consecutive reads.
-
-The generator returns the whole block as a `string`, once per program load. The generated names must be identical to the current names, so `main` does not change.
-
-A `static_assert` against the GLSL keyword and reserved-word list rejects member names that GLSL cannot use.
+- For each registry entry, a `template for` iterates `define_static_array( nonstatic_data_members_of( ^^t_payload, access_context::current( ) ) )`. This is the same idiom the shader loader already uses to walk `enumerators_of( ^^type )`.
+- The loop emits the block declaration with the registry binding, then the struct with one member per payload member in declaration order.
+- Member names come from `identifier_of` with the `m_` prefix removed, and member types come from the leaf mapping. The result reproduces the current handwritten names exactly, so `main` keeps compiling against them.
+- The loop also emits the accessor `ssbo_<name>( uint index )`, computing `base = index * <name>_ssbo.stride`, reading `data[ base + k ]` with `k = offset_of( member ).bytes / sizeof( float )`, and assembling vector members from consecutive reads.
+- The generated text is a function of the payload types alone. It references no authored declaration, so it can be inserted anywhere the fragment shader has the required types available.
+- A `static_assert` against the GLSL keyword and reserved-word list rejects member names that GLSL cannot use, since a valid C++ identifier is not necessarily a valid GLSL one.
 
 ### Injection
 
-- `shader::loader::load` in `include/sak/opengl/shader.hpp` inserts the generated block into each fragment section, immediately after the `#version` line. An `ensure` verifies that the section starts with `#version`.
-- Immediately after the inserted block, the loader emits a `#line` directive. Its value is the line number, within that section, of the first authored line after `#version`, so driver errors point at authored lines.
-- Vertex sections are not changed.
-- The generated block must not reference any authored declaration.
+- The generated block belongs in the fragment section, immediately after the `#version` line, because the block declaration must precede the accessors and any use of them.
+- A `#line` directive follows the inserted block and restores the authored numbering, so driver error messages report line numbers of the authored text rather than of the expanded source.
+- The insertion point is the `shader::loader` class, since it already splits the combined file into sections and constructs one shader per section. The generated text is produced once per program load.
+- Vertex sections are unaffected. They declare no storage blocks and use no vertex attributes: the corner positions come from a constant array indexed by the built-in `gl_VertexID`.
 
-### Authored fragment section after the change
+## Where the technique is demonstrated
 
-The fragment section contains `#version 460 core`, `out vec4 final_color;`, the helper macros that stay authored, and `main`. Resolution reaches the shader through the `environment` payload. The handwritten SSBO blocks, struct definitions, accessor functions, and the `vec3_from` and `vec4_from` macros are removed.
+- `tests/adhoc/0010_sdl3_demo.cpp` with `data/shader/sdl3-demo.glsl` is the primary case. The CPU side builds a variable number of spheres, and the polygon geometry is uploaded through `shader_storage_buffer<sphere>`; the fragment shader loops over `sphere_ssbo.count` and picks the nearest hit.
+- `source/sdl3_shadertoy.cpp` with `data/shader/sdl3-shadertoy.glsl` is the static variant. It holds two fixed spheres and moves the camera, so it exercises the same payloads and the same GLSL blocks with a fixed count.
+- Both programs carry the same three payloads, the same `is_flat` check, the same buffer class, and the same handwritten GLSL blocks. The duplication between them is the duplication the reflection generator is meant to remove.
 
-## Phases
+## Architectural limits
 
-Run one phase at a time. Each phase finishes and validates before the next starts. Sub-agents edit code and report what they changed. Only the main session builds. Build failures go back to the same sub-agent that made the change.
-
-### Phase 1: registry and binding
-
-1. Add the payload registry to `tests/adhoc/0010_sdl3_demo.cpp`. The three payload structs stay in this file; no new header is created.
-2. Replace the three hand-typed indices passed to `bind` in the `demo_logic` constructor with the index each payload type has in the registry. The constructor and the `bind` method already exist; `shader_storage_buffer` does not consult the registry, so the call site derives the index and passes it.
-3. Do not change the GLSL.
-4. Validate: the main session runs `cpp_compile`, then runs the demo. Behavior must match the pre-change build.
-
-### Phase 2: generator
-
-1. Implement the leaf mapping, the generator, and the static checks in `tests/adhoc/0010_sdl3_demo.cpp`.
-2. Create an ad-hoc test with `cpp_create_test` using the adhoc flag. The test prints the generated block. The main session builds it with `cpp_compile`.
-3. Save the printed block and the current handwritten SSBO code from `data/shader/sdl3-demo.glsl` under `/tmp/opencode`. Compare names, member order, member types, and offsets with a tool such as `rg` and `diff` on extracted lines. Expression form may differ. Do not compare by reading.
-
-### Phase 3: wire in
-
-1. Before editing, the main session builds and runs the pre-change program and keeps its rendered output for comparison.
-2. Implement the injection in `shader::loader` in `include/sak/opengl/shader.hpp`.
-3. Delete the handwritten SSBO blocks, struct definitions, accessor functions, and the `vec3_from` and `vec4_from` macros from the fragment section of `data/shader/sdl3-demo.glsl`.
-4. The main session builds and runs the program. Compare the output with the pre-change output.
-
-### Phase 4: validation
-
-1. Run `cpp_code_verifier` on every changed C++ file.
-2. Run the validator and fixer loop. One validator sub-agent checks the change against `all.md` and `cpp.md`. One fixer sub-agent applies the feedback. Repeat until the validator reports that the change satisfies the rules.
-3. Run `cpp-include-tree --flg-auto-fix` after any include change.
-4. The main session builds after every fixer pass that changed code.
-5. After validation passes, run `git_quick_upload` with a message.
-
-### Phase 5: documentation
-
-1. Update this document with the final state.
-
-## Constraints
-
-- Only one buffer per payload type is supported. A second live buffer of the same type would rebind the first. Record this limit in the code.
-- Only float-based payload members are supported. Other member types are compile errors until a bit-cast rule is added.
-- Shader compile and link failures reach the demo's `main` through the `runtime_error` catch.
-- Sub-agents must not build or compile.
-- All C++ edits follow `docs/agent/style-guide/cpp.md`, including naming, the `m_` and `t_` prefixes, and spacing.
-- The `cpp_compile` description in `../project-mcp-tools/README.md` says Clang. The user has stated the build is g++ with C++26. Do not change either as part of this task.
+- One live buffer per payload type. A binding index is context state, so a second buffer of the same type bound to the same index replaces the first, and both the CPU and the shader would then address the wrong storage.
+- Only float-based payload members. The block exposes a `float data[]` array, so the current handwritten accessors can reconstruct only members that are `float` or aggregates of `float`. The reflection direction makes the same limit explicit: the leaf mapping turns an unsupported member type into a compile error.
+- The representation in use is a flat float array. Declaring the block with the payload struct type would reintroduce the alignment mismatch described above, so the flat float array is what both programs upload and read.
