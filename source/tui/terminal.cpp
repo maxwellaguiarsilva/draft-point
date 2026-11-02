@@ -36,9 +36,9 @@ __using( ::sak::ranges::
 
 
 __using_inline( geometry::, left, top )
+__using_static( geometry::, zero )
 __using( ::sak::, ensure, format )
 __using( ::sak::pattern::, operator| )
-using	position	=	geometry::position;
 using	text_style	=	::tui::terminal::text_style;
 using	enum	text_style;
 using	enum	::tui::terminal::error;
@@ -56,7 +56,6 @@ const array< string, 4 > terminal::m_error_messages	=
 const array< string, 256 > terminal::m_foreground_colors	=	count_to( 256 ) | lazy_transform( bind_front( format, "\033[{};5;{}m", 38 ) ) | to;
 const array< string, 256 > terminal::m_background_colors	=	count_to( 256 ) | lazy_transform( bind_front( format, "\033[{};5;{}m", 48 ) ) | to;
 const array< string,  10 > terminal::m_text_styles			=	count_to(  10 ) | lazy_transform( bind_front( format, "\033[{}m" ) ) | to;
-constexpr auto zero = position( 0, 0 );
 
 
 terminal::terminal( )

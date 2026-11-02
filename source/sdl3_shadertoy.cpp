@@ -47,7 +47,8 @@ namespace gl {
 	__using( ::sak::sdl3::, application, window )
 	__using( ::sak::sdl3::opengl::, context )
 	__using( ::game::, fps )
-	__using_alias( ::sak::g3f::, color, position )
+	__using_alias( ::sak::g3f::, color, position, velocity )
+	__using_static( ::sak::g3f::, zero )
 	using	direction		=	::sak::g3f::point;
 	using	planar_point	=	::sak::g2f::point;
 
@@ -265,7 +266,7 @@ namespace gl {
 
 		auto update( const float delta_seconds ) -> void
 		{
-			if( m_movement == position{ } )
+			if( m_movement == zero )
 				return;
 			camera& current = m_scene_camera[ 0 ];
 			const position world_direction = current.m_right * m_movement[ 0 ]
@@ -285,7 +286,7 @@ namespace gl {
 		shader::loader	m_loader;
 		program< shader_range >	m_shader_program;
 		fps		m_frame_limiter{ 60 };
-		position	m_movement{ };
+		velocity	m_movement{ };
 	};
 
 
