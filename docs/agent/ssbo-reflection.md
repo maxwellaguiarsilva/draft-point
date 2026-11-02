@@ -24,7 +24,7 @@ The reflection generator does not exist in the code yet. The programs described 
 ### Payloads
 
 - A payload is a plain aggregate of trivially copyable members, declared in the file that owns the data.
-- `environment` carries the frame-independent scene state: background color, focal length, ambient term, volume term, and resolution.
+- `environment` carries the frame-independent scene state: background color, focal length, ambient term, volume term, half screen size, and the coordinate scale derived from the pixel size.
 - `camera` carries the view basis: position, forward, right, and up.
 - `sphere` carries one scene element: position, radius, and color.
 - The payload types are the only description of the layout. The float counts, the offsets, and the GLSL members are all consequences of these declarations.
@@ -63,18 +63,18 @@ layout( std430, binding = N ) readonly buffer <name>_buffer { uint count; uint s
 - The accessor has the shape `ssbo_<name>( uint index )`. It computes `base_index = index * <name>_ssbo.stride`, reads scalars as `data[ base_index + k ]`, and assembles vectors from consecutive reads through the `vec2_from`, `vec3_from`, and `vec4_from` macros.
 - The `k` values are the float offsets of the members. They are literals in the handwritten form: `0`, `3`, `4`, and so on, each derived by hand from the C++ declaration.
 - `main` calls `ssbo_environment( 0u )` and `ssbo_camera( 0u )` once, and `ssbo_sphere( index )` inside a loop bounded by `sphere_ssbo.count`.
-- Resolution is not a uniform. It reaches the fragment shader as the `resolution` member of the `environment` payload and is refreshed whenever the window size changes.
+- The pixel size is not a uniform. Half of it reaches the fragment shader as the `half_screen_size` member of the `environment` payload and is refreshed whenever the window size changes, so centering a fragment is a subtraction of that member rather than a multiplication by `0.5`. The derived `2 / min( width, height )` factor is still computed on the CPU at that same moment and travels as the `coordinate_scale` member, so the fragment shader multiplies by a constant instead of dividing per fragment.
 
 ## Layout facts
 
 | payload | members | floats | bytes |
 | --- | --- | --- | --- |
-| `environment` | color (4), focal (1), ambient (1), volume (1), resolution (2) | 9 | 36 |
+| `environment` | color (4), focal (1), ambient (1), volume (1), half screen size (2), coordinate scale (1) | 10 | 40 |
 | `camera` | position (3), forward (3), right (3), up (3) | 12 | 48 |
 | `sphere` | position (3), radius (1), color (4) | 8 | 32 |
 
 - The byte counts equal the float counts because every member is a `float` or an aggregate of `float`, and `is_flat` guarantees no gap between them.
-- The GLSL field names are the C++ member names without the `m_` prefix, so `m_background_color` appears as `background_color` and `m_resolution` as `resolution`.
+- The GLSL field names are the C++ member names without the `m_` prefix, so `m_background_color` appears as `background_color`, `m_half_screen_size` as `half_screen_size`, and `m_coordinate_scale` as `coordinate_scale`.
 - The GLSL struct names equal the C++ type names, and the accessor names are those types prefixed with `ssbo_`.
 - The binding indices are `0` for `environment`, `1` for `camera`, and `2` for `sphere`, and they appear once in the GLSL block declaration and once in the CPU `bind` call.
 
@@ -84,7 +84,7 @@ The obvious alternative is to declare the block with the real struct type and le
 
 - In `std430`, `vec3` has a 16-byte base alignment even though it occupies 12 bytes.
 - `camera` is four consecutive `vec3`. C++ places them at byte offsets 0, 12, 24, and 36, for a total of 48 bytes. A `std430` array of the same struct would place them at 0, 16, 32, and 48, for a total of 64 bytes, with four bytes of padding after each vector.
-- `environment` begins with a `vec4` background color, which gives the struct a 16-byte alignment under `std430`, and ends with a `vec2` resolution. The C++ type is 36 bytes, but a `std430` array of it would use a 48-byte stride and read every element after the first from the wrong place.
+- `environment` begins with a `vec4` background color, which gives the struct a 16-byte alignment under `std430`. The C++ type is 40 bytes, but a `std430` array of it would use a 48-byte stride, so every element after the first would be read from the wrong place.
 - Matching `std430` would require adding padding members to the C++ payloads so both sides agree. The payloads are deliberately padding-free, and `is_flat` rejects any padding, so the padded form is not available.
 - The float array avoids the whole question. Alignment and padding are properties of the block members, not of the `float` elements, so the only remaining agreement is the order of the floats and their offsets, which reflection can derive.
 - The generator derives reads from `offset_of( member ).bytes / sizeof( float )`, converting a C++ byte offset into a float index. Because `is_flat` proves the layout is contiguous, that division is exact and no rounding or alignment correction is involved. The handwritten accessors state the same offsets as integer literals.

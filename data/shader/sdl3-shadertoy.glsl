@@ -31,7 +31,8 @@ struct environment
 	float	focal;
 	float	ambient;
 	float	volume;
-	vec2	resolution;
+	vec2	half_screen_size;
+	float	coordinate_scale;
 };
 
 environment ssbo_environment( uint index )
@@ -43,6 +44,7 @@ environment ssbo_environment( uint index )
 		,environment_ssbo.data[ base_index + 5u ]
 		,environment_ssbo.data[ base_index + 6u ]
 		,vec2_from( environment_ssbo.data, base_index + 7u )
+		,environment_ssbo.data[ base_index + 9u ]
 	);
 }
 
@@ -85,11 +87,7 @@ sphere ssbo_sphere( uint index )
 void main( )
 {
 	const	environment	s_environment = ssbo_environment( 0u );
-	const	vec2	frame_resolution = s_environment.resolution;
-	vec2	input_coord = ( gl_FragCoord.xy - 0.5 * frame_resolution ) * ( 2.0 / min(
-		 frame_resolution.x
-		,frame_resolution.y
-	) );
+	vec2	input_coord = ( gl_FragCoord.xy - s_environment.half_screen_size ) * s_environment.coordinate_scale;
 
 	const	camera	s_camera = ssbo_camera( 0u );
 	vec3	direction = s_camera.forward * s_environment.focal + s_camera.right * input_coord.x + s_camera.up * input_coord.y;

@@ -25,4 +25,5 @@ std::array<float, 3> cross( const float left[3], const float right[3] )
 //  very good
 const point cross( const point left, const point right ) { return rotated( left, 1 ) * rotated( right, 2 ) - rotated( left, 2 ) * rotated( right, 1 ); }
 ```
+If the code opens up symmetric operations by dimension, then it renders this project useless. This project only exists for that reason. If the code works, but it didn't abstract that symmetry, any other existing solution that does it that way could be used, so there's no added value to the project in solutions of that type.
 

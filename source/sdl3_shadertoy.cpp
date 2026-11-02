@@ -30,6 +30,7 @@ namespace gl {
 	)
 	__using( ::std::chrono::, duration, high_resolution_clock )
 	__using( ::std::views::, values )
+	__using( ::sak::math::, min )
 	__using( ::sak::opengl::, program, shader, vertex_array )
 	__using( ::sak::ranges::, contains )
 	__using( ::sak::sdl3::, application, window )
@@ -48,8 +49,9 @@ namespace gl {
 		float	m_focal;
 		float	m_ambient;
 		float	m_volume;
-		planar_point	m_resolution;
-	};	//	total 9 floats
+		planar_point	m_half_screen_size;
+		float	m_coordinate_scale;
+	};	//	total 10 floats
 
 
 	//	shared camera, transferred as flat floats and assembled manually on the gpu
@@ -74,7 +76,6 @@ namespace gl {
 	public:
 		using	geometry	=	::sak::g2i;
 		using	enum	window::flag;
-		__using_static( geometry::, width, height )
 
 		static constexpr float camera_speed = 1.5f;
 
@@ -101,6 +102,7 @@ namespace gl {
 				,0.3f
 				,0.7f
 				,{ 0.0f, 0.0f }
+				,0.0f
 			};
 			m_scene_camera[ 0 ] = camera{ { 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } };
 			m_scene_spheres[ 0 ] = sphere{
@@ -142,7 +144,9 @@ namespace gl {
 
 		void pixel_resize( const geometry::size& new_size ) override
 		{
-			m_scene_environment[ 0 ].m_resolution = planar_point{ width( new_size ), height( new_size ) };
+			const auto screen_size = planar_point{ new_size };
+			m_scene_environment[ 0 ].m_half_screen_size = screen_size / 2.0f;
+			m_scene_environment[ 0 ].m_coordinate_scale = 2.0f / min( screen_size );
 			m_scene_environment.flush( );
 		}
 
