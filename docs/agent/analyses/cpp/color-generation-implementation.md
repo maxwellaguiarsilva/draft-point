@@ -71,7 +71,7 @@ The terminal `| to` is `sak::ranges::to` (a native `range_adaptor_closure`), imp
 
 1. **Dimension discovery:** `t_point{ }.size( )` extracts the dimension count at compile time from the point type itself.
 2. **Channel calculation:** `calc_channel` deinterleaves the index for the given dimension, then maps the resulting channel index through `subdivision_value` and scales it into `[min_value, max_value]`.
-3. **Point construction:** `iota( 0, dimensions ) | transform( calc_channel ) | to` generates the dimension indices, transforms each into a channel value, and materializes the result into a `t_point` via `sak::ranges::to`. Because `to` is a `range_adaptor_closure`, the whole pipeline routes through the STL's native `operator|` — no `sak::operator|` ADL is involved. `point` needs a `std::from_range_t` constructor for `to` to build it (already present in `point.hpp`, see range-pipeline §3.3).
+3. **Point construction:** `iota( 0, dimensions ) | transform( calc_channel ) | to` generates the dimension indices, transforms each into a channel value, and materializes the result into a `t_point` via `sak::ranges::to`. Because `to` is a `range_adaptor_closure`, the whole pipeline routes through the STL's native `operator|` — no `sak::operator|` ADL is involved. `point` needs a `std::from_range_t` constructor for `to` to build it (already present in `point.hpp`).
 
 ---
 

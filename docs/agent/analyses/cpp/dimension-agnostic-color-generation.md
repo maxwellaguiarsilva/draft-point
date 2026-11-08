@@ -118,7 +118,7 @@ Constrains the template parameter to any `sak::point<T, N>` specialization. This
 - `size()` — returns the number of dimensions at compile time.
 - `operator[]` — per-component access (re-exposed from `std::array`).
 
-### `sak::ranges::to` materializer (replaces `to_point`)
+### `sak::ranges::to` materializer
 
 The pipeline ends with a materializer that defers the target type to the assignment site:
 
@@ -126,7 +126,7 @@ The pipeline ends with a materializer that defers the target type to the assignm
 range | to  ->  point<T, N>
 ```
 
-`to` is `sak::ranges::to`, a native `std::ranges::range_adaptor_closure` that returns a proxy whose templated conversion operator materializes into the point type deduced from the assignment context. It defers naming the dimension count mid-pipeline (the DDD preference, since `std::ranges::to<vec3>()` would require naming it). It replaces the retired `to_point` proxy — see [range-pipeline-cpp26.md](../../architecture/range-pipeline-cpp26.md) §3.1.
+`to` is `sak::ranges::to`, a native `std::ranges::range_adaptor_closure` that returns a proxy whose templated conversion operator materializes into the point type deduced from the assignment context. It defers naming the dimension count mid-pipeline, the DDD preference, since `std::ranges::to<vec3>()` would require naming it.
 
 ### Native STL routing (no custom `operator|`)
 
@@ -138,4 +138,4 @@ The mapping uses only bit manipulation (deinterleaving and radical inverse) and 
 
 ### One `sak` prerequisite (already settled)
 
-For the `to` proxy to build a point, `sak::point` must be a standard-conforming range consumer — it gains a `std::from_range_t` constructor (see [range-pipeline-cpp26.md](../../architecture/range-pipeline-cpp26.md) §3.3). This is a settled `sak` change, not a `sak/math` change.
+For the `to` proxy to build a point, `sak::point` must be a standard-conforming range consumer — it gains a `std::from_range_t` constructor. This is a settled `sak` change, not a `sak/math` change.
