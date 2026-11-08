@@ -13,7 +13,8 @@ namespace game {
 
 
 __using( ::std::, to_string )
-__using( ::sak::, to_lower_case )
+__using( ::sak::, to_lower_case, is_inside_of )
+__using( ::sak::math::, length )
 
 
 game::renderer_listener::renderer_listener( const g2i::point& new_size )
@@ -76,9 +77,9 @@ auto game::run( ) -> void
 		}
 
 		m_player.step_move( );
-		if( not bounds_start.is_inside( position ) )
+		if( not is_inside_of( bounds_start, position ) )
 			position += bounds_size;
-		if( not position.is_inside( bounds_end ) )
+		if( not is_inside_of( position, bounds_end ) )
 			position = ( position - bounds_start ) % bounds_size + bounds_start;
 
 		m_renderer.clear( );
@@ -89,7 +90,7 @@ auto game::run( ) -> void
 			+ 	" | size: " + to_string( g2i::width( frame_size ) ) + " x " + to_string( g2i::height( frame_size ) )
 			+ 	" | player: " + to_string( g2i::left( position ) ) + " x " + to_string( g2i::top( position ) )
 			+ 	" | direction: " + use_direction( m_player.direction( ) ).name
-			+ 	" | length: " + to_string( position.length( ) )
+			+ 	" | length: " + to_string( length( position ) )
 			+ 	" | "
 		);
 		m_renderer.refresh( );

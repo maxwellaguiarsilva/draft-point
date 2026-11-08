@@ -32,6 +32,7 @@ __using( ::std::
 )
 __using( ::sak::ranges::, lazy_transform )
 __using( ::sak::, line_to )
+__using( ::sak::math::, product )
 __using_inline( geometry::
 	,width
 	,height
@@ -146,7 +147,7 @@ auto renderer::resize( const geometry::size& new_size ) -> void
 		auto lock = lock_guard( m_mutex );
 		m_terminal_size = new_size;
 		m_screen_size = ( m_terminal_size - m_margin * 2 ) * geometry::size{ 1, 2 };
-		const size_t total_pixel_count = m_screen_size.product( );
+		const size_t total_pixel_count = product( m_screen_size );
 		if( m_main.size( ) not_eq total_pixel_count )
 		{
 			m_main.resize( total_pixel_count );

@@ -15,8 +15,10 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 		,ensure
 		,line_to
 		,point
+		,is_inside_of
 	)
 	__using( ::sak::ranges::, to )
+	__using( ::sak::math::, length, product, close )
 	__using( ::std::
 		,exception
 		,println
@@ -101,36 +103,36 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 			const point p2( 5, 5 );
 			const point p3( 15, 15 );
 
-			ensure( p2.is_inside( p1 ), "p2 should be inside p1" );
-			ensure( not p3.is_inside( p1 ), "p3 should not be inside p1" );
-			ensure( p1.is_inside( p1 ), "p1 should be inside itself" );
+			ensure( is_inside_of( p2, p1 ), "p2 should be inside p1" );
+			ensure( not is_inside_of( p3, p1 ), "p3 should not be inside p1" );
+			ensure( is_inside_of( p1, p1 ), "p1 should be inside itself" );
 		}
 
 		//	length
 		{
 			const point p1( 3, 4 );
 			//	sqrt( 3*3 + 4*4 ) = sqrt( 9 + 16 ) = sqrt( 25 ) = 5
-			ensure( p1.length( ) == 5, "length failed" );
+			ensure( length( p1 ) == 5, "length failed" );
 
 			const point< float, 3 > p2( 2.0f, 3.0f, 6.0f );
 			//	sqrt( 2*2 + 3*3 + 6*6 ) = sqrt( 4 + 9 + 36 ) = sqrt( 49 ) = 7
-			ensure( p2.length( ) == 7.0f, "length for 3d float point failed" );
+			ensure( length( p2 ) == 7.0f, "length for 3d float point failed" );
 		}
 
 		//	product
 		{
 			const point< int, 3 > p1( 2, 3, 4 );
-			ensure( p1.product( ) == 24, "product failed" );
+			ensure( product( p1 ) == 24, "product failed" );
 
 			const point< float, 2 > p2( 0.5f, 0.5f );
-			ensure( p2.product( ) == 0.25f, "product for float point failed" );
+			ensure( product( p2 ) == 0.25f, "product for float point failed" );
 		}
 
 		//	3d point
 		{
 			const point< int, 3 > p( 1, 2, 3 );
 			ensure( p[ 0 ] == 1 and p[ 1 ] == 2 and p[ 2 ] == 3, "3d point failed" );
-			ensure( p.length( ) == 3, "length for 3d int point failed ( truncated )" );
+			ensure( close( length( p ), 3.7416573867739413, 1e-6 ), "length for 3d int point failed" );
 		}
 
 		//	--------------------------------------------------

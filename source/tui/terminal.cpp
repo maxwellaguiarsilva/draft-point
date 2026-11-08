@@ -37,7 +37,7 @@ __using( ::sak::ranges::
 
 __using_inline( geometry::, left, top )
 __using_static( geometry::, zero )
-__using( ::sak::, ensure, format )
+__using( ::sak::, ensure, format, is_inside_of )
 __using( ::sak::pattern::, operator| )
 using	text_style	=	::tui::terminal::text_style;
 using	enum	text_style;
@@ -199,7 +199,7 @@ auto terminal::query_size( const bool notify ) -> geometry::size
 	const auto start	=	geometry::position{ 1, 1 };
 	const auto end		=	geometry::size{ window_size.ws_col, window_size.ws_row };
 	ensure( end not_eq zero, m_error_messages | ioctl_failed );
-	ensure( start.is_inside( end ), "invalid terminal size" );
+	ensure( is_inside_of( start, end ), "invalid terminal size" );
 
 	{
 		auto lock = lock_guard( m_mutex );
