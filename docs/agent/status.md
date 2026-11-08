@@ -54,7 +54,7 @@ Implement stage 2 of the roadmap: [Agnostic Pipeline](analyses/renderer/agnostic
 | The reference renderer hardcodes one figure type | `data/shader/sdl3-shadertoy.glsl`, the `sphere_ssbo` loop |
 | The reference renders a red sphere at `x = -0.55` and a blue sphere at `x = +0.55`, radius `0.45` | `source/sdl3_shadertoy.cpp`, `demo_logic` constructor |
 | Sibling preservation project exists at `../pickup-express` | directory listing |
-| The `sak` module documents describe the current headers, with one recorded drift in `geometry.md` | `docs/agent/sak/cpp/index.md`, `geometry.md`, `math.md` and `ranges.md`; the drift note in [Point Niebloid Purification](analyses/renderer/point-niebloids.md) |
+| The `sak` module documents describe the current headers, and `geometry.md` now documents the extracted point operations | `docs/agent/sak/cpp/index.md`, `geometry.md`, `math.md` and `ranges.md` |
 | `docs/agent/index.md` no longer links a missing `architecture/index.md` | the entry points at `sak/cpp/index.md`, which holds the library philosophy and module map |
 
 ## Session State

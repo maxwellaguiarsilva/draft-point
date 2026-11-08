@@ -37,7 +37,6 @@ Import: [3D Renderer](index.md)
 - The niebloids are named `is_all`, `is_inside_of`, `is_equal`, `length` and `product`, without the `get_` prefix, which matches the accessor rule of `docs/agent/style-guide/cpp.md`.
 - `is_inside_of` avoids the name `is_inside` because the member `geometry::rectangle::is_inside` shadows the free name at the call sites that already use the member form.
 - `is_equal` avoids the name `equal` because a public `equal` competes with `std::equal_to` at call sites and in pipelines.
-- `docs/agent/sak/cpp/geometry.md` still documents `get_length( )` and `get_product( )` and attributes the operators to a `__352612026_operator` macro that does not exist in the current header. This drift is recorded for later handling and is not changed in this stage.
 
 ## Implemented Shape
 
