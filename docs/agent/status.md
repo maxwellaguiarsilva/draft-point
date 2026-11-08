@@ -9,12 +9,13 @@ This is the entry document. A session resumes by reading this file only; everyth
 
 ## Next Task
 
-Implement stage 1 of the roadmap: [Point Niebloid Purification](analyses/renderer/point-niebloids.md).
+Implement stage 2 of the roadmap: [Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md).
 
-- Move `is_all`, `is_inside`, `length` and `product` out of the member surface of `sak::point` in `include/sak/geometry/point.hpp` into standalone niebloids, keeping `operator==` as the only operator declared on the class and delegating its body to the extracted predicate.
-- `length` is deleted from the class, not reimplemented: `sak::math::length` already is the niebloid.
-- No dimension is indexed inside any extracted operation.
-- Follow the extraction order in the document: `product`, then `is_all`, then `is_inside` and equality, then the `length` removal.
+- Replace the hardcoded sphere loop in `data/shader/sdl3-shadertoy.glsl` with a dispatch over a generic flat figure list.
+- Build the fragment source on the CPU and inject it through the existing `shader( source, type )` constructor; `shader::loader` keeps its file-only API.
+- Keep the buffer payload flat and fixed-stride, with figure-specific slots, and reject at registration a figure whose slots exceed the stride.
+- Render one sphere on the left and one cube on the right, both shaded by inclination.
+- Resolve the three open questions of the stage document: the dispatch form, the source-injection route (temporary file versus in-memory), and whether figures are C++ types or a table of strings.
 
 ## Reproduction Commands
 
@@ -33,12 +34,11 @@ Implement stage 1 of the roadmap: [Point Niebloid Purification](analyses/rendere
 
 ## Acceptance Criteria for the Next Task
 
-- `include/sak/geometry/point.hpp` declares `operator==` and no other operation of the set `is_all`, `is_inside`, `length`, `product`.
-- The extracted niebloids are reachable from `sak` and used by every former call site under `include/`, `source/` and `tests/`.
-- Each extracted operation consumes its value as a range; no `[ 0 ]`, `[ 1 ]` or equivalent axis access appears in the implementation.
-- `cpp_code_verifier` reports no violations on every changed file.
+- No figure-specific loop remains in the fragment shader; the outer loop iterates the payload count and selects the formula by type identifier.
+- The CPU assembles the dispatch and the generated fragment source; `shader::loader` keeps its current API and only reads files.
+- The payload satisfies `is_flat` and keeps one fixed stride for every figure; registration rejects a figure whose slots exceed that stride.
+- One sphere renders on the left and one cube on the right, both shaded by inclination.
 - `cpp_compile` completes successfully.
-- `dist/test-sak-geometry` reports success, with the existing assertions in `tests/sak/test_sak_geometry.cpp` still covering the extracted behaviour.
 - The validator/fixer subagent loop required by `docs/agent/style-guide/cpp.md` reaches validator satisfaction, and `git_quick_upload` publishes the result.
 
 ## Verified Facts
@@ -47,22 +47,26 @@ Implement stage 1 of the roadmap: [Point Niebloid Purification](analyses/rendere
 |---|---|
 | `hamilton_product` does not exist in `sak` | `rg -L "hamilton\|quaternion" include/ docs/` returned no matches before these documents were written |
 | No quaternion type and no matrix type exist in `sak` | same search; `include/sak/math/vector.hpp` offers only Rodrigues `rotate` |
-| `sak::point` members are `is_all`, `operator==`, `is_inside`, `length`, `product` | `include/sak/geometry/point.hpp` |
+| `point` declares only `operator ==`; `is_all`, `is_inside_of` and `is_equal` are free niebloids in flat namespace `sak`; `length` and `product` are `sak::math` niebloids | `include/sak/geometry/point.hpp`, `__is_all`, `__is_inside_of`, `__is_equal`; `include/sak/math/vector.hpp`, `__length`; `include/sak/math/math.hpp`, `__product` |
 | `point` arithmetic is external, generated in `sak::ranges` by `__781083963_binary` | `include/sak/ranges/operators.hpp`; the `::sak::math::operator+` import list in `point.hpp` |
 | `shader` compiles from a source string; `shader::loader` only reads files | `include/sak/opengl/shader.hpp`, `shader::shader`, `shader::loader::load` |
 | SSBO payloads must be flat and unpadded, prefixed by `{ count, stride }` | `include/sak/opengl/shader.hpp`, `is_flat`, `storage_buffer` |
 | The reference renderer hardcodes one figure type | `data/shader/sdl3-shadertoy.glsl`, the `sphere_ssbo` loop |
 | The reference renders a red sphere at `x = -0.55` and a blue sphere at `x = +0.55`, radius `0.45` | `source/sdl3_shadertoy.cpp`, `demo_logic` constructor |
 | Sibling preservation project exists at `../pickup-express` | directory listing |
-| The `sak` module documents now match the headers | `docs/agent/sak/cpp/index.md`, `geometry.md`, `math.md` and `ranges.md` were rewritten against `include/sak/` listings and the headers they describe |
+| The `sak` module documents describe the current headers, with one recorded drift in `geometry.md` | `docs/agent/sak/cpp/index.md`, `geometry.md`, `math.md` and `ranges.md`; the drift note in [Point Niebloid Purification](analyses/renderer/point-niebloids.md) |
 | `docs/agent/index.md` no longer links a missing `architecture/index.md` | the entry points at `sak/cpp/index.md`, which holds the library philosophy and module map |
 
 ## Session State
 
-- No source file was created, changed, or compiled. Every change is markdown.
-- Working tree at handoff, in `draft-point`: `docs/agent/analyses/index.md` modified (a pre-existing uncommitted edit by the owner that registers this domain under Analyses), `docs/agent/index.md` modified, `docs/agent/workflow/index.md` modified, `docs/agent/analyses/renderer/` untracked, `docs/agent/status.md` untracked.
-- Working tree at handoff, in the sibling `project-mcp-tools`: `docs/agent/sak/cpp/index.md`, `geometry.md`, `math.md` and `ranges.md` modified. The `docs/agent/sak` path is a symlink into that repository, so the shared library documentation is committed there, not here.
-- The owner's pre-existing edit to `docs/agent/analyses/index.md` is not to be reverted or rewritten; it is the parent-index registration of this domain.
+- Stage 1 is implemented, built, tested and published; no stage-2 code exists yet.
+- Commits: `project-mcp-tools` `30c657d` `refactor(sak): extract point predicates and product into niebloids`; `draft-point` `1931706` `refactor(sak): adopt extracted point niebloids in geometry, game and tui`.
+- Three files changed in `project-mcp-tools`, under `sak-lib/cpp/include/sak/`: `geometry/point.hpp`, `geometry/geometry.hpp`, `math/math.hpp`.
+- Four files changed in `draft-point`: `source/game/game.cpp`, `source/tui/terminal.cpp`, `source/tui/renderer.cpp`, `tests/sak/test_sak_geometry.cpp`.
+- Evidence: `cpp_include_tree --flg_auto_fix` reported no redundant includes; `cpp_compile` succeeded; `dist/test-sak-geometry` and `dist/test-sak` pass.
+- Naming decisions: `is_inside_of` because `geometry::rectangle::is_inside` shadows the bare name; `is_equal` because a public `equal` would compete with `std::equal_to`; the predicates live in flat `namespace sak` because the class template `sak::geometry` already occupies that name.
+- `length` truncation: deleting the member removed its implicit `t_scalar` return conversion, so `sak::math::length` yields the natural norm, `sqrt( 14 )` for `point< int, 3 >{ 1, 2, 3 }`. The owner approved the assertion change to `close( length( p ), 3.7416573867739413, 1e-6 )`, and `source/game/game.cpp` prints the length as a decimal.
+- Both repositories were clean when stage 1 was published.
 - Documentation policy, set by the owner: documentation describes the current code, never the history of the code; a module without a document carries a pending note instead of a stale description; no freshness rule and no permission gate exists for updating a document.
 
 ## Do Not Re-run
@@ -75,7 +79,7 @@ Implement stage 1 of the roadmap: [Point Niebloid Purification](analyses/rendere
 
 | Item | Reason |
 |---|---|
-| Stages 2 to 7 | Each depends on the previous stage; only stage 1 is actionable now |
+| Stages 3 to 7 | Each depends on the previous stage; only stage 2 is actionable now |
 | `hamilton_product` implementation in `sak` | Needs a symmetric formulation attempt before adding a component-wise fallback; not needed until stage 5 |
 | `mat3` transfer convention over flat floats | Undecided; recorded in [Orientation](analyses/renderer/orientation.md) |
 | Concave inversion math for the cut cube | The central open question of [Rounded Primitives](analyses/renderer/rounded-primitives.md) |
@@ -90,7 +94,7 @@ Implement stage 1 of the roadmap: [Point Niebloid Purification](analyses/rendere
 |---|---|
 | [3D Renderer](analyses/renderer/index.md) | Domain index, invariants, stage order, document roles |
 | [Baseline Reference](analyses/renderer/baseline.md) | Buffer contract, payload layouts, inclination formula of the current renderer |
-| [Point Niebloid Purification](analyses/renderer/point-niebloids.md) | Stage 1, and the next task |
+| [Point Niebloid Purification](analyses/renderer/point-niebloids.md) | Stage 1, implemented |
 | [Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md) | Stage 2: figure contract, injection path, flat payload constraint |
 | [Rounded Primitives](analyses/renderer/rounded-primitives.md) | Stage 3: hybrid `border_radius` cube and interior inversion |
 | [Adaptive Mesh](analyses/renderer/adaptive-mesh.md) | Stage 4: per-corner clamp, per-edge interpolation, arrow validation |
