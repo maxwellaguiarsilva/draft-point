@@ -1,8 +1,8 @@
 # Workflows
 
-Import: [project-mcp-tools Workflows](../../../../project-mcp-tools/docs/agent/workflow/index.md)
+This directory holds the workflow conventions specific to `draft-point`.
 
-This directory extends the base workflows from `project-mcp-tools` with conventions specific to `draft-point`.
+> **Pending:** this directory used to import a base workflow document from `project-mcp-tools`, which does not contain one. The import stays pending until a replacement location is defined.
 
 ---
 
