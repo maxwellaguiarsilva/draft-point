@@ -8,8 +8,8 @@ This directory contains technical analyses, deep dives, and research notes speci
 
 ## Nodes
 
-- **[SDL3](sdl3/index.md) [#current]:** Gather information to build a RAII, object-oriented SDL3 library under the `sak/sdl3` hierarchy, following `sak` resources and patterns. Each object is analyzed in its own subject markdown.
-- **[3D Renderer](renderer/index.md):** Long-term architecture and staged roadmap for an infinite-range, rounded-surface 3D renderer built via CPU-injected GLSL pipelines.
+- **[SDL3](sdl3/index.md):** Gather information to build a RAII, object-oriented SDL3 library under the `sak/sdl3` hierarchy, following `sak` resources and patterns. Each object is analyzed in its own subject markdown.
+- **[3D Renderer](renderer/index.md) [#current]:** Long-term architecture and staged roadmap for an infinite-range, rounded-surface 3D renderer built via CPU-injected GLSL pipelines.
 - **[OpenGL](opengl/index.md):** Map and label every object of the OpenGL 4.6 core profile API to generate a strongly-typed, safe, object-oriented C++ API.
 - **[Main Scope Destruction (C++)](cpp/main-scope-destruction.md):** Analysis of RAII, scope destruction order, and the dangers of `std::exit()` in C++ applications.
 - **[Dimension-Agnostic Color Generation (C++)](cpp/dimension-agnostic-color-generation.md):** Proposal for a `create_color` function that maps a 1D index to N-dimensional coordinates via bit deinterleaving + spatial subdivision, using `sak` pipelines. Design/analysis in the main file; [implementation & usage](cpp/color-generation-implementation.md) split out.

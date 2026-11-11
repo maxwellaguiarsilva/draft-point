@@ -1,55 +1,119 @@
 # Legacy Game Preservation
 
-Import: [3D Renderer](index.md)
-
 ## Scope
 
-- Stage 7 and the ethical frame of the whole domain: use the meshes of a legacy game as the real-world validation of the rounded-surface renderer.
-- Records why the source material is legitimate, what the first visual target is, and the visual thesis the domain exists to test.
+- Real-world validation of the analytical rounded-surface renderer using preserved legacy game meshes from sibling repository `../pickup-express`, shaded with inclination brightness over one flat dominant color per polygon.
+- Establishes the domain's preserved-asset integration architecture:
+  - Ethical preservation grounds and repository boundary with `../pickup-express`.
+  - Visual coherence thesis comparing analytical rounded geometry against low-resolution photographic texturing.
+  - Verified `.ccf` and `.gti` data structures separated from premeditated renderer integration rules.
 
-## Facts
+## Ethical Preservation Scope
 
-- The source project is the sibling repository `pickup-express`, reachable from this repository root as `../pickup-express`. The path was confirmed to exist in this session.
-- The repository contains reverse-engineered meshes of the game objects, extracted for preservation.
-- Evidence: the sibling directory listing; the ownership statement below.
+- Legitimacy of using the legacy source material rests on the following necessary grounds established by the owner:
+  - Zero commercial relevance of the original title.
+  - Free distribution at its original launch.
+  - Long-standing cessation of operations by both the developer and the publisher.
+- Repository role separation:
+  - Sibling repository `../pickup-express` owns:
+    - Binary format reverse engineering.
+    - `.ccf` and `.gti` asset parsers.
+    - Archive extraction and game preservation.
+  - `draft-point` consumes the decoded geometry and textures strictly as an experimental rendering corpus.
 
-## Ethical Scope
+## Visual Thesis
 
-The owner considers the work legitimate on three grounds, each of which is necessary:
+- Analytical edge and corner rounding paired with ray-surface inclination brightness over flat per-polygon colors achieves higher visual coherence and pleasantness than sharp low-polygon geometry wrapped in low-resolution photographic textures.
+- Broader hypothesis under investigation: real-time 3D graphics likewise gain stronger visual coherence by prioritizing continuous geometric curvature over photographic surface texturing.
 
-- The game has no commercial relevance.
-- The game was distributed for free at its own launch.
-- The developing company and the publishing company both ceased to exist many years ago.
+## Verified Sibling Corpus Architecture
 
-- Consequence for the domain: the source material is used as an input corpus for a rendering experiment. Preservation of the game is the purpose of the sibling project, not of this one.
+- **Coordinate Convention**:
+  - Decoded geometry in `../pickup-express` inhabits a right-handed metric coordinate system:
+    - `+X` points right.
+    - `+Y` points up.
+    - `-Z` points forward.
+  - Front-facing triangles use counter-clockwise winding with outward geometric normal `cross( second - first, third - first )`.
+- **`.ccf` Chunk Distinction (`0x3100` vs `0x1100`)**:
+  - **Chunk `0x3100` (`CcMesh` visual object groups)** stores named visual submesh groups carrying:
+    - Local node origin (`0xf040`).
+    - Orthonormal $3 \times 3$ orientation basis (`0xf070` / `0xf050`).
+    - Shared geometric vertex table (`0x3110`).
+    - Indexed triangle face table (`0x3120`).
+  - Each `0x3120` face record carries:
+    - Material identifier referencing `0x2100`.
+    - Per-face UV coordinates (`0xf060`).
+    - Optional per-face flat RGB color (`0xf090`).
+  - Storing UVs and materials on `0x3120` faces keeps `0x3110` vertices geometrically shared within each `0x3100` group across UV and material boundaries.
+  - **Chunk `0x1100` (Town static collision BSP)** stores static collision geometry:
+    - Unindexed BSP-clipped leaf polygons (`0xf0c1`) split across partition planes with T-junctions.
+    - Collision surface identifiers disjoint from visual `0x2100` materials.
+  - High-level helper `pickup::ccf::parsed` flattens `0x3120` face indices into unindexed triangles and omits per-group `0xf040` origins and `0xf070` orientation bases.
+- **`.gti` Texture Subtypes**:
+  - `pickup::gti::decode_base_rgba` (`richest_index`) decodes legacy `.gti` pixel subtypes to RGBA8888 buffers on the CPU:
+    - `P8` paletted color.
+    - `AP88` alpha-plus-palette color.
+    - `BGR888` packed truecolor.
+    - `RGBA8888` packed truecolor with alpha.
 
-## Decisions
+## Premeditated Renderer Integration
 
-### First Visual Target
+- **Per-Group Manifold Scoping**:
+  - Visual mesh ingestion consumes `0x3100` visual groups exclusively while leaving `0x1100` collision BSP chunks inside `../pickup-express`.
+  - Manifold edge adjacency for the adaptive `border_radius` baker of [Adaptive Mesh](adaptive-mesh.md) scopes strictly per `0x3100` submesh group by retaining `0x3110` vertex and `0x3120` face index tables (or applying exact bitwise per-group vertex deduplication).
+- **Articulated Submesh Placement**:
+  - Each `0x3100` group's `0xf040` translation maps into `m_position` and its `0xf070` orthonormal basis maps into the `orientation_basis` GPU payload slots of [Orientation](orientation.md), while `m_parameters` (`figure_item.parameters`) indexes the group's `triangle_ssbo` slice.
+  - Preserving per-group local frames places articulated multi-group vehicles with wheel submeshes positioned at their proper hubs.
+- **UV-Wrapped Modal Linear-RGB Color Reduction**:
+  - Per-triangle flat color resolution runs on the CPU during mesh baking through a deterministic per-`0x3120` face fallback chain:
+    - Textured faces carrying a `0x2100` material and `0xf060` UVs sample the decoded RGBA8888 texels covered by the UV triangle, applying `fract( uv )` wrap for tiled UVs outside `[ 0.0f, 1.0f ]`.
+    - Untextured faces read their flat color directly from the `0xf090` face RGB record.
+  - Dominant color reduction ("most frequent average color per polygon") isolates primary surface paint from thin UV-atlas trim and window frames:
+    - Sampled texels convert to linear RGB and quantize into coarse histogram bins.
+    - Reduction selects the modal (most populated) bin and averages the exact linear-RGB values falling inside that dominant bin.
 
-- No textures in the first delivery.
-- The CPU samples each polygon's original texture and reduces it to the dominant average color for that polygon.
-- Each polygon is filled with that single flat color.
-- The rounded-edge geometry and the inclination brightness are applied over the flat color.
+## Progressive Validation Ladder
 
-### Visual Thesis
-
-- A flat color shaded by inclination, on analytically rounded edges, is more pleasant to look at than the original texture on sharp polygons.
-- The broader hypothesis, explicitly held by the owner and still to be tested: the same holds for modern games, whose visual coherence would improve by prioritising geometric perfection over photographic texturisation.
+| Asset Path (`../pickup-express`) | Topological Profile | Validation Target |
+|---|---|---|
+| `Packages/box/box.ccf` | Single-group closed manifold box prop | Direct visual and geometric parity with the analytical rounded box of [Rounded Primitives](rounded-primitives.md) |
+| `General/arrow.ccf` | Single-group closed manifold arrow prop | Real-asset parity with convex ridge and concave notch rounding of [Adaptive Mesh](adaptive-mesh.md) |
+| `Vehicles/Cars/City.ccf` | Multi-group articulated vehicle with separate body and wheel submeshes | Per-group `0xf040` and `0xf070` placement through [Orientation](orientation.md) combined with UV-atlas modal flat colors |
+| `Towns/Chinatown/chinatown-express.ccf` (`0x3100` groups) | Multi-object town environment with buildings and thin-sheet props | Incremental visibility culling via [Spatial Graph](spatial-graph.md) combined with open-boundary sheet handling from [Adaptive Mesh](adaptive-mesh.md) |
 
 ## Open Questions
 
-- How the dominant color per polygon is defined: mean in linear space, mode of a quantised histogram, or the color at the polygon centroid. Each gives a different flat color for the same texture.
-- Whether a polygon's flat color survives the rounding transition. The rounding blends two faces near an edge, and the blend of two flat colors must be decided rather than left implicit.
-- Which model is used first. An arrow is reserved for [Adaptive Mesh](adaptive-mesh.md); the game corpus should contribute a model whose edge lengths vary enough to show the proportional clamp.
+| Topic | Option A | Option B | Trade-Off |
+|---|---|---|---|
+| **Cross-edge color transition across rounded fillets** | Discrete color boundary at the dihedral angle-bisector plane | Smooth fillet-weight color blend matching normal interpolation across the arc | Shared with [Adaptive Mesh](adaptive-mesh.md): Option A preserves crisp polygon paint regions; Option B softens high-contrast seams between differently colored adjacent faces |
+| **Multi-face corner color weighting** | Dominant-weight selection from the nearest incident triangle face | Barycentric or fillet-weight blend across all faces meeting at the rounded corner | Follows directly from the cross-edge color transition choice at shared vertices |
+| **Modal linear-RGB histogram granularity** | Fixed uniform channel quantization across linear RGB | Adaptive perceptual bin width separating dark atlas trim from body paint | Option A is deterministic and parameter-free; Option B adapts to low-contrast textures |
+| **Sub-texel UV triangle sampling** | Centroid texel fallback when wrapped UV footprint falls below one texel pitch | Fixed supersampled barycentric grid across every UV triangle | Option A avoids redundant identical texel reads; Option B keeps one uniform sampling loop |
+| **Alpha-cutout `.gti` policy (`AP88`, `RGBA8888`)** | Exclude transparent texels below an alpha threshold during modal color reduction while keeping the polygon opaque | Carry a binary cutout flag for perforated grate and foliage faces | Option A preserves opaque flat-shaded silhouettes; Option B preserves perforated prop silhouettes |
 
-## Exclusions
+## Boundary
 
-- The stage does not read, parse, or convert the game's asset formats. The sibling project already owns that; this domain consumes its meshes.
-- No texture filtering, no UV mapping, and no sampling in the shader are part of the delivery.
-- No measurement of the game corpus (model count, polygon count) is recorded here; those numbers belong to the sibling project.
+- Sibling repository `../pickup-express` owns:
+  - Binary format reverse engineering.
+  - `.ccf` and `.gti` parsers and archive extraction.
+  - Corpus-wide asset statistics and game preservation documentation.
+- Inclination brightness shading belongs to [Baseline Reference](baseline.md).
+- Flat SSBO buffer transport belongs to [Agnostic Pipeline](agnostic-pipeline.md).
+- Analytical convex and concave fillet mathematics belong to [Rounded Primitives](rounded-primitives.md).
+- Per-vertex clamped `border_radius` baking and mesh crease evaluation belong to [Adaptive Mesh](adaptive-mesh.md).
+- Per-figure orthonormal basis transforms belong to [Orientation](orientation.md).
+- Incremental visible-set discovery belongs to [Spatial Graph](spatial-graph.md).
+- This specification owns the ingestion adapter from decoded `../pickup-express` `0x3100` groups and `.gti` RGBA buffers into per-group manifold mesh payloads and CPU modal linear-RGB polygon colors.
+- Residing outside this domain:
+  - GPU texture residency.
+  - Shader UV interpolation.
+  - Runtime texture filtering.
 
 ## Relations
 
-- Requires the mesh path of [Adaptive Mesh](adaptive-mesh.md) and the visible-set discovery that [Spatial Graph](spatial-graph.md) provides for scenes far larger than a two-object prototype.
-- Uses the inclination brightness of [Baseline Reference](baseline.md) unchanged, which is the point: the shading model proven on two spheres must survive contact with real models.
+- Parent domain: [3D Renderer](index.md)
+- Upstream inclination brightness law: [Baseline Reference](baseline.md)
+- Upstream flat SSBO payload contract: [Agnostic Pipeline](agnostic-pipeline.md)
+- Upstream adaptive mesh baker and crease evaluator: [Adaptive Mesh](adaptive-mesh.md)
+- Upstream per-group orientation transform contract: [Orientation](orientation.md)
+- Upstream multi-object visibility culling feed: [Spatial Graph](spatial-graph.md)

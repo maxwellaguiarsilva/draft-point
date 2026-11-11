@@ -1,48 +1,65 @@
 # Point Niebloid Purification
 
-Import: [3D Renderer](index.md)
-
 ## Scope
 
-- `sak::point` (`include/sak/geometry/point.hpp`) is pure coordinate storage and range compatibility; the class declares no operation other than equality.
-- Every algorithm over a point is a standalone niebloid under `sak`, and every call site uses it.
-- This is stage 1 of the roadmap.
+- Canonical architecture of `sak::point< t_scalar, num_dimensions >` (`include/sak/geometry/point.hpp`) and its external `sak` operation surface:
+  - `sak::point` owns fixed-dimension contiguous coordinate storage (`num_dimensions > 1`) and standard range-container compatibility.
+  - Value equality (`operator ==`) is the sole operation declared on `point`, delegating directly to `sak::is_equal`.
+  - Dimension-symmetric operations live outside `point` as free `sak` niebloids and range operators:
+    - Coordinate predicates:
+      - `is_all`
+      - `is_inside_of`
+      - `is_equal`
+    - Euclidean vector norms (`length`).
+    - Scalar coordinate reductions (`product`).
+    - Element-wise arithmetic range operators.
 
-## Facts
+## Class Surface (`include/sak/geometry/point.hpp`)
 
-### Extracted Surface
+### Storage and Range Interface
 
-| Name | Location | Body |
+- Storage base: `private std::array< t_scalar, num_dimensions >` (`super_type`), providing contiguous unpadded storage satisfying `is_flat` while encapsulating `std::array`.
+- Exported `super_type` container type aliases (`__using( typename super_type::, ... )`):
+  - `value_type`
+  - `size_type`
+  - `difference_type`
+  - `pointer`
+  - `const_pointer`
+  - `reference`
+  - `const_reference`
+  - `iterator`
+  - `const_iterator`
+- Exported `super_type` container accessors (`__using( super_type::, ... )`):
+  - `begin`
+  - `end`
+  - `size`
+  - `operator [ ]`
+  - `data`
+  - `fill`
+- Equality operator: `constexpr auto operator == ( const point& other ) const noexcept -> bool`, delegating value-semantic equality to `is_equal( *this, other )`.
+- Range conversion target: `sak::ranges::__to_impl< point< t_scalar, num_dimensions > >`, materializing lazy range pipelines via `| to` through `point( from_range, range )`.
+
+### Constructors
+
+| Signature | Constraints | Behavior and Downstream Role |
 |---|---|---|
-| `is_all` | `include/sak/geometry/point.hpp`, `__is_all` in `namespace sak` | `all_of( zip( left, right ), tupled( operation ) )` over two input ranges |
-| `operator ==` | `include/sak/geometry/point.hpp`, member of `point` | `is_equal( *this, other )` |
-| `is_inside_of` | `include/sak/geometry/point.hpp`, `__is_inside_of` in `namespace sak` | `is_all( inner, outer, less_equal )` |
-| `is_equal` | `include/sak/geometry/point.hpp`, `__is_equal` in `namespace sak` | `is_all( left, right, equal_to )` |
-| `length` | `include/sak/math/vector.hpp`, `__length` in `namespace sak::math` | `square_root( dot( vector ) )` |
-| `product` | `include/sak/math/math.hpp`, `__product` in `namespace sak::math` | `fold_left( list, 1, multiplies )` |
+| `constexpr point( )` | `num_dimensions > 1` | Zero-initializes all `num_dimensions` coordinates |
+| `constexpr point( t_args... args )` | `sizeof...( t_args ) <= num_dimensions` and each `convertible_to< t_args, t_scalar >` | Stores leading scalar arguments in pack order and zero-initializes remaining coordinates |
+| `constexpr point( t_range&& range, t_first first, t_remaining... remaining )` | `sizeof...( t_remaining ) + 1 < num_dimensions`, range + trailing scalars `convertible_to< t_scalar >` | Copies `num_dimensions - trailing_count` prefix coordinates from `range \| take( prefix_size )` followed by `trailing_count` trailing scalars; enables dimension-symmetric assembly of 4D RGBA colors and 4D quaternions `point< float, 4 >( imaginary_part, scalar_part )` in [Agnostic Pipeline](agnostic-pipeline.md) and [Orientation](orientation.md) |
+| `constexpr explicit point( const point< t_other_scalar, num_dimensions >& other )` | `convertible_to< t_other_scalar, t_scalar >` and `not same_as< t_other_scalar, t_scalar >` | Explicit element-wise scalar type conversion across equal dimensionality |
+| `constexpr explicit point( const point< t_other_scalar, other_dimensions >& other )` | `other_dimensions not_eq num_dimensions` | Explicit cross-dimension projection copying `other \| take( num_dimensions )` |
+| `constexpr point( from_range_t, t_range&& range )` | `input_range< t_range >` | Copies `range` into storage as the backing constructor for `sak::ranges::to` |
 
-- Each niebloid is a plain function object published as `inline constexpr auto`, not a pipeable closure.
-- No extracted implementation indexes a dimension; every operation consumes its operand as an input range.
-- Evidence: `include/sak/geometry/point.hpp`, `include/sak/math/math.hpp`, `include/sak/math/vector.hpp` and `include/sak/pattern/tupled.hpp`.
+## External Niebloid and Operator Surface
 
-### Already External
-
-- Arithmetic is not implemented by `point`. `operator+`, `operator-`, `operator*`, `operator/`, `operator%` and their compound forms are imported from `::sak::math`, which re-exports the element-wise operators defined over ranges in `include/sak/ranges/operators.hpp`.
-- Those operators are generated by the `__781083963_binary` macro, which builds `zip_transform( operation, all( left ), all( right ) ) | to` per overload, with a scalar right operand broadcast through `repeat`.
-- Consequence: `point` declares no arithmetic. `operator ==` is the only operation of the former query surface, and its body is the external predicate. The extraction completed a direction the file already followed.
-- Evidence: `include/sak/ranges/operators.hpp` macro block; the `__using( ::sak::math::, operator+ ... )` import list in `point.hpp`.
-
-### Naming
-
-- The niebloids are named `is_all`, `is_inside_of`, `is_equal`, `length` and `product`, without the `get_` prefix, which matches the accessor rule of `docs/agent/style-guide/cpp.md`.
-- `is_inside_of` avoids the name `is_inside` because the member `geometry::rectangle::is_inside` shadows the free name at the call sites that already use the member form.
-- `is_equal` avoids the name `equal` because a public `equal` competes with `std::equal_to` at call sites and in pipelines.
-
-## Implemented Shape
-
-- Placement rule: a predicate over coordinates belongs with geometry, but the class template `sak::geometry` (`include/sak/geometry/geometry.hpp`) already occupies the name, so free functions cannot live in `sak::geometry`. The predicates therefore sit in flat `namespace sak` inside `point.hpp`, between the `point` forward declaration and the class definition.
-- Reductions over a range belong to `sak::math`: `length` sits next to `normalize` in `math/vector.hpp`, and `product` sits next to `sum` in `math/math.hpp`.
-- The predicate forms, with `is_all` as the only one that reads a range pair:
+| Symbol | Namespace and Header | Category | Dimension-Symmetric Definition | Return Semantics |
+|---|---|---|---|---|
+| `sak::is_all` | `sak` (`include/sak/geometry/point.hpp`) | Binary range predicate niebloid | `all_of( zip( left, right ), tupled( operation ) )` | `bool`; true when every paired coordinate satisfies `operation` |
+| `sak::is_inside_of` | `sak` (`include/sak/geometry/point.hpp`) | Binary range predicate niebloid | `is_all( inner, outer, less_equal )` | `bool`; coordinate-wise upper-bound containment |
+| `sak::is_equal` | `sak` (`include/sak/geometry/point.hpp`) | Binary range predicate niebloid | `is_all( left, right, equal_to )` | `bool`; coordinate-wise equality across two input ranges |
+| `sak::math::length` | `sak::math` (`include/sak/math/vector.hpp`) | Unary range reduction niebloid | `square_root( dot( vector ) )` | Natural floating-point Euclidean norm returned by `square_root` (`sqrt( 14.0 )` for `point< int, 3 >{ 1, 2, 3 }`) |
+| `sak::math::product` | `sak::math` (`include/sak/math/math.hpp`) | Unary range reduction niebloid | `fold_left( list, 1, multiplies )` | Scalar product across all elements of a coordinate range |
+| Element-wise binary and compound arithmetic operators | `sak::ranges` (`include/sak/ranges/operators.hpp`), re-exported in `sak::math` and `sak` | Macro-generated range operators (`__781083963_binary`) | `zip_transform( operation, all( left ), all( right ) ) \| to` (with scalar right operands broadcast via `repeat`) | Eager `point` when the left operand is a `point` container; lazy view when the left operand is a view |
 
 ```cpp
 struct __is_all
@@ -70,11 +87,7 @@ struct __is_equal
 	{ return is_all( left, right, equal_to ); }
 };
 inline constexpr auto is_equal = __is_equal{ };
-```
 
-- The reduction forms mirror the `__sak_sum` shape: a plain function object with one range parameter, not pipeable.
-
-```cpp
 struct __product
 {
 	constexpr auto operator ( ) ( const auto& list ) const noexcept
@@ -90,25 +103,44 @@ struct __length
 inline constexpr auto length = __length{ };
 ```
 
-- The `length` member was deleted from `point` and not reimplemented there; the existing `sak::math::length` is the only entry point.
-- `point::operator ==` stays declared on the class because value semantics require it, and delegates to `is_equal`.
-- Call sites: `sak::geometry` (`rectangle::contains`, `rectangle::is_inside`), `source/tui/terminal.cpp`, `source/game/game.cpp`, `source/tui/renderer.cpp` and `tests/sak/test_sak_geometry.cpp`.
+## Placement and Naming Rationale
+
+- Namespace placement:
+  - `sak::geometry` (`include/sak/geometry/geometry.hpp`) is a class template parameterized by scalar type and dimension count, so coordinate-range predicates reside in flat `namespace sak` inside `include/sak/geometry/point.hpp`:
+    - `is_all`
+    - `is_inside_of`
+    - `is_equal`
+  - Numeric range reductions (`length` and `product`) reside in `namespace sak::math` alongside existing vector and scalar reductions in `include/sak/math/vector.hpp` and `include/sak/math/math.hpp`.
+- Collision-free naming:
+  - `is_inside_of` distinguishes the free binary coordinate predicate from the receiver-bound member `sak::geometry::rectangle::is_inside` (`include/sak/geometry/geometry.hpp`).
+  - `is_equal` distinguishes the whole-range equality fold from the scalar comparator `std::equal_to` (`sak::math::equal_to`).
+  - Bare nouns (`length` and `product`) follow the `docs/agent/style-guide/cpp.md` bare-noun naming convention.
+- Reduction call semantics and view-chaining rule:
+  - Scalar reductions collapse an input range into a single scalar value and are defined as plain function objects:
+    - `length`
+    - `product`
+    - `sum`
+    - `dot`
+  - `sak::point` is an eager owning container, while whole-vector closures in `include/sak/math/vector.hpp` constrain `operator ( )` on `viewable_range`:
+    - `normalize`
+    - `cross`
+    - `rotate`
+  - Chaining multiple whole-vector closures on a `point` value binds an intermediate `const auto` lvalue or starts from a view adaptor (`views::all` or `rotated`).
 
 ## Boundary
 
-- Unchanged: the storage (private inheritance from `std::array< t_scalar, num_dimensions >`), the constructors (default, variadic, cross-scalar, cross-dimension and `from_range`), and the range compatibility (`begin`, `end`, `size`, `operator[]`, `data`, `fill`, the `sak::ranges::__to_impl` specialisation).
-- Unchanged: the `geometry::rectangle::is_inside` member, which keeps its name and its receiver-bound form.
-- Unchanged: every arithmetic, comparison and logical operator generated in `sak::ranges`.
-- The only behavioural change beyond the extraction is the numeric result at call sites that previously used the `length` member, recorded under [Decisions](#decisions).
-
-## Decisions
-
-- Containment is `is_inside_of` because the rectangle member `is_inside` shadows the bare name; the distinct spelling keeps the free predicate readable at the call sites that already use the member form.
-- Equality is the public `is_equal`, named so it does not compete with `std::equal_to`; `operator ==` delegates to it.
-- The deleted `length` member was the only source of `t_scalar` truncation: it returned `t_scalar`, while `sak::math::length` returns the natural scalar of `square_root`. `length( point< int, 3 >{ 1, 2, 3 } )` therefore yields `sqrt( 14 )` instead of `3`.
-- The owner approved the assertion change; `tests/sak/test_sak_geometry.cpp` now asserts the natural norm with `close( length( p ), 3.7416573867739413, 1e-6 )` through `sak::math::close`. `source/game/game.cpp` prints the length as a decimal.
+- `sak::geometry::rectangle` (`include/sak/geometry/geometry.hpp`) retains its domain-specific `contains` and `is_inside` member methods, implemented over `is_all` and `is_inside_of`.
+- Geometric primitive evaluators and GPU payload layouts belong to [Agnostic Pipeline](agnostic-pipeline.md).
+- 4D quaternion multiplication and 3D basis conversion in [Orientation](orientation.md) compose over:
+  - `point< float, 4 >( imaginary_part, scalar_part )`
+  - `dot`
+  - `cross`
+  - `rotated`
 
 ## Relations
 
-- Needs nothing from earlier stages; it is the entry point of the roadmap.
-- [Agnostic Pipeline](agnostic-pipeline.md) writes multidimensional formulas as strings, and those formulas mirror the `sak` primitives that this stage turned into free niebloids. The payload and intersection formulas of that stage are built from `point` operations through `is_all`, `is_inside_of`, `is_equal`, `length` and `product`.
+- Parent domain: [3D Renderer](index.md)
+- Direct consumers:
+  - [Agnostic Pipeline](agnostic-pipeline.md)
+  - [Orientation](orientation.md)
+  - [Spatial Graph](spatial-graph.md)

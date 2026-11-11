@@ -1,70 +1,121 @@
 # Baseline Reference
 
-Import: [3D Renderer](index.md)
-
 ## Scope
 
-- Contract of the existing sphere renderer that every later stage reproduces or replaces: `source/sdl3_shadertoy.cpp` and `data/shader/sdl3-shadertoy.glsl`.
-- Records the data layout handed to the GPU, the projection, and the inclination formula that produces the perfectly round 3D look.
+- Reference architecture of the immutable sphere renderer in `source/sdl3_shadertoy.cpp` and `data/shader/sdl3-shadertoy.glsl`:
+  - Full-screen vertexless raster pass and screen-to-ray pinhole projection.
+  - Flat-float SSBO header layout and manual GLSL struct reconstruction.
+  - Analytical closest-approach sphere inclination shading and camera movement loop.
+  - Baseline assumptions that hold specifically for disjoint equal-radius spheres and are generalized in [Agnostic Pipeline](agnostic-pipeline.md).
 
-## Facts
+## Verified Architecture
 
-### Host and Pixel Feed
+### Host Full-Screen Pass
 
-- The host draws a full-screen quad with `gl_draw_arrays( GL_TRIANGLE_STRIP, 0, 4 )`; the vertex shader emits the four positions from `gl_VertexID`, so no vertex buffer or attribute exists.
-- Screen projection is computed in the fragment shader from `gl_FragCoord` against an environment SSBO field, so the CPU sends no matrices at all.
-- Evidence: `source/sdl3_shadertoy.cpp` `demo_logic::run` and `pixel_resize`; `data/shader/sdl3-shadertoy.glsl` vertex section.
+- Geometry submission (`source/sdl3_shadertoy.cpp` `demo_logic::run`, `data/shader/sdl3-shadertoy.glsl`):
+  - Host binds an empty `sak::opengl::vertex_array` and calls `gl_draw_arrays( GL_TRIANGLE_STRIP, 0, 4 )` once per frame.
+  - Vertex shader indexes a 4-element constant clip-space quad directly from `gl_VertexID`.
+  - Fragment shader computes view rays directly from `gl_FragCoord.xy` and SSBO payloads.
 
-### Storage Buffers
+### Flat-Float SSBO Header and Unpacking
 
-- Three storage buffers at bindings `0`, `1` and `2`: environment, camera, sphere list.
-- Every buffer is prefixed with `uint count; uint stride; float data[];` under `std430`; the shader assembles its structs from flat floats using the `vec2_from`/`vec3_from`/`vec4_from` macros.
-- The header and stride are written by `sak::opengl::shader::storage_buffer`, not by the caller.
-- Evidence: `glsl` buffer declarations and `ssbo_*` accessors; `include/sak/opengl/shader.hpp` `storage_buffer::storage_buffer`.
+- Buffer management (`include/sak/opengl/shader.hpp`, [SSBO Reflection](../../ssbo-reflection.md)):
+  - `sak::opengl::shader::storage_buffer< t_payload >` enforces `is_flat< t_payload >` (`has_no_padding( ^^t_payload )` and `is_trivially_copyable_v< t_payload >`).
+  - Construction allocates `sizeof( ssbo_header ) + count * sizeof( t_payload )` bytes and uploads `ssbo_header{ count, sizeof( t_payload ) / sizeof( float ) }` at byte offset `0`.
+  - `flush( )` uploads the contiguous host array at byte offset `sizeof( ssbo_header )`, and `bind( index )` attaches the buffer to its GLSL binding point.
+- Device unpacking (`data/shader/sdl3-shadertoy.glsl`):
+  - Each block declares `layout( std430, binding = slot_index ) readonly buffer <name>_buffer { uint count; uint stride; float data[ ]; } <name>_ssbo;`.
+  - Each `ssbo_<name>( uint index )` accessor computes `uint base_index = index * <name>_ssbo.stride;` and rebuilds vector fields through:
+    - `vec2_from`
+    - `vec3_from`
+    - `vec4_from`
 
 ### Payload Layouts
 
-- `environment`: background color (4) + `focal` + `ambient` + `volume` + half screen size (2) + `coordinate_scale` = ten floats.
-- `camera`: `position`, `forward`, `right`, `up` as three floats each = twelve floats.
-- `sphere`: `position` (3) + `radius` + `color` (4) = eight floats.
-- Evidence: the three structs declared in `source/sdl3_shadertoy.cpp` with their float-count comments, mirrored by the accessors in the `glsl` file.
+| Binding | C++ / GLSL Type | Ordered Members (Float Count) | Floats | Bytes | GLSL Accessor |
+|---|---|---|---|---|---|
+| `0` | `environment` | `m_background_color` (4), `m_focal` (1), `m_ambient` (1), `m_volume` (1), `m_half_screen_size` (2), `m_coordinate_scale` (1) | 10 | 40 | `ssbo_environment( 0u )` |
+| `1` | `camera` | `m_position` (3), `m_forward` (3), `m_right` (3), `m_up` (3) | 12 | 48 | `ssbo_camera( 0u )` |
+| `2` | `sphere` | `m_position` (3), `m_radius` (1), `m_color` (4) | 8 | 32 | `ssbo_sphere( index )` |
 
-### Scene and Camera Values
+- Evidence:
+  - Host structs in `source/sdl3_shadertoy.cpp`:
+    - `gl::environment`
+    - `gl::camera`
+    - `gl::sphere`
+  - Matching GLSL structs and `ssbo_*` accessors in `data/shader/sdl3-shadertoy.glsl`.
 
-- Two spheres at `x = -0.55` (red) and `x = +0.55` (blue), both at `y = 0`, `z = 1`, radius `0.45`.
-- Camera position `{ 0, 0, -2 }`, forward `{ 0, 0, 1 }`, right `{ 1, 0, 0 }`, up `{ 0, 1, 0 }`.
-- Environment: `focal = 2.0`, `ambient = 0.3`, `volume = 0.7`, black background.
-- Evidence: `demo_logic` constructor; the same values are repeated in `tests/adhoc/0010_sdl3_demo.cpp`, so the two prototypes are visually interchangeable at startup.
+### Scene and Camera Baseline Configuration
 
-### Inclination Formula
+| Buffer Element | Initial Values | Evidence |
+|---|---|---|
+| `m_environment[ 0 ]` | `background_color = { 0.0f, 0.0f, 0.0f, 1.0f }`, `focal = 2.0f`, `ambient = 0.3f`, `volume = 0.7f` | `source/sdl3_shadertoy.cpp` (`demo_logic::demo_logic`) |
+| `m_camera[ 0 ]` | `position = { 0.0f, 0.0f, -2.0f }`, `forward = { 0.0f, 0.0f, 1.0f }`, `right = { 1.0f, 0.0f, 0.0f }`, `up = { 0.0f, 1.0f, 0.0f }` | `source/sdl3_shadertoy.cpp` (`demo_logic::demo_logic`) |
+| `m_spheres[ 0 ]` | `position = { -0.55f, 0.0f, 1.0f }`, `radius = 0.45f`, `color = { 1.0f, 0.0f, 0.0f, 1.0f }` (red, left) | `source/sdl3_shadertoy.cpp`, mirrored in `tests/adhoc/0010_sdl3_demo.cpp` |
+| `m_spheres[ 1 ]` | `position = { 0.55f, 0.0f, 1.0f }`, `radius = 0.45f`, `color = { 0.0f, 0.0f, 1.0f, 1.0f }` (blue, right) | `source/sdl3_shadertoy.cpp`, mirrored in `tests/adhoc/0010_sdl3_demo.cpp` |
 
-- `hypotenuse = sphere_position - camera_position`
-- `along = dot( hypotenuse, direction )`; a hit requires `along > 0`
-- `opposite_leg_squared = dot( hypotenuse, hypotenuse ) - square( along ) / dot( direction, direction )`
-- `ratio = opposite_leg_squared / square( radius )`; a hit requires `ratio <= 1`
-- `brightness = ambient + volume * sqrt( 1 - clamp( ratio, 0, 1 ) )`
-- Evidence: the fragment `main` loop of the `glsl` file.
+### Screen-to-Ray Projection
 
-- The brightness depends only on `ratio`, the normalized squared distance from the ray to the sphere center. That single scalar is what reads as a perfect round surface: no normal vector, no light direction, no tessellation.
+- Pixel centering and aspect normalization (`data/shader/sdl3-shadertoy.glsl` `main`):
+  - `vec2 input_coord = ( gl_FragCoord.xy - s_environment.half_screen_size ) * s_environment.coordinate_scale;`
+  - Maps the shorter window dimension onto `[ -1.0, +1.0 ]` while preserving square pixels across arbitrary aspect ratios.
+- Pinhole ray construction:
+  - Origin: `s_camera.position`
+  - Unnormalized world direction: `vec3 direction = s_camera.forward * s_environment.focal + s_camera.right * input_coord.x + s_camera.up * input_coord.y;`
 
-### Resize Handling
+### Sphere Closest-Approach Inclination Formula
 
-- `pixel_resize` stores half the pixel size and `coordinate_scale = 2 / min( screen size )`, then flushes the environment buffer. `min` is the `sak::math::min` binary niebloid.
-- Evidence: `demo_logic::pixel_resize`.
+| Quantity | Baseline Expression (`data/shader/sdl3-shadertoy.glsl`) | Geometric Meaning |
+|---|---|---|
+| `hypotenuse` | `s_sphere.position - s_camera.position` | Vector from camera origin to sphere center |
+| `dot_hypotenuse_direction` | `dot( hypotenuse, direction )` | Scaled forward projection; hit requires `> 0.0` |
+| `opposite_leg_squared` | `dot( hypotenuse, hypotenuse ) - square( dot_hypotenuse_direction ) / dot( direction, direction )` | Squared perpendicular distance $d^2$ from sphere center to ray line |
+| `ratio` | `opposite_leg_squared / square( s_sphere.radius )` | Normalized squared radial miss $(d / R)^2$; hit requires `<= 1.0` |
+| `cos_incidence` | `sqrt( 1.0 - clamp( ratio, 0.0, 1.0 ) )` | Exact $|\hat{\mathbf{r}} \cdot \hat{\mathbf{n}}|$ at the sphere entry point (`1.0` at silhouette center, `0.0` at grazing silhouette edge) |
+| `color` | `s_sphere.color.rgb * ( s_environment.ambient + s_environment.volume * cos_incidence )` | Final shaded RGB computed directly from analytical ray-sphere inclination and base color |
 
-### Camera Movement
+### Resize and Input Loop
 
-- `W`/`S` map to axis `1` (forward), `A`/`D` map to axis `0` (right); axis `2` (up) is declared in the movement table but has no key bound to it.
-- The world direction is composed as `right * x + forward * y + up * z` and applied to the position at a fixed speed, then the camera buffer is flushed.
-- Evidence: `key_movements`, `key_down`, `key_up`, `update`.
+- Window resize (`demo_logic::pixel_resize` in `source/sdl3_shadertoy.cpp`):
+  - Converts window pixel dimensions to `planar_point`.
+  - Stores `m_half_screen_size = screen_size / 2.0f` and `m_coordinate_scale = 2.0f / min( screen_size )` using the `sak::math::min` range reduction, then calls `m_environment.flush( )`.
+- Camera controls in `source/sdl3_shadertoy.cpp`:
+  - `demo_logic` input handlers:
+    - `key_movements`
+    - `key_down`
+    - `key_up`
+    - `focus_lost`
+    - `update`
+  - Planar movement bindings:
+    - `SDLK_W` and `SDLK_S` drive movement axis `1` (`m_forward`).
+    - `SDLK_A` and `SDLK_D` drive movement axis `0` (`m_right`).
+    - Movement axis `2` (`m_up`) stays `0.0f`.
+  - Window and focus actions:
+    - `SDLK_F11` toggles fullscreen.
+    - `SDLK_ESCAPE` quits the application.
+    - `focus_lost` resets `m_movement` to zero.
+  - `update` integrates `current.m_position += world_direction * ( camera_speed * delta_seconds )` at `camera_speed = 1.5f` and flushes `m_camera`.
 
-## Exclusions
+## Baseline Simplifications Superseded Downstream
 
-- Depth ordering uses `length( hypotenuse )`, the distance to the sphere center, not the entry-point distance along the ray. Two spheres of the same radius are therefore ordered by center distance; the current scene never exposes the difference.
-- The GPU knows exactly one figure type. The sphere loop is hardcoded over a single `sphere` struct, and the SSBO type is fixed at compile time by `storage_buffer< sphere >`.
-- There is no normal, no light vector, no shadowing, no texture, and no culling. Anything observing otherwise in a later version is a change introduced after this baseline.
+| Baseline Simplification | Behavior in `sdl3-shadertoy.glsl` | Why It Holds in Baseline | Upgraded Contract Downstream |
+|---|---|---|---|
+| Unnormalized Ray Direction | `direction` retains length $\sqrt{\text{focal}^2 + x^2 + y^2}$ and each sphere divides by `dot( direction, direction )` inside the loop | Single primitive formula compensates for non-unit ray length via division | [Agnostic Pipeline](agnostic-pipeline.md) normalizes `vec3 unit_direction = normalize( direction );` once per fragment before the figure loop, expressing ray distances directly in world-space metric units |
+| Center Distance vs Surface `hit_distance` | Depth test compares `distance = length( hypotenuse )` (camera-to-center distance) | Two disjoint exterior spheres of equal radius (`0.45f`) have identical center-order and surface-entry order | [Agnostic Pipeline](agnostic-pipeline.md) orders hits by world-metric surface entry `hit_distance > 0.0` (`along - radius * cos_incidence` for exterior spheres), supporting general primitive surfaces in [Rounded Primitives](rounded-primitives.md) and [Adaptive Mesh](adaptive-mesh.md) |
+| Hardcoded Single-Figure Loop | `sphere_ssbo` and the sphere formula are hardcoded inside `main( )` | Baseline scene contains only spheres | [Agnostic Pipeline](agnostic-pipeline.md) binds a fixed-stride heterogeneous `figure_ssbo` and injects per-figure GLSL evaluators and type dispatch from the CPU |
+
+## Boundary
+
+- This baseline owns the immutable reference executable (`source/sdl3_shadertoy.cpp`) and shader (`data/shader/sdl3-shadertoy.glsl`).
+- [Agnostic Pipeline](agnostic-pipeline.md) owns:
+  - Heterogeneous flat figure buffers.
+  - Per-fragment normalized `unit_direction` dispatch.
+  - World-metric surface `hit_distance` depth sorting.
+- Object and camera rotational algebra belong to [Orientation](orientation.md).
+- Sub-linear visibility traversal belongs to [Spatial Graph](spatial-graph.md).
 
 ## Relations
 
-- [Agnostic Pipeline](agnostic-pipeline.md) replaces the hardcoded `sphere` loop and the fixed payload while preserving the inclination brightness of this document.
-- [Orientation](orientation.md) adds the first orientation data this baseline does not have.
+- Parent domain: [3D Renderer](index.md)
+- Buffer layout specification: [SSBO Reflection](../../ssbo-reflection.md)
+- Direct consumer: [Agnostic Pipeline](agnostic-pipeline.md)
