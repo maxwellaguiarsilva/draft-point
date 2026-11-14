@@ -5,5 +5,5 @@ When testing TUI-based binaries (e.g., raytracing tests that need a terminal), u
 Example:
 
 ```
-tmux split-window -h "./dist/0009_raytracing_primitives; read -p 'press enter to close'"
+tmux split-window -h "./dist/0010-sdl3-demo; read -p 'press enter to close'"
 ```
