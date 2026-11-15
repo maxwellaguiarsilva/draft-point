@@ -21,7 +21,7 @@
 |---|---|---|
 | Dimension Symmetry (C++) | Multidimensional operations execute once over whole vectors and coordinate ranges through `sak` range niebloids and views | `include/sak/math/vector.hpp` (`__cross`), `include/sak/geometry/point.hpp` |
 | Dimension Symmetry (GLSL) | Primitive formulas operate on whole-vector GLSL intrinsics and a single fragment shader prelude | [Agnostic Pipeline](agnostic-pipeline.md) |
-| Ad-hoc Prototype Isolation | Each stage lives in its own standalone prototype translation unit under `tests/adhoc/rendering/`, keeping baseline sources unchanged | `source/sdl3_shadertoy.cpp`, `data/shader/sdl3-shadertoy.glsl` |
+| Ad-hoc Prototype Isolation | Each stage lives in its own standalone prototype translation unit under `tests/adhoc/rendering/`, keeping baseline sources unchanged | `data/shader/sdl3-shadertoy.glsl` |
 | Flat-Float SSBO Protocol | GPU buffers use `sak::opengl::shader::storage_buffer< t_payload >` constrained by `is_flat`, prefixed with `{ uint count; uint stride; }` in float units over `float data[ ];` | `include/sak/opengl/shader.hpp`, [SSBO Reflection](../../ssbo-reflection.md) |
 | Analytical Surface-Ray Inclination | Fragment brightness equals `ambient + volume * cos_incidence` where `cos_incidence = abs( dot( unit_direction, surface_normal ) )` directly from camera-ray geometry | [Baseline Reference](baseline.md), [Agnostic Pipeline](agnostic-pipeline.md) |
 
@@ -47,7 +47,7 @@
 
 ### Ad-hoc Prototype Isolation
 
-- Each stage lives in its own standalone prototype translation unit under `tests/adhoc/rendering/`, keeping `source/sdl3_shadertoy.cpp` and `data/shader/sdl3-shadertoy.glsl` unchanged as the baseline contract.
+- Each stage lives in its own standalone prototype translation unit under `tests/adhoc/rendering/`, keeping `data/shader/sdl3-shadertoy.glsl` unchanged as the baseline contract.
 - SDL3/OpenGL prototype translation units declare `//	using	config/sdl3.json` and `#define GLAD_GL_IMPLEMENTATION` at the top of the file.
 
 ### Flat-Float SSBO Protocol

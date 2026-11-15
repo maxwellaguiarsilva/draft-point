@@ -50,14 +50,12 @@ struct figure_payload
 | `m_position` | `sak::point< float, 3 >` | `0` | `3` | World-space center of the figure (sphere center, precomputed triangle centroid, or capsule midpoint) |
 | `m_type_id` | `float` | `3` | `1` | Exact integer-valued `float` (`0.0f`, `1.0f`, or `2.0f`), decoded in GLSL via `uint( figure_item.type_id )` |
 | `m_color` | `sak::point< float, 4 >` | `4` | `4` | Flat RGBA base color |
-| `m_parameters` | `std::array< float, t_parameter_count >` (or `sak::point< float, t_parameter_count >` when `t_parameter_count > 1`) | `8` | `t_parameter_count` | Fixed-capacity figure parameter slots (`1` float for sphere radius; `12` floats for triangle centroid-relative vectors and plane unit normal; `5` floats for capsule unit axis, `half_length`, and `radius`); registration validates that every figure fits within `t_parameter_count` floats |
+| `m_parameters` | `std::array< float, t_parameter_count >` | `8` | `t_parameter_count` | Fixed-capacity figure parameter slots (`1` float for sphere radius; `12` floats for triangle centroid-relative vectors and plane unit normal; `5` floats for capsule unit axis, `half_length`, and `radius`); registration validates that every figure fits within `t_parameter_count` floats |
 
 - Exact integer-valued `float` encoding for `m_type_id`:
   - `m_type_id` stores an exact integer-valued `float` (`0.0f`, `1.0f`, `2.0f`, contiguous across integers up to $2^{24} = 16{,}777{,}216$) and converts on the GPU via `uint( figure_item.type_id )`.
   - Conforms strictly to [SSBO Reflection](../../ssbo-reflection.md) ("Only float-based payload members" over `float data[ ]`).
   - Exact integer-valued `float` representation preserves normal IEEE-754 exponent encoding across `float data[ ]` transfers and guarantees lossless `uint( figure_item.type_id )` conversion across IEEE-754 GPU hardware.
-- Parameter-slot container choice:
-  - `std::array< float, t_parameter_count >` supports any slot capacity `t_parameter_count >= 1`, while `sak::point< float, t_parameter_count >` supports `t_parameter_count > 1` (`include/sak/geometry/point.hpp`).
 - Extensibility to variable-size figures ([Adaptive Mesh](adaptive-mesh.md)):
   - Multi-triangle meshes preserve the fixed stride of `figure_ssbo` by storing secondary SSBO descriptor scalars inside `m_parameters` that index flat buffers at higher bindings:
     - `first_triangle`
@@ -68,149 +66,20 @@ struct figure_payload
 
 - Per-fragment normalization:
   - `vec3 unit_direction = normalize( direction );` is computed once per fragment prior to iterating `figure_ssbo.count`.
-- Evaluator signature and outer loop:
+- Evaluator signature:
   - Every registered figure emits `hit_result evaluate_<figure>( vec3 ray_origin, vec3 unit_direction, figure figure_item )`.
-  - The outer loop dispatches each candidate via `dispatch_figure( camera_state.position, unit_direction, figure_item )`:
-    - Accepts the closest front hit satisfying `candidate.hit` and `candidate.hit_distance > 0.0` and `candidate.hit_distance < best_distance`.
-    - Shades the winning fragment as `figure_item.color.rgb * ( environment_state.ambient + environment_state.volume * candidate.cos_incidence )`.
 
-```glsl
-//	unified surface hit contract returned by every injected figure evaluator
-struct hit_result
-{
-	bool	hit;
-	float	hit_distance;
-	float	cos_incidence;
-};
-
-//	unit-ray sphere evaluator returning world-metric hit distance and inclination cosine
-hit_result evaluate_sphere( vec3 ray_origin, vec3 unit_direction, figure figure_item )
-{
-	float	radius = figure_item.parameters[ 0 ];
-	vec3	local_center = figure_item.position - ray_origin;
-	float	along = dot( local_center, unit_direction );
-	float	opposite_leg_squared = dot( local_center, local_center ) - square( along );
-	float	radius_squared = square( radius );
-	if( opposite_leg_squared > radius_squared )
-		return	hit_result( false, -1.0, 0.0 );
-	float	ratio = opposite_leg_squared / radius_squared;
-	float	cos_incidence = sqrt( 1.0 - clamp( ratio, 0.0, 1.0 ) );
-	float	half_chord = radius * cos_incidence;
-	float	near_distance = along - half_chord;
-	float	far_distance = along + half_chord;
-	if( far_distance <= 0.0 )
-		return	hit_result( false, -1.0, 0.0 );
-	float	hit_distance = near_distance > 0.0 ? near_distance : far_distance;
-	return	hit_result( true, hit_distance, cos_incidence );
-}
-
-//	trigonometric 3d plane triangle evaluator using precomputed centroid-relative vectors and unit normal
-hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figure_item )
-{
-	vec3	normal = vec3( figure_item.parameters[ 9 ], figure_item.parameters[ 10 ], figure_item.parameters[ 11 ] );
-	float	denominator = dot( unit_direction, normal );
-	if( abs( denominator ) <= 1e-6 )
-		return	hit_result( false, -1.0, 0.0 );
-	float	hit_distance = dot( figure_item.position - ray_origin, normal ) / denominator;
-	if( hit_distance <= 0.0 )
-		return	hit_result( false, -1.0, 0.0 );
-	vec3	hit_offset = ( ray_origin + unit_direction * hit_distance ) - figure_item.position;
-	vec3	corner_0 = vec3( figure_item.parameters[ 0 ], figure_item.parameters[ 1 ], figure_item.parameters[ 2 ] ) - hit_offset;
-	vec3	corner_1 = vec3( figure_item.parameters[ 3 ], figure_item.parameters[ 4 ], figure_item.parameters[ 5 ] ) - hit_offset;
-	vec3	corner_2 = vec3( figure_item.parameters[ 6 ], figure_item.parameters[ 7 ], figure_item.parameters[ 8 ] ) - hit_offset;
-	vec3	oriented_areas = vec3(
-		 dot( cross( corner_0, corner_1 ), normal )
-		,dot( cross( corner_1, corner_2 ), normal )
-		,dot( cross( corner_2, corner_0 ), normal )
-	);
-	if( min_axis( oriented_areas ) < 0.0 )
-		return	hit_result( false, -1.0, 0.0 );
-	float	cos_incidence = abs( denominator );
-	return	hit_result( true, hit_distance, cos_incidence );
-}
-
-//	exact analytical spherocylinder evaluator across finite cylinder body and two hemispherical endcaps
-hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure_item )
-{
-	vec3	axis = vec3( figure_item.parameters[ 0 ], figure_item.parameters[ 1 ], figure_item.parameters[ 2 ] );
-	float	half_length = figure_item.parameters[ 3 ];
-	float	radius = figure_item.parameters[ 4 ];
-	float	radius_squared = square( radius );
-	vec3	local_origin = ray_origin - figure_item.position;
-	float	origin_along = dot( local_origin, axis );
-	float	direction_along = dot( unit_direction, axis );
-	vec3	origin_perp = local_origin - axis * origin_along;
-	vec3	direction_perp = unit_direction - axis * direction_along;
-	float	best_distance = -1.0;
-	vec3	best_normal = vec3( 0.0 );
-
-	float	perp_squared = dot( direction_perp, direction_perp );
-	if( perp_squared > 1e-8 )
-	{
-		float	half_b = dot( origin_perp, direction_perp );
-		float	c = dot( origin_perp, origin_perp ) - radius_squared;
-		float	discriminant = square( half_b ) - perp_squared * c;
-		if( discriminant >= 0.0 )
-		{
-			float	root = sqrt( discriminant );
-			float	near_t = ( -half_b - root ) / perp_squared;
-			float	far_t = ( -half_b + root ) / perp_squared;
-			float	cylinder_t = near_t > 0.0 ? near_t : far_t;
-			if( cylinder_t > 0.0 )
-			{
-				float	hit_along = origin_along + direction_along * cylinder_t;
-				if( abs( hit_along ) <= half_length )
-				{
-					best_distance = cylinder_t;
-					best_normal = ( origin_perp + direction_perp * cylinder_t ) / radius;
-				}
-			}
-		}
-	}
-
-	for( int cap_index = 0; cap_index < 2; ++cap_index )
-	{
-		float	cap_sign = cap_index == 0 ? -1.0 : 1.0;
-		vec3	cap_offset = axis * ( cap_sign * half_length );
-		vec3	cap_to_origin = local_origin - cap_offset;
-		float	b = dot( cap_to_origin, unit_direction );
-		float	c = dot( cap_to_origin, cap_to_origin ) - radius_squared;
-		float	discriminant = square( b ) - c;
-		if( discriminant >= 0.0 )
-		{
-			float	root = sqrt( discriminant );
-			float	near_t = -b - root;
-			float	far_t = -b + root;
-			float	cap_t = -1.0;
-			if( near_t > 0.0 && dot( cap_to_origin + unit_direction * near_t, axis ) * cap_sign >= 0.0 )
-				cap_t = near_t;
-			else if( far_t > 0.0 && dot( cap_to_origin + unit_direction * far_t, axis ) * cap_sign >= 0.0 )
-				cap_t = far_t;
-			if( cap_t > 0.0 && ( best_distance < 0.0 || cap_t < best_distance ) )
-			{
-				best_distance = cap_t;
-				best_normal = ( cap_to_origin + unit_direction * cap_t ) / radius;
-			}
-		}
-	}
-
-	if( best_distance <= 0.0 )
-		return	hit_result( false, -1.0, 0.0 );
-	return	hit_result( true, best_distance, abs( dot( unit_direction, best_normal ) ) );
-}
-```
+aguardando o usuário finalizar o modelo final do estágio dois para documentar após estar concluído
 
 - Mathematical properties of the sphere, 3D plane triangle, and capsule evaluators:
-  - Sphere (`parameters[ 0 ] = radius`): `cos_incidence = sqrt( 1.0 - ratio )` matches [Baseline Reference](baseline.md) identically while `near_distance = along - radius * cos_incidence` provides exact world-space exterior entry depth and `far_distance = along + radius * cos_incidence` provides interior exit depth for `hit_distance`.
+  - Sphere (`parameters[ 0 ] = radius`): `near_distance = along - radius * cos_incidence` provides exact world-space exterior entry depth and `far_distance = along + radius * cos_incidence` provides interior exit depth for `hit_distance`.
   - 3D Plane Triangle (`position = centroid`, `parameters[ 0..8 ] = three centroid-relative vectors`, `parameters[ 9..11 ] = plane unit normal`):
     - CPU `triangle` class owns absolute vertex coordinates in `triangle::data` (`array< position, 3 >`) and precomputes the centroid, three centroid-relative vectors (`vertex - centroid`), and unit plane normal `normalize( cross( v1 - v0, v2 - v0 ) )`.
     - Trigonometric ray-plane intersection projects the camera-to-centroid offset onto the plane unit normal (`dot( centroid - ray_origin, normal )`) and divides by `dot( unit_direction, normal ) = cos( theta )` to obtain the exact world-metric `hit_distance` along `unit_direction`.
-    - Sub-triangle oriented-area membership tests the centroid-relative hit point `hit_offset` against the three centroid-relative vertex vectors (`dot( cross( corner_a, corner_b ), normal )`), accepting interior and boundary points when `min_axis( oriented_areas ) >= 0.0`.
+    - Sub-triangle oriented-area membership tests the centroid-relative hit point against the three centroid-relative vertex vectors (`dot( cross( corner_a, corner_b ), normal )`).
     - Surface inclination reuses the intersection cosine directly via `cos_incidence = abs( dot( unit_direction, normal ) )`, shading both faces identically by camera-ray inclination.
   - Capsule (`position = midpoint`, `parameters[ 0..2 ] = unit_axis`, `parameters[ 3 ] = half_length`, `parameters[ 4 ] = radius`):
     - CPU `capsule` class owns two absolute world endpoints in `capsule::data` (`array< position, 2 >`) and `m_radius`, and derives midpoint `position( )`, unit axis (`normalize( endpoint_1 - endpoint_0 )`), and `half_length` (`0.5f * length( endpoint_1 - endpoint_0 )`) for SSBO delivery.
-    - `evaluate_capsule` decomposes `ray_origin - midpoint` and `unit_direction` relative to `unit_axis`, computes exact quadratic intersection against the finite cylinder wall bounded by `abs( hit_along ) <= half_length`, and computes exact quadratic intersections against the two hemispherical endcaps centered at `±half_length * unit_axis` constrained to their outward hemispheres (`dot( hit_from_cap, axis ) * cap_sign >= 0.0`), returning the closest positive `hit_distance`.
-    - Surface inclination computes `cos_incidence = abs( dot( unit_direction, best_normal ) )` from the exact analytical radial cylinder normal or outward hemispherical endcap normal at the winning hit point.
 
 ### 3. Compile-time Figure Registration Model
 
@@ -235,7 +104,6 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
   - `capsule_figure`: `m_type_id = 2u`, `m_parameter_count = 5uz`, evaluator `evaluate_capsule`.
 
 ```cpp
-//	single registered figure set consumed by every generated artifact
 inline constexpr tuple figure_traits{ sphere_figure{ }, triangle_figure{ }, capsule_figure{ } };
 
 //	compile-time validation of the shared payload capacity for every registered figure
@@ -273,7 +141,6 @@ float sum_axis( vec3 value ) { return dot( value, vec3( 1.0 ) ); }
   - Each producer receives the one-based line number of its marker, so replacement runs in array order over one template copy while every producer reads the unmodified template line layout.
 - Deterministic string replacement:
   - Token expansion uses literal substring search and replacement (`std::string::find` and `std::string::replace`), preserving unescaped GLSL `{` and `}` braces directly while `sak::format` targets `std::vformat` format strings.
-  - Each injected region ends with a `#line <marker_line + 1>` directive so GLSL compiler diagnostics resume on the template line that follows the marker ([SSBO Reflection](../../ssbo-reflection.md)).
   - Restoration line numbers are computed relative to the fragment section, whose first line is `#version 460 core`.
 
 ## Resolved Decisions
@@ -290,13 +157,11 @@ float sum_axis( vec3 value ) { return dot( value, vec3( 1.0 ) ); }
 
 - Stage 2 prototype: `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`.
 - Fragment template: `data/shader/agnostic-pipeline.glsl`.
-- Stage 0 baseline remains unchanged: `source/sdl3_shadertoy.cpp` and `data/shader/sdl3-shadertoy.glsl`.
 - The prototype exercises the heterogeneous `figure_ssbo` pipeline with a sphere (`sphere_figure` / `evaluate_sphere`), a trigonometric 3D plane triangle (`triangle` + `triangle_figure` / `evaluate_triangle`), and a capsule (`capsule` + `capsule_figure` / `evaluate_capsule`).
 
 ## Boundary
 
 - Baseline contracts preserved unchanged:
-  - `source/sdl3_shadertoy.cpp`
   - `data/shader/sdl3-shadertoy.glsl`
   - `sak::opengl::shader::loader`
   - `environment_ssbo`
