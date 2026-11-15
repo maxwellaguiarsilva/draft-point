@@ -23,6 +23,7 @@ namespace gl {
 	__using( ::std::
 		,apply
 		,array
+		,bind_back
 		,convertible_to
 		,enable_shared_from_this
 		,size_t
@@ -33,13 +34,24 @@ namespace gl {
 		,vector
 	)
 	__using( ::std::chrono::, duration, high_resolution_clock )
-	__using( ::std::ranges::, count )
-	__using( ::std::views::, join_with )
+	__using( ::std::numbers::, pi_v )
+	__using( ::std::ranges::, copy, count )
+	__using( ::std::views::, concat, join, join_with, single )
 	__using( ::sak::, ensure )
 	__using( ::sak::fso::, text_file )
-	__using( ::sak::math::, min )
+	__using( ::sak::math::
+		,absolute
+		,arccosine
+		,clamp
+		,cross
+		,dot
+		,min
+		,minus
+		,normalize
+		,rotate
+	)
 	__using( ::sak::opengl::, program, shader, vertex_array )
-	__using( ::sak::ranges::, contains, to )
+	__using( ::sak::ranges::, contains, index_of, lazy_transform, to )
 	__using( ::sak::sdl3::, application, window )
 	__using( ::sak::sdl3::opengl::, context )
 	__using( ::game::, fps )
@@ -82,7 +94,7 @@ namespace gl {
 	};	//	total 8 + t_parameter_count floats
 
 
-	inline constexpr size_t parameter_capacity = 1uz;
+	inline constexpr size_t parameter_capacity = 12uz;
 	using	figure = figure_payload< parameter_capacity >;
 
 
@@ -127,40 +139,110 @@ hit_result evaluate_sphere( vec3 ray_origin, vec3 unit_direction, figure figure_
 	};
 
 
-	struct cube_figure
+	//	cpu triangle defined by three world vertices, deriving centroid, normal and gpu parameters
+	class triangle
+	{
+	public:
+		using	data	=	array< ::gl::position, 3 >;
+
+		explicit triangle( const data& vertices ) noexcept
+			:m_vertices( vertices )
+		{ }
+
+		auto vertices( ) const noexcept -> const data& { return m_vertices; }
+		auto vertices( const data& value ) noexcept -> void { m_vertices = value; }
+
+		auto position( ) const noexcept -> ::gl::position { return ( m_vertices[ 0 ] + m_vertices[ 1 ] + m_vertices[ 2 ] ) / 3.0f; }
+		auto position( const ::gl::position& value ) noexcept -> void
+		{
+			const ::gl::position offset = value - position( );
+			for( auto& vertex : m_vertices )
+				vertex += offset;
+		}
+
+		auto normal( ) const noexcept -> direction
+		{
+			return	normalize( cross(
+				 m_vertices[ 1 ] - m_vertices[ 0 ]
+				,m_vertices[ 2 ] - m_vertices[ 0 ]
+			) ) | to;
+		}
+		auto normal( const direction& value ) noexcept -> void
+		{
+			const direction current = normal( );
+			const direction target = normalize( value ) | to;
+			const float cosine_angle = clamp( dot( current, target ), -1.0f, 1.0f );
+			if( 1.0f - cosine_angle <= 1e-6f )
+				return;
+			const bool is_opposite = cosine_angle <= -1.0f + 1e-6f;
+			const direction axis = is_opposite
+				? orthogonal_axis( current )
+				: normalize( cross( current, target ) ) | to;
+			const float angle = is_opposite ? pi_v< float > : arccosine( cosine_angle );
+			const ::gl::position center = position( );
+			for( auto& vertex : m_vertices )
+				vertex = ( center + rotate( vertex - center, axis, angle ) ) | to;
+		}
+
+		auto parameters( ) const noexcept -> array< float, 12 >
+		{
+			return	concat(
+					 m_vertices | lazy_transform( bind_back( minus, position( ) ) )
+					,single( normal( ) )
+				)
+				| join
+				| to;
+		}
+
+	private:
+		static auto orthogonal_axis( const direction& unit ) noexcept -> direction
+		{
+			const auto magnitudes = unit | absolute;
+			direction candidate{ };
+			candidate[ *index_of( magnitudes, min( magnitudes ) ) ] = 1.0f;
+			return	normalize( cross( unit, candidate ) ) | to;
+		}
+
+		data	m_vertices;
+	};
+
+
+	struct triangle_figure
 	{
 		static constexpr GLuint	m_type_id = 1u;
-		static constexpr size_t	m_parameter_count = 1uz;
-		static constexpr string_view	m_evaluator_name = "cube";
+		static constexpr size_t	m_parameter_count = 12uz;
+		static constexpr string_view	m_evaluator_name = "triangle";
 		static constexpr string_view	m_evaluator_source = R"glsl(
-//	dimension-symmetric axis-aligned slab box evaluator
-hit_result evaluate_cube( vec3 ray_origin, vec3 unit_direction, figure figure_item )
+//	unit-ray triangle evaluator using precomputed centroid-relative corners and unit normal
+hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figure_item )
 {
-	vec3	half_size = vec3( figure_item.parameters[ 0 ] );
-	vec3	local_origin = ray_origin - figure_item.position;
-	vec3	inverse_direction = 1.0 / unit_direction;
-	vec3	first_slab = ( -half_size - local_origin ) * inverse_direction;
-	vec3	second_slab = ( half_size - local_origin ) * inverse_direction;
-	vec3	near_slab = min( first_slab, second_slab );
-	vec3	far_slab = max( first_slab, second_slab );
-	float	enter_distance = max_axis( near_slab );
-	float	exit_distance = min_axis( far_slab );
-	if( exit_distance < max( enter_distance, 0.0 ) )
+	vec3	normal = vec3_from( figure_item.parameters, 9u );
+	float	denominator = dot( unit_direction, normal );
+	if( abs( denominator ) <= 1e-6 )
 		return	hit_result( false, -1.0, 0.0 );
-	if( exit_distance <= 0.0 )
+	vec3	local_center = figure_item.position - ray_origin;
+	float	hit_distance = dot( local_center, normal ) / denominator;
+	if( hit_distance <= 0.0 )
 		return	hit_result( false, -1.0, 0.0 );
-	bool	is_exterior = enter_distance > 0.0;
-	float	hit_distance = is_exterior ? enter_distance : exit_distance;
-	vec3	face_mask = is_exterior ? step( vec3( enter_distance ), near_slab ) : step( far_slab, vec3( exit_distance ) );
-	float	cos_incidence = dot( abs( unit_direction ), face_mask ) / length( face_mask );
-	return	hit_result( true, hit_distance, cos_incidence );
+	vec3	hit_local = hit_distance * unit_direction - local_center;
+	vec3	corner_0 = vec3_from( figure_item.parameters, 0u ) - hit_local;
+	vec3	corner_1 = vec3_from( figure_item.parameters, 3u ) - hit_local;
+	vec3	corner_2 = vec3_from( figure_item.parameters, 6u ) - hit_local;
+	vec3	sub_areas = vec3(
+		 dot( cross( corner_1, corner_2 ), normal )
+		,dot( cross( corner_2, corner_0 ), normal )
+		,dot( cross( corner_0, corner_1 ), normal )
+	);
+	if( min_axis( sub_areas ) < 0.0 )
+		return	hit_result( false, -1.0, 0.0 );
+	return	hit_result( true, hit_distance, abs( denominator ) );
 }
 )glsl";
 	};
 
 
 	//	the registered figure set is the single source of truth for the generated glsl
-	inline constexpr tuple figure_traits{ sphere_figure{ }, cube_figure{ } };
+	inline constexpr tuple figure_traits{ sphere_figure{ }, triangle_figure{ } };
 
 
 	//	apply one per-trait mapping across the whole registered figure set
@@ -235,8 +317,7 @@ hit_result evaluate_cube( vec3 ray_origin, vec3 unit_direction, figure figure_it
 		,const string_view content
 	) -> void
 	{
-		const size_t position = find_placeholder( source, marker );
-		source.replace( position, marker.size( ), content );
+		source.replace( find_placeholder( source, marker ), marker.size( ), content );
 	}
 
 
@@ -246,9 +327,15 @@ hit_result evaluate_cube( vec3 ray_origin, vec3 unit_direction, figure figure_it
 		const size_t first = source.find( marker );
 		ensure( first < source.size( ), "missing glsl section marker: " + string( marker ) );
 		const size_t marker_end = source.find( '\n', first );
-		ensure( marker_end < source.size( ), "unterminated glsl section marker line: " + string( marker ) );
+		ensure(
+			 marker_end < source.size( )
+			,"unterminated glsl section marker line: " + string( marker )
+		);
 		const size_t second = source.find( marker, marker_end );
-		ensure( second < source.size( ), "unterminated glsl section marker: " + string( marker ) );
+		ensure(
+			 second < source.size( )
+			,"unterminated glsl section marker: " + string( marker )
+		);
 		return	source.substr( marker_end + 1uz, second - marker_end - 1uz );
 	}
 
@@ -256,10 +343,10 @@ hit_result evaluate_cube( vec3 ray_origin, vec3 unit_direction, figure figure_it
 	//	one-based line number of a placeholder marker inside its source
 	auto line_number_at( const string& source, const string_view marker ) -> size_t
 	{
-		return	1uz + static_cast< size_t >( count(
+		return	1uz + count(
 			 string_view{ source.data( ), find_placeholder( source, marker ) }
 			,'\n'
-		) );
+		);
 	}
 
 
@@ -339,9 +426,10 @@ hit_result evaluate_cube( vec3 ray_origin, vec3 unit_direction, figure figure_it
 		ensure( file.exists( ), "unable to read shader file: " + string( shader_name ) );
 
 		const string source = file.content( );
-		const string vertex_source = section( source, vertex_shader_marker );
-		const string fragment_source = assemble_fragment( section( source, fragment_shader_marker ) );
-		return	{ shader{ vertex_source, vertex }, shader{ fragment_source, fragment } };
+		return	{
+			 shader{ section( source, vertex_shader_marker ), vertex }
+			,shader{ assemble_fragment( section( source, fragment_shader_marker ) ), fragment }
+		};
 	}
 
 
@@ -355,9 +443,26 @@ hit_result evaluate_cube( vec3 ray_origin, vec3 unit_direction, figure figure_it
 	) -> void
 	{
 		figure_item.m_position = figure_position;
-		figure_item.m_type_id = static_cast< float >( t_figure::m_type_id );
+		figure_item.m_type_id = t_figure::m_type_id;
 		figure_item.m_color = figure_color;
-		figure_item.m_parameters = parameters;
+		figure_item.m_parameters.fill( 0.0f );
+		copy( parameters, figure_item.m_parameters.begin( ) );
+	}
+
+
+	//	write one triangle payload from its cpu vertex representation
+	auto register_figure(
+		 figure& figure_item
+		,const triangle& shape
+		,const color& figure_color
+	) -> void
+	{
+		register_figure< triangle_figure >(
+			 figure_item
+			,shape.position( )
+			,figure_color
+			,shape.parameters( )
+		);
 	}
 
 
@@ -394,7 +499,12 @@ hit_result evaluate_cube( vec3 ray_origin, vec3 unit_direction, figure figure_it
 				,{ 0.0f, 0.0f }
 				,0.0f
 			};
-			m_camera[ 0 ] = camera{ { 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } };
+			m_camera[ 0 ] = camera{
+				 { 0.0f, 0.0f, -2.0f }
+				,{ 0.0f, 0.0f,  1.0f }
+				,{ 1.0f, 0.0f,  0.0f }
+				,{ 0.0f, 1.0f,  0.0f }
+			};
 
 			register_figure< sphere_figure >(
 				 m_figures[ 0 ]
@@ -402,11 +512,17 @@ hit_result evaluate_cube( vec3 ray_origin, vec3 unit_direction, figure figure_it
 				,{ 1.0f, 0.0f, 0.0f, 1.0f }
 				,{ 0.45f }
 			);
-			register_figure< cube_figure >(
+			triangle blue_triangle{ triangle::data{
+				 position{ -0.45f, -0.40f, 0.0f }
+				,position{  0.45f, -0.40f, 0.0f }
+				,position{  0.00f,  0.50f, 0.0f }
+			} };
+			blue_triangle.position( { 0.55f, 0.0f, 1.0f } );
+			blue_triangle.normal( { 0.35f, 0.25f, -1.0f } );
+			register_figure(
 				 m_figures[ 1 ]
-				,{ 0.55f, 0.0f, 1.0f }
+				,blue_triangle
 				,{ 0.0f, 0.0f, 1.0f, 1.0f }
-				,{ 0.45f }
 			);
 
 			m_environment.flush( );
@@ -485,10 +601,11 @@ hit_result evaluate_cube( vec3 ray_origin, vec3 unit_direction, figure figure_it
 			if( m_movement == zero )
 				return;
 			camera& current = m_camera[ 0 ];
-			const position world_direction = current.m_right * m_movement[ 0 ]
+			current.m_position += (
+				current.m_right * m_movement[ 0 ]
 				+ current.m_forward * m_movement[ 1 ]
-				+ current.m_up * m_movement[ 2 ];
-			current.m_position += world_direction * ( camera_speed * delta_seconds );
+				+ current.m_up * m_movement[ 2 ]
+			) * ( camera_speed * delta_seconds );
 			m_camera.flush( );
 		}
 
@@ -523,7 +640,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
-		return	println( "this executable renders a sphere and a cube through the agnostic pipeline; use w a s d to move the camera, f11 toggles fullscreen and escape quits" ), exit_success;
+		return	println( "this executable renders a sphere and a triangle through the agnostic pipeline; use w a s d to move the camera, f11 toggles fullscreen and escape quits" ), exit_success;
 
 	try
 	{

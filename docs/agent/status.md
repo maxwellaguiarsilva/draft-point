@@ -5,14 +5,16 @@
 ## Current Goal
 
 - Build a 3D renderer that rounds sharp edges and sharp corners of legacy 3D games analytically, shaded by surface-ray inclination over flat per-polygon dominant colors, under the `draft-point` dimension-symmetry invariant across C++ and GLSL.
-- Domain architecture: [3D Renderer](analyses/renderer/index.md) — **paused** at Stage 2 ([Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md)) pending user evaluation of a trigonometric cube intersection and surface-inclination color formula extending `tests/adhoc/rendering/0010_sdl3_demo.cpp` and `data/shader/sdl3-demo.glsl`.
+- Domain architecture: [3D Renderer](analyses/renderer/index.md) — active at Stage 2 ([Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md)), where the user shifted the second primitive from sphere + cube to **sphere + trigonometric 3D triangle** (`triangle` class + `triangle_figure` + `evaluate_triangle`), pending implementation and build/runtime verification in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`.
 
 ## Next Task
 
-- **Paused — awaiting user design decision**:
-  - Implementation and downstream stage work are halted until the user evaluates how the trigonometric cube intersection and surface-inclination color formula will be developed from the single-triangle ray strategy in `tests/adhoc/rendering/0010_sdl3_demo.cpp` and `data/shader/sdl3-demo.glsl` combined with cube symmetry.
-  - The Stage 2 AI-authored slab/AABB cube solution (`tests/adhoc/rendering/0011_agnostic_pipeline.cpp`, `data/shader/agnostic-pipeline.glsl`, and the `evaluate_cube` contract in [Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md)) is unvalidated, and all subsequent AI-authored stage specifications ([Rounded Primitives](analyses/renderer/rounded-primitives.md), [Adaptive Mesh](analyses/renderer/adaptive-mesh.md), [Orientation](analyses/renderer/orientation.md), [Spatial Graph](analyses/renderer/spatial-graph.md), and [Legacy Game Preservation](analyses/renderer/pickup-express.md)) are disapproved and held pending revision.
-  - Once the user establishes the trigonometric cube approach, the affected documentation under `docs/agent/analyses/renderer/` will be revised before any further implementation proceeds.
+- **Stage 2 — Implement and verify sphere + trigonometric 3D triangle in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`**:
+  - Update `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` (preserving the shared template contract in `data/shader/agnostic-pipeline.glsl`) to replace `cube_figure` / slab AABB `evaluate_cube` with:
+    - CPU `triangle` class storing absolute vertices in `triangle::data` and precomputing the centroid, three centroid-relative vectors, and the plane unit normal for SSBO delivery.
+    - `triangle_figure` trait (`m_parameter_count = 12uz`, `parameter_capacity = 12uz`) and GLSL `evaluate_triangle` performing trigonometric ray-plane intersection, sub-triangle oriented-area membership, and `abs( dot( unit_direction, normal ) )` inclination shading.
+  - Run `cpp-include-tree --flg-auto-fix`, build with `cpp_compile`, validate C++ formatting with `cpp_code_verifier`, and run `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` to verify both primitives at runtime.
+  - Stages 3 through 7 ([Rounded Primitives](analyses/renderer/rounded-primitives.md), [Adaptive Mesh](analyses/renderer/adaptive-mesh.md), [Orientation](analyses/renderer/orientation.md), [Spatial Graph](analyses/renderer/spatial-graph.md), and [Legacy Game Preservation](analyses/renderer/pickup-express.md)) remain disapproved and held pending revision until Stage 2 is verified and downstream direction is established.
 
 ## Reproduction Commands
 
@@ -21,7 +23,7 @@
 | List renderer analysis documents | `find -L docs/agent/analyses/renderer -type f` |
 | Inspect working tree state | `git status --porcelain` |
 | Valid reference sources (Stage 0 and user triangle-sphere demo) | `source/sdl3_shadertoy.cpp`, `data/shader/sdl3-shadertoy.glsl`, `tests/adhoc/rendering/0010_sdl3_demo.cpp`, and `data/shader/sdl3-demo.glsl` |
-| Unvalidated Stage 2 prototype sources | `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` and `data/shader/agnostic-pipeline.glsl` |
+| Stage 2 prototype sources (pending trigonometric 3D triangle update and verification) | `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` and `data/shader/agnostic-pipeline.glsl` |
 | Scaffold isolated stage ad-hoc prototype | `cpp_create_test` (`flg_adhoc = true`, under `tests/adhoc/rendering/`) |
 | Mandatory transitive include fix-up before every compile | `cpp-include-tree --flg-auto-fix` |
 | Compile project and ad-hoc binaries | `cpp_compile` |
@@ -38,8 +40,9 @@
 
 ## Acceptance Criteria for the Next Task
 
-- **Paused-status gate**: the next actionable step awaits the user's trigonometric cube intersection and surface-inclination color design derived from the `data/shader/sdl3-demo.glsl` single-triangle ray strategy and cube symmetry.
-- **Documentation revision gate**: after the user provides the trigonometric cube design direction, revise [Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md) and the disapproved downstream renderer documents under `docs/agent/analyses/renderer/` to align with that design prior to resuming implementation.
+- **Stage 2 implementation gate**: `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` implements the CPU `triangle` class (`triangle::data` absolute vertices, precomputed centroid, three centroid-relative vectors, plane unit normal), `triangle_figure`, and GLSL `evaluate_triangle` alongside `sphere_figure` and `evaluate_sphere`.
+- **Stage 2 build and runtime verification gate**: `cpp-include-tree --flg-auto-fix`, `cpp_compile`, `cpp_code_verifier`, and runtime execution of `0011_agnostic_pipeline` confirm trigonometric ray-plane intersection, sub-triangle oriented-area membership, and `abs( dot( unit_direction, normal ) )` inclination shading.
+- **Downstream hold gate**: Stages 3 through 7 remain held pending revision after Stage 2 verification.
 
 ## Verified Facts
 
@@ -74,35 +77,35 @@
     - `source/tui/renderer.cpp`
     - `tests/sak/test_sak_geometry.cpp`
   - `sak::math::length` returns the natural floating-point norm of `square_root( dot( vector ) )` (`sqrt( 14.0 )` for `point< int, 3 >{ 1, 2, 3 }`, asserted within tolerance `1e-6` against `3.7416573867739413` in `tests/sak/test_sak_geometry.cpp`); both `dist/test-sak-geometry` and `dist/test-sak` pass.
-- **Stage 2 ([Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md)) — Cube Solution Unvalidated by User**:
-  - The user did **not validate** the AI-authored cube solution introduced in Stage 2 (`tests/adhoc/rendering/0011_agnostic_pipeline.cpp`, `data/shader/agnostic-pipeline.glsl`, and the slab/AABB `evaluate_cube` contract in `docs/agent/analyses/renderer/agnostic-pipeline.md`).
-  - Reason: the AI failed to use the cube's symmetry to produce a clean trigonometric formula for ray intersection and surface-inclination color extending the single-triangle strategy from `data/shader/sdl3-demo.glsl`.
+- **Stage 2 ([Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md)) — Shifted to Sphere + Trigonometric 3D Triangle (Pending Build/Runtime Verification)**:
+  - The user rejected the earlier slab/AABB `cube_figure` / `evaluate_cube` prototype in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` and redirected Stage 2 from sphere + cube to **sphere + trigonometric 3D triangle**.
+  - [Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md) has been updated to specify the CPU `triangle` class (storing absolute vertices in `triangle::data` and delivering precomputed centroid, three centroid-relative vectors, and unit plane normal to the SSBO), `triangle_figure`, and GLSL `evaluate_triangle` (trigonometric ray-plane intersection, sub-triangle oriented-area membership, and `abs( dot( unit_direction, normal ) )` inclination shading).
+  - Code implementation and build/runtime verification in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` remain pending.
 - **Stages 3 through 7 — Disapproved by User**:
-  - Everything planned or authored after the Stage 2 cube solution is **disapproved by the user** and pending revision once the trigonometric cube approach is decided:
+  - Everything planned or authored after Stage 2 remains **disapproved by the user** and held pending revision:
     - Stage 3 Voronoi/AABB/concave-inversion specification (`docs/agent/analyses/renderer/rounded-primitives.md`).
     - All downstream stage designs: `docs/agent/analyses/renderer/adaptive-mesh.md`, `docs/agent/analyses/renderer/orientation.md`, `docs/agent/analyses/renderer/spatial-graph.md`, and `docs/agent/analyses/renderer/pickup-express.md`.
-- **Workflow Status — Paused**:
-  - No implementation or downstream stage work proceeds until the user evaluates how the trigonometric cube intersection and inclination-color formula will be developed from the `0010` single-triangle ray strategy and cube symmetry.
+- **Workflow Status — Stage 2 Implementation and Verification**:
+  - Active task is implementing and verifying the sphere + trigonometric 3D triangle prototype in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`; downstream Stages 3 through 7 remain held pending revision.
 - Documentation separation policy: architecture documents under `docs/agent/analyses/renderer/` record timeless contracts and open questions, while mutable session history and active task state reside in `docs/agent/status.md`.
 
 ## Deferred
 
 | Item | Status and Rationale |
 |---|---|
-| Stage 2 trigonometric cube intersection and inclination-color formulation | **Paused / awaiting user evaluation**: needs a clean trigonometric formulation using cube symmetry and extending the single-triangle ray strategy in `tests/adhoc/rendering/0010_sdl3_demo.cpp` and `data/shader/sdl3-demo.glsl` |
-| Stage 2 slab/AABB `evaluate_cube` artifacts (`tests/adhoc/rendering/0011_agnostic_pipeline.cpp`, `data/shader/agnostic-pipeline.glsl`, `docs/agent/analyses/renderer/agnostic-pipeline.md`) | **Unvalidated by user**: failed to leverage cube symmetry and trigonometric extension of `0010`; awaiting revision after user direction |
-| Stage 3 Voronoi/AABB/concave-inversion specification (`docs/agent/analyses/renderer/rounded-primitives.md`) | **Disapproved by user**: authored downstream of the unvalidated Stage 2 cube solution; halted and pending revision |
-| Downstream stage designs (`adaptive-mesh.md`, `orientation.md`, `spatial-graph.md`, `pickup-express.md`) | **Disapproved by user**: planned downstream of the unvalidated Stage 2 cube solution; halted and pending revision |
+| Stage 2 sphere + trigonometric 3D triangle implementation and verification (`tests/adhoc/rendering/0011_agnostic_pipeline.cpp`) | **Pending build/runtime verification**: replace `cube_figure` / slab AABB `evaluate_cube` with CPU `triangle` class (`triangle::data` absolute vertices, precomputed centroid + relative vectors + unit normal), `triangle_figure`, and `evaluate_triangle` |
+| Stage 3 Voronoi/AABB/concave-inversion specification (`docs/agent/analyses/renderer/rounded-primitives.md`) | **Disapproved by user**: authored downstream of the prior Stage 2 cube solution; halted and held pending revision |
+| Downstream stage designs (`adaptive-mesh.md`, `orientation.md`, `spatial-graph.md`, `pickup-express.md`) | **Disapproved by user**: planned downstream of the prior Stage 2 cube solution; halted and held pending revision |
 | Base workflow document (`docs/agent/workflow/index.md`) | Carries an explicit pending note until a shared workflow document location is defined in `project-mcp-tools` |
 
 ## Documentation Map
 
 | Document | Subject | Validation Status |
 |---|---|---|
-| [3D Renderer](analyses/renderer/index.md) | Domain scope, core invariants, and analysis-tree `## Nodes` | Active index; downstream stage status paused pending revision |
+| [3D Renderer](analyses/renderer/index.md) | Domain scope, core invariants, and analysis-tree `## Nodes` | Active index; downstream stage status held pending revision |
 | [Baseline Reference](analyses/renderer/baseline.md) | Immutable Stage 0 SSBO contract and closest-approach sphere inclination renderer | Valid reference implementation (`source/sdl3_shadertoy.cpp`, `data/shader/sdl3-shadertoy.glsl`) |
 | [Point Niebloid Purification](analyses/renderer/point-niebloids.md) | Pure storage `sak::point` class surface and external dimension-symmetric `sak` niebloids | Complete and verified (`30c657d` in `project-mcp-tools`, `1931706` in `draft-point`) |
-| [Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md) | Heterogeneous `is_flat` figure payload, compile-time figure trait registration, token-injected GLSL dispatch, and slab/AABB `evaluate_cube` | Contains **unvalidated** AI-authored slab/AABB `evaluate_cube` contract; pending revision |
+| [Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md) | Heterogeneous `is_flat` figure payload, compile-time figure trait registration, token-injected GLSL dispatch, sphere and CPU-precomputed trigonometric 3D triangle evaluators | Architecture updated to sphere + trigonometric 3D triangle; pending build/runtime verification in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` |
 | [Rounded Primitives](analyses/renderer/rounded-primitives.md) | Voronoi/AABB convex hybrid `border_radius` cube and interior concave fillet inversion | **Disapproved** AI design; pending revision |
 | [Adaptive Mesh](analyses/renderer/adaptive-mesh.md) | Per-corner clamped `border_radius` and dihedral crease rounding on triangle meshes | **Disapproved** AI design; pending revision |
 | [Orientation](analyses/renderer/orientation.md) | Dimension-symmetric CPU quaternion algebra reduced to a local-frame `mat3` on GPU | **Disapproved** AI design; pending revision |
