@@ -5,7 +5,7 @@
 - Decouple CPU scene description from concrete primitive geometry while generating the GLSL figure evaluation and dispatch shader on the CPU:
   - Replace the single-type `sphere_ssbo` loop of [Baseline Reference](baseline.md) with a unified loop over a fixed-stride heterogeneous flat figure SSBO.
   - Assemble fragment shader evaluation functions and type dispatch on the CPU via named token injection into a standalone fragment template under `data/shader/`, compiled through `sak::opengl::shader( source, type )`.
-  - Upgrade ray traversal to per-fragment normalized `unit_direction` and world-metric surface entry distance `hit_distance` across curved (sphere) and planar (3D triangle) primitives.
+  - Upgrade ray traversal to per-fragment normalized `unit_direction` and world-metric surface entry distance `hit_distance` across curved (`sphere`, `capsule`) and planar (3D `triangle`) primitives.
 
 ## Architectural Layers
 
@@ -13,11 +13,12 @@
   - Fixed-stride `is_flat` figure payload contract with compile-time figure trait registration and a single slot-capacity `static_assert`.
   - Shared GLSL dimension-symmetry prelude combined with three named placeholder tokens and `#line` diagnostic restoration.
   - In-memory shader compilation via `sak::opengl::shader( source, type )` and program linking via `sak::opengl::program`, keeping `sak::opengl::shader::loader` and baseline files unchanged.
-- **Layer 2 — Heterogeneous Sphere and Trigonometric 3D Triangle Dispatch**:
-  - Single `storage_buffer` populated with heterogeneous sphere and CPU-precomputed 3D plane triangle payloads in a standalone prototype under `tests/adhoc/rendering/`.
+- **Layer 2 — Heterogeneous Sphere, Trigonometric 3D Triangle, and Capsule Dispatch**:
+  - Single `storage_buffer` populated with heterogeneous sphere, CPU-precomputed 3D plane triangle, and capsule payloads in a standalone prototype under `tests/adhoc/rendering/`.
   - CPU `triangle` class storing absolute `triangle::data` vertices while precomputing the triangle centroid, three centroid-relative vertex vectors, and plane unit normal for flat SSBO delivery.
+  - CPU `capsule` class storing two absolute world endpoints (`capsule::data = array< position, 2 >`) and `m_radius` while deriving midpoint `position( )`, unit axis, and `half_length` for flat SSBO delivery.
   - Per-fragment `unit_direction` normalization prior to figure iteration.
-  - Trigonometric ray-plane intersection, sub-triangle oriented-area membership, unified inclination shading (`ambient + volume * cos_incidence` with `cos_incidence = abs( dot( unit_direction, normal ) )`), and world-metric `hit_distance` depth sorting across curved and planar surfaces.
+  - Analytical ray-surface intersection across sphere, trigonometric 3D plane triangle (with sub-triangle oriented-area membership), and capsule (finite cylinder body and two hemispherical endcaps), paired with unified inclination shading (`ambient + volume * cos_incidence`) and world-metric `hit_distance` depth sorting across curved and planar surfaces.
 
 ## Verified Infrastructure Facts
 
@@ -46,13 +47,13 @@ struct figure_payload
 
 | Field | C++ Type | Float Offset | Float Count | Contract |
 |---|---|---|---|---|
-| `m_position` | `sak::point< float, 3 >` | `0` | `3` | World-space center of the figure (sphere center or precomputed triangle centroid) |
-| `m_type_id` | `float` | `3` | `1` | Exact integer-valued `float` (`0.0f` or `1.0f`), decoded in GLSL via `uint( figure_item.type_id )` |
+| `m_position` | `sak::point< float, 3 >` | `0` | `3` | World-space center of the figure (sphere center, precomputed triangle centroid, or capsule midpoint) |
+| `m_type_id` | `float` | `3` | `1` | Exact integer-valued `float` (`0.0f`, `1.0f`, or `2.0f`), decoded in GLSL via `uint( figure_item.type_id )` |
 | `m_color` | `sak::point< float, 4 >` | `4` | `4` | Flat RGBA base color |
-| `m_parameters` | `std::array< float, t_parameter_count >` (or `sak::point< float, t_parameter_count >` when `t_parameter_count > 1`) | `8` | `t_parameter_count` | Fixed-capacity figure parameter slots (`1` float for sphere radius; `12` floats for triangle centroid-relative vectors and plane unit normal); registration validates that every figure fits within `t_parameter_count` floats |
+| `m_parameters` | `std::array< float, t_parameter_count >` (or `sak::point< float, t_parameter_count >` when `t_parameter_count > 1`) | `8` | `t_parameter_count` | Fixed-capacity figure parameter slots (`1` float for sphere radius; `12` floats for triangle centroid-relative vectors and plane unit normal; `5` floats for capsule unit axis, `half_length`, and `radius`); registration validates that every figure fits within `t_parameter_count` floats |
 
 - Exact integer-valued `float` encoding for `m_type_id`:
-  - `m_type_id` stores an exact integer-valued `float` (`0.0f`, `1.0f`, contiguous across integers up to $2^{24} = 16{,}777{,}216$) and converts on the GPU via `uint( figure_item.type_id )`.
+  - `m_type_id` stores an exact integer-valued `float` (`0.0f`, `1.0f`, `2.0f`, contiguous across integers up to $2^{24} = 16{,}777{,}216$) and converts on the GPU via `uint( figure_item.type_id )`.
   - Conforms strictly to [SSBO Reflection](../../ssbo-reflection.md) ("Only float-based payload members" over `float data[ ]`).
   - Exact integer-valued `float` representation preserves normal IEEE-754 exponent encoding across `float data[ ]` transfers and guarantees lossless `uint( figure_item.type_id )` conversion across IEEE-754 GPU hardware.
 - Parameter-slot container choice:
@@ -127,15 +128,89 @@ hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figur
 	float	cos_incidence = abs( denominator );
 	return	hit_result( true, hit_distance, cos_incidence );
 }
+
+//	exact analytical spherocylinder evaluator across finite cylinder body and two hemispherical endcaps
+hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure_item )
+{
+	vec3	axis = vec3( figure_item.parameters[ 0 ], figure_item.parameters[ 1 ], figure_item.parameters[ 2 ] );
+	float	half_length = figure_item.parameters[ 3 ];
+	float	radius = figure_item.parameters[ 4 ];
+	float	radius_squared = square( radius );
+	vec3	local_origin = ray_origin - figure_item.position;
+	float	origin_along = dot( local_origin, axis );
+	float	direction_along = dot( unit_direction, axis );
+	vec3	origin_perp = local_origin - axis * origin_along;
+	vec3	direction_perp = unit_direction - axis * direction_along;
+	float	best_distance = -1.0;
+	vec3	best_normal = vec3( 0.0 );
+
+	float	perp_squared = dot( direction_perp, direction_perp );
+	if( perp_squared > 1e-8 )
+	{
+		float	half_b = dot( origin_perp, direction_perp );
+		float	c = dot( origin_perp, origin_perp ) - radius_squared;
+		float	discriminant = square( half_b ) - perp_squared * c;
+		if( discriminant >= 0.0 )
+		{
+			float	root = sqrt( discriminant );
+			float	near_t = ( -half_b - root ) / perp_squared;
+			float	far_t = ( -half_b + root ) / perp_squared;
+			float	cylinder_t = near_t > 0.0 ? near_t : far_t;
+			if( cylinder_t > 0.0 )
+			{
+				float	hit_along = origin_along + direction_along * cylinder_t;
+				if( abs( hit_along ) <= half_length )
+				{
+					best_distance = cylinder_t;
+					best_normal = ( origin_perp + direction_perp * cylinder_t ) / radius;
+				}
+			}
+		}
+	}
+
+	for( int cap_index = 0; cap_index < 2; ++cap_index )
+	{
+		float	cap_sign = cap_index == 0 ? -1.0 : 1.0;
+		vec3	cap_offset = axis * ( cap_sign * half_length );
+		vec3	cap_to_origin = local_origin - cap_offset;
+		float	b = dot( cap_to_origin, unit_direction );
+		float	c = dot( cap_to_origin, cap_to_origin ) - radius_squared;
+		float	discriminant = square( b ) - c;
+		if( discriminant >= 0.0 )
+		{
+			float	root = sqrt( discriminant );
+			float	near_t = -b - root;
+			float	far_t = -b + root;
+			float	cap_t = -1.0;
+			if( near_t > 0.0 && dot( cap_to_origin + unit_direction * near_t, axis ) * cap_sign >= 0.0 )
+				cap_t = near_t;
+			else if( far_t > 0.0 && dot( cap_to_origin + unit_direction * far_t, axis ) * cap_sign >= 0.0 )
+				cap_t = far_t;
+			if( cap_t > 0.0 && ( best_distance < 0.0 || cap_t < best_distance ) )
+			{
+				best_distance = cap_t;
+				best_normal = ( cap_to_origin + unit_direction * cap_t ) / radius;
+			}
+		}
+	}
+
+	if( best_distance <= 0.0 )
+		return	hit_result( false, -1.0, 0.0 );
+	return	hit_result( true, best_distance, abs( dot( unit_direction, best_normal ) ) );
+}
 ```
 
-- Mathematical properties of the sphere and 3D plane triangle evaluators:
+- Mathematical properties of the sphere, 3D plane triangle, and capsule evaluators:
   - Sphere (`parameters[ 0 ] = radius`): `cos_incidence = sqrt( 1.0 - ratio )` matches [Baseline Reference](baseline.md) identically while `near_distance = along - radius * cos_incidence` provides exact world-space exterior entry depth and `far_distance = along + radius * cos_incidence` provides interior exit depth for `hit_distance`.
   - 3D Plane Triangle (`position = centroid`, `parameters[ 0..8 ] = three centroid-relative vectors`, `parameters[ 9..11 ] = plane unit normal`):
     - CPU `triangle` class owns absolute vertex coordinates in `triangle::data` (`array< position, 3 >`) and precomputes the centroid, three centroid-relative vectors (`vertex - centroid`), and unit plane normal `normalize( cross( v1 - v0, v2 - v0 ) )`.
     - Trigonometric ray-plane intersection projects the camera-to-centroid offset onto the plane unit normal (`dot( centroid - ray_origin, normal )`) and divides by `dot( unit_direction, normal ) = cos( theta )` to obtain the exact world-metric `hit_distance` along `unit_direction`.
     - Sub-triangle oriented-area membership tests the centroid-relative hit point `hit_offset` against the three centroid-relative vertex vectors (`dot( cross( corner_a, corner_b ), normal )`), accepting interior and boundary points when `min_axis( oriented_areas ) >= 0.0`.
     - Surface inclination reuses the intersection cosine directly via `cos_incidence = abs( dot( unit_direction, normal ) )`, shading both faces identically by camera-ray inclination.
+  - Capsule (`position = midpoint`, `parameters[ 0..2 ] = unit_axis`, `parameters[ 3 ] = half_length`, `parameters[ 4 ] = radius`):
+    - CPU `capsule` class owns two absolute world endpoints in `capsule::data` (`array< position, 2 >`) and `m_radius`, and derives midpoint `position( )`, unit axis (`normalize( endpoint_1 - endpoint_0 )`), and `half_length` (`0.5f * length( endpoint_1 - endpoint_0 )`) for SSBO delivery.
+    - `evaluate_capsule` decomposes `ray_origin - midpoint` and `unit_direction` relative to `unit_axis`, computes exact quadratic intersection against the finite cylinder wall bounded by `abs( hit_along ) <= half_length`, and computes exact quadratic intersections against the two hemispherical endcaps centered at `±half_length * unit_axis` constrained to their outward hemispheres (`dot( hit_from_cap, axis ) * cap_sign >= 0.0`), returning the closest positive `hit_distance`.
+    - Surface inclination computes `cos_incidence = abs( dot( unit_direction, best_normal ) )` from the exact analytical radial cylinder normal or outward hemispherical endcap normal at the winning hit point.
 
 ### 3. Compile-time Figure Registration Model
 
@@ -157,10 +232,11 @@ hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figur
 - Registered traits in the Stage 2 prototype:
   - `sphere_figure`: `m_type_id = 0u`, `m_parameter_count = 1uz`, evaluator `evaluate_sphere`.
   - `triangle_figure`: `m_type_id = 1u`, `m_parameter_count = 12uz`, evaluator `evaluate_triangle`.
+  - `capsule_figure`: `m_type_id = 2u`, `m_parameter_count = 5uz`, evaluator `evaluate_capsule`.
 
 ```cpp
 //	single registered figure set consumed by every generated artifact
-inline constexpr tuple figure_traits{ sphere_figure{ }, triangle_figure{ } };
+inline constexpr tuple figure_traits{ sphere_figure{ }, triangle_figure{ }, capsule_figure{ } };
 
 //	compile-time validation of the shared payload capacity for every registered figure
 static_assert(
@@ -206,6 +282,7 @@ float sum_axis( vec3 value ) { return dot( value, vec3( 1.0 ) ); }
 |---|---|---|
 | C++ figure registration model | Compile-time figure trait types in a `constexpr std::tuple` | Guarantees payload-slot and GLSL parameter alignment at compile time with no runtime descriptor table |
 | CPU triangle precomputation | Dedicated `triangle` class storing absolute `triangle::data` vertices and precomputing centroid, three centroid-relative vectors, and unit plane normal | Isolates vertex ownership in `triangle::data` and reduces GPU per-fragment triangle evaluation to ray-plane intersection, sub-triangle oriented areas, and inclination dot product |
+| CPU capsule precomputation | Dedicated `capsule` class storing absolute `capsule::data` endpoints (`array< position, 2 >`) and `m_radius` while deriving midpoint `position( )`, unit axis, and `half_length` | Isolates endpoint ownership in `capsule::data` and reduces GPU per-fragment capsule evaluation to analytical cylinder-body and hemispherical-endcap intersection |
 | Generated GLSL dispatch statement | `switch( uint( figure_item.type_id ) )` | Expresses integer table dispatch directly in GLSL 460, and the boilerplate is generated by the CPU rather than written per figure |
 | Fragment template storage | Standalone `.glsl` template under `data/shader/` read through `sak::fso::text_file` | Separates shader authoring from C++ and keeps `sak::opengl::shader::loader` file-based and unmodified |
 
@@ -214,7 +291,7 @@ float sum_axis( vec3 value ) { return dot( value, vec3( 1.0 ) ); }
 - Stage 2 prototype: `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`.
 - Fragment template: `data/shader/agnostic-pipeline.glsl`.
 - Stage 0 baseline remains unchanged: `source/sdl3_shadertoy.cpp` and `data/shader/sdl3-shadertoy.glsl`.
-- The prototype exercises the heterogeneous `figure_ssbo` pipeline with a sphere (`sphere_figure` / `evaluate_sphere`) and a trigonometric 3D plane triangle (`triangle` + `triangle_figure` / `evaluate_triangle`).
+- The prototype exercises the heterogeneous `figure_ssbo` pipeline with a sphere (`sphere_figure` / `evaluate_sphere`), a trigonometric 3D plane triangle (`triangle` + `triangle_figure` / `evaluate_triangle`), and a capsule (`capsule` + `capsule_figure` / `evaluate_capsule`).
 
 ## Boundary
 
@@ -224,7 +301,7 @@ float sum_axis( vec3 value ) { return dot( value, vec3( 1.0 ) ); }
   - `sak::opengl::shader::loader`
   - `environment_ssbo`
   - `camera_ssbo`
-- This node specifies sphere and 3D plane triangle evaluators; convex `border_radius` rounding and concave interior fillets belong to [Rounded Primitives](rounded-primitives.md).
+- This node specifies sphere, 3D plane triangle, and capsule evaluators; convex `border_radius` rounding and concave interior fillets belong to [Rounded Primitives](rounded-primitives.md).
 - Arbitrary 3D figure rotation belongs to [Orientation](orientation.md).
 - Spatial proximity culling belongs to [Spatial Graph](spatial-graph.md).
 

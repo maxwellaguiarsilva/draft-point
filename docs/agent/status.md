@@ -5,15 +5,16 @@
 ## Current Goal
 
 - Build a 3D renderer that rounds sharp edges and sharp corners of legacy 3D games analytically, shaded by surface-ray inclination over flat per-polygon dominant colors, under the `draft-point` dimension-symmetry invariant across C++ and GLSL.
-- Domain architecture: [3D Renderer](analyses/renderer/index.md) — active at Stage 2 ([Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md)), where the user shifted the second primitive from sphere + cube to **sphere + trigonometric 3D triangle** (`triangle` class + `triangle_figure` + `evaluate_triangle`), pending implementation and build/runtime verification in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`.
+- Domain architecture: [3D Renderer](analyses/renderer/index.md) — active at Stage 2 ([Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md)), adding the third Stage 2 primitive **capsule (spherocylinder)** (`capsule` class + `capsule_figure` + `evaluate_capsule`) alongside **sphere** and **trigonometric 3D triangle** in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`, pending implementation and build/runtime verification.
 
 ## Next Task
 
-- **Stage 2 — Implement and verify sphere + trigonometric 3D triangle in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`**:
-  - Update `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` (preserving the shared template contract in `data/shader/agnostic-pipeline.glsl`) to replace `cube_figure` / slab AABB `evaluate_cube` with:
-    - CPU `triangle` class storing absolute vertices in `triangle::data` and precomputing the centroid, three centroid-relative vectors, and the plane unit normal for SSBO delivery.
-    - `triangle_figure` trait (`m_parameter_count = 12uz`, `parameter_capacity = 12uz`) and GLSL `evaluate_triangle` performing trigonometric ray-plane intersection, sub-triangle oriented-area membership, and `abs( dot( unit_direction, normal ) )` inclination shading.
-  - Run `cpp-include-tree --flg-auto-fix`, build with `cpp_compile`, validate C++ formatting with `cpp_code_verifier`, and run `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` to verify both primitives at runtime.
+- **Stage 2 — Implement and verify sphere + trigonometric 3D triangle + capsule in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`**:
+  - Update `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` (preserving the shared template contract in `data/shader/agnostic-pipeline.glsl`) to support all three registered Stage 2 primitives in `figure_traits = { sphere_figure{ }, triangle_figure{ }, capsule_figure{ } }`:
+    - `sphere_figure` (`m_type_id = 0u`, `m_parameter_count = 1uz`) and GLSL `evaluate_sphere`.
+    - CPU `triangle` class storing absolute vertices in `triangle::data` and precomputing the centroid, three centroid-relative vectors, and the plane unit normal for SSBO delivery, paired with `triangle_figure` (`m_type_id = 1u`, `m_parameter_count = 12uz`, `parameter_capacity = 12uz`) and GLSL `evaluate_triangle` (trigonometric ray-plane intersection, sub-triangle oriented-area membership, and `abs( dot( unit_direction, normal ) )` inclination shading).
+    - CPU `capsule` class storing two absolute world endpoints (`capsule::data = array< position, 2 >`) and `m_radius`, deriving midpoint `position( )`, unit axis, and `half_length`, and delivering 5 floats to `m_parameters` (`unit_axis[3]`, `half_length`, `radius`) alongside `m_position = midpoint`, paired with `capsule_figure` (`m_type_id = 2u`, `m_parameter_count = 5uz`, within `parameter_capacity = 12uz`) and GLSL `evaluate_capsule` (exact analytical intersection across the finite cylinder body and two hemispherical endcaps returning the closest positive `hit_distance` and exact surface `cos_incidence`).
+  - Run `cpp-include-tree --flg-auto-fix`, build with `cpp_compile`, validate C++ formatting with `cpp_code_verifier`, and run `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` to verify all three primitives at runtime.
   - Stages 3 through 7 ([Rounded Primitives](analyses/renderer/rounded-primitives.md), [Adaptive Mesh](analyses/renderer/adaptive-mesh.md), [Orientation](analyses/renderer/orientation.md), [Spatial Graph](analyses/renderer/spatial-graph.md), and [Legacy Game Preservation](analyses/renderer/pickup-express.md)) remain disapproved and held pending revision until Stage 2 is verified and downstream direction is established.
 
 ## Reproduction Commands
@@ -23,7 +24,7 @@
 | List renderer analysis documents | `find -L docs/agent/analyses/renderer -type f` |
 | Inspect working tree state | `git status --porcelain` |
 | Valid reference sources (Stage 0 and user triangle-sphere demo) | `source/sdl3_shadertoy.cpp`, `data/shader/sdl3-shadertoy.glsl`, `tests/adhoc/rendering/0010_sdl3_demo.cpp`, and `data/shader/sdl3-demo.glsl` |
-| Stage 2 prototype sources (pending trigonometric 3D triangle update and verification) | `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` and `data/shader/agnostic-pipeline.glsl` |
+| Stage 2 prototype sources (pending capsule update and verification alongside sphere and triangle) | `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` and `data/shader/agnostic-pipeline.glsl` |
 | Scaffold isolated stage ad-hoc prototype | `cpp_create_test` (`flg_adhoc = true`, under `tests/adhoc/rendering/`) |
 | Mandatory transitive include fix-up before every compile | `cpp-include-tree --flg-auto-fix` |
 | Compile project and ad-hoc binaries | `cpp_compile` |
@@ -40,8 +41,8 @@
 
 ## Acceptance Criteria for the Next Task
 
-- **Stage 2 implementation gate**: `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` implements the CPU `triangle` class (`triangle::data` absolute vertices, precomputed centroid, three centroid-relative vectors, plane unit normal), `triangle_figure`, and GLSL `evaluate_triangle` alongside `sphere_figure` and `evaluate_sphere`.
-- **Stage 2 build and runtime verification gate**: `cpp-include-tree --flg-auto-fix`, `cpp_compile`, `cpp_code_verifier`, and runtime execution of `0011_agnostic_pipeline` confirm trigonometric ray-plane intersection, sub-triangle oriented-area membership, and `abs( dot( unit_direction, normal ) )` inclination shading.
+- **Stage 2 implementation gate**: `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` registers `figure_traits = { sphere_figure{ }, triangle_figure{ }, capsule_figure{ } }` (`parameter_capacity = 12uz`) and implements `sphere_figure` (`m_type_id = 0u`, `m_parameter_count = 1uz`, `evaluate_sphere`), the CPU `triangle` class (`triangle::data` absolute vertices, precomputed centroid, three centroid-relative vectors, plane unit normal) with `triangle_figure` (`m_type_id = 1u`, `m_parameter_count = 12uz`, `evaluate_triangle`), and the CPU `capsule` class (`capsule::data = array< position, 2 >`, `m_radius`, derived midpoint `position( )`, unit axis, `half_length`, delivering 5 floats `unit_axis[3]`, `half_length`, `radius` to `m_parameters` alongside `m_position = midpoint`) with `capsule_figure` (`m_type_id = 2u`, `m_parameter_count = 5uz`, `evaluate_capsule`).
+- **Stage 2 build and runtime verification gate**: `cpp-include-tree --flg-auto-fix`, `cpp_compile`, `cpp_code_verifier`, and runtime execution of `0011_agnostic_pipeline` confirm exact analytical intersection and inclination shading across sphere, trigonometric 3D plane triangle, and capsule.
 - **Downstream hold gate**: Stages 3 through 7 remain held pending revision after Stage 2 verification.
 
 ## Verified Facts
@@ -77,23 +78,26 @@
     - `source/tui/renderer.cpp`
     - `tests/sak/test_sak_geometry.cpp`
   - `sak::math::length` returns the natural floating-point norm of `square_root( dot( vector ) )` (`sqrt( 14.0 )` for `point< int, 3 >{ 1, 2, 3 }`, asserted within tolerance `1e-6` against `3.7416573867739413` in `tests/sak/test_sak_geometry.cpp`); both `dist/test-sak-geometry` and `dist/test-sak` pass.
-- **Stage 2 ([Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md)) — Shifted to Sphere + Trigonometric 3D Triangle (Pending Build/Runtime Verification)**:
-  - The user rejected the earlier slab/AABB `cube_figure` / `evaluate_cube` prototype in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` and redirected Stage 2 from sphere + cube to **sphere + trigonometric 3D triangle**.
-  - [Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md) has been updated to specify the CPU `triangle` class (storing absolute vertices in `triangle::data` and delivering precomputed centroid, three centroid-relative vectors, and unit plane normal to the SSBO), `triangle_figure`, and GLSL `evaluate_triangle` (trigonometric ray-plane intersection, sub-triangle oriented-area membership, and `abs( dot( unit_direction, normal ) )` inclination shading).
-  - Code implementation and build/runtime verification in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` remain pending.
+- **Stage 2 ([Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md)) — Sphere + Trigonometric 3D Triangle + Capsule (Pending Build/Runtime Verification)**:
+  - The user rejected the earlier slab/AABB `cube_figure` / `evaluate_cube` prototype in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`, shifted Stage 2 to **sphere + trigonometric 3D triangle**, and added the third Stage 2 primitive: **capsule (spherocylinder)** defined by two world vertices and a radius.
+  - [Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md) specifies all three Stage 2 traits in `figure_traits = { sphere_figure{ }, triangle_figure{ }, capsule_figure{ } }` within `parameter_capacity = 12uz`:
+    - `sphere_figure` (`m_type_id = 0u`, `m_parameter_count = 1uz`, `evaluate_sphere`).
+    - `triangle` (`triangle::data` absolute vertices, precomputed centroid, three centroid-relative vectors, and unit plane normal) with `triangle_figure` (`m_type_id = 1u`, `m_parameter_count = 12uz`, `evaluate_triangle`).
+    - `capsule` (`capsule::data = array< position, 2 >`, `m_radius`, derived midpoint `position( )`, unit axis, and `half_length`, delivering 5 floats `unit_axis[3]`, `half_length`, `radius` to `m_parameters` alongside `m_position = midpoint`) with `capsule_figure` (`m_type_id = 2u`, `m_parameter_count = 5uz`, `evaluate_capsule`).
+  - Capsule integration and build/runtime verification across all three primitives in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` remain pending.
 - **Stages 3 through 7 — Disapproved by User**:
   - Everything planned or authored after Stage 2 remains **disapproved by the user** and held pending revision:
     - Stage 3 Voronoi/AABB/concave-inversion specification (`docs/agent/analyses/renderer/rounded-primitives.md`).
     - All downstream stage designs: `docs/agent/analyses/renderer/adaptive-mesh.md`, `docs/agent/analyses/renderer/orientation.md`, `docs/agent/analyses/renderer/spatial-graph.md`, and `docs/agent/analyses/renderer/pickup-express.md`.
 - **Workflow Status — Stage 2 Implementation and Verification**:
-  - Active task is implementing and verifying the sphere + trigonometric 3D triangle prototype in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`; downstream Stages 3 through 7 remain held pending revision.
+  - Active task is implementing and verifying `capsule` alongside `sphere` and `triangle` in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`; downstream Stages 3 through 7 remain held pending revision.
 - Documentation separation policy: architecture documents under `docs/agent/analyses/renderer/` record timeless contracts and open questions, while mutable session history and active task state reside in `docs/agent/status.md`.
 
 ## Deferred
 
 | Item | Status and Rationale |
 |---|---|
-| Stage 2 sphere + trigonometric 3D triangle implementation and verification (`tests/adhoc/rendering/0011_agnostic_pipeline.cpp`) | **Pending build/runtime verification**: replace `cube_figure` / slab AABB `evaluate_cube` with CPU `triangle` class (`triangle::data` absolute vertices, precomputed centroid + relative vectors + unit normal), `triangle_figure`, and `evaluate_triangle` |
+| Stage 2 sphere + trigonometric 3D triangle + capsule implementation and verification (`tests/adhoc/rendering/0011_agnostic_pipeline.cpp`) | **Pending build/runtime verification**: integrate CPU `capsule` (`capsule::data`, `m_radius`, midpoint, unit axis, `half_length`), `capsule_figure` (`m_type_id = 2u`, `m_parameter_count = 5uz`), and `evaluate_capsule` alongside `sphere` and `triangle` in `figure_traits` |
 | Stage 3 Voronoi/AABB/concave-inversion specification (`docs/agent/analyses/renderer/rounded-primitives.md`) | **Disapproved by user**: authored downstream of the prior Stage 2 cube solution; halted and held pending revision |
 | Downstream stage designs (`adaptive-mesh.md`, `orientation.md`, `spatial-graph.md`, `pickup-express.md`) | **Disapproved by user**: planned downstream of the prior Stage 2 cube solution; halted and held pending revision |
 | Base workflow document (`docs/agent/workflow/index.md`) | Carries an explicit pending note until a shared workflow document location is defined in `project-mcp-tools` |
@@ -105,7 +109,7 @@
 | [3D Renderer](analyses/renderer/index.md) | Domain scope, core invariants, and analysis-tree `## Nodes` | Active index; downstream stage status held pending revision |
 | [Baseline Reference](analyses/renderer/baseline.md) | Immutable Stage 0 SSBO contract and closest-approach sphere inclination renderer | Valid reference implementation (`source/sdl3_shadertoy.cpp`, `data/shader/sdl3-shadertoy.glsl`) |
 | [Point Niebloid Purification](analyses/renderer/point-niebloids.md) | Pure storage `sak::point` class surface and external dimension-symmetric `sak` niebloids | Complete and verified (`30c657d` in `project-mcp-tools`, `1931706` in `draft-point`) |
-| [Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md) | Heterogeneous `is_flat` figure payload, compile-time figure trait registration, token-injected GLSL dispatch, sphere and CPU-precomputed trigonometric 3D triangle evaluators | Architecture updated to sphere + trigonometric 3D triangle; pending build/runtime verification in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` |
+| [Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md) | Heterogeneous `is_flat` figure payload, compile-time figure trait registration, token-injected GLSL dispatch, and sphere, trigonometric 3D triangle, and capsule evaluators | Architecture updated to sphere, trigonometric 3D triangle, and capsule; pending build/runtime verification in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp` |
 | [Rounded Primitives](analyses/renderer/rounded-primitives.md) | Voronoi/AABB convex hybrid `border_radius` cube and interior concave fillet inversion | **Disapproved** AI design; pending revision |
 | [Adaptive Mesh](analyses/renderer/adaptive-mesh.md) | Per-corner clamped `border_radius` and dihedral crease rounding on triangle meshes | **Disapproved** AI design; pending revision |
 | [Orientation](analyses/renderer/orientation.md) | Dimension-symmetric CPU quaternion algebra reduced to a local-frame `mat3` on GPU | **Disapproved** AI design; pending revision |

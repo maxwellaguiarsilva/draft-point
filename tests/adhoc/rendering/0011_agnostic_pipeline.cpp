@@ -13,6 +13,7 @@
 #include <format>
 #include <sak/opengl/program.hpp>
 #include <sak/opengl/vertex_array.hpp>
+#include <sak/ranges/fold_left_first.hpp>
 #include <sak/sdl3/application.hpp>
 #include <sak/sdl3/opengl/context.hpp>
 #include <game/fps.hpp>
@@ -35,8 +36,14 @@ namespace gl {
 	)
 	__using( ::std::chrono::, duration, high_resolution_clock )
 	__using( ::std::numbers::, pi_v )
-	__using( ::std::ranges::, copy, count )
-	__using( ::std::views::, concat, join, join_with, single )
+	__using( ::std::ranges::, copy, count, find )
+	__using( ::std::views::
+		,concat
+		,join
+		,join_with
+		,single
+		,zip_transform
+	)
 	__using( ::sak::, ensure )
 	__using( ::sak::fso::, text_file )
 	__using( ::sak::math::
@@ -45,13 +52,22 @@ namespace gl {
 		,clamp
 		,cross
 		,dot
+		,length
 		,min
 		,minus
+		,multiplies
 		,normalize
+		,plus
 		,rotate
 	)
 	__using( ::sak::opengl::, program, shader, vertex_array )
-	__using( ::sak::ranges::, contains, index_of, lazy_transform, to )
+	__using( ::sak::ranges::
+		,contains
+		,fold_left_first
+		,index_of
+		,lazy_transform
+		,to
+	)
 	__using( ::sak::sdl3::, application, window )
 	__using( ::sak::sdl3::opengl::, context )
 	__using( ::game::, fps )
@@ -119,46 +135,159 @@ namespace gl {
 hit_result evaluate_sphere( vec3 ray_origin, vec3 unit_direction, figure figure_item )
 {
 	float	radius = figure_item.parameters[ 0 ];
+	if( radius <= 0.0 )
+		return	hit_result( false, -1.0, 0.0 );
 	vec3	local_center = figure_item.position - ray_origin;
 	float	along = dot( local_center, unit_direction );
 	float	opposite_leg_squared = dot( local_center, local_center ) - square( along );
 	float	radius_squared = square( radius );
 	if( opposite_leg_squared > radius_squared )
 		return	hit_result( false, -1.0, 0.0 );
-	float	ratio = opposite_leg_squared / radius_squared;
-	float	cos_incidence = sqrt( 1.0 - clamp( ratio, 0.0, 1.0 ) );
-	float	half_chord = radius * cos_incidence;
+	float	cosine_incidence = sqrt( 1.0 - clamp( opposite_leg_squared / radius_squared, 0.0, 1.0 ) );
+	float	half_chord = radius * cosine_incidence;
 	float	near_distance = along - half_chord;
 	float	far_distance = along + half_chord;
 	if( far_distance <= 0.0 )
 		return	hit_result( false, -1.0, 0.0 );
-	float	hit_distance = near_distance > 0.0 ? near_distance : far_distance;
-	return	hit_result( true, hit_distance, cos_incidence );
+	return	hit_result( true, near_distance > 0.0 ? near_distance : far_distance, cosine_incidence );
 }
 )glsl";
 	};
 
 
-	//	cpu triangle defined by three world vertices, deriving centroid, normal and gpu parameters
-	class triangle
+	struct triangle_figure
+	{
+		static constexpr GLuint	m_type_id = 1u;
+		static constexpr size_t	m_parameter_count = 12uz;
+		static constexpr string_view	m_evaluator_name = "triangle";
+		static constexpr string_view	m_evaluator_source = R"glsl(
+//	unit-ray triangle evaluator using precomputed centroid-relative corners and unit normal
+hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figure_item )
+{
+	vec3	normal = vec3_from( figure_item.parameters, 9u );
+	float	denominator = dot( unit_direction, normal );
+	if( abs( denominator ) <= 1e-6 )
+		return	hit_result( false, -1.0, 0.0 );
+	vec3	local_center = figure_item.position - ray_origin;
+	float	hit_distance = dot( local_center, normal ) / denominator;
+	if( hit_distance <= 0.0 )
+		return	hit_result( false, -1.0, 0.0 );
+	vec3	hit_local = hit_distance * unit_direction - local_center;
+	vec3	corner_0 = vec3_from( figure_item.parameters, 0u ) - hit_local;
+	vec3	corner_1 = vec3_from( figure_item.parameters, 3u ) - hit_local;
+	vec3	corner_2 = vec3_from( figure_item.parameters, 6u ) - hit_local;
+	if( min_axis( vec3(
+		 dot( cross( corner_1, corner_2 ), normal )
+		,dot( cross( corner_2, corner_0 ), normal )
+		,dot( cross( corner_0, corner_1 ), normal )
+	) ) < 0.0 )
+		return	hit_result( false, -1.0, 0.0 );
+	return	hit_result( true, hit_distance, abs( denominator ) );
+}
+)glsl";
+	};
+
+
+	struct capsule_figure
+	{
+		static constexpr GLuint	m_type_id = 2u;
+		static constexpr size_t	m_parameter_count = 5uz;
+		static constexpr string_view	m_evaluator_name = "capsule";
+		static constexpr string_view	m_evaluator_source = R"glsl(
+//	unit-ray capsule evaluator combining finite cylinder body and two hemisphere endcaps
+hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure_item )
+{
+	float	radius = figure_item.parameters[ 4 ];
+	if( radius <= 0.0 )
+		return	hit_result( false, -1.0, 0.0 );
+	vec3	axis = vec3_from( figure_item.parameters, 0u );
+	float	half_length = figure_item.parameters[ 3 ];
+	float	radius_squared = square( radius );
+	vec3	local_center = figure_item.position - ray_origin;
+	float	direction_along = dot( unit_direction, axis );
+	float	center_along = dot( local_center, axis );
+	vec3	perpendicular_direction = unit_direction - direction_along * axis;
+	vec3	perpendicular_center = local_center - center_along * axis;
+	float	perpendicular_direction_squared = dot( perpendicular_direction, perpendicular_direction );
+	float	best_distance = 1e20;
+	float	best_cosine = 0.0;
+	bool	found = false;
+
+	for( int branch_index = 0; branch_index < 3; ++branch_index )
+	{
+		bool	is_cylinder = branch_index == 0;
+		if( is_cylinder && perpendicular_direction_squared <= 1e-12 )
+			continue;
+		float	cap_sign = branch_index == 1 ? -1.0 : 1.0;
+		float	direction_scale = is_cylinder ? sqrt( perpendicular_direction_squared ) : 1.0;
+		vec3	branch_local = is_cylinder
+			? perpendicular_center
+			: local_center + ( cap_sign * half_length ) * axis;
+		float	branch_along = dot(
+			 branch_local
+			,is_cylinder ? perpendicular_direction / direction_scale : unit_direction
+		);
+		float	opposite_leg_squared = dot( branch_local, branch_local ) - square( branch_along );
+		if( opposite_leg_squared > radius_squared )
+			continue;
+		float	cross_cosine = sqrt( 1.0 - clamp( opposite_leg_squared / radius_squared, 0.0, 1.0 ) );
+		float	half_chord = radius * cross_cosine / direction_scale;
+		float	center_distance = branch_along / direction_scale;
+		for( int hit_index = 0; hit_index < 2; ++hit_index )
+		{
+			float	candidate = center_distance + ( hit_index == 0 ? -half_chord : half_chord );
+			if( candidate <= 0.0 || candidate >= best_distance )
+				continue;
+			if( is_cylinder
+				? abs( candidate * direction_along - center_along ) <= half_length
+				: cap_sign * dot( candidate * unit_direction - branch_local, axis ) >= 0.0 )
+			{
+				best_distance = candidate;
+				best_cosine = direction_scale * cross_cosine;
+				found = true;
+			}
+		}
+	}
+
+	return	hit_result( found, found ? best_distance : -1.0, best_cosine );
+}
+)glsl";
+	};
+
+
+	//	shared vertex storage and centroid accessors for polygon and segment shapes
+	template< size_t t_vertex_count >
+	class vertex_shape
 	{
 	public:
-		using	data	=	array< ::gl::position, 3 >;
+		using	data	=	array< ::gl::position, t_vertex_count >;
 
-		explicit triangle( const data& vertices ) noexcept
+		explicit vertex_shape( const data& vertices ) noexcept
 			:m_vertices( vertices )
 		{ }
 
 		auto vertices( ) const noexcept -> const data& { return m_vertices; }
 		auto vertices( const data& value ) noexcept -> void { m_vertices = value; }
 
-		auto position( ) const noexcept -> ::gl::position { return ( m_vertices[ 0 ] + m_vertices[ 1 ] + m_vertices[ 2 ] ) / 3.0f; }
+		auto position( ) const noexcept -> ::gl::position { return *fold_left_first( m_vertices, plus ) / t_vertex_count; }
 		auto position( const ::gl::position& value ) noexcept -> void
 		{
 			const ::gl::position offset = value - position( );
 			for( auto& vertex : m_vertices )
 				vertex += offset;
 		}
+
+	protected:
+		data	m_vertices;
+	};
+
+
+	//	cpu triangle defined by three world vertices, deriving centroid, normal and gpu parameters
+	class triangle : public vertex_shape< 3 >
+	{
+	public:
+		using	figure_trait	=	triangle_figure;
+		using	vertex_shape< 3 >::vertex_shape;
 
 		auto normal( ) const noexcept -> direction
 		{
@@ -202,47 +331,40 @@ hit_result evaluate_sphere( vec3 ray_origin, vec3 unit_direction, figure figure_
 			candidate[ *index_of( magnitudes, min( magnitudes ) ) ] = 1.0f;
 			return	normalize( cross( unit, candidate ) ) | to;
 		}
-
-		data	m_vertices;
 	};
 
 
-	struct triangle_figure
+	//	cpu capsule defined by two world vertices and a radius, deriving midpoint, unit axis and gpu parameters
+	class capsule : public vertex_shape< 2 >
 	{
-		static constexpr GLuint	m_type_id = 1u;
-		static constexpr size_t	m_parameter_count = 12uz;
-		static constexpr string_view	m_evaluator_name = "triangle";
-		static constexpr string_view	m_evaluator_source = R"glsl(
-//	unit-ray triangle evaluator using precomputed centroid-relative corners and unit normal
-hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figure_item )
-{
-	vec3	normal = vec3_from( figure_item.parameters, 9u );
-	float	denominator = dot( unit_direction, normal );
-	if( abs( denominator ) <= 1e-6 )
-		return	hit_result( false, -1.0, 0.0 );
-	vec3	local_center = figure_item.position - ray_origin;
-	float	hit_distance = dot( local_center, normal ) / denominator;
-	if( hit_distance <= 0.0 )
-		return	hit_result( false, -1.0, 0.0 );
-	vec3	hit_local = hit_distance * unit_direction - local_center;
-	vec3	corner_0 = vec3_from( figure_item.parameters, 0u ) - hit_local;
-	vec3	corner_1 = vec3_from( figure_item.parameters, 3u ) - hit_local;
-	vec3	corner_2 = vec3_from( figure_item.parameters, 6u ) - hit_local;
-	vec3	sub_areas = vec3(
-		 dot( cross( corner_1, corner_2 ), normal )
-		,dot( cross( corner_2, corner_0 ), normal )
-		,dot( cross( corner_0, corner_1 ), normal )
-	);
-	if( min_axis( sub_areas ) < 0.0 )
-		return	hit_result( false, -1.0, 0.0 );
-	return	hit_result( true, hit_distance, abs( denominator ) );
-}
-)glsl";
+	public:
+		using	figure_trait	=	capsule_figure;
+
+		explicit capsule( const data& vertices, const float radius ) noexcept
+			:vertex_shape< 2 >( vertices )
+			,m_radius( radius )
+		{ }
+
+		auto radius( ) const noexcept -> float { return m_radius; }
+		auto radius( const float value ) noexcept -> void { m_radius = value; }
+
+		auto parameters( ) const noexcept -> array< float, 5 >
+		{
+			const direction segment = ( m_vertices[ 1 ] - m_vertices[ 0 ] ) | to;
+			const float segment_length = length( segment );
+			direction axis{ 0.0f, 1.0f, 0.0f };
+			if( segment_length > 1e-6f )
+				axis = ( segment / segment_length ) | to;
+			return	concat( axis, array{ segment_length * 0.5f, m_radius } ) | to;
+		}
+
+	private:
+		float	m_radius;
 	};
 
 
 	//	the registered figure set is the single source of truth for the generated glsl
-	inline constexpr tuple figure_traits{ sphere_figure{ }, triangle_figure{ } };
+	inline constexpr tuple figure_traits{ sphere_figure{ }, triangle_figure{ }, capsule_figure{ } };
 
 
 	//	apply one per-trait mapping across the whole registered figure set
@@ -302,10 +424,14 @@ hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figur
 
 
 	//	position of a placeholder marker inside a glsl text while asserting the text still carries it
-	auto find_placeholder( const string& source, const string_view marker ) -> size_t
+	auto find_placeholder(
+		 const string& source
+		,const string_view marker
+		,const string_view label = "missing glsl placeholder: "
+	) -> size_t
 	{
 		const size_t position = source.find( marker );
-		ensure( position < source.size( ), "missing glsl placeholder: " + string( marker ) );
+		ensure( position < source.size( ), string( label ) + string( marker ) );
 		return	position;
 	}
 
@@ -324,8 +450,7 @@ hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figur
 	//	body between the first and the second occurrence of a section marker line
 	auto section( const string& source, const string_view marker ) -> string
 	{
-		const size_t first = source.find( marker );
-		ensure( first < source.size( ), "missing glsl section marker: " + string( marker ) );
+		const size_t first = find_placeholder( source, marker, "missing glsl section marker: " );
 		const size_t marker_end = source.find( '\n', first );
 		ensure(
 			 marker_end < source.size( )
@@ -450,14 +575,16 @@ hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figur
 	}
 
 
-	//	write one triangle payload from its cpu vertex representation
+	//	write one figure payload from a cpu shape carrying a figure trait
+	template< typename t_shape >
+		requires is_figure_trait< typename t_shape::figure_trait >
 	auto register_figure(
 		 figure& figure_item
-		,const triangle& shape
+		,const t_shape& shape
 		,const color& figure_color
 	) -> void
 	{
-		register_figure< triangle_figure >(
+		register_figure< typename t_shape::figure_trait >(
 			 figure_item
 			,shape.position( )
 			,figure_color
@@ -480,7 +607,7 @@ hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figur
 			,m_context( m_window )
 			,m_environment( 1 )
 			,m_camera( 1 )
-			,m_figures( 2 )
+			,m_figures( 3 )
 			,m_vertex_array( )
 			,m_shader_program( compiled_shaders( ) )
 		{
@@ -508,21 +635,28 @@ hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figur
 
 			register_figure< sphere_figure >(
 				 m_figures[ 0 ]
-				,{ -0.55f, 0.0f, 1.0f }
+				,{ -1.00f, 0.0f, 1.0f }
 				,{ 1.0f, 0.0f, 0.0f, 1.0f }
-				,{ 0.45f }
+				,{ 0.40f }
 			);
 			triangle blue_triangle{ triangle::data{
 				 position{ -0.45f, -0.40f, 0.0f }
 				,position{  0.45f, -0.40f, 0.0f }
 				,position{  0.00f,  0.50f, 0.0f }
 			} };
-			blue_triangle.position( { 0.55f, 0.0f, 1.0f } );
+			blue_triangle.position( { 0.00f, 0.0f, 1.0f } );
 			blue_triangle.normal( { 0.35f, 0.25f, -1.0f } );
+			register_figure( m_figures[ 1 ], blue_triangle, { 0.0f, 0.0f, 1.0f, 1.0f } );
 			register_figure(
-				 m_figures[ 1 ]
-				,blue_triangle
-				,{ 0.0f, 0.0f, 1.0f, 1.0f }
+				 m_figures[ 2 ]
+				,capsule{
+					 capsule::data{
+						 position{ 0.80f, -0.40f, 1.25f }
+						,position{ 1.20f,  0.40f, 0.75f }
+					}
+					,0.22f
+				}
+				,{ 0.0f, 1.0f, 0.0f, 1.0f }
 			);
 
 			m_environment.flush( );
@@ -566,17 +700,15 @@ hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figur
 				m_application.quit( );
 			else if( event.key == SDLK_F11 and not event.repeat )
 				m_window.toggle_fullscreen( );
-			else
-				for( const auto& entry : key_movements )
-					if( event.key == entry.m_key )
-						m_movement[ entry.m_axis ] = entry.m_value;
+			else if( const auto found = find( key_movements, event.key, &key_movement::m_key ); found not_eq key_movements.end( ) )
+				m_movement[ found->m_axis ] = found->m_value;
 		}
 
 		void key_up( const SDL_KeyboardEvent& event ) override
 		{
-			for( const auto& entry : key_movements )
-				if( event.key == entry.m_key and m_movement[ entry.m_axis ] == entry.m_value )
-					m_movement[ entry.m_axis ] = 0.0f;
+			const auto found = find( key_movements, event.key, &key_movement::m_key );
+			if( found not_eq key_movements.end( ) and m_movement[ found->m_axis ] == found->m_value )
+				m_movement[ found->m_axis ] = 0.0f;
 		}
 
 		void focus_lost( ) override { m_movement = { }; }
@@ -601,10 +733,13 @@ hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figur
 			if( m_movement == zero )
 				return;
 			camera& current = m_camera[ 0 ];
-			current.m_position += (
-				current.m_right * m_movement[ 0 ]
-				+ current.m_forward * m_movement[ 1 ]
-				+ current.m_up * m_movement[ 2 ]
+			current.m_position += *fold_left_first(
+				 zip_transform(
+					 multiplies
+					,array{ current.m_right, current.m_forward, current.m_up }
+					,m_movement
+				)
+				,plus
 			) * ( camera_speed * delta_seconds );
 			m_camera.flush( );
 		}
@@ -640,7 +775,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
-		return	println( "this executable renders a sphere and a triangle through the agnostic pipeline; use w a s d to move the camera, f11 toggles fullscreen and escape quits" ), exit_success;
+		return	println( "this executable renders a sphere, a triangle and a capsule through the agnostic pipeline; use w a s d to move the camera, f11 toggles fullscreen and escape quits" ), exit_success;
 
 	try
 	{
