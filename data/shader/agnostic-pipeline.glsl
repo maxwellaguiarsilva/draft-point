@@ -102,11 +102,14 @@ struct hit_result
 	float	cos_incidence;
 };
 
+//	the single miss outcome shared by every evaluator and by the dispatcher
+hit_result no_hit( ) { return hit_result( false, -1.0, 0.0 ); }
+
 //	@figure_functions
 hit_result dispatch_figure( vec3 ray_origin, vec3 unit_direction, figure figure_item )
 {
 //	@figure_dispatch
-	return	hit_result( false, -1.0, 0.0 );
+	return	no_hit( );
 }
 
 void main( )

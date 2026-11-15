@@ -135,20 +135,18 @@ namespace gl {
 hit_result evaluate_sphere( vec3 ray_origin, vec3 unit_direction, figure figure_item )
 {
 	float	radius = figure_item.parameters[ 0 ];
-	if( radius <= 0.0 )
-		return	hit_result( false, -1.0, 0.0 );
 	vec3	local_center = figure_item.position - ray_origin;
 	float	along = dot( local_center, unit_direction );
 	float	opposite_leg_squared = dot( local_center, local_center ) - square( along );
 	float	radius_squared = square( radius );
 	if( opposite_leg_squared > radius_squared )
-		return	hit_result( false, -1.0, 0.0 );
+		return	no_hit( );
 	float	cosine_incidence = sqrt( 1.0 - clamp( opposite_leg_squared / radius_squared, 0.0, 1.0 ) );
 	float	half_chord = radius * cosine_incidence;
 	float	near_distance = along - half_chord;
 	float	far_distance = along + half_chord;
 	if( far_distance <= 0.0 )
-		return	hit_result( false, -1.0, 0.0 );
+		return	no_hit( );
 	return	hit_result( true, near_distance > 0.0 ? near_distance : far_distance, cosine_incidence );
 }
 )glsl";
@@ -167,11 +165,11 @@ hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figur
 	vec3	normal = vec3_from( figure_item.parameters, 9u );
 	float	denominator = dot( unit_direction, normal );
 	if( abs( denominator ) <= 1e-6 )
-		return	hit_result( false, -1.0, 0.0 );
+		return	no_hit( );
 	vec3	local_center = figure_item.position - ray_origin;
 	float	hit_distance = dot( local_center, normal ) / denominator;
 	if( hit_distance <= 0.0 )
-		return	hit_result( false, -1.0, 0.0 );
+		return	no_hit( );
 	vec3	hit_local = hit_distance * unit_direction - local_center;
 	vec3	corner_0 = vec3_from( figure_item.parameters, 0u ) - hit_local;
 	vec3	corner_1 = vec3_from( figure_item.parameters, 3u ) - hit_local;
@@ -181,7 +179,7 @@ hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figur
 		,dot( cross( corner_2, corner_0 ), normal )
 		,dot( cross( corner_0, corner_1 ), normal )
 	) ) < 0.0 )
-		return	hit_result( false, -1.0, 0.0 );
+		return	no_hit( );
 	return	hit_result( true, hit_distance, abs( denominator ) );
 }
 )glsl";
@@ -198,8 +196,6 @@ hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figur
 hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure_item )
 {
 	float	radius = figure_item.parameters[ 4 ];
-	if( radius <= 0.0 )
-		return	hit_result( false, -1.0, 0.0 );
 	vec3	axis = vec3_from( figure_item.parameters, 0u );
 	float	half_length = figure_item.parameters[ 3 ];
 	float	radius_squared = square( radius );
@@ -249,7 +245,7 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 		}
 	}
 
-	return	hit_result( found, found ? best_distance : -1.0, best_cosine );
+	return	found ? hit_result( true, best_distance, best_cosine ) : no_hit( );
 }
 )glsl";
 	};
