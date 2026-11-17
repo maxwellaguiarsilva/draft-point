@@ -28,6 +28,7 @@ namespace gl {
 		,convertible_to
 		,enable_shared_from_this
 		,map
+		,pair
 		,remove_cvref_t
 		,size_t
 		,string
@@ -42,6 +43,7 @@ namespace gl {
 	__using( ::std::ranges::, copy, count, find )
 	__using( ::std::views::
 		,concat
+		,filter
 		,join
 		,join_with
 		,single
@@ -290,6 +292,21 @@ namespace gl {
 	);
 
 
+	//	file predicate selecting the glsl evaluator files of a figure directory
+	inline constexpr auto is_glsl_file = [ ]( const auto& file_entry )
+	{
+		return	file_entry.is_regular_file( ) and file_entry.path( ).extension( ) == ".glsl";
+	};
+
+	//	file stem paired with its text content
+	inline constexpr auto read_stem_text = [ ]( const auto& file_entry ) -> pair< string, string >
+	{
+		const text_file file( file_entry.path( ) );
+		ensure( file.exists( ), "unable to read figure file: " + file_entry.path( ).string( ) );
+		return	pair{ file.name( ), file.content( ) };
+	};
+
+
 	//	figure glsl evaluators loaded from individual files, the map key supplies the reflected name while the loader supplies the source and assigns deterministic type ids
 	class figure_loader
 	{
@@ -302,26 +319,8 @@ namespace gl {
 		using	table	=	map< string, entry >;
 
 		explicit figure_loader( const string& base_path = "data/shader/figures" )
-			:m_base_path( base_path )
-		{
-			ensure( is_directory( m_base_path ), "unable to open figure directory: " + m_base_path );
-
-			map< string, string > sources;
-			for( const auto& item : directory_iterator( m_base_path ) )
-			{
-				if( not item.is_regular_file( ) or item.path( ).extension( ) not_eq ".glsl" )
-					continue;
-				const text_file file( item.path( ) );
-				ensure( file.exists( ), "unable to read figure file: " + item.path( ).string( ) );
-				ensure( not contains( sources, file.name( ) ), "duplicate figure name: " + file.name( ) );
-				sources.emplace( file.name( ), file.content( ) );
-			}
-
-			ensure( not sources.empty( ), "no figure file found in: " + m_base_path );
-
-			for( auto&& [ index, item ] : sources | enumerate )
-				m_figures.emplace( item.first, entry{ static_cast< GLuint >( index ), ::std::move( item.second ) } );
-		}
+			:m_figures( load( base_path ) )
+		{ }
 
 		auto operator[ ]( const string_view name ) const -> const entry&
 		{
@@ -333,16 +332,40 @@ namespace gl {
 		auto figures( ) const noexcept -> const table& { return m_figures; }
 
 	private:
-		string	m_base_path;
+		//	load every glsl evaluator from one directory, keyed by file stem
+		//	a directory cannot hold two files with the same stem and the same extension
+		static auto load( const string& base_path ) -> table
+		{
+			ensure( is_directory( base_path ), "unable to open figure directory: " + base_path );
+
+			map< string, string > text_by_name = directory_iterator( base_path )
+				|	filter( is_glsl_file )
+				|	transform( read_stem_text )
+				|	to;
+
+			ensure( not text_by_name.empty( ), "no figure file found in: " + base_path );
+
+			return	text_by_name | enumerate
+				|	transform( [ ]( auto&& indexed_text )
+					{
+						auto&& [ index, text_entry ] = indexed_text;
+						return	pair{
+							 text_entry.first
+							,entry{ static_cast< GLuint >( index ), ::std::move( text_entry.second ) }
+						};
+					} )
+				|	to;
+		}
+
 		table	m_figures;
 	};
 
 
 	//	one dispatch case generated per loaded figure evaluator
-	auto figure_case( const string_view name, const figure_loader::entry& figure_entry ) -> string
+	auto figure_case( const figure_loader::table::value_type& figure_source ) -> string
 	{
-		return	"\t\tcase " + to_string( figure_entry.m_type_id )
-			+ "u: return evaluate_" + string( name )
+		return	"\t\tcase " + to_string( figure_source.second.m_type_id )
+			+ "u: return evaluate_" + figure_source.first
 			+ "( ray_origin, unit_direction, figure_item );";
 	}
 
@@ -435,7 +458,7 @@ namespace gl {
 	auto figure_dispatch( const figure_loader& loader, const size_t marker_line ) -> string
 	{
 		const string cases = loader.figures( )
-			|	transform( [ ]( const auto& figure_entry ) { return figure_case( figure_entry.first, figure_entry.second ); } )
+			|	transform( figure_case )
 			|	join_with( string_view{ "\n" } )
 			|	to;
 		return	restored_diagnostics(
@@ -481,19 +504,23 @@ namespace gl {
 	inline constexpr string_view shader_name = "agnostic-pipeline";
 
 
+	//	assert every registered figure trait has a loaded evaluator
+	auto ensure_figure_sources( const figure_loader& loader ) -> void
+	{
+		map_figure_traits( [ & ]( const is_figure_trait auto&... trait )
+		{
+			for( const string_view name : array{ evaluator_identifier< remove_cvref_t< decltype( trait ) > >( )... } )
+				ensure( contains( loader.figures( ), string( name ) ), "missing figure evaluator: " + string( name ) );
+		} );
+	}
+
+
 	//	both template sections compiled in memory with figure evaluators from the figure loader
 	auto compiled_shaders( const figure_loader& loader ) -> array< shader, 2 >
 	{
 		using	enum	shader::type;
 
-		map_figure_traits( [ & ]( const is_figure_trait auto&... trait )
-		{
-			for( const string_view name : array{ evaluator_identifier< remove_cvref_t< decltype( trait ) > >( )... } )
-				ensure(
-					 contains( loader.figures( ), string( name ) )
-					,"missing figure evaluator: " + string( name )
-				);
-		} );
+		ensure_figure_sources( loader );
 
 		const text_file file( "data/shader/" + string( shader_name ) + ".glsl" );
 		ensure( file.exists( ), "unable to read shader file: " + string( shader_name ) );
