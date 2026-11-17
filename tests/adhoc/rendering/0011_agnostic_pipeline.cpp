@@ -67,7 +67,7 @@ namespace gl {
 		,plus
 		,rotate
 	)
-	__using( ::sak::opengl::, program, shader, vertex_array )
+	__using( ::sak::opengl::, glsl_sections, program, shader, split_glsl_sections, vertex_array )
 	__using( ::sak::ranges::
 		,contains
 		,fold_left_first
@@ -370,20 +370,11 @@ namespace gl {
 	}
 
 
-	//	marker lines delimiting the two shader bodies of the template
-	inline constexpr string_view vertex_shader_marker = "//	vertex-shader";
-	inline constexpr string_view fragment_shader_marker = "//	fragment-shader";
-
-
 	//	position of a placeholder marker inside a glsl text while asserting the text still carries it
-	auto find_placeholder(
-		 const string& source
-		,const string_view marker
-		,const string_view label = "missing glsl placeholder: "
-	) -> size_t
+	auto find_placeholder( const string& source, const string_view marker ) -> size_t
 	{
 		const size_t position = source.find( marker );
-		ensure( position < source.size( ), string( label ) + string( marker ) );
+		ensure( position < source.size( ), "missing glsl placeholder: " + string( marker ) );
 		return	position;
 	}
 
@@ -396,23 +387,6 @@ namespace gl {
 	) -> void
 	{
 		source.replace( find_placeholder( source, marker ), marker.size( ), content );
-	}
-
-
-	//	body between the first and the second occurrence of a section marker line
-	auto section( const string& source, const string_view marker ) -> string
-	{
-		const size_t marker_end = source.find( '\n', find_placeholder( source, marker, "missing glsl section marker: " ) );
-		ensure(
-			 marker_end < source.size( )
-			,"unterminated glsl section marker line: " + string( marker )
-		);
-		const size_t second = source.find( marker, marker_end );
-		ensure(
-			 second < source.size( )
-			,"unterminated glsl section marker: " + string( marker )
-		);
-		return	source.substr( marker_end + 1uz, second - marker_end - 1uz );
 	}
 
 
@@ -525,10 +499,10 @@ namespace gl {
 		const text_file file( "data/shader/" + string( shader_name ) + ".glsl" );
 		ensure( file.exists( ), "unable to read shader file: " + string( shader_name ) );
 
-		const string source = file.content( );
+		const glsl_sections sections = split_glsl_sections( file.content( ) );
 		return	{
-			 shader{ section( source, vertex_shader_marker ), vertex }
-			,shader{ assemble_fragment( section( source, fragment_shader_marker ), loader ), fragment }
+			 shader{ sections.at( string( identifier_of( ^^shader::type::vertex ) ) ), vertex }
+			,shader{ assemble_fragment( sections.at( string( identifier_of( ^^shader::type::fragment ) ) ), loader ), fragment }
 		};
 	}
 
