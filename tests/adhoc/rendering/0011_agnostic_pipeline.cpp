@@ -140,9 +140,9 @@ namespace gl {
 	};
 
 
-	//	unqualified name of a figure trait taken from its identifier instead of a repeated string literal
+	//	identifier of a figure trait read from its reflection token instead of a repeated string literal
 	template< typename t_trait >
-	consteval auto evaluator_name( ) noexcept -> string_view
+	consteval auto evaluator_identifier( ) noexcept -> string_view
 	{
 		return	identifier_of( ^^t_trait );
 	}
@@ -214,7 +214,7 @@ namespace gl {
 				vertex = ( center + rotate( vertex - center, axis, angle ) ) | to;
 		}
 
-		auto parameters( ) const noexcept -> array< float, 12 >
+		auto parameters( ) const noexcept -> array< float, figure_trait::m_parameter_count >
 		{
 			return	concat(
 					 m_vertices | lazy_transform( bind_back( minus, position( ) ) )
@@ -249,7 +249,7 @@ namespace gl {
 		auto radius( ) const noexcept -> float { return m_radius; }
 		auto radius( const float value ) noexcept -> void { m_radius = value; }
 
-		auto parameters( ) const noexcept -> array< float, 5 >
+		auto parameters( ) const noexcept -> array< float, figure_trait::m_parameter_count >
 		{
 			const direction segment = ( m_vertices[ 1 ] - m_vertices[ 0 ] ) | to;
 			const float segment_length = length( segment );
@@ -264,7 +264,7 @@ namespace gl {
 	};
 
 
-	//	the registered figure set is validated against the figure loader and the shared payload capacity, each name coming from the trait identifier
+	//	every registered figure trait, each one named by its own identifier
 	inline constexpr tuple figure_traits{ figure_trait::sphere{ }, figure_trait::triangle{ }, figure_trait::capsule{ } };
 
 
@@ -404,9 +404,9 @@ namespace gl {
 
 
 	//	close an injected region by mapping the next line back onto the template
-	auto restored_diagnostics( const string_view content, const size_t marker_line ) -> string
+	auto restored_diagnostics( const string& content, const size_t marker_line ) -> string
 	{
-		return	string( content ) + "\n#line " + to_string( marker_line + 1uz );
+		return	content + "\n#line " + to_string( marker_line + 1uz );
 	}
 
 
@@ -420,12 +420,14 @@ namespace gl {
 	//	evaluator definitions concatenated from the loaded figure files
 	auto figure_functions( const figure_loader& loader, const size_t marker_line ) -> string
 	{
-		const string definitions = loader.figures( )
-			| values
-			| transform( &figure_loader::entry::m_source )
-			| join_with( string_view{ "\n\n" } )
-			| to;
-		return	restored_diagnostics( definitions, marker_line );
+		return	restored_diagnostics(
+			 loader.figures( )
+				| values
+				| transform( &figure_loader::entry::m_source )
+				| join_with( string_view{ "\n\n" } )
+				| to
+			,marker_line
+		);
 	}
 
 
@@ -486,7 +488,7 @@ namespace gl {
 
 		map_figure_traits( [ & ]( const is_figure_trait auto&... trait )
 		{
-			for( const string_view name : array{ evaluator_name< remove_cvref_t< decltype( trait ) > >( )... } )
+			for( const string_view name : array{ evaluator_identifier< remove_cvref_t< decltype( trait ) > >( )... } )
 				ensure(
 					 contains( loader.figures( ), string( name ) )
 					,"missing figure evaluator: " + string( name )
@@ -515,7 +517,7 @@ namespace gl {
 	) -> void
 	{
 		figure_item.m_position = figure_position;
-		figure_item.m_type_id = loader[ evaluator_name< t_figure >( ) ].m_type_id;
+		figure_item.m_type_id = loader[ evaluator_identifier< t_figure >( ) ].m_type_id;
 		figure_item.m_color = figure_color;
 		figure_item.m_parameters.fill( 0.0f );
 		copy( parameters, figure_item.m_parameters.begin( ) );
