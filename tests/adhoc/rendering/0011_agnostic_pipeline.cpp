@@ -10,10 +10,10 @@
 #define GLAD_GL_IMPLEMENTATION
 
 
-#include <format>
 #include <sak/opengl/program.hpp>
 #include <sak/opengl/vertex_array.hpp>
 #include <sak/ranges/fold_left_first.hpp>
+#include <sak/ranges/views/enumerate.hpp>
 #include <sak/sdl3/application.hpp>
 #include <sak/sdl3/opengl/context.hpp>
 #include <game/fps.hpp>
@@ -27,14 +27,15 @@ namespace gl {
 		,bind_back
 		,convertible_to
 		,enable_shared_from_this
+		,map
 		,size_t
 		,string
 		,string_view
 		,to_string
 		,tuple
-		,vector
 	)
 	__using( ::std::chrono::, duration, high_resolution_clock )
+	__using( ::std::filesystem::, directory_iterator, is_directory )
 	__using( ::std::numbers::, pi_v )
 	__using( ::std::ranges::, copy, count, find )
 	__using( ::std::views::
@@ -42,6 +43,8 @@ namespace gl {
 		,join
 		,join_with
 		,single
+		,transform
+		,values
 		,zip_transform
 	)
 	__using( ::sak::, ensure )
@@ -68,6 +71,7 @@ namespace gl {
 		,lazy_transform
 		,to
 	)
+	__using( ::sak::ranges::views::, enumerate )
 	__using( ::sak::sdl3::, application, window )
 	__using( ::sak::sdl3::opengl::, context )
 	__using( ::game::, fps )
@@ -114,140 +118,33 @@ namespace gl {
 	using	figure = figure_payload< parameter_capacity >;
 
 
-	//	compile-time figure descriptor pairing a gpu type id with its static glsl evaluator
+	//	compile-time figure descriptor pairing a parameter count with its glsl evaluator name
 	template< typename t_type >
 	concept is_figure_trait = requires
 	{
-		{ t_type::m_type_id } -> convertible_to< GLuint >;
 		{ t_type::m_parameter_count } -> convertible_to< size_t >;
 		{ t_type::m_evaluator_name } -> convertible_to< string_view >;
-		{ t_type::m_evaluator_source } -> convertible_to< string_view >;
 	};
 
 
 	struct sphere_figure
 	{
-		static constexpr GLuint	m_type_id = 0u;
 		static constexpr size_t	m_parameter_count = 1uz;
 		static constexpr string_view	m_evaluator_name = "sphere";
-		static constexpr string_view	m_evaluator_source = R"glsl(
-//	unit-ray sphere evaluator returning world-metric hit distance and inclination cosine
-hit_result evaluate_sphere( vec3 ray_origin, vec3 unit_direction, figure figure_item )
-{
-	float	radius = figure_item.parameters[ 0 ];
-	vec3	local_center = figure_item.position - ray_origin;
-	float	along = dot( local_center, unit_direction );
-	float	opposite_leg_squared = dot( local_center, local_center ) - square( along );
-	float	radius_squared = square( radius );
-	if( opposite_leg_squared > radius_squared )
-		return	no_hit( );
-	float	cosine_incidence = sqrt( 1.0 - clamp( opposite_leg_squared / radius_squared, 0.0, 1.0 ) );
-	float	half_chord = radius * cosine_incidence;
-	float	near_distance = along - half_chord;
-	float	far_distance = along + half_chord;
-	if( far_distance <= 0.0 )
-		return	no_hit( );
-	return	hit_result( true, near_distance > 0.0 ? near_distance : far_distance, cosine_incidence );
-}
-)glsl";
 	};
 
 
 	struct triangle_figure
 	{
-		static constexpr GLuint	m_type_id = 1u;
 		static constexpr size_t	m_parameter_count = 12uz;
 		static constexpr string_view	m_evaluator_name = "triangle";
-		static constexpr string_view	m_evaluator_source = R"glsl(
-//	unit-ray triangle evaluator using precomputed centroid-relative corners and unit normal
-hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figure_item )
-{
-	vec3	normal = vec3_from( figure_item.parameters, 9u );
-	float	denominator = dot( unit_direction, normal );
-	if( abs( denominator ) <= 1e-6 )
-		return	no_hit( );
-	vec3	local_center = figure_item.position - ray_origin;
-	float	hit_distance = dot( local_center, normal ) / denominator;
-	if( hit_distance <= 0.0 )
-		return	no_hit( );
-	vec3	hit_local = hit_distance * unit_direction - local_center;
-	vec3	corner_0 = vec3_from( figure_item.parameters, 0u ) - hit_local;
-	vec3	corner_1 = vec3_from( figure_item.parameters, 3u ) - hit_local;
-	vec3	corner_2 = vec3_from( figure_item.parameters, 6u ) - hit_local;
-	if( min_axis( vec3(
-		 dot( cross( corner_1, corner_2 ), normal )
-		,dot( cross( corner_2, corner_0 ), normal )
-		,dot( cross( corner_0, corner_1 ), normal )
-	) ) < 0.0 )
-		return	no_hit( );
-	return	hit_result( true, hit_distance, abs( denominator ) );
-}
-)glsl";
 	};
 
 
 	struct capsule_figure
 	{
-		static constexpr GLuint	m_type_id = 2u;
 		static constexpr size_t	m_parameter_count = 5uz;
 		static constexpr string_view	m_evaluator_name = "capsule";
-		static constexpr string_view	m_evaluator_source = R"glsl(
-//	unit-ray capsule evaluator combining finite cylinder body and two hemisphere endcaps
-hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure_item )
-{
-	float	radius = figure_item.parameters[ 4 ];
-	vec3	axis = vec3_from( figure_item.parameters, 0u );
-	float	half_length = figure_item.parameters[ 3 ];
-	float	radius_squared = square( radius );
-	vec3	local_center = figure_item.position - ray_origin;
-	float	direction_along = dot( unit_direction, axis );
-	float	center_along = dot( local_center, axis );
-	vec3	perpendicular_direction = unit_direction - direction_along * axis;
-	vec3	perpendicular_center = local_center - center_along * axis;
-	float	perpendicular_direction_squared = dot( perpendicular_direction, perpendicular_direction );
-	float	best_distance = 1e20;
-	float	best_cosine = 0.0;
-	bool	found = false;
-
-	for( int branch_index = 0; branch_index < 3; ++branch_index )
-	{
-		bool	is_cylinder = branch_index == 0;
-		if( is_cylinder && perpendicular_direction_squared <= 1e-12 )
-			continue;
-		float	cap_sign = branch_index == 1 ? -1.0 : 1.0;
-		float	direction_scale = is_cylinder ? sqrt( perpendicular_direction_squared ) : 1.0;
-		vec3	branch_local = is_cylinder
-			? perpendicular_center
-			: local_center + ( cap_sign * half_length ) * axis;
-		float	branch_along = dot(
-			 branch_local
-			,is_cylinder ? perpendicular_direction / direction_scale : unit_direction
-		);
-		float	opposite_leg_squared = dot( branch_local, branch_local ) - square( branch_along );
-		if( opposite_leg_squared > radius_squared )
-			continue;
-		float	cross_cosine = sqrt( 1.0 - clamp( opposite_leg_squared / radius_squared, 0.0, 1.0 ) );
-		float	half_chord = radius * cross_cosine / direction_scale;
-		float	center_distance = branch_along / direction_scale;
-		for( int hit_index = 0; hit_index < 2; ++hit_index )
-		{
-			float	candidate = center_distance + ( hit_index == 0 ? -half_chord : half_chord );
-			if( candidate <= 0.0 || candidate >= best_distance )
-				continue;
-			if( is_cylinder
-				? abs( candidate * direction_along - center_along ) <= half_length
-				: cap_sign * dot( candidate * unit_direction - branch_local, axis ) >= 0.0 )
-			{
-				best_distance = candidate;
-				best_cosine = direction_scale * cross_cosine;
-				found = true;
-			}
-		}
-	}
-
-	return	found ? hit_result( true, best_distance, best_cosine ) : no_hit( );
-}
-)glsl";
 	};
 
 
@@ -359,7 +256,7 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 	};
 
 
-	//	the registered figure set is the single source of truth for the generated glsl
+	//	the registered figure set is validated against the figure loader and the shared payload capacity
 	inline constexpr tuple figure_traits{ sphere_figure{ }, triangle_figure{ }, capsule_figure{ } };
 
 
@@ -371,39 +268,10 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 	}
 
 
-	//	one dispatch case generated per registered figure trait
-	auto figure_case( const is_figure_trait auto& figure_trait ) -> string
-	{
-		return	"\t\tcase " + to_string( figure_trait.m_type_id )
-			+ "u: return evaluate_" + string( figure_trait.m_evaluator_name )
-			+ "( ray_origin, unit_direction, figure_item );";
-	}
-
-
 	//	per-trait mapping that validates the shared parameter slot budget
 	inline constexpr auto payload_within_capacity = [ ]( const is_figure_trait auto&... figure_trait )
 	{
 		return	( true and ... and ( figure_trait.m_parameter_count <= parameter_capacity ) );
-	};
-
-
-	//	per-trait mapping that concatenates the evaluator definitions
-	inline constexpr auto evaluator_sources = [ ]( const is_figure_trait auto&... figure_trait )
-		-> string
-	{
-		return	array{ figure_trait.m_evaluator_source... }
-			| join_with( string_view{ "\n\n" } )
-			| to;
-	};
-
-
-	//	per-trait mapping that concatenates the generated dispatch cases
-	inline constexpr auto dispatch_cases = [ ]( const is_figure_trait auto&... figure_trait )
-		-> string
-	{
-		return	array{ figure_case( figure_trait )... }
-			| join_with( string_view{ "\n" } )
-			| to;
 	};
 
 
@@ -412,6 +280,64 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 		 map_figure_traits( payload_within_capacity )
 		,"figure parameter count exceeds the shared payload capacity"
 	);
+
+
+	//	figure glsl evaluators loaded from individual files and assigned deterministic type ids
+	class figure_loader
+	{
+	public:
+		struct entry
+		{
+			GLuint	m_type_id;
+			string	m_name;
+			string	m_source;
+		};
+		using	table	=	map< string, entry >;
+
+		explicit figure_loader( const string& base_path = "data/shader/figures" )
+			:m_base_path( base_path )
+		{
+			ensure( is_directory( m_base_path ), "unable to open figure directory: " + m_base_path );
+
+			map< string, string > sources;
+			for( const auto& item : directory_iterator( m_base_path ) )
+			{
+				if( not item.is_regular_file( ) or item.path( ).extension( ) not_eq ".glsl" )
+					continue;
+				const text_file file( item.path( ) );
+				ensure( file.exists( ), "unable to read figure file: " + item.path( ).string( ) );
+				ensure( not contains( sources, file.name( ) ), "duplicate figure name: " + file.name( ) );
+				sources.emplace( file.name( ), file.content( ) );
+			}
+
+			ensure( not sources.empty( ), "no figure file found in: " + m_base_path );
+
+			for( auto&& [ index, item ] : sources | enumerate )
+				m_figures.emplace( item.first, entry{ static_cast< GLuint >( index ), item.first, ::std::move( item.second ) } );
+		}
+
+		auto operator[ ]( const string_view name ) const -> const entry&
+		{
+			const string key( name );
+			ensure( contains( m_figures, key ), "unknown figure evaluator: " + key );
+			return	m_figures.at( key );
+		}
+
+		auto figures( ) const noexcept -> const table& { return m_figures; }
+
+	private:
+		string	m_base_path;
+		table	m_figures;
+	};
+
+
+	//	one dispatch case generated per loaded figure evaluator
+	auto figure_case( const figure_loader::entry& figure_entry ) -> string
+	{
+		return	"\t\tcase " + to_string( figure_entry.m_type_id )
+			+ "u: return evaluate_" + figure_entry.m_name
+			+ "( ray_origin, unit_direction, figure_item );";
+	}
 
 
 	//	marker lines delimiting the two shader bodies of the template
@@ -446,8 +372,7 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 	//	body between the first and the second occurrence of a section marker line
 	auto section( const string& source, const string_view marker ) -> string
 	{
-		const size_t first = find_placeholder( source, marker, "missing glsl section marker: " );
-		const size_t marker_end = source.find( '\n', first );
+		const size_t marker_end = source.find( '\n', find_placeholder( source, marker, "missing glsl section marker: " ) );
 		ensure(
 			 marker_end < source.size( )
 			,"unterminated glsl section marker line: " + string( marker )
@@ -479,25 +404,35 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 
 
 	//	capacity define replacing the parameter capacity marker
-	auto parameter_capacity_define( const size_t ) -> string
+	auto parameter_capacity_define( const figure_loader&, const size_t ) -> string
 	{
 		return	"#define figure_parameter_capacity " + to_string( parameter_capacity );
 	}
 
 
-	//	evaluator definitions concatenated from the registered figure traits
-	auto figure_functions( const size_t marker_line ) -> string
+	//	evaluator definitions concatenated from the loaded figure files
+	auto figure_functions( const figure_loader& loader, const size_t marker_line ) -> string
 	{
-		return	restored_diagnostics( map_figure_traits( evaluator_sources ), marker_line );
+		const string definitions = loader.figures( )
+			| values
+			| transform( &figure_loader::entry::m_source )
+			| join_with( string_view{ "\n\n" } )
+			| to;
+		return	restored_diagnostics( definitions, marker_line );
 	}
 
 
-	//	integer switch dispatching on the type id stored inside the figure payload
-	auto figure_dispatch( const size_t marker_line ) -> string
+	//	integer switch dispatching on the type id assigned by the figure loader
+	auto figure_dispatch( const figure_loader& loader, const size_t marker_line ) -> string
 	{
+		const string cases = loader.figures( )
+			| values
+			| transform( figure_case )
+			| join_with( string_view{ "\n" } )
+			| to;
 		return	restored_diagnostics(
 			 "\tswitch( uint( figure_item.type_id ) )\n\t{\n"
-			+ map_figure_traits( dispatch_cases )
+			+ cases
 			+ "\n\t}"
 			,marker_line
 		);
@@ -508,7 +443,7 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 	struct glsl_placeholder
 	{
 		string_view	m_marker;
-		string( *m_produce )( const size_t marker_line );
+		string( *m_produce )( const figure_loader& loader, const size_t marker_line );
 	};
 
 
@@ -521,14 +456,14 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 
 
 	//	fragment template copy with every placeholder replaced by its generated content
-	auto assemble_fragment( const string& fragment_template ) -> string
+	auto assemble_fragment( const string& fragment_template, const figure_loader& loader ) -> string
 	{
 		string source = fragment_template;
 		for( const auto& placeholder : glsl_placeholders )
 			replace_placeholder(
 				 source
 				,placeholder.m_marker
-				,placeholder.m_produce( line_number_at( fragment_template, placeholder.m_marker ) )
+				,placeholder.m_produce( loader, line_number_at( fragment_template, placeholder.m_marker ) )
 			);
 		return	source;
 	}
@@ -538,10 +473,19 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 	inline constexpr string_view shader_name = "agnostic-pipeline";
 
 
-	//	both template sections compiled in memory without the file based shader loader
-	auto compiled_shaders( ) -> array< shader, 2 >
+	//	both template sections compiled in memory with figure evaluators from the figure loader
+	auto compiled_shaders( const figure_loader& loader ) -> array< shader, 2 >
 	{
 		using	enum	shader::type;
+
+		map_figure_traits( [ & ]( const is_figure_trait auto&... figure_trait )
+		{
+			for( const string_view name : array{ figure_trait.m_evaluator_name... } )
+				ensure(
+					 contains( loader.figures( ), string( name ) )
+					,"missing figure evaluator: " + string( name )
+				);
+		} );
 
 		const text_file file( "data/shader/" + string( shader_name ) + ".glsl" );
 		ensure( file.exists( ), "unable to read shader file: " + string( shader_name ) );
@@ -549,7 +493,7 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 		const string source = file.content( );
 		return	{
 			 shader{ section( source, vertex_shader_marker ), vertex }
-			,shader{ assemble_fragment( section( source, fragment_shader_marker ) ), fragment }
+			,shader{ assemble_fragment( section( source, fragment_shader_marker ), loader ), fragment }
 		};
 	}
 
@@ -558,13 +502,14 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 	template< is_figure_trait t_figure >
 	auto register_figure(
 		 figure& figure_item
+		,const figure_loader& loader
 		,const position& figure_position
 		,const color& figure_color
 		,const array< float, t_figure::m_parameter_count >& parameters
 	) -> void
 	{
 		figure_item.m_position = figure_position;
-		figure_item.m_type_id = t_figure::m_type_id;
+		figure_item.m_type_id = loader[ t_figure::m_evaluator_name ].m_type_id;
 		figure_item.m_color = figure_color;
 		figure_item.m_parameters.fill( 0.0f );
 		copy( parameters, figure_item.m_parameters.begin( ) );
@@ -576,12 +521,14 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 		requires is_figure_trait< typename t_shape::figure_trait >
 	auto register_figure(
 		 figure& figure_item
+		,const figure_loader& loader
 		,const t_shape& shape
 		,const color& figure_color
 	) -> void
 	{
 		register_figure< typename t_shape::figure_trait >(
 			 figure_item
+			,loader
 			,shape.position( )
 			,figure_color
 			,shape.parameters( )
@@ -595,7 +542,7 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 		using	geometry	=	::sak::g2i;
 		using	enum	window::flag;
 
-		static constexpr float camera_speed = 1.5f;
+		static constexpr float m_camera_speed = 1.5f;
 
 		demo_logic( )
 			:m_application( )
@@ -605,7 +552,8 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 			,m_camera( 1 )
 			,m_figures( 3 )
 			,m_vertex_array( )
-			,m_shader_program( compiled_shaders( ) )
+			,m_figure_loader( )
+			,m_shader_program( compiled_shaders( m_figure_loader ) )
 		{
 			m_environment.bind( 0 );
 			m_camera.bind( 1 );
@@ -631,6 +579,7 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 
 			register_figure< sphere_figure >(
 				 m_figures[ 0 ]
+				,m_figure_loader
 				,{ -1.00f, 0.0f, 1.0f }
 				,{ 1.0f, 0.0f, 0.0f, 1.0f }
 				,{ 0.40f }
@@ -642,9 +591,10 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 			} };
 			blue_triangle.position( { 0.00f, 0.0f, 1.0f } );
 			blue_triangle.normal( { 0.35f, 0.25f, -1.0f } );
-			register_figure( m_figures[ 1 ], blue_triangle, { 0.0f, 0.0f, 1.0f, 1.0f } );
+			register_figure( m_figures[ 1 ], m_figure_loader, blue_triangle, { 0.0f, 0.0f, 1.0f, 1.0f } );
 			register_figure(
 				 m_figures[ 2 ]
+				,m_figure_loader
 				,capsule{
 					 capsule::data{
 						 position{ 0.80f, -0.40f, 1.25f }
@@ -696,14 +646,14 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 				m_application.quit( );
 			else if( event.key == SDLK_F11 and not event.repeat )
 				m_window.toggle_fullscreen( );
-			else if( const auto found = find( key_movements, event.key, &key_movement::m_key ); found not_eq key_movements.end( ) )
+			else if( const auto found = find( m_key_movements, event.key, &key_movement::m_key ); found not_eq m_key_movements.end( ) )
 				m_movement[ found->m_axis ] = found->m_value;
 		}
 
 		void key_up( const SDL_KeyboardEvent& event ) override
 		{
-			const auto found = find( key_movements, event.key, &key_movement::m_key );
-			if( found not_eq key_movements.end( ) and m_movement[ found->m_axis ] == found->m_value )
+			const auto found = find( m_key_movements, event.key, &key_movement::m_key );
+			if( found not_eq m_key_movements.end( ) and m_movement[ found->m_axis ] == found->m_value )
 				m_movement[ found->m_axis ] = 0.0f;
 		}
 
@@ -717,7 +667,7 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 			float		m_value;
 		};
 
-		static constexpr array< key_movement, 4 > key_movements{ {
+		static constexpr array< key_movement, 4 > m_key_movements{ {
 			 { SDLK_W, 1, 1.0f }
 			,{ SDLK_S, 1, -1.0f }
 			,{ SDLK_A, 0, -1.0f }
@@ -736,7 +686,7 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 					,m_movement
 				)
 				,plus
-			) * ( camera_speed * delta_seconds );
+			) * ( m_camera_speed * delta_seconds );
 			m_camera.flush( );
 		}
 
@@ -747,6 +697,7 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 		shader::storage_buffer< camera >	m_camera;
 		shader::storage_buffer< figure >	m_figures;
 		vertex_array	m_vertex_array;
+		figure_loader	m_figure_loader;
 		program< array< shader, 2 > >	m_shader_program;
 		fps		m_frame_limiter{ 60 };
 		velocity	m_movement{ };
