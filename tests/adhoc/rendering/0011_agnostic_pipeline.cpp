@@ -28,6 +28,7 @@ namespace gl {
 		,convertible_to
 		,enable_shared_from_this
 		,map
+		,remove_cvref_t
 		,size_t
 		,string
 		,string_view
@@ -36,6 +37,7 @@ namespace gl {
 	)
 	__using( ::std::chrono::, duration, high_resolution_clock )
 	__using( ::std::filesystem::, directory_iterator, is_directory )
+	__using( ::std::meta::, identifier_of )
 	__using( ::std::numbers::, pi_v )
 	__using( ::std::ranges::, copy, count, find )
 	__using( ::std::views::
@@ -118,33 +120,39 @@ namespace gl {
 	using	figure = figure_payload< parameter_capacity >;
 
 
-	//	compile-time figure descriptor pairing a parameter count with its glsl evaluator name
+	//	compile-time figure descriptor carrying only the parameter count, its name is its identifier
+	struct figure_trait
+	{
+		struct sphere
+		{
+			static constexpr size_t	m_parameter_count = 1uz;
+		};
+
+		struct triangle
+		{
+			static constexpr size_t	m_parameter_count = 12uz;
+		};
+
+		struct capsule
+		{
+			static constexpr size_t	m_parameter_count = 5uz;
+		};
+	};
+
+
+	//	unqualified name of a figure trait taken from its identifier instead of a repeated string literal
+	template< typename t_trait >
+	consteval auto evaluator_name( ) noexcept -> string_view
+	{
+		return	identifier_of( ^^t_trait );
+	}
+
+
+	//	compile-time constraint requiring a figure trait to declare its parameter count
 	template< typename t_type >
 	concept is_figure_trait = requires
 	{
 		{ t_type::m_parameter_count } -> convertible_to< size_t >;
-		{ t_type::m_evaluator_name } -> convertible_to< string_view >;
-	};
-
-
-	struct sphere_figure
-	{
-		static constexpr size_t	m_parameter_count = 1uz;
-		static constexpr string_view	m_evaluator_name = "sphere";
-	};
-
-
-	struct triangle_figure
-	{
-		static constexpr size_t	m_parameter_count = 12uz;
-		static constexpr string_view	m_evaluator_name = "triangle";
-	};
-
-
-	struct capsule_figure
-	{
-		static constexpr size_t	m_parameter_count = 5uz;
-		static constexpr string_view	m_evaluator_name = "capsule";
 	};
 
 
@@ -179,7 +187,7 @@ namespace gl {
 	class triangle : public vertex_shape< 3 >
 	{
 	public:
-		using	figure_trait	=	triangle_figure;
+		using	figure_trait	=	::gl::figure_trait::triangle;
 		using	vertex_shape< 3 >::vertex_shape;
 
 		auto normal( ) const noexcept -> direction
@@ -231,7 +239,7 @@ namespace gl {
 	class capsule : public vertex_shape< 2 >
 	{
 	public:
-		using	figure_trait	=	capsule_figure;
+		using	figure_trait	=	::gl::figure_trait::capsule;
 
 		explicit capsule( const data& vertices, const float radius ) noexcept
 			:vertex_shape< 2 >( vertices )
@@ -256,8 +264,8 @@ namespace gl {
 	};
 
 
-	//	the registered figure set is validated against the figure loader and the shared payload capacity
-	inline constexpr tuple figure_traits{ sphere_figure{ }, triangle_figure{ }, capsule_figure{ } };
+	//	the registered figure set is validated against the figure loader and the shared payload capacity, each name coming from the trait identifier
+	inline constexpr tuple figure_traits{ figure_trait::sphere{ }, figure_trait::triangle{ }, figure_trait::capsule{ } };
 
 
 	//	apply one per-trait mapping across the whole registered figure set
@@ -269,9 +277,9 @@ namespace gl {
 
 
 	//	per-trait mapping that validates the shared parameter slot budget
-	inline constexpr auto payload_within_capacity = [ ]( const is_figure_trait auto&... figure_trait )
+	inline constexpr auto payload_within_capacity = [ ]( const is_figure_trait auto&... trait )
 	{
-		return	( true and ... and ( figure_trait.m_parameter_count <= parameter_capacity ) );
+		return	( true and ... and ( trait.m_parameter_count <= parameter_capacity ) );
 	};
 
 
@@ -282,14 +290,13 @@ namespace gl {
 	);
 
 
-	//	figure glsl evaluators loaded from individual files and assigned deterministic type ids
+	//	figure glsl evaluators loaded from individual files, the map key supplies the reflected name while the loader supplies the source and assigns deterministic type ids
 	class figure_loader
 	{
 	public:
 		struct entry
 		{
 			GLuint	m_type_id;
-			string	m_name;
 			string	m_source;
 		};
 		using	table	=	map< string, entry >;
@@ -313,7 +320,7 @@ namespace gl {
 			ensure( not sources.empty( ), "no figure file found in: " + m_base_path );
 
 			for( auto&& [ index, item ] : sources | enumerate )
-				m_figures.emplace( item.first, entry{ static_cast< GLuint >( index ), item.first, ::std::move( item.second ) } );
+				m_figures.emplace( item.first, entry{ static_cast< GLuint >( index ), ::std::move( item.second ) } );
 		}
 
 		auto operator[ ]( const string_view name ) const -> const entry&
@@ -332,10 +339,10 @@ namespace gl {
 
 
 	//	one dispatch case generated per loaded figure evaluator
-	auto figure_case( const figure_loader::entry& figure_entry ) -> string
+	auto figure_case( const string_view name, const figure_loader::entry& figure_entry ) -> string
 	{
 		return	"\t\tcase " + to_string( figure_entry.m_type_id )
-			+ "u: return evaluate_" + figure_entry.m_name
+			+ "u: return evaluate_" + string( name )
 			+ "( ray_origin, unit_direction, figure_item );";
 	}
 
@@ -426,10 +433,9 @@ namespace gl {
 	auto figure_dispatch( const figure_loader& loader, const size_t marker_line ) -> string
 	{
 		const string cases = loader.figures( )
-			| values
-			| transform( figure_case )
-			| join_with( string_view{ "\n" } )
-			| to;
+			|	transform( [ ]( const auto& figure_entry ) { return figure_case( figure_entry.first, figure_entry.second ); } )
+			|	join_with( string_view{ "\n" } )
+			|	to;
 		return	restored_diagnostics(
 			 "\tswitch( uint( figure_item.type_id ) )\n\t{\n"
 			+ cases
@@ -478,9 +484,9 @@ namespace gl {
 	{
 		using	enum	shader::type;
 
-		map_figure_traits( [ & ]( const is_figure_trait auto&... figure_trait )
+		map_figure_traits( [ & ]( const is_figure_trait auto&... trait )
 		{
-			for( const string_view name : array{ figure_trait.m_evaluator_name... } )
+			for( const string_view name : array{ evaluator_name< remove_cvref_t< decltype( trait ) > >( )... } )
 				ensure(
 					 contains( loader.figures( ), string( name ) )
 					,"missing figure evaluator: " + string( name )
@@ -509,7 +515,7 @@ namespace gl {
 	) -> void
 	{
 		figure_item.m_position = figure_position;
-		figure_item.m_type_id = loader[ t_figure::m_evaluator_name ].m_type_id;
+		figure_item.m_type_id = loader[ evaluator_name< t_figure >( ) ].m_type_id;
 		figure_item.m_color = figure_color;
 		figure_item.m_parameters.fill( 0.0f );
 		copy( parameters, figure_item.m_parameters.begin( ) );
@@ -577,7 +583,7 @@ namespace gl {
 				,{ 0.0f, 1.0f,  0.0f }
 			};
 
-			register_figure< sphere_figure >(
+			register_figure< figure_trait::sphere >(
 				 m_figures[ 0 ]
 				,m_figure_loader
 				,{ -1.00f, 0.0f, 1.0f }
