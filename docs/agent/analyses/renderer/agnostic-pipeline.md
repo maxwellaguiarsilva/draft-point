@@ -6,6 +6,7 @@
   - Replace the single-type `sphere_ssbo` loop of [Baseline Reference](baseline.md) with a unified loop over a fixed-stride heterogeneous flat figure SSBO.
   - Assemble fragment shader evaluation functions and type dispatch on the CPU via named token injection into a standalone fragment template under `data/shader/`, compiled through `sak::opengl::shader( source, type )`.
   - Upgrade ray traversal to per-fragment normalized `unit_direction` and world-metric surface entry distance `hit_distance` across curved (`sphere`, `capsule`) and planar (3D `triangle`) primitives.
+  - Planned zero-waste revision: [Per-Kind Figure Buffers](per-kind-figure-buffers.md).
 
 ## Architectural Layers
 

@@ -67,6 +67,7 @@
 - [Baseline Reference](baseline.md) — Reference sphere renderer contract and flat-float storage buffer layout.
 - [Point Niebloid Purification](point-niebloids.md) — Coordinate-storage `sak::point` class and external dimension-symmetric niebloids.
 - [Agnostic Pipeline](agnostic-pipeline.md) [#current] — Heterogeneous flat figure payload and CPU-injected GLSL intersection dispatch.
+- [Per-Kind Figure Buffers](per-kind-figure-buffers.md) — Planned zero-waste revision: one homogeneous buffer per figure kind with registry-derived bindings.
 - [Rounded Primitives](rounded-primitives.md) — Convex Minkowski rounded cube and interior concave fillet inversion.
 - [Adaptive Mesh](adaptive-mesh.md) — Per-corner clamped border radius and dihedral crease rounding on triangle meshes.
 - [Orientation](orientation.md) — Dimension-symmetric CPU quaternion algebra reduced to a local-frame basis on the GPU.
