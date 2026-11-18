@@ -86,8 +86,9 @@ namespace gl {
 			,m_environment( 1 )
 			,m_camera( 1 )
 			,m_spheres( 2 )
-			,m_loader( )
-			,m_shader_program( m_loader[ "sdl3-shadertoy" ] | values )
+			,m_shader_file( "data/shader/sdl3-shadertoy.glsl" )
+			,m_loader( m_shader_file )
+			,m_shader_program( m_loader.shaders( ) | values )
 		{
 			m_environment.bind( 0 );
 			m_camera.bind( 1 );
@@ -207,6 +208,7 @@ namespace gl {
 		shader::storage_buffer< camera >	m_camera;
 		shader::storage_buffer< sphere >	m_spheres;
 		vertex_array	m_vertex_array;
+		shader::file	m_shader_file;
 		shader::loader	m_loader;
 		program< shader_range >	m_shader_program;
 		fps		m_frame_limiter{ 60 };

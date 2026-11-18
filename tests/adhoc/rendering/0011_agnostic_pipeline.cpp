@@ -26,6 +26,7 @@ namespace gl {
 		,array
 		,bind_back
 		,convertible_to
+		,declval
 		,enable_shared_from_this
 		,map
 		,pair
@@ -67,7 +68,7 @@ namespace gl {
 		,plus
 		,rotate
 	)
-	__using( ::sak::opengl::, glsl_sections, program, shader, split_glsl_sections, vertex_array )
+	__using( ::sak::opengl::, program, shader, vertex_array )
 	__using( ::sak::ranges::
 		,contains
 		,fold_left_first
@@ -490,20 +491,16 @@ namespace gl {
 
 
 	//	both template sections compiled in memory with figure evaluators from the figure loader
-	auto compiled_shaders( const figure_loader& loader ) -> array< shader, 2 >
+	auto compiled_shaders( const figure_loader& loader ) -> shader::loader
 	{
-		using	enum	shader::type;
-
 		ensure_figure_sources( loader );
 
-		const text_file file( "data/shader/" + string( shader_name ) + ".glsl" );
-		ensure( file.exists( ), "unable to read shader file: " + string( shader_name ) );
+		shader::file source( "data/shader/" + string( shader_name ) + ".glsl" );
+		const string fragment_name = string( identifier_of( ^^shader::type::fragment ) );
+		auto& bodies = source.bodies( );
+		bodies.at( fragment_name ) = assemble_fragment( bodies.at( fragment_name ), loader );
 
-		const glsl_sections sections = split_glsl_sections( file.content( ) );
-		return	{
-			 shader{ sections.at( string( identifier_of( ^^shader::type::vertex ) ) ), vertex }
-			,shader{ assemble_fragment( sections.at( string( identifier_of( ^^shader::type::fragment ) ) ), loader ), fragment }
-		};
+		return	shader::loader( source );
 	}
 
 
@@ -562,7 +559,8 @@ namespace gl {
 			,m_figures( 3 )
 			,m_vertex_array( )
 			,m_figure_loader( )
-			,m_shader_program( compiled_shaders( m_figure_loader ) )
+			,m_shader_loader( compiled_shaders( m_figure_loader ) )
+			,m_shader_program( m_shader_loader.shaders( ) | values )
 		{
 			m_environment.bind( 0 );
 			m_camera.bind( 1 );
@@ -669,6 +667,8 @@ namespace gl {
 		void focus_lost( ) override { m_movement = { }; }
 
 	private:
+		using	shader_range	=	decltype( declval< const shader::table& >( ) | values );
+
 		struct key_movement
 		{
 			SDL_Keycode	m_key;
@@ -707,7 +707,8 @@ namespace gl {
 		shader::storage_buffer< figure >	m_figures;
 		vertex_array	m_vertex_array;
 		figure_loader	m_figure_loader;
-		program< array< shader, 2 > >	m_shader_program;
+		shader::loader	m_shader_loader;
+		program< shader_range >	m_shader_program;
 		fps		m_frame_limiter{ 60 };
 		velocity	m_movement{ };
 	};
