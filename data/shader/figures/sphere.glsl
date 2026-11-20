@@ -10,9 +10,9 @@ hit_result evaluate_sphere( vec3 ray_origin, vec3 unit_direction, figure figure_
 		return	no_hit( );
 	float	cosine_incidence = sqrt( 1.0 - clamp( opposite_leg_squared / radius_squared, 0.0, 1.0 ) );
 	float	half_chord = radius * cosine_incidence;
-	float	near_distance = along - half_chord;
 	float	far_distance = along + half_chord;
 	if( far_distance <= 0.0 )
 		return	no_hit( );
+	float	near_distance = along - half_chord;
 	return	hit_result( true, near_distance > 0.0 ? near_distance : far_distance, cosine_incidence );
 }
