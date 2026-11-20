@@ -1,16 +1,16 @@
 ---
-description: Uploads all related Git repositories (draft-point and its sibling project-mcp-tools) by pulling, committing changes grouped by topic, and pushing to their remotes.
+description: Uploads all related Git repositories (the main repository and the sibling project-mcp-tools) by pulling, committing changes grouped by topic, and pushing to their remotes.
 agent: build
 ---
 
 This workspace spans two Git repositories:
 
-- **`draft-point`**: the main project (the current working directory).
-- **`project-mcp-tools`**: a sibling repository (`../project-mcp-tools`) holding shared tooling and library sources.
+- The **main repository**: the current working directory.
+- The **tooling repository**: the sibling `project-mcp-tools` checkout that the `project-mcp-tools` MCP server runs from, given by the `--directory` value of that server in `opencode.json` (`../project-mcp-tools` by default).
 
-Part of `draft-point`'s tree is made of symlinks pointing into `project-mcp-tools` (e.g. `include/sak`, `scripts`). Files reached through those symlinks belong to `project-mcp-tools`, so their changes are committed from inside that repository.
+Part of the main repository's tree is made of symlinks pointing into the tooling repository (for example `include/sak` and `scripts`). Files reached through those symlinks belong to the tooling repository, so their changes are committed from inside that repository.
 
-**Procedure:** run the upload workflow below in `draft-point`, then in `project-mcp-tools`, then return to `draft-point`.
+**Procedure:** run the upload workflow below in the main repository, then in the tooling repository, then return to the main repository.
 
 1. **Fetch Latest Code:** run `git pull` in the current repository.
 2. **Analyze Changes:** inspect `git status` and `git diff` to understand what was modified, including untracked files.
@@ -22,7 +22,7 @@ Part of `draft-point`'s tree is made of symlinks pointing into `project-mcp-tool
    Do not ask for approval for the commit message; proceed automatically.
 5. **Push:** run `git push`.
 6. **Final Validation:** confirm `git status` is 100% clean (no modified, staged, or untracked files).
-7. **Move to the Next Repository:** if the workflow just ran in `draft-point`, switch to `project-mcp-tools` and repeat steps 1-6 there; then return to `draft-point`. Skip this step if the workflow ran only in `project-mcp-tools`.
+7. **Move to the Next Repository:** if the workflow just ran in the main repository, change to the tooling repository and repeat steps 1-6 there, then return to the main repository. Skip this step when the workflow already ran in the tooling repository only.
 8. **Communication:** report that the procedure completed successfully, showing exactly which commit message(s) were used, each enclosed in backticks.
 
 User text: `$ARGUMENTS`
