@@ -1,0 +1,106 @@
+//	
+//	SPDX-FileCopyrightText: 2026 Maxwell Aguiar Silva <maxwellaguiarsilva@gmail.com>
+//	SPDX-License-Identifier: GPL-3.0-or-later
+//	
+
+
+#include <vector>
+#include <exception>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <signal.h>
+#include <game/fps.hpp>
+
+
+__using( ::std::, println )
+__using( ::sak::, ensure )
+
+
+//	needs to be `volatile` to be `signal_thread_safe`
+volatile sig_atomic_t flag_window_changed = 0;
+
+
+//	gets and prints the current terminal size ( rows and columns )
+void print_terminal_size( )
+{
+	struct winsize window_size;
+	ensure( ioctl( STDOUT_FILENO, TIOCGWINSZ, &window_size ) not_eq -1, "error on get_win_size" );
+
+	println( "Terminal size: {} by {}", window_size.ws_col, window_size.ws_row );
+}
+
+
+//	signal handler for sigwinch
+void signal_window_change_handler( int signal_number ) { if( signal_number == SIGWINCH ) flag_window_changed = 1; }
+
+
+//	configures the handler for the sigwinch signal
+void setup_signal_handler( )
+{
+	struct sigaction signal_action;
+
+	//	assign the function to be called
+	signal_action.sa_handler = signal_window_change_handler;
+
+	//	resets any flags that may be set
+	sigemptyset( &signal_action.sa_mask );
+
+	//	sa_restart restarts interrupted system calls
+	signal_action.sa_flags = SA_RESTART;
+
+	//	register the action for the sigwinch signal
+	ensure( sigaction( SIGWINCH, &signal_action, nullptr ) not_eq -1, "error registering sigwinch signal handler" );
+}
+
+
+auto main( const int argument_count, const char* argument_values[ ] ) -> int
+{
+	__using( ::sak::
+		,exit_success
+		,exit_failure
+		,ensure
+	)
+	__using( ::std::
+		,string
+		,vector
+		,println
+		,exception
+	)
+	__using( ::std::views::, join_with )
+	__using( ::std::ranges::, to )
+
+	println( "{}", vector< string >( argument_values, argument_values + argument_count ) | join_with( '\n' ) | to< string >( ) );
+
+	try
+	{
+		::game::fps fps( 10 );
+
+		setup_signal_handler( );
+
+		println( "resize the terminal window: press ctrl+c to exit" );
+		print_terminal_size( );
+
+		//	main program loop
+		while( true )
+		{
+			if( flag_window_changed )
+			{
+				flag_window_changed = 0;
+				print_terminal_size( );
+			}
+
+			fps.compute( );
+		}
+
+		println( "all tests passed!" );
+	}
+	catch( const exception& error )
+	{
+		println( "test failed: {}", error.what( ) );
+		return	exit_failure;
+	}
+
+	return	exit_success;
+}
+
+

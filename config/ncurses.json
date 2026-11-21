@@ -1,0 +1,7 @@
+{
+    "dependencies": {
+        "libraries": [
+            "ncurses"
+        ]
+    }
+}
