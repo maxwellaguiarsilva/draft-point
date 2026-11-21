@@ -38,7 +38,7 @@ hit_result evaluate_capsule( vec3 ray_origin, vec3 unit_direction, figure figure
 		for( int hit_index = 0; hit_index < 2; ++hit_index )
 		{
 			float	candidate = center_distance + ( hit_index == 0 ? -half_chord : half_chord );
-			if( candidate <= 0.0 || candidate >= best_distance )
+			if( candidate >= best_distance )
 				continue;
 			if( is_cylinder
 				? abs( candidate * direction_along - center_along ) <= half_length

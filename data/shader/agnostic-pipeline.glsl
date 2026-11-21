@@ -108,6 +108,10 @@ hit_result no_hit( ) { return hit_result( false, -1.0, 0.0 ); }
 //	@figure_functions
 hit_result dispatch_figure( vec3 ray_origin, vec3 unit_direction, figure figure_item )
 {
+//	every evaluator assumes the figure center lies ahead of the camera
+	float	along = dot( figure_item.position - ray_origin, unit_direction );
+	if( along <= 0.0 )
+		return	no_hit( );
 //	@figure_dispatch
 	return	no_hit( );
 }

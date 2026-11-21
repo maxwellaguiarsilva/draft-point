@@ -7,8 +7,6 @@ hit_result evaluate_triangle( vec3 ray_origin, vec3 unit_direction, figure figur
 		return	no_hit( );
 	vec3	local_center = figure_item.position - ray_origin;
 	float	hit_distance = dot( local_center, normal ) / denominator;
-	if( hit_distance <= 0.0 )
-		return	no_hit( );
 	vec3	hit_local = hit_distance * unit_direction - local_center;
 	vec3	corner_0 = vec3_from( figure_item.parameters, 0u ) - hit_local;
 	vec3	corner_1 = vec3_from( figure_item.parameters, 3u ) - hit_local;
