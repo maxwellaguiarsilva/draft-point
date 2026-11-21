@@ -69,11 +69,16 @@ struct figure_payload
   - `vec3 unit_direction = normalize( direction );` is computed once per fragment prior to iterating `figure_ssbo.count`.
 - Evaluator signature:
   - Every registered figure emits `hit_result evaluate_<figure>( vec3 ray_origin, vec3 unit_direction, figure figure_item )`.
+- Shared traversal cull:
+  - `dispatch_figure` computes `figure_item.along = dot( figure_item.position - ray_origin, unit_direction );` once before the generated `switch( uint( figure_item.type_id ) )` and returns `no_hit( )` when `figure_item.along <= 0.0`, so every registered figure receives the same center-ahead rejection regardless of its shape or extent.
+  - The projection reaches the evaluator as the `along` member of the decoded GLSL `figure` struct, a per-ray transient outside the flat SSBO payload with no float offset in the buffer, initialized to `0.0` by `ssbo_figure` before `dispatch_figure` overwrites it for the current ray.
+  - `dispatch_figure` and every evaluator take the struct by value, so writing the transient member carries the projection into the evaluator while the evaluator signature stays unchanged.
+  - The camera-inside-figure case is deliberately unhandled by the evaluators, which may return a non-positive distance; the distance sign is enforced only by the main loop acceptance `candidate.hit && candidate.hit_distance > 0.0`.
 
 aguardando o usuário finalizar o modelo final do estágio dois para documentar após estar concluído
 
 - Mathematical properties of the sphere, 3D plane triangle, and capsule evaluators:
-  - Sphere (`parameters[ 0 ] = radius`): `near_distance = along - radius * cos_incidence` provides exact world-space exterior entry depth and `far_distance = along + radius * cos_incidence` provides interior exit depth for `hit_distance`.
+  - Sphere (`parameters[ 0 ] = radius`): `along - radius * cos_incidence` provides the exact world-space entry depth for `hit_distance`, with `cos_incidence = sqrt( 1.0 - clamp( opposite_leg_squared / radius_squared, 0.0, 1.0 ) )` derived from the perpendicular offset of the center from the ray; a camera inside the sphere yields a non-positive distance that the main loop discards.
   - 3D Plane Triangle (`position = centroid`, `parameters[ 0..8 ] = three centroid-relative vectors`, `parameters[ 9..11 ] = plane unit normal`):
     - CPU `triangle` class owns absolute vertex coordinates in `triangle::data` (`array< position, 3 >`) and precomputes the centroid, three centroid-relative vectors (`vertex - centroid`), and unit plane normal `normalize( cross( v1 - v0, v2 - v0 ) )`.
     - Trigonometric ray-plane intersection projects the camera-to-centroid offset onto the plane unit normal (`dot( centroid - ray_origin, normal )`) and divides by `dot( unit_direction, normal ) = cos( theta )` to obtain the exact world-metric `hit_distance` along `unit_direction`.

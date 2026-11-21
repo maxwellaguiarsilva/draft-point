@@ -74,6 +74,7 @@ struct figure
 	float	type_id;
 	vec4	color;
 	float	parameters[ figure_parameter_capacity ];
+	float	along;
 };
 
 figure ssbo_figure( uint index )
@@ -85,6 +86,7 @@ figure ssbo_figure( uint index )
 	figure_item.color = vec4_from( figure_ssbo.data, base_index + 4u );
 	for( uint slot = 0u; slot < figure_parameter_capacity; ++slot )
 		figure_item.parameters[ slot ] = figure_ssbo.data[ base_index + 8u + slot ];
+	figure_item.along = 0.0;
 	return	figure_item;
 }
 
@@ -109,8 +111,8 @@ hit_result no_hit( ) { return hit_result( false, -1.0, 0.0 ); }
 hit_result dispatch_figure( vec3 ray_origin, vec3 unit_direction, figure figure_item )
 {
 //	every evaluator assumes the figure center lies ahead of the camera
-	float	along = dot( figure_item.position - ray_origin, unit_direction );
-	if( along <= 0.0 )
+	figure_item.along = dot( figure_item.position - ray_origin, unit_direction );
+	if( figure_item.along <= 0.0 )
 		return	no_hit( );
 //	@figure_dispatch
 	return	no_hit( );
