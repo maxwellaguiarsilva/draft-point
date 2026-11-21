@@ -9,7 +9,7 @@
 
 ## Next Task
 
-- aguardando o usuário finalizar o modelo final do estágio dois para documentar após estar concluído
+- awaiting the user to finish the final model of Stage 2 for documentation once it is complete
 
 ## Reproduction Commands
 
@@ -67,10 +67,11 @@
   - `sak::math::length` returns the natural floating-point norm of `square_root( dot( vector ) )` (`sqrt( 14.0 )` for `point< int, 3 >{ 1, 2, 3 }`, asserted within tolerance `1e-6` against `3.7416573867739413` in `tests/sak/test_sak_geometry.cpp`); both `dist/test-sak-geometry` and `dist/test-sak` pass.
 - **Stage 2 ([Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md)) — Sphere + Trigonometric 3D Triangle + Capsule**:
   - The user rejected the earlier slab/AABB `cube_figure` / `evaluate_cube` prototype in `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`, shifted Stage 2 to **sphere + trigonometric 3D triangle**, and added the third Stage 2 primitive: **capsule (spherocylinder)** defined by two world vertices and a radius.
-  - [Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md) specifies all three Stage 2 traits in `figure_traits = { sphere_figure{ }, triangle_figure{ }, capsule_figure{ } }` within `parameter_capacity = 12uz`:
-    - `sphere_figure` (`m_type_id = 0u`, `m_parameter_count = 1uz`, `evaluate_sphere`).
-    - `triangle` (`triangle::data` absolute vertices, precomputed centroid, three centroid-relative vectors, and unit plane normal) with `triangle_figure` (`m_type_id = 1u`, `m_parameter_count = 12uz`, `evaluate_triangle`).
-    - `capsule` (`capsule::data = array< position, 2 >`, `m_radius`, derived midpoint `position( )`, unit axis, and `half_length`, delivering 5 floats `unit_axis[3]`, `half_length`, `radius` to `m_parameters` alongside `m_position = midpoint`) with `capsule_figure` (`m_type_id = 2u`, `m_parameter_count = 5uz`, `evaluate_capsule`).
+  - [Agnostic Pipeline](analyses/renderer/agnostic-pipeline.md) specifies all three Stage 2 traits in `figure_traits = { figure_trait::sphere{ }, figure_trait::triangle{ }, figure_trait::capsule{ } }` within `parameter_capacity = 12uz`, with type ids assigned by `figure_loader` from the sorted file order:
+    - `figure_trait::sphere` (`m_type_id = 1u`, `m_parameter_count = 1uz`, `sphere.glsl`).
+    - `figure_trait::triangle` (`m_type_id = 2u`, `m_parameter_count = 12uz`, `triangle.glsl`) with `triangle::data` absolute vertices, precomputed centroid, three centroid-relative vectors, and unit plane normal.
+    - `figure_trait::capsule` (`m_type_id = 0u`, `m_parameter_count = 5uz`, `capsule.glsl`) with `capsule::data = array< position, 2 >`, `m_radius`, derived midpoint `position( )`, unit axis, and `half_length`, delivering 5 floats `unit_axis[3]`, `half_length`, `radius` to `m_parameters` alongside `m_position = midpoint`.
+  - The fragment dispatcher culls figures whose center lies behind the camera once, before the switch, and inlines the body extracted from each figure file inside its `case <type_id>u: {` block.
 - **Stages 3 through 7 — Disapproved by User**:
   - Everything planned or authored after Stage 2 remains **disapproved by the user** and held pending revision:
     - Stage 3 Voronoi/AABB/concave-inversion specification (`docs/agent/analyses/renderer/rounded-primitives.md`).

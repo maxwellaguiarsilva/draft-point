@@ -362,12 +362,22 @@ namespace gl {
 	};
 
 
-	//	one dispatch case generated per loaded figure evaluator
+	//	body of a figure evaluator, taken between the outer braces that follow its declared signature
+	auto figure_body( const string& source ) -> string
+	{
+		const size_t opening = source.find( '{' );
+		const size_t closing = source.rfind( '}' );
+		ensure( opening < closing and closing < source.size( ), "figure evaluator without an extractable body" );
+		return	source.substr( opening + 1uz, closing - opening - 1uz );
+	}
+
+
+	//	one dispatch case inlining the body of a loaded figure evaluator on the shared dispatcher scope
 	auto figure_case( const figure_loader::table::value_type& figure_source ) -> string
 	{
 		return	"\t\tcase " + to_string( figure_source.second.m_type_id )
-			+ "u: return evaluate_" + figure_source.first
-			+ "( ray_origin, unit_direction, figure_item );";
+			+ "u: {" + figure_body( figure_source.second.m_source )
+			+ "\t\t}";
 	}
 
 
@@ -415,20 +425,6 @@ namespace gl {
 	}
 
 
-	//	evaluator definitions concatenated from the loaded figure files
-	auto figure_functions( const figure_loader& loader, const size_t marker_line ) -> string
-	{
-		return	restored_diagnostics(
-			 loader.figures( )
-				| values
-				| transform( &figure_loader::entry::m_source )
-				| join_with( string_view{ "\n\n" } )
-				| to
-			,marker_line
-		);
-	}
-
-
 	//	integer switch dispatching on the type id assigned by the figure loader
 	auto figure_dispatch( const figure_loader& loader, const size_t marker_line ) -> string
 	{
@@ -454,9 +450,8 @@ namespace gl {
 
 
 	//	every placeholder of the fragment template in replacement order
-	inline constexpr array< glsl_placeholder, 3 > glsl_placeholders{ {
+	inline constexpr array< glsl_placeholder, 2 > glsl_placeholders{ {
 		 { "//	@figure_parameter_capacity", parameter_capacity_define }
-		,{ "//	@figure_functions", figure_functions }
 		,{ "//	@figure_dispatch", figure_dispatch }
 	} };
 

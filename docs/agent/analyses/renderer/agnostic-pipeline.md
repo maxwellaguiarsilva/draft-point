@@ -4,7 +4,7 @@
 
 - Decouple CPU scene description from concrete primitive geometry while generating the GLSL figure evaluation and dispatch shader on the CPU:
   - Replace the single-type `sphere_ssbo` loop of [Baseline Reference](baseline.md) with a unified loop over a fixed-stride heterogeneous flat figure SSBO.
-  - Assemble fragment shader evaluation functions and type dispatch on the CPU via named token injection into a standalone fragment template under `data/shader/`, compiled through `sak::opengl::shader( source, type )`.
+  - Assemble fragment shader evaluation bodies and type dispatch on the CPU via named token injection into a standalone fragment template under `data/shader/`, compiled through `sak::opengl::shader( source, type )`.
   - Upgrade ray traversal to per-fragment normalized `unit_direction` and world-metric surface entry distance `hit_distance` across curved (`sphere`, `capsule`) and planar (3D `triangle`) primitives.
   - Planned zero-waste revision: [Per-Kind Figure Buffers](per-kind-figure-buffers.md).
 
@@ -12,7 +12,7 @@
 
 - **Layer 1 — CPU Figure Contract and Token-Injected Shader Assembly**:
   - Fixed-stride `is_flat` figure payload contract with compile-time figure trait registration and a single slot-capacity `static_assert`.
-  - Shared GLSL dimension-symmetry prelude combined with three named placeholder tokens and `#line` diagnostic restoration.
+  - Shared GLSL dimension-symmetry prelude combined with two named placeholder tokens and `#line` diagnostic restoration.
   - In-memory shader compilation via `sak::opengl::shader( source, type )` and program linking via `sak::opengl::program`, keeping `sak::opengl::shader::loader` and baseline files unchanged.
 - **Layer 2 — Heterogeneous Sphere, Trigonometric 3D Triangle, and Capsule Dispatch**:
   - Single `storage_buffer` populated with heterogeneous sphere, CPU-precomputed 3D plane triangle, and capsule payloads in a standalone prototype under `tests/adhoc/rendering/`.
@@ -68,14 +68,16 @@ struct figure_payload
 - Per-fragment normalization:
   - `vec3 unit_direction = normalize( direction );` is computed once per fragment prior to iterating `figure_ssbo.count`.
 - Evaluator signature:
-  - Every registered figure emits `hit_result evaluate_<figure>( vec3 ray_origin, vec3 unit_direction, figure figure_item )`.
+  - Every figure file under `data/shader/figures/` declares `hit_result evaluate_<figure>( vec3 ray_origin, vec3 unit_direction, figure figure_item )`.
+  - The host extracts only the text between the outer braces of the figure file and emits it inside a braced block directly as the `switch` case, so the generated body reads `ray_origin`, `unit_direction` and `figure_item` from `dispatch_figure`'s scope and no parameter is copied per call.
+  - The braces exist because a declaration cannot follow a `case` label directly and because each body's locals stay scoped to its own case.
 - Shared traversal cull:
   - `dispatch_figure` computes `figure_item.along = dot( figure_item.position - ray_origin, unit_direction );` once before the generated `switch( uint( figure_item.type_id ) )` and returns `no_hit( )` when `figure_item.along <= 0.0`, so every registered figure receives the same center-ahead rejection regardless of its shape or extent.
   - The projection reaches the evaluator as the `along` member of the decoded GLSL `figure` struct, a per-ray transient outside the flat SSBO payload with no float offset in the buffer, initialized to `0.0` by `ssbo_figure` before `dispatch_figure` overwrites it for the current ray.
-  - `dispatch_figure` and every evaluator take the struct by value, so writing the transient member carries the projection into the evaluator while the evaluator signature stays unchanged.
+  - `dispatch_figure` writes the transient member and the braced case body reads it from the same scope, so the projection reaches the body without any evaluator call or parameter copy; the `evaluate_<figure>` signature declared in the figure file is only the declared contract of that body.
   - The camera-inside-figure case is deliberately unhandled by the evaluators, which may return a non-positive distance; the distance sign is enforced only by the main loop acceptance `candidate.hit && candidate.hit_distance > 0.0`.
 
-aguardando o usuário finalizar o modelo final do estágio dois para documentar após estar concluído
+awaiting the user to finish the final model of Stage 2 for documentation once it is complete
 
 - Mathematical properties of the sphere, 3D plane triangle, and capsule evaluators:
   - Sphere (`parameters[ 0 ] = radius`): `along - radius * cos_incidence` provides the exact world-space entry depth for `hit_distance`, with `cos_incidence = sqrt( 1.0 - clamp( opposite_leg_squared / radius_squared, 0.0, 1.0 ) )` derived from the perpendicular offset of the center from the ray; a camera inside the sphere yields a non-positive distance that the main loop discards.
@@ -89,28 +91,29 @@ aguardando o usuário finalizar o modelo final do estágio dois para documentar 
 
 ### 3. Compile-time Figure Registration Model
 
-- Figures are declared as compile-time trait types collected in one `constexpr std::tuple`, each trait pairing:
-  - `m_type_id` (`GLuint` GPU type id).
+- Figures are declared as compile-time trait types collected in one `constexpr std::tuple`, each trait carrying only its parameter-slot count:
   - `m_parameter_count` (`size_t` parameter-slot count).
-  - `m_evaluator_name` (`std::string_view` evaluator name).
-  - `m_evaluator_source` (`std::string_view` static GLSL evaluator definition).
-- The trait set is the single source of truth; every generated artifact folds over the same tuple through one per-trait mapping applied with `std::apply`:
-  - Evaluator concatenation joins `m_evaluator_source` across every registered trait.
-  - Dispatch `case` generation emits one `case <type_id>u: return evaluate_<name>( ray_origin, unit_direction, figure_item );` per registered trait.
+- The evaluator name of a trait is read from its own reflection token through `std::meta::identifier_of`, and `figure_loader` matches that name against the file stem under `data/shader/figures/`.
+- The numeric type id of a trait is assigned by `figure_loader` from the sorted order of the loaded file stems.
+- The registered trait tuple is the single source of truth for the slot budget and for the required evaluator set:
   - Slot-capacity validation folds `m_parameter_count <= t_parameter_count` across every registered trait.
+  - The evaluator presence check asserts that every registered trait has a loaded file with the matching name.
+- The dispatch producer folds over the loaded figure map instead of the tuple, so the generated cases follow the loader's name and type id assignment:
+  - Evaluator body injection takes the body text of each loaded figure file and inlines it inside its dispatch case.
+  - Dispatch `case` generation emits one `case <type_id>u: {` block per loaded figure.
 - Capacity constraint stated once and validated at compile time for every registered trait:
   - The shared payload capacity is declared once as `parameter_capacity` (`12uz`), which fixes `t_parameter_count` of the figure payload.
   - A single `static_assert` over the registered tuple rejects any trait whose `m_parameter_count` exceeds that capacity.
 - Generated dispatch statement:
-  - The CPU emits `switch( uint( figure_item.type_id ) )` with one `case` per registered trait.
+  - The CPU emits `switch( uint( figure_item.type_id ) )` with one case per loaded figure.
   - `m_type_id` remains an exact integer-valued `float` inside the payload and converts on the GPU via `uint( figure_item.type_id )`.
-- Registered traits in the Stage 2 prototype:
-  - `sphere_figure`: `m_type_id = 0u`, `m_parameter_count = 1uz`, evaluator `evaluate_sphere`.
-  - `triangle_figure`: `m_type_id = 1u`, `m_parameter_count = 12uz`, evaluator `evaluate_triangle`.
-  - `capsule_figure`: `m_type_id = 2u`, `m_parameter_count = 5uz`, evaluator `evaluate_capsule`.
+- Registered traits in the Stage 2 prototype, numbered by the sorted file order:
+  - `sphere`: `m_type_id = 1u`, `m_parameter_count = 1uz`, file `sphere.glsl`.
+  - `triangle`: `m_type_id = 2u`, `m_parameter_count = 12uz`, file `triangle.glsl`.
+  - `capsule`: `m_type_id = 0u`, `m_parameter_count = 5uz`, file `capsule.glsl`.
 
 ```cpp
-inline constexpr tuple figure_traits{ sphere_figure{ }, triangle_figure{ }, capsule_figure{ } };
+inline constexpr tuple figure_traits{ figure_trait::sphere{ }, figure_trait::triangle{ }, figure_trait::capsule{ } };
 
 //	compile-time validation of the shared payload capacity for every registered figure
 static_assert(
@@ -134,16 +137,19 @@ float sum_axis( vec3 value ) { return dot( value, vec3( 1.0 ) ); }
 
 ### 5. CPU Placeholder Replacement Mechanics
 
-- Three named placeholder tokens in the standalone fragment template, each pairing a marker line with a replacement produced on the CPU:
+- Two named placeholder tokens in the standalone fragment template, each pairing a marker line with a replacement produced on the CPU:
 
 | Placeholder Marker | CPU Replacement | Purpose |
 |---|---|---|
 | `//	@figure_parameter_capacity` | `#define figure_parameter_capacity <count>` | Injects the payload slot capacity so it exists once in C++ (`t_parameter_count`) and is not duplicated as a literal array bound in GLSL |
-| `//	@figure_functions` | Concatenated `evaluate_<figure>` definitions | Populates the evaluator bodies folded from the registered trait tuple |
-| `//	@figure_dispatch` | Generated `switch( uint( figure_item.type_id ) )` with one `case` per registered trait | Replaces per-figure dispatch boilerplate with a single generated statement |
+| `//	@figure_dispatch` | Generated `switch( uint( figure_item.type_id ) )` whose `case <type_id>u: {` blocks inline the body extracted from each figure file | Replaces per-figure dispatch boilerplate with a single generated statement that carries each figure body directly instead of calling `evaluate_<figure>` |
+
+- Generated dispatch body shape:
+  - `//	@figure_dispatch` becomes `switch( uint( figure_item.type_id ) )` with one block per loaded figure, whose case label and block opening share one line (`case <type_id>u: {`); the braces allow a declaration to follow the case label and keep each body's locals scoped to its own case.
+  - Each block holds the body extracted verbatim from the figure file between its outer braces with the figure file's own indentation, reading `ray_origin`, `unit_direction` and `figure_item` from `dispatch_figure`'s scope, and the closing brace is indented with the case.
 
 - Placeholder order and producer pairing:
-  - Every placeholder is one `glsl_placeholder{ m_marker, m_produce }` entry inside a single `constexpr` array of three entries.
+  - Every placeholder is one `glsl_placeholder{ m_marker, m_produce }` entry inside a single `constexpr` array of two entries.
   - Each producer receives the one-based line number of its marker, so replacement runs in array order over one template copy while every producer reads the unmodified template line layout.
 - Deterministic string replacement:
   - Token expansion uses literal substring search and replacement (`std::string::find` and `std::string::replace`), preserving unescaped GLSL `{` and `}` braces directly while `sak::format` targets `std::vformat` format strings.
@@ -163,7 +169,7 @@ float sum_axis( vec3 value ) { return dot( value, vec3( 1.0 ) ); }
 
 - Stage 2 prototype: `tests/adhoc/rendering/0011_agnostic_pipeline.cpp`.
 - Fragment template: `data/shader/agnostic-pipeline.glsl`.
-- The prototype exercises the heterogeneous `figure_ssbo` pipeline with a sphere (`sphere_figure` / `evaluate_sphere`), a trigonometric 3D plane triangle (`triangle` + `triangle_figure` / `evaluate_triangle`), and a capsule (`capsule` + `capsule_figure` / `evaluate_capsule`).
+- The prototype exercises the heterogeneous `figure_ssbo` pipeline with a sphere (`figure_trait::sphere` / `sphere.glsl`), a trigonometric 3D plane triangle (`figure_trait::triangle` / `triangle.glsl`), and a capsule (`figure_trait::capsule` / `capsule.glsl`).
 
 ## Boundary
 

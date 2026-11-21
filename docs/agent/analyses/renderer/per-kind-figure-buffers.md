@@ -120,7 +120,7 @@ struct figure_trait
 
 - `evaluator_identifier` remains the link between a trait and its `.glsl` file.
 - The source loader keeps only the evaluator text; it no longer assigns a type id.
-- `ensure_figure_sources` still asserts that every registered trait has a loaded evaluator and that every loaded evaluator belongs to a registered trait.
+- `ensure_figure_sources` still asserts that every registered trait has a loaded evaluator.
 
 ### 3. Buffers
 
