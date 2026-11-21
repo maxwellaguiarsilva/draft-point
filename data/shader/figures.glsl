@@ -146,9 +146,7 @@ void main( )
 	}
 
 	if( best_hit.hit )
-	{
 		best_color.rgb *= s_environment.ambient + s_environment.volume * abs( dot( direction, best_hit.hit_normal ) );
-	}
 
 	final_color = vec4( best_color.rgb, 1.0 );
 }

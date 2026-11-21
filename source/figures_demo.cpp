@@ -436,10 +436,6 @@ namespace gl {
 	}
 
 
-	//	name of the prototype assembled in memory instead of loaded by the file based shader loader
-	inline constexpr string_view shader_name = "agnostic-pipeline";
-
-
 	//	assert every registered figure trait has a loaded evaluator
 	auto ensure_figure_sources( const figure_loader& loader ) -> void
 	{
@@ -456,7 +452,7 @@ namespace gl {
 	{
 		ensure_figure_sources( loader );
 
-		shader::file source( "data/shader/" + string( shader_name ) + ".glsl" );
+		shader::file source( "data/shader/figures.glsl" );
 		const string fragment_name = string( identifier_of( ^^shader::type::fragment ) );
 		auto& bodies = source.bodies( );
 		bodies.at( fragment_name ) = assemble_fragment( bodies.at( fragment_name ), loader );
@@ -513,7 +509,7 @@ namespace gl {
 
 		demo_logic( )
 			:m_application( )
-			,m_window( "agnostic pipeline", { opengl, resizable } )
+			,m_window( "glsl figures", { opengl, resizable } )
 			,m_context( m_window )
 			,m_environment( 1 )
 			,m_camera( 1 )
