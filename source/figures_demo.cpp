@@ -10,6 +10,7 @@
 #define GLAD_GL_IMPLEMENTATION
 
 
+#include <sak/fso/text_file.hpp>
 #include <sak/opengl/program.hpp>
 #include <sak/opengl/vertex_array.hpp>
 #include <sak/ranges/fold_left_first.hpp>
@@ -122,6 +123,7 @@ namespace gl {
 
 	inline constexpr size_t parameter_capacity = 12uz;
 	using	figure = figure_payload< parameter_capacity >;
+	inline constexpr string_view shader_directory{ "data/shader" };
 
 
 	//	compile-time figure descriptor carrying only the parameter count, its name is its identifier
@@ -286,7 +288,7 @@ namespace gl {
 		};
 		using	table	=	map< string, entry >;
 
-		explicit figure_loader( const string& base_path = "data/shader/figures" )
+		explicit figure_loader( const string& base_path = string( shader_directory ) + "/figures" )
 			:m_figures( load( base_path ) )
 		{ }
 
@@ -447,17 +449,18 @@ namespace gl {
 	}
 
 
-	//	both template sections compiled in memory with figure evaluators from the figure loader
-	auto compiled_shaders( const figure_loader& loader ) -> shader::loader
+	//	every glsl section compiled in memory with figure evaluators from the figure loader
+	auto compile_shaders( const figure_loader& loader ) -> shader::table
 	{
 		ensure_figure_sources( loader );
 
-		shader::file source( "data/shader/figures.glsl" );
-		const string fragment_name = string( identifier_of( ^^shader::type::fragment ) );
-		auto& bodies = source.bodies( );
-		bodies.at( fragment_name ) = assemble_fragment( bodies.at( fragment_name ), loader );
+		const text_file template_file( string( shader_directory ) + "/figures.glsl" );
+		ensure( template_file.exists( ), "unable to read shader file: " + template_file.path( ).string( ) );
 
-		return	shader::loader( source );
+		const string fragment_name( shader::name_of( shader::type::fragment ) );
+		auto sections = shader::split_sections( template_file.content( ) );
+		sections.at( fragment_name ) = assemble_fragment( sections.at( fragment_name ), loader );
+		return	shader::compile( sections );
 	}
 
 
@@ -516,8 +519,8 @@ namespace gl {
 			,m_figures( 2 )
 			,m_vertex_array( )
 			,m_figure_loader( )
-			,m_shader_loader( compiled_shaders( m_figure_loader ) )
-			,m_shader_program( m_shader_loader.shaders( ) | values )
+			,m_shaders( compile_shaders( m_figure_loader ) )
+			,m_shader_program( m_shaders | values )
 		{
 			m_environment.bind( 0 );
 			m_camera.bind( 1 );
@@ -621,7 +624,7 @@ namespace gl {
 		void focus_lost( ) override { m_movement = { }; }
 
 	private:
-		using	shader_range	=	decltype( declval< const shader::table& >( ) | values );
+		using	shader_range	=	decltype( declval< shader::table& >( ) | values );
 
 		struct key_movement
 		{
@@ -661,7 +664,7 @@ namespace gl {
 		shader::storage_buffer< figure >	m_figures;
 		vertex_array	m_vertex_array;
 		figure_loader	m_figure_loader;
-		shader::loader	m_shader_loader;
+		shader::table	m_shaders;
 		program< shader_range >	m_shader_program;
 		fps		m_frame_limiter{ 60 };
 		velocity	m_movement{ };
