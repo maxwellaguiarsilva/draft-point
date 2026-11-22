@@ -21,6 +21,7 @@ The CPU hands bulk data to the GPU as a flat array of floats. C++26 reflection v
 
 ## is_flat
 
+- The contract is declared in `include/sak/meta/meta.hpp`.
 - `has_no_padding` reflects over `nonstatic_data_members_of` with `access_context::current( )`, walks the members in declaration order, and compares the accumulated `size_of( type_of( member ) )` against `offset_of( member ).bytes`. A leading gap, a gap between members, or a trailing gap fails the check, and the accumulated total must also equal `size_of( type )`.
 - `is_flat` combines that check with `is_trivially_copyable_v`, so the payload has a contiguous byte image and no copy semantics that alter its bytes.
 - `shader::storage_buffer` asserts `is_flat`, so a payload that gains padding fails at compile time on the declaration rather than at runtime in the shader.
