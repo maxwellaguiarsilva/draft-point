@@ -55,6 +55,7 @@ namespace gl {
 	)
 	__using( ::sak::, ensure )
 	__using( ::sak::fso::, text_file )
+	__using( ::sak::meta::, name_of )
 	__using( ::sak::math::
 		,absolute
 		,arccosine
@@ -220,9 +221,7 @@ namespace gl {
 			return	concat(
 					 m_vertices | lazy_transform( bind_back( minus, position( ) ) )
 					,single( normal( ) )
-				)
-				| join
-				| to;
+				) | join | to;
 		}
 
 	private:
@@ -457,7 +456,7 @@ namespace gl {
 		const text_file template_file( string( shader_directory ) + "/figures.glsl" );
 		ensure( template_file.exists( ), "unable to read shader file: " + template_file.path( ).string( ) );
 
-		const string fragment_name( shader::name_of( shader::type::fragment ) );
+		const string fragment_name( name_of( shader::type::fragment ) );
 		auto sections = shader::split_sections( template_file.content( ) );
 		sections.at( fragment_name ) = assemble_fragment( sections.at( fragment_name ), loader );
 		return	shader::compile( sections );
