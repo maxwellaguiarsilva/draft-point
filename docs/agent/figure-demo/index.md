@@ -10,7 +10,6 @@ This directory documents the figures demo declared in `source/figures_demo.cpp`,
 
 ## Nodes
 
-- **[SSBO layout](ssbo-reflection.md):** Flat float exchange between C++ payloads and GLSL blocks, the `is_flat` validation, `shader::storage_buffer`, and the reasons the typed `std430` alternative is rejected.
 - **[Request log](log.md):** Laconic record of every request made for this subject, each one carrying a one-word status.
 
 ## Request log contract

@@ -28,11 +28,9 @@ out vec4 final_color;
 struct environment
 {
 	vec4	background_color;
-	float	focal;
 	float	ambient;
 	float	volume;
 	vec2	half_screen_size;
-	float	coordinate_scale;
 };
 
 environment ssbo_environment( uint index )
@@ -42,9 +40,7 @@ environment ssbo_environment( uint index )
 		 vec4_from( environment_ssbo.data, base_index + 0u )
 		,environment_ssbo.data[ base_index + 4u ]
 		,environment_ssbo.data[ base_index + 5u ]
-		,environment_ssbo.data[ base_index + 6u ]
-		,vec2_from( environment_ssbo.data, base_index + 7u )
-		,environment_ssbo.data[ base_index + 9u ]
+		,vec2_from( environment_ssbo.data, base_index + 6u )
 	);
 }
 

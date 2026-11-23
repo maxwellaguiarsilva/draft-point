@@ -87,20 +87,65 @@ namespace gl {
 	using	planar_point	=	::sak::g2f::point;
 
 
-	//	shared environment, transferred as flat floats and assembled manually on the gpu
-	struct environment
+	//	a cpu value whose gpu mirror is one flat payload; the instance is the truth and flush is the only upload
+	template< typename t_payload >
+	class mirrored
+	{
+	public:
+		explicit mirrored( const GLuint binding )
+			:m_buffer( 1 )
+		{
+			m_buffer.bind( binding );
+		}
+
+		auto payload( ) const noexcept -> const t_payload& { return m_payload; }
+		auto payload( const t_payload& value ) noexcept -> void { m_payload = value; }
+
+		auto flush( ) noexcept -> void
+		{
+			m_buffer[ 0 ] = m_payload;
+			m_buffer.flush( );
+		}
+
+	protected:
+		t_payload	m_payload{ };
+
+	private:
+		shader::storage_buffer< t_payload >	m_buffer;
+	};
+
+
+	//	scene-wide values, transferred as flat floats and assembled manually on the gpu
+	struct environment_payload
 	{
 		color	m_background_color;
-		float	m_focal;
 		float	m_ambient;
 		float	m_volume;
 		planar_point	m_half_screen_size;
-		float	m_coordinate_scale;
-	};	//	total 10 floats
+	};	//	total 8 floats
 
 
-	//	shared camera: orientation plus the world-space contribution of one pixel of screen offset
-	struct camera
+	class environment : public mirrored< environment_payload >
+	{
+	public:
+		environment(
+			 const GLuint binding
+			,const color& background_color
+			,const float ambient
+			,const float volume
+		)
+			:mirrored( binding )
+		{
+			payload( { background_color, ambient, volume, { } } );
+		}
+
+		//	half of the screen size in pixels
+		auto screen_size( const planar_point& value ) noexcept -> void { m_payload.m_half_screen_size = value / 2.0f; }
+	};
+
+
+	//	orientation basis plus the world-space contribution of one pixel of screen offset
+	struct camera_payload
 	{
 		position	m_position;
 		direction	m_forward;
@@ -109,6 +154,62 @@ namespace gl {
 		direction	m_pixel_right;
 		direction	m_pixel_up;
 	};	//	total 18 floats
+
+
+	class camera : public mirrored< camera_payload >
+	{
+	public:
+		camera( const GLuint binding, const float focal, const float speed )
+			:mirrored( binding )
+			,m_focal( focal )
+			,m_speed( speed )
+		{ }
+
+		//	world frame from the eye, the sight direction and an up hint
+		auto view( const position& eye, const direction& sight, const direction& up_hint ) noexcept -> void
+		{
+			m_payload.m_position = eye;
+			m_payload.m_forward = normalize( sight ) | to;
+			m_payload.m_right = normalize( cross( up_hint, m_payload.m_forward ) ) | to;
+			m_payload.m_up = cross( m_payload.m_forward, m_payload.m_right ) | to;
+			update_pixel_vectors( );
+		}
+
+		//	world-space size of one pixel, derived from the screen and the projection
+		auto viewport( const planar_point& screen_size ) noexcept -> void
+		{
+			pixel_scale( 2.0f / ( min( screen_size ) * m_focal ) );
+			update_pixel_vectors( );
+		}
+
+		//	local movement expressed in the camera frame: right, forward and up
+		auto move( const velocity& local, const float delta_seconds ) noexcept -> void
+		{
+			m_payload.m_position += *fold_left_first(
+				 zip_transform(
+					 multiplies
+					,array{ m_payload.m_right, m_payload.m_forward, m_payload.m_up }
+					,local
+				)
+				,plus
+			) * ( m_speed * delta_seconds );
+		}
+
+	private:
+		auto pixel_scale( ) const noexcept -> float { return m_pixel_scale; }
+		auto pixel_scale( const float value ) noexcept -> void { m_pixel_scale = value; }
+
+		//	world-space pixel vectors derived from the orientation basis and the pixel scale
+		auto update_pixel_vectors( ) noexcept -> void
+		{
+			m_payload.m_pixel_right = m_payload.m_right * m_pixel_scale;
+			m_payload.m_pixel_up = m_payload.m_up * m_pixel_scale;
+		}
+
+		const float	m_focal;
+		const float	m_speed;
+		float		m_pixel_scale{ 0.0f };
+	};
 
 
 	//	fixed-stride flat figure payload shared across all registered figure types
@@ -505,43 +606,24 @@ namespace gl {
 		using	geometry	=	::sak::g2i;
 		using	enum	window::flag;
 
-		static constexpr float m_camera_speed = 1.5f;
-
 		demo_logic( )
 			:m_application( )
 			,m_window( "glsl figures", { opengl, resizable } )
 			,m_context( m_window )
-			,m_environment( 1 )
-			,m_camera( 1 )
+			,m_environment( 0, { 0.0f, 0.0f, 0.0f, 1.0f }, 0.3f, 0.7f )
+			,m_camera( 1, 2.0f, 1.5f )
 			,m_figures( 2 )
 			,m_vertex_array( )
 			,m_figure_loader( )
 			,m_shaders( compile_shaders( m_figure_loader ) )
 			,m_shader_program( m_shaders | values )
 		{
-			m_environment.bind( 0 );
-			m_camera.bind( 1 );
 			m_figures.bind( 2 );
 
 			m_vertex_array.bind( );
 			m_shader_program.use( );
 
-			m_environment[ 0 ] = environment{
-				 { 0.0f, 0.0f, 0.0f, 1.0f }
-				,2.0f
-				,0.3f
-				,0.7f
-				,{ 0.0f, 0.0f }
-				,0.0f
-			};
-			m_camera[ 0 ] = camera{
-				 { 0.0f, 0.0f, -2.0f }
-				,{ 0.0f, 0.0f,  1.0f }
-				,{ 1.0f, 0.0f,  0.0f }
-				,{ 0.0f, 1.0f,  0.0f }
-				,{ 0.0f, 0.0f,  0.0f }
-				,{ 0.0f, 0.0f,  0.0f }
-			};
+			m_camera.view( { 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f } );
 
 			register_figure< figure_trait::sphere >(
 				 m_figures[ 0 ]
@@ -589,15 +671,10 @@ namespace gl {
 		void pixel_resize( const geometry::size& new_size ) override
 		{
 			const auto screen_size = planar_point{ new_size };
-			environment& environment_item = m_environment[ 0 ];
-			environment_item.m_half_screen_size = screen_size / 2.0f;
-			environment_item.m_coordinate_scale = 2.0f / min( screen_size );
+			m_environment.screen_size( screen_size );
 			m_environment.flush( );
 
-			camera& camera_item = m_camera[ 0 ];
-			const float pixel_scale = environment_item.m_coordinate_scale / environment_item.m_focal;
-			camera_item.m_pixel_right = camera_item.m_right * pixel_scale;
-			camera_item.m_pixel_up = camera_item.m_up * pixel_scale;
+			m_camera.viewport( screen_size );
 			m_camera.flush( );
 		}
 
@@ -641,23 +718,15 @@ namespace gl {
 		{
 			if( m_movement == zero )
 				return;
-			camera& current = m_camera[ 0 ];
-			current.m_position += *fold_left_first(
-				 zip_transform(
-					 multiplies
-					,array{ current.m_right, current.m_forward, current.m_up }
-					,m_movement
-				)
-				,plus
-			) * ( m_camera_speed * delta_seconds );
+			m_camera.move( m_movement, delta_seconds );
 			m_camera.flush( );
 		}
 
 		application	m_application;
 		window		m_window;
 		context		m_context;
-		shader::storage_buffer< environment >	m_environment;
-		shader::storage_buffer< camera >	m_camera;
+		environment	m_environment;
+		camera		m_camera;
 		shader::storage_buffer< figure >	m_figures;
 		vertex_array	m_vertex_array;
 		figure_loader	m_figure_loader;
