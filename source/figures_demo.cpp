@@ -20,7 +20,7 @@
 #include <game/fps.hpp>
 
 
-namespace gl {
+namespace demo {
 
 	__using( ::std::
 		,apply
@@ -264,7 +264,7 @@ namespace gl {
 	class vertex_shape
 	{
 	public:
-		using	data	=	array< ::gl::position, t_vertex_count >;
+		using	data	=	array< ::demo::position, t_vertex_count >;
 
 		explicit vertex_shape( const data& vertices ) noexcept
 			:m_vertices( vertices )
@@ -273,10 +273,10 @@ namespace gl {
 		auto vertices( ) const noexcept -> const data& { return m_vertices; }
 		auto vertices( const data& value ) noexcept -> void { m_vertices = value; }
 
-		auto position( ) const noexcept -> ::gl::position { return *fold_left_first( m_vertices, plus ) / t_vertex_count; }
-		auto position( const ::gl::position& value ) noexcept -> void
+		auto position( ) const noexcept -> ::demo::position { return *fold_left_first( m_vertices, plus ) / t_vertex_count; }
+		auto position( const ::demo::position& value ) noexcept -> void
 		{
-			const ::gl::position offset = value - position( );
+			const ::demo::position offset = value - position( );
 			for( auto& vertex : m_vertices )
 				vertex += offset;
 		}
@@ -290,7 +290,7 @@ namespace gl {
 	class triangle : public vertex_shape< 3 >
 	{
 	public:
-		using	figure_trait	=	::gl::figure_trait::triangle;
+		using	figure_trait	=	::demo::figure_trait::triangle;
 		using	vertex_shape< 3 >::vertex_shape;
 
 		auto normal( ) const noexcept -> direction
@@ -310,7 +310,7 @@ namespace gl {
 			const bool is_opposite = cosine_angle <= -1.0f + 1e-6f;
 			const direction axis = is_opposite ? orthogonal_axis( current ) : normalize( cross( current, target ) ) | to;
 			const float angle = is_opposite ? pi_v< float > : arccosine( cosine_angle );
-			const ::gl::position center = position( );
+			const ::demo::position center = position( );
 			for( auto& vertex : m_vertices )
 				vertex = ( center + rotate( vertex - center, axis, angle ) ) | to;
 		}
@@ -751,7 +751,7 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	)
 	__using( ::sak::, exit_success, exit_failure )
 	__using( ::sak::ranges::, contains )
-	__using( ::gl::, demo_logic )
+	__using( ::demo::, demo_logic )
 
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )

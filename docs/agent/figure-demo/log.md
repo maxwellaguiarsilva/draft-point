@@ -5,3 +5,5 @@
 - Make the environment an object with its own rules and flush — done
 - Remove the SSBO layout document from the documentation — done
 - Remove every mention of the removed document from the other documents — done
+- Rename the figures demo namespace from `gl` to `demo` — done
+- Use the `::demo::` prefix only where it is strictly necessary — done
