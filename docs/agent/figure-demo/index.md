@@ -16,7 +16,8 @@ This directory documents the figures demo declared in `source/figures_demo.cpp`,
 ## Request log contract
 
 - `log.md` records every request the user makes for this subject, appended in the order the requests arrive.
-- Each entry is one bullet stating the request laconically plus one status word.
+- Each entry is one bullet stating one atomic request laconically plus one status word.
+- A request that bundles several separate actions is split into one entry per action, never logged as a single compound entry.
 - The list carries no numbers: entries use plain bullets, and neither the marker nor the text restates a sequence number.
 - The status word is one of `pending`, `doing`, `done`, `blocked`, or `dropped`.
 - An entry is updated rather than duplicated when its request advances, so the log holds one bullet per request.
