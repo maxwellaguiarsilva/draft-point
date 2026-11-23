@@ -207,9 +207,7 @@ namespace gl {
 			if( 1.0f - cosine_angle <= 1e-6f )
 				return;
 			const bool is_opposite = cosine_angle <= -1.0f + 1e-6f;
-			const direction axis = is_opposite
-				? orthogonal_axis( current )
-				: normalize( cross( current, target ) ) | to;
+			const direction axis = is_opposite ? orthogonal_axis( current ) : normalize( cross( current, target ) ) | to;
 			const float angle = is_opposite ? pi_v< float > : arccosine( cosine_angle );
 			const ::gl::position center = position( );
 			for( auto& vertex : m_vertices )
