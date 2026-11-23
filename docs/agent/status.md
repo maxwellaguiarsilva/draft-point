@@ -1,10 +1,7 @@
 # Agent Status
 
 - Entry-point session document: a session resumes by reading this file first and traversing into linked architecture documents as needed.
-
-## Current Goal
-
-- Render the figures demo in `source/figures_demo.cpp` with `data/shader/figures.glsl` and the figure evaluators under `data/shader/figures/`.
+- The current subject is documented in **[Figure Demo](figure-demo/index.md)**: read its index first, then the nodes that index links.
 
 ## Next Task
 
