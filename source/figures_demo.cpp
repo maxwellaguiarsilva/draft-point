@@ -71,9 +71,8 @@ namespace demo {
 			,const float ambient
 			,const float volume
 		)
-			:m_buffer( 1 )
+			:m_buffer( 1, binding )
 		{
-			m_buffer.bind( binding );
 			m_buffer[ 0 ] = { background_color, ambient, volume, { } };
 		}
 
@@ -103,12 +102,10 @@ namespace demo {
 	{
 	public:
 		camera( const GLuint binding, const float focal, const float speed )
-			:m_buffer( 1 )
+			:m_buffer( 1, binding )
 			,m_focal( focal )
 			,m_speed( speed )
-		{
-			m_buffer.bind( binding );
-		}
+		{ }
 
 		//	world frame from the eye, the sight direction and an up hint
 		auto view( const position& eye, const direction& sight, const direction& up_hint ) noexcept -> void
@@ -568,14 +565,12 @@ namespace demo {
 			,m_context( m_window )
 			,m_environment( 0, { 0.0f, 0.0f, 0.0f, 1.0f }, 0.3f, 0.7f )
 			,m_camera( 1, 2.0f, 1.5f )
-			,m_figures( 2 )
+			,m_figures( 2, 2 )
 			,m_vertex_array( )
 			,m_figure_loader( )
 			,m_shaders( compile_shaders( m_figure_loader ) )
 			,m_shader_program( m_shaders | values )
 		{
-			m_figures.bind( 2 );
-
 			m_vertex_array.bind( );
 			m_shader_program.use( );
 
