@@ -51,16 +51,6 @@ namespace demo {
 	using	planar_point	=	::sak::g2f::point;
 
 
-	//	scene-wide values, transferred as flat floats and assembled manually on the gpu
-	struct environment_payload
-	{
-		color	m_background_color;
-		float	m_ambient;
-		float	m_volume;
-		planar_point	m_half_screen_size;
-	};	//	total 8 floats
-
-
 	class environment
 	{
 	public:
@@ -81,21 +71,18 @@ namespace demo {
 		auto flush( ) const noexcept -> void { m_buffer.flush( ); }
 
 	private:
-		using	environment_ssbo	=	shader::storage_buffer< environment_payload >;
+		//	scene-wide values, transferred as flat floats and assembled manually on the gpu
+		struct payload
+		{
+			color	m_background_color;
+			float	m_ambient;
+			float	m_volume;
+			planar_point	m_half_screen_size;
+		};	//	total 8 floats
+
+		using	environment_ssbo	=	shader::storage_buffer< payload >;
 		environment_ssbo	m_buffer;
 	};
-
-
-	//	orientation basis plus the world-space contribution of one pixel of screen offset
-	struct camera_payload
-	{
-		position	m_position;
-		direction	m_forward;
-		direction	m_right;
-		direction	m_up;
-		direction	m_pixel_right;
-		direction	m_pixel_up;
-	};	//	total 18 floats
 
 
 	class camera
@@ -110,11 +97,11 @@ namespace demo {
 		//	world frame from the eye, the sight direction and an up hint
 		auto view( const position& eye, const direction& sight, const direction& up_hint ) noexcept -> void
 		{
-			auto& payload = m_buffer[ 0 ];
-			payload.m_position = eye;
-			payload.m_forward = normalize( sight ) | to;
-			payload.m_right = normalize( cross( up_hint, payload.m_forward ) ) | to;
-			payload.m_up = cross( payload.m_forward, payload.m_right ) | to;
+			auto& slot = m_buffer[ 0 ];
+			slot.m_position = eye;
+			slot.m_forward = normalize( sight ) | to;
+			slot.m_right = normalize( cross( up_hint, slot.m_forward ) ) | to;
+			slot.m_up = cross( slot.m_forward, slot.m_right ) | to;
 			update_pixel_vectors( );
 		}
 
@@ -128,11 +115,11 @@ namespace demo {
 		//	local movement expressed in the camera frame: right, forward and up
 		auto move( const velocity& local, const float delta_seconds ) noexcept -> void
 		{
-			auto& payload = m_buffer[ 0 ];
-			payload.m_position += *fold_left_first(
+			auto& slot = m_buffer[ 0 ];
+			slot.m_position += *fold_left_first(
 				 zip_transform(
 					 multiplies
-					,array{ payload.m_right, payload.m_forward, payload.m_up }
+					,array{ slot.m_right, slot.m_forward, slot.m_up }
 					,local
 				)
 				,plus
@@ -148,12 +135,23 @@ namespace demo {
 		//	world-space pixel vectors derived from the orientation basis and the pixel scale
 		auto update_pixel_vectors( ) noexcept -> void
 		{
-			auto& payload = m_buffer[ 0 ];
-			payload.m_pixel_right = payload.m_right * m_pixel_scale;
-			payload.m_pixel_up = payload.m_up * m_pixel_scale;
+			auto& slot = m_buffer[ 0 ];
+			slot.m_pixel_right = slot.m_right * m_pixel_scale;
+			slot.m_pixel_up = slot.m_up * m_pixel_scale;
 		}
 
-		using	camera_ssbo	=	shader::storage_buffer< camera_payload >;
+		//	orientation basis plus the world-space contribution of one pixel of screen offset
+		struct payload
+		{
+			position	m_position;
+			direction	m_forward;
+			direction	m_right;
+			direction	m_up;
+			direction	m_pixel_right;
+			direction	m_pixel_up;
+		};	//	total 18 floats
+
+		using	camera_ssbo	=	shader::storage_buffer< payload >;
 		camera_ssbo	m_buffer;
 		const float	m_focal;
 		const float	m_speed;
@@ -161,44 +159,7 @@ namespace demo {
 	};
 
 
-	//	fixed-stride flat figure payload shared across all registered figure types
-	template< size_t t_parameter_count >
-	struct figure_payload
-	{
-		position	m_position;
-		float		m_type_id;
-		color		m_color;
-		array< float, t_parameter_count >	m_parameters;
-	};	//	total 8 + t_parameter_count floats
-
-
-	inline constexpr size_t parameter_capacity = 12uz;
-	using	figure = figure_payload< parameter_capacity >;
 	inline constexpr string_view shader_directory{ "data/shader" };
-
-
-	//	compile-time figure descriptor carrying only the parameter count, its name is its identifier
-	struct figure_trait
-	{
-		struct sphere
-		{
-			static constexpr size_t	m_parameter_count = 1uz;
-		};
-
-		struct triangle
-		{
-			static constexpr size_t	m_parameter_count = 12uz;
-		};
-	};
-
-
-	//	identifier of a figure trait read from its reflection token instead of a repeated string literal
-	template< typename t_trait >
-	consteval auto evaluator_identifier( ) noexcept -> string_view
-	{
-		__using( ::std::meta::, identifier_of )
-		return	identifier_of( ^^t_trait );
-	}
 
 
 	//	compile-time constraint requiring a figure trait to declare its parameter count
@@ -207,6 +168,258 @@ namespace demo {
 	{
 		{ t_type::m_parameter_count } -> convertible_to< size_t >;
 	};
+
+
+	//	parameter budget shared by every figure payload
+	struct parameter
+	{
+		static constexpr size_t capacity = 12uz;
+
+		//	true when every registered trait fits the shared slot budget
+		static constexpr auto fits = [ ]( const is_figure_trait auto&... descriptor )
+		{
+			return	( true and ... and ( descriptor.m_parameter_count <= capacity ) );
+		};
+	};
+
+
+	//	file predicate selecting the glsl evaluator files of a figure directory
+	inline constexpr auto is_glsl_file = [ ]( const auto& file_entry )
+	{
+		return	file_entry.is_regular_file( ) and file_entry.path( ).extension( ) == ".glsl";
+	};
+
+	//	file stem paired with its text content
+	inline constexpr auto read_stem_text = [ ]( const auto& file_entry ) -> pair< string, string >
+	{
+		const text_file file( file_entry.path( ) );
+		ensure( file.exists( ), "unable to read figure file: " + file_entry.path( ).string( ) );
+		return	pair{ file.name( ), file.content( ) };
+	};
+
+
+	//	identifier of a figure trait read from its reflection token instead of a repeated string literal
+	template< typename t_type >
+	consteval auto evaluator_identifier( ) noexcept -> string_view
+	{
+		__using( ::std::meta::, identifier_of )
+		return	identifier_of( ^^t_type );
+	}
+
+
+	//	close an injected region by mapping the next line back onto the template
+	auto restored_diagnostics( const string& content, const size_t marker_line ) -> string
+	{
+		return	content + "\n#line " + to_string( marker_line + 1uz );
+	}
+
+
+	//	the figure concept: flat payload record, compile-time traits and the loader of its glsl evaluators
+	struct figure
+	{
+		//	fixed-stride flat payload shared across all registered figure types
+		template< size_t t_parameter_count = parameter::capacity >
+		struct payload
+		{
+			position	m_position;
+			float		m_type_id;
+			color		m_color;
+			array< float, t_parameter_count >	m_parameters;
+		};	//	total 8 + t_parameter_count floats
+
+		//	compile-time descriptor carrying only the parameter count, its name is its identifier
+		struct trait
+		{
+			struct sphere { static constexpr size_t m_parameter_count = 1uz; };
+			struct triangle { static constexpr size_t m_parameter_count = 12uz; };
+		};
+
+		//	every registered trait, each one named by its own identifier
+		static constexpr tuple traits{ trait::sphere{ }, trait::triangle{ } };
+
+		//	apply one per-trait mapping across the whole registered set
+		template< typename t_mapping >
+		static constexpr auto map_traits( const t_mapping& mapping )
+		{
+			return	apply( mapping, traits );
+		}
+
+		//	glsl evaluators loaded from individual files, the map key supplies the reflected name while the loader supplies the source and assigns deterministic type ids
+		class loader
+		{
+		public:
+			struct entry
+			{
+				GLuint	m_type_id;
+				string	m_source;
+			};
+			using	table	=	map< string, entry >;
+
+			explicit loader( const string& base_path = string( shader_directory ) + "/figures" )
+				:m_figures( load( base_path ) )
+			{ }
+
+			auto operator[ ]( const string_view name ) const -> const entry&
+			{
+				const string key( name );
+				ensure( contains( m_figures, key ), "unknown figure evaluator: " + key );
+				return	m_figures.at( key );
+			}
+
+			auto figures( ) const noexcept -> const table& { return m_figures; }
+
+		private:
+			//	load every glsl evaluator from one directory, keyed by file stem
+			//	a directory cannot hold two files with the same stem and the same extension
+			static auto load( const string& base_path ) -> table
+			{
+				__using( ::sak::ranges::views::, enumerate )
+				__using( ::std::filesystem::, directory_iterator, is_directory )
+				ensure( is_directory( base_path ), "unable to open figure directory: " + base_path );
+
+				map< string, string > text_by_name = directory_iterator( base_path )
+					|	filter( is_glsl_file )
+					|	transform( read_stem_text )
+					|	to;
+
+				ensure( not text_by_name.empty( ), "no figure file found in: " + base_path );
+
+				return	text_by_name | enumerate
+					|	transform( [ ]( auto&& indexed_text )
+						{
+							auto&& [ index, text_entry ] = indexed_text;
+							return	pair{
+								 text_entry.first
+								,entry{ static_cast< GLuint >( index ), ::std::move( text_entry.second ) }
+							};
+						} )
+					|	to;
+			}
+
+			table	m_figures;
+		};
+
+		//	figure block, taken from the braces that open and close its file
+		static auto block( const string& source ) -> string
+		{
+			const size_t opening = source.find( '{' );
+			const size_t closing = source.rfind( '}' );
+			ensure( opening < closing and closing < source.size( ), "figure file without a block" );
+			return	source.substr( opening, closing - opening + 1uz );
+		}
+
+		//	one dispatch case inlining a loaded figure block on the shared dispatcher scope
+		static auto dispatch_case( const loader::table::value_type& source_entry ) -> string
+		{
+			return	"\t\tcase " + to_string( source_entry.second.m_type_id )
+				+ "u: " + block( source_entry.second.m_source )
+				+ "\n\t\tbreak;";
+		}
+
+		//	integer switch dispatching on the type id assigned by the loader
+		static auto dispatch( const loader& figure_loader, const size_t marker_line ) -> string
+		{
+			return	restored_diagnostics(
+				 "\tswitch( uint( figure_item.type_id ) )\n\t{\n"
+				+ string( figure_loader.figures( )
+					|	transform( dispatch_case )
+					|	join_with( string_view{ "\n" } )
+					|	to )
+				+ "\n\t}"
+				,marker_line
+			);
+		}
+
+		//	assert every registered trait has a loaded evaluator
+		static auto ensure_sources( const loader& figure_loader ) -> void
+		{
+			map_traits( [ & ]( const is_figure_trait auto&... descriptor )
+			{
+				for( const string_view name : array{ evaluator_identifier< remove_cvref_t< decltype( descriptor ) > >( )... } )
+					ensure( contains( figure_loader.figures( ), string( name ) ), "missing figure evaluator: " + string( name ) );
+			} );
+		}
+
+		//	write one payload inside its shared parameter slot budget
+		template< is_figure_trait t_trait >
+		static auto write(
+			 payload<>& item
+			,const loader& figure_loader
+			,const position& world_position
+			,const color& tint
+			,const array< float, t_trait::m_parameter_count >& parameters
+		) -> void
+		{
+			item.m_position = world_position;
+			item.m_type_id = figure_loader[ evaluator_identifier< t_trait >( ) ].m_type_id;
+			item.m_color = tint;
+			item.m_parameters.fill( 0.0f );
+			copy( parameters, item.m_parameters.begin( ) );
+		}
+
+		//	write one payload from a cpu shape carrying a trait
+		template< typename t_shape >
+			requires is_figure_trait< typename t_shape::descriptor >
+		static auto write(
+			 payload<>& item
+			,const loader& figure_loader
+			,const t_shape& shape
+			,const color& tint
+		) -> void
+		{
+			write< typename t_shape::descriptor >(
+				 item
+				,figure_loader
+				,shape.position( )
+				,tint
+				,shape.parameters( )
+			);
+		}
+	};
+
+
+	//	one glsl template placeholder pairing its marker line with its replacement producer
+	struct glsl_placeholder
+	{
+		//	position of a placeholder marker inside a glsl text while asserting the text still carries it
+		static auto find( const string& source, const string_view marker ) -> size_t
+		{
+			const size_t position = source.find( marker );
+			ensure( position < source.size( ), "missing glsl placeholder: " + string( marker ) );
+			return	position;
+		}
+
+		//	replace one glsl placeholder while asserting the template still carries it
+		static auto replace(
+			 string& source
+			,const string_view marker
+			,const string_view content
+		) -> void
+		{
+			source.replace( find( source, marker ), marker.size( ), content );
+		}
+
+		//	capacity define replacing the parameter capacity marker
+		static auto define( const figure::loader&, const size_t ) -> string
+		{
+			return	"#define figure_parameter_capacity " + to_string( parameter::capacity );
+		}
+
+		static const array< glsl_placeholder, 2 > all;
+
+		string_view	m_marker;
+		string( *m_produce )( const figure::loader& loader, const size_t marker_line );
+	};
+
+
+	//	one-based line number of a placeholder marker inside its source
+	auto line_number_at( const string& source, const string_view marker ) -> size_t
+	{
+		return	1uz + count(
+			 string_view{ source.data( ), glsl_placeholder::find( source, marker ) }
+			,'\n'
+		);
+	}
 
 
 	//	shared vertex storage and centroid accessors for fixed-vertex-count shapes
@@ -240,7 +453,7 @@ namespace demo {
 	class triangle : public vertex_shape< 3 >
 	{
 	public:
-		using	figure_trait	=	::demo::figure_trait::triangle;
+		using	descriptor	=	::demo::figure::trait::triangle;
 		using	vertex_shape< 3 >::vertex_shape;
 
 		auto normal( ) const noexcept -> direction
@@ -266,7 +479,7 @@ namespace demo {
 				vertex = ( center + rotate( vertex - center, axis, angle ) ) | to;
 		}
 
-		auto parameters( ) const noexcept -> array< float, figure_trait::m_parameter_count >
+		auto parameters( ) const noexcept -> array< float, descriptor::m_parameter_count >
 		{
 			return	concat(
 					 m_vertices | lazy_transform( bind_back( minus, position( ) ) )
@@ -285,226 +498,39 @@ namespace demo {
 	};
 
 
-	//	every registered figure trait, each one named by its own identifier
-	inline constexpr tuple figure_traits{ figure_trait::sphere{ }, figure_trait::triangle{ } };
-
-
-	//	apply one per-trait mapping across the whole registered figure set
-	template< typename t_mapping >
-	constexpr auto map_figure_traits( const t_mapping& mapping )
-	{
-		return	apply( mapping, figure_traits );
-	}
-
-
-	//	per-trait mapping that validates the shared parameter slot budget
-	inline constexpr auto payload_within_capacity = [ ]( const is_figure_trait auto&... trait )
-	{
-		return	( true and ... and ( trait.m_parameter_count <= parameter_capacity ) );
-	};
-
-
 	//	compile-time validation of the shared payload capacity for every registered figure
 	static_assert(
-		 map_figure_traits( payload_within_capacity )
+		 figure::map_traits( parameter::fits )
 		,"figure parameter count exceeds the shared payload capacity"
 	);
 
 
-	//	file predicate selecting the glsl evaluator files of a figure directory
-	inline constexpr auto is_glsl_file = [ ]( const auto& file_entry )
-	{
-		return	file_entry.is_regular_file( ) and file_entry.path( ).extension( ) == ".glsl";
-	};
-
-	//	file stem paired with its text content
-	inline constexpr auto read_stem_text = [ ]( const auto& file_entry ) -> pair< string, string >
-	{
-		const text_file file( file_entry.path( ) );
-		ensure( file.exists( ), "unable to read figure file: " + file_entry.path( ).string( ) );
-		return	pair{ file.name( ), file.content( ) };
-	};
-
-
-	//	figure glsl evaluators loaded from individual files, the map key supplies the reflected name while the loader supplies the source and assigns deterministic type ids
-	class figure_loader
-	{
-	public:
-		struct entry
-		{
-			GLuint	m_type_id;
-			string	m_source;
-		};
-		using	table	=	map< string, entry >;
-
-		explicit figure_loader( const string& base_path = string( shader_directory ) + "/figures" )
-			:m_figures( load( base_path ) )
-		{ }
-
-		auto operator[ ]( const string_view name ) const -> const entry&
-		{
-			const string key( name );
-			ensure( contains( m_figures, key ), "unknown figure evaluator: " + key );
-			return	m_figures.at( key );
-		}
-
-		auto figures( ) const noexcept -> const table& { return m_figures; }
-
-	private:
-		//	load every glsl evaluator from one directory, keyed by file stem
-		//	a directory cannot hold two files with the same stem and the same extension
-		static auto load( const string& base_path ) -> table
-		{
-			__using( ::sak::ranges::views::, enumerate )
-			__using( ::std::filesystem::, directory_iterator, is_directory )
-			ensure( is_directory( base_path ), "unable to open figure directory: " + base_path );
-
-			map< string, string > text_by_name = directory_iterator( base_path )
-				|	filter( is_glsl_file )
-				|	transform( read_stem_text )
-				|	to;
-
-			ensure( not text_by_name.empty( ), "no figure file found in: " + base_path );
-
-			return	text_by_name | enumerate
-				|	transform( [ ]( auto&& indexed_text )
-					{
-						auto&& [ index, text_entry ] = indexed_text;
-						return	pair{
-							 text_entry.first
-							,entry{ static_cast< GLuint >( index ), ::std::move( text_entry.second ) }
-						};
-					} )
-				|	to;
-		}
-
-		table	m_figures;
-	};
-
-
-	//	figure block, taken from the braces that open and close its file
-	auto figure_block( const string& source ) -> string
-	{
-		const size_t opening = source.find( '{' );
-		const size_t closing = source.rfind( '}' );
-		ensure( opening < closing and closing < source.size( ), "figure file without a block" );
-		return	source.substr( opening, closing - opening + 1uz );
-	}
-
-
-	//	one dispatch case inlining a loaded figure block on the shared dispatcher scope
-	auto figure_case( const figure_loader::table::value_type& figure_source ) -> string
-	{
-		return	"\t\tcase " + to_string( figure_source.second.m_type_id )
-			+ "u: " + figure_block( figure_source.second.m_source )
-			+ "\n\t\tbreak;";
-	}
-
-
-	//	position of a placeholder marker inside a glsl text while asserting the text still carries it
-	auto find_placeholder( const string& source, const string_view marker ) -> size_t
-	{
-		const size_t position = source.find( marker );
-		ensure( position < source.size( ), "missing glsl placeholder: " + string( marker ) );
-		return	position;
-	}
-
-
-	//	replace one glsl placeholder while asserting the template still carries it
-	auto replace_placeholder(
-		 string& source
-		,const string_view marker
-		,const string_view content
-	) -> void
-	{
-		source.replace( find_placeholder( source, marker ), marker.size( ), content );
-	}
-
-
-	//	one-based line number of a placeholder marker inside its source
-	auto line_number_at( const string& source, const string_view marker ) -> size_t
-	{
-		return	1uz + count(
-			 string_view{ source.data( ), find_placeholder( source, marker ) }
-			,'\n'
-		);
-	}
-
-
-	//	close an injected region by mapping the next line back onto the template
-	auto restored_diagnostics( const string& content, const size_t marker_line ) -> string
-	{
-		return	content + "\n#line " + to_string( marker_line + 1uz );
-	}
-
-
-	//	capacity define replacing the parameter capacity marker
-	auto parameter_capacity_define( const figure_loader&, const size_t ) -> string
-	{
-		return	"#define figure_parameter_capacity " + to_string( parameter_capacity );
-	}
-
-
-	//	integer switch dispatching on the type id assigned by the figure loader
-	auto figure_dispatch( const figure_loader& loader, const size_t marker_line ) -> string
-	{
-		return	restored_diagnostics(
-			 "\tswitch( uint( figure_item.type_id ) )\n\t{\n"
-			+ string( loader.figures( )
-				|	transform( figure_case )
-				|	join_with( string_view{ "\n" } )
-				|	to )
-			+ "\n\t}"
-			,marker_line
-		);
-	}
-
-
-	//	one glsl template placeholder pairing its marker line with its replacement producer
-	struct glsl_placeholder
-	{
-		string_view	m_marker;
-		string( *m_produce )( const figure_loader& loader, const size_t marker_line );
-	};
-
-
 	//	every placeholder of the fragment template in replacement order
-	inline constexpr array< glsl_placeholder, 2 > glsl_placeholders{ {
-		 { "//	@figure_parameter_capacity", parameter_capacity_define }
-		,{ "//	@figure_dispatch", figure_dispatch }
+	inline const array< glsl_placeholder, 2 > glsl_placeholder::all{ {
+		 { "//	@figure_parameter_capacity", glsl_placeholder::define }
+		,{ "//	@figure_dispatch", figure::dispatch }
 	} };
 
 
 	//	fragment template copy with every placeholder replaced by its generated content
-	auto assemble_fragment( const string& fragment_template, const figure_loader& loader ) -> string
+	auto assemble_fragment( const string& fragment_template, const figure::loader& loader ) -> string
 	{
 		string source = fragment_template;
-		for( const auto& placeholder : glsl_placeholders )
-			replace_placeholder(
+		for( const auto& entry : glsl_placeholder::all )
+			glsl_placeholder::replace(
 				 source
-				,placeholder.m_marker
-				,placeholder.m_produce( loader, line_number_at( fragment_template, placeholder.m_marker ) )
+				,entry.m_marker
+				,entry.m_produce( loader, line_number_at( fragment_template, entry.m_marker ) )
 			);
 		return	source;
 	}
 
 
-	//	assert every registered figure trait has a loaded evaluator
-	auto ensure_figure_sources( const figure_loader& loader ) -> void
-	{
-		map_figure_traits( [ & ]( const is_figure_trait auto&... trait )
-		{
-			for( const string_view name : array{ evaluator_identifier< remove_cvref_t< decltype( trait ) > >( )... } )
-				ensure( contains( loader.figures( ), string( name ) ), "missing figure evaluator: " + string( name ) );
-		} );
-	}
-
-
 	//	every glsl section compiled in memory with figure evaluators from the figure loader
-	auto compile_shaders( const figure_loader& loader ) -> shader::table
+	auto compile_shaders( const figure::loader& loader ) -> shader::table
 	{
 		__using( ::sak::meta::, name_of )
-		ensure_figure_sources( loader );
+		figure::ensure_sources( loader );
 
 		const text_file template_file( string( shader_directory ) + "/figures.glsl" );
 		ensure( template_file.exists( ), "unable to read shader file: " + template_file.path( ).string( ) );
@@ -513,44 +539,6 @@ namespace demo {
 		auto sections = shader::split_sections( template_file.content( ) );
 		sections.at( fragment_name ) = assemble_fragment( sections.at( fragment_name ), loader );
 		return	shader::compile( sections );
-	}
-
-
-	//	write one figure payload inside its shared parameter slot budget
-	template< is_figure_trait t_figure >
-	auto register_figure(
-		 figure& figure_item
-		,const figure_loader& loader
-		,const position& figure_position
-		,const color& figure_color
-		,const array< float, t_figure::m_parameter_count >& parameters
-	) -> void
-	{
-		figure_item.m_position = figure_position;
-		figure_item.m_type_id = loader[ evaluator_identifier< t_figure >( ) ].m_type_id;
-		figure_item.m_color = figure_color;
-		figure_item.m_parameters.fill( 0.0f );
-		copy( parameters, figure_item.m_parameters.begin( ) );
-	}
-
-
-	//	write one figure payload from a cpu shape carrying a figure trait
-	template< typename t_shape >
-		requires is_figure_trait< typename t_shape::figure_trait >
-	auto register_figure(
-		 figure& figure_item
-		,const figure_loader& loader
-		,const t_shape& shape
-		,const color& figure_color
-	) -> void
-	{
-		register_figure< typename t_shape::figure_trait >(
-			 figure_item
-			,loader
-			,shape.position( )
-			,figure_color
-			,shape.parameters( )
-		);
 	}
 
 
@@ -566,10 +554,10 @@ namespace demo {
 			,m_context( m_window )
 			,m_environment( 0, { 0.0f, 0.0f, 0.0f, 1.0f }, 0.3f, 0.7f )
 			,m_camera( 1, 2.0f, 1.5f )
-			,m_figures( 2, 2 )
+			,m_instances( 2, 2 )
 			,m_vertex_array( )
-			,m_figure_loader( )
-			,m_shaders( compile_shaders( m_figure_loader ) )
+			,m_loader( )
+			,m_shaders( compile_shaders( m_loader ) )
 			,m_shader_program( m_shaders | values )
 		{
 			m_vertex_array.bind( );
@@ -577,9 +565,9 @@ namespace demo {
 
 			m_camera.view( { 0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f } );
 
-			register_figure< figure_trait::sphere >(
-				 m_figures[ 0 ]
-				,m_figure_loader
+			figure::write< figure::trait::sphere >(
+				 m_instances[ 0 ]
+				,m_loader
 				,{ -1.00f, 0.0f, 1.0f }
 				,{ 1.0f, 0.0f, 0.0f, 1.0f }
 				,{ 0.40f }
@@ -591,11 +579,11 @@ namespace demo {
 			} };
 			blue_triangle.position( { 0.00f, 0.0f, 1.0f } );
 			blue_triangle.normal( { 0.35f, 0.25f, -1.0f } );
-			register_figure( m_figures[ 1 ], m_figure_loader, blue_triangle, { 0.0f, 0.0f, 1.0f, 1.0f } );
+			figure::write( m_instances[ 1 ], m_loader, blue_triangle, { 0.0f, 0.0f, 1.0f, 1.0f } );
 
 			m_environment.flush( );
 			m_camera.flush( );
-			m_figures.flush( );
+			m_instances.flush( );
 
 			pixel_resize( m_window.pixel_size( ) );
 		}
@@ -653,7 +641,7 @@ namespace demo {
 	private:
 		__using_alias( ::game::, fps )
 		__using_alias( ::sak::sdl3::opengl::, context )
-		using	figures_ssbo	=	shader::storage_buffer< figure >;
+		using	instances_ssbo	=	shader::storage_buffer< figure::payload<> >;
 
 		struct key_movement
 		{
@@ -682,9 +670,9 @@ namespace demo {
 		context		m_context;
 		environment	m_environment;
 		camera		m_camera;
-		figures_ssbo	m_figures;
+		instances_ssbo	m_instances;
 		vertex_array	m_vertex_array;
-		figure_loader	m_figure_loader;
+		figure::loader	m_loader;
 		shader::table	m_shaders;
 		program	m_shader_program;
 		fps		m_frame_limiter{ 60 };
