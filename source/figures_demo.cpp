@@ -82,7 +82,8 @@ namespace demo {
 		auto flush( ) const noexcept -> void { m_buffer.flush( ); }
 
 	private:
-		shader::storage_buffer< environment_payload >	m_buffer;
+		using	environment_ssbo	=	shader::storage_buffer< environment_payload >;
+		environment_ssbo	m_buffer;
 	};
 
 
@@ -153,7 +154,8 @@ namespace demo {
 			payload.m_pixel_up = payload.m_up * m_pixel_scale;
 		}
 
-		shader::storage_buffer< camera_payload >	m_buffer;
+		using	camera_ssbo	=	shader::storage_buffer< camera_payload >;
+		camera_ssbo	m_buffer;
 		const float	m_focal;
 		const float	m_speed;
 		float		m_pixel_scale{ 0.0f };
@@ -653,6 +655,7 @@ namespace demo {
 		__using_alias( ::game::, fps )
 		__using_alias( ::sak::sdl3::opengl::, context )
 		using	shader_range	=	decltype( declval< shader::table& >( ) | values );
+		using	figures_ssbo	=	shader::storage_buffer< figure >;
 
 		struct key_movement
 		{
@@ -681,7 +684,7 @@ namespace demo {
 		context		m_context;
 		environment	m_environment;
 		camera		m_camera;
-		shader::storage_buffer< figure >	m_figures;
+		figures_ssbo	m_figures;
 		vertex_array	m_vertex_array;
 		figure_loader	m_figure_loader;
 		shader::table	m_shaders;
