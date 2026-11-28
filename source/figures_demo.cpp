@@ -52,34 +52,6 @@ namespace demo {
 	using	planar_point	=	::sak::g2f::point;
 
 
-	//	a cpu value whose gpu mirror is one flat payload; the instance is the truth and flush is the only upload
-	template< typename t_payload >
-	class mirrored
-	{
-	public:
-		explicit mirrored( const GLuint binding )
-			:m_buffer( 1 )
-		{
-			m_buffer.bind( binding );
-		}
-
-		auto payload( ) const noexcept -> const t_payload& { return m_payload; }
-		auto payload( const t_payload& value ) noexcept -> void { m_payload = value; }
-
-		auto flush( ) noexcept -> void
-		{
-			m_buffer[ 0 ] = m_payload;
-			m_buffer.flush( );
-		}
-
-	protected:
-		t_payload	m_payload{ };
-
-	private:
-		shader::storage_buffer< t_payload >	m_buffer;
-	};
-
-
 	//	scene-wide values, transferred as flat floats and assembled manually on the gpu
 	struct environment_payload
 	{
@@ -90,7 +62,7 @@ namespace demo {
 	};	//	total 8 floats
 
 
-	class environment : public mirrored< environment_payload >
+	class environment
 	{
 	public:
 		environment(
@@ -99,13 +71,19 @@ namespace demo {
 			,const float ambient
 			,const float volume
 		)
-			:mirrored( binding )
+			:m_buffer( 1 )
 		{
-			payload( { background_color, ambient, volume, { } } );
+			m_buffer.bind( binding );
+			m_buffer[ 0 ] = { background_color, ambient, volume, { } };
 		}
 
 		//	half of the screen size in pixels
-		auto screen_size( const planar_point& value ) noexcept -> void { m_payload.m_half_screen_size = value / 2.0f; }
+		auto screen_size( const planar_point& value ) noexcept -> void { m_buffer[ 0 ].m_half_screen_size = value / 2.0f; }
+
+		auto flush( ) const noexcept -> void { m_buffer.flush( ); }
+
+	private:
+		shader::storage_buffer< environment_payload >	m_buffer;
 	};
 
 
@@ -121,22 +99,25 @@ namespace demo {
 	};	//	total 18 floats
 
 
-	class camera : public mirrored< camera_payload >
+	class camera
 	{
 	public:
 		camera( const GLuint binding, const float focal, const float speed )
-			:mirrored( binding )
+			:m_buffer( 1 )
 			,m_focal( focal )
 			,m_speed( speed )
-		{ }
+		{
+			m_buffer.bind( binding );
+		}
 
 		//	world frame from the eye, the sight direction and an up hint
 		auto view( const position& eye, const direction& sight, const direction& up_hint ) noexcept -> void
 		{
-			m_payload.m_position = eye;
-			m_payload.m_forward = normalize( sight ) | to;
-			m_payload.m_right = normalize( cross( up_hint, m_payload.m_forward ) ) | to;
-			m_payload.m_up = cross( m_payload.m_forward, m_payload.m_right ) | to;
+			auto& payload = m_buffer[ 0 ];
+			payload.m_position = eye;
+			payload.m_forward = normalize( sight ) | to;
+			payload.m_right = normalize( cross( up_hint, payload.m_forward ) ) | to;
+			payload.m_up = cross( payload.m_forward, payload.m_right ) | to;
 			update_pixel_vectors( );
 		}
 
@@ -150,15 +131,18 @@ namespace demo {
 		//	local movement expressed in the camera frame: right, forward and up
 		auto move( const velocity& local, const float delta_seconds ) noexcept -> void
 		{
-			m_payload.m_position += *fold_left_first(
+			auto& payload = m_buffer[ 0 ];
+			payload.m_position += *fold_left_first(
 				 zip_transform(
 					 multiplies
-					,array{ m_payload.m_right, m_payload.m_forward, m_payload.m_up }
+					,array{ payload.m_right, payload.m_forward, payload.m_up }
 					,local
 				)
 				,plus
 			) * ( m_speed * delta_seconds );
 		}
+
+		auto flush( ) const noexcept -> void { m_buffer.flush( ); }
 
 	private:
 		auto pixel_scale( ) const noexcept -> float { return m_pixel_scale; }
@@ -167,10 +151,12 @@ namespace demo {
 		//	world-space pixel vectors derived from the orientation basis and the pixel scale
 		auto update_pixel_vectors( ) noexcept -> void
 		{
-			m_payload.m_pixel_right = m_payload.m_right * m_pixel_scale;
-			m_payload.m_pixel_up = m_payload.m_up * m_pixel_scale;
+			auto& payload = m_buffer[ 0 ];
+			payload.m_pixel_right = payload.m_right * m_pixel_scale;
+			payload.m_pixel_up = payload.m_up * m_pixel_scale;
 		}
 
+		shader::storage_buffer< camera_payload >	m_buffer;
 		const float	m_focal;
 		const float	m_speed;
 		float		m_pixel_scale{ 0.0f };

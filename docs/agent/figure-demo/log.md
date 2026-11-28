@@ -7,3 +7,4 @@
 - Remove every mention of the removed document from the other documents — done
 - Rename the figures demo namespace from `gl` to `demo` — done
 - Use the `::demo::` prefix only where it is strictly necessary — done
+- Drop the `mirrored` wrapper and access the single SSBO slot directly — done
