@@ -21,8 +21,11 @@ Whenever you discuss or address any of the issues below, please attach the relev
 - project-mcp-tools: `read-file ../project-mcp-tools/README.md`
 
 This project is an educational exploration with the following guidelines:
+- Project tools are invoked through the MCP port.
+- The wrappers in `./scripts` and the CLI are reserved for human use and for tools that the MCP does not expose.
+- `./scripts` and `./dist` are already on `PATH`: their commands are invoked from the current working directory without the directory prefix.
 - Extreme Don't Repeat Yourself: abstraction is chosen even when usage and the trade-off in economy is low ( repetitions >2 ).
-- Includes transitive: execute the command `cpp-include-tree --flg-auto-fix` in the terminal. Before any compile, execute that command in the terminal regardless of the impact its changes may have on the files.
+- Includes transitive: call the mcp tool `cpp_include_tree` with `flg_auto_fix`. Before any compile, call that tool regardless of the impact its changes may have on the files.
 - Never explicitly and redundantly redeclare what is already happening through transitivity of the consuming element. Example: a class that has unique_ptr does not need to explicitly delete the copy constructor.
 
 - When creating a temporary/ephemeral C++ test unit, prefer using mcp tool `cpp_create_test` with the adhoc flag + `cpp_compile`, instead of `/tmp/ + manual command g++`.

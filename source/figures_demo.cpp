@@ -38,49 +38,14 @@ namespace demo {
 		,to_string
 		,tuple
 	)
-	__using( ::std::chrono::, duration, high_resolution_clock )
-	__using( ::std::filesystem::, directory_iterator, is_directory )
-	__using( ::std::meta::, identifier_of )
-	__using( ::std::numbers::, pi_v )
-	__using( ::std::ranges::, copy, count, find )
-	__using( ::std::views::
-		,concat
-		,filter
-		,join
-		,join_with
-		,single
-		,transform
-		,values
-		,zip_transform
-	)
 	__using( ::sak::, ensure )
 	__using( ::sak::fso::, text_file )
-	__using( ::sak::meta::, name_of )
-	__using( ::sak::math::
-		,absolute
-		,arccosine
-		,clamp
-		,cross
-		,dot
-		,min
-		,minus
-		,multiplies
-		,normalize
-		,plus
-		,rotate
-	)
+	__using( ::sak::math::, absolute, arccosine, clamp, cross, dot, min, minus, multiplies, normalize, plus, rotate )
 	__using( ::sak::opengl::, program, shader, vertex_array )
-	__using( ::sak::ranges::
-		,contains
-		,fold_left_first
-		,index_of
-		,lazy_transform
-		,to
-	)
-	__using( ::sak::ranges::views::, enumerate )
+	__using( ::sak::ranges::, contains, fold_left_first, index_of, lazy_transform, to )
 	__using( ::sak::sdl3::, application, window )
-	__using( ::sak::sdl3::opengl::, context )
-	__using( ::game::, fps )
+	__using( ::std::ranges::, copy, count, find )
+	__using( ::std::views::, concat, filter, join, join_with, single, transform, values, zip_transform )
 	__using_alias( ::sak::g3f::, color, position, velocity )
 	__using_static( ::sak::g3f::, zero )
 	using	direction		=	::sak::g3f::point;
@@ -247,6 +212,7 @@ namespace demo {
 	template< typename t_trait >
 	consteval auto evaluator_identifier( ) noexcept -> string_view
 	{
+		__using( ::std::meta::, identifier_of )
 		return	identifier_of( ^^t_trait );
 	}
 
@@ -302,6 +268,7 @@ namespace demo {
 		}
 		auto normal( const direction& value ) noexcept -> void
 		{
+			__using( ::std::numbers::, pi_v )
 			const direction current = normal( );
 			const direction target = normalize( value ) | to;
 			const float cosine_angle = clamp( dot( current, target ), -1.0f, 1.0f );
@@ -404,6 +371,8 @@ namespace demo {
 		//	a directory cannot hold two files with the same stem and the same extension
 		static auto load( const string& base_path ) -> table
 		{
+			__using( ::sak::ranges::views::, enumerate )
+			__using( ::std::filesystem::, directory_iterator, is_directory )
 			ensure( is_directory( base_path ), "unable to open figure directory: " + base_path );
 
 			map< string, string > text_by_name = directory_iterator( base_path )
@@ -550,6 +519,7 @@ namespace demo {
 	//	every glsl section compiled in memory with figure evaluators from the figure loader
 	auto compile_shaders( const figure_loader& loader ) -> shader::table
 	{
+		__using( ::sak::meta::, name_of )
 		ensure_figure_sources( loader );
 
 		const text_file template_file( string( shader_directory ) + "/figures.glsl" );
@@ -650,6 +620,7 @@ namespace demo {
 
 		auto run( ) -> void
 		{
+			__using( ::std::chrono::, duration, high_resolution_clock )
 			m_window.listeners( ) += shared_from_this( );
 
 			m_frame_limiter.compute( );
@@ -698,6 +669,8 @@ namespace demo {
 		void focus_lost( ) override { m_movement = { }; }
 
 	private:
+		__using_alias( ::game::, fps )
+		__using_alias( ::sak::sdl3::opengl::, context )
 		using	shader_range	=	decltype( declval< shader::table& >( ) | values );
 
 		struct key_movement
