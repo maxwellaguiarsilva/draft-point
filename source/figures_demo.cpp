@@ -27,7 +27,6 @@ namespace demo {
 		,array
 		,bind_back
 		,convertible_to
-		,declval
 		,enable_shared_from_this
 		,map
 		,pair
@@ -654,7 +653,6 @@ namespace demo {
 	private:
 		__using_alias( ::game::, fps )
 		__using_alias( ::sak::sdl3::opengl::, context )
-		using	shader_range	=	decltype( declval< shader::table& >( ) | values );
 		using	figures_ssbo	=	shader::storage_buffer< figure >;
 
 		struct key_movement
@@ -688,7 +686,7 @@ namespace demo {
 		vertex_array	m_vertex_array;
 		figure_loader	m_figure_loader;
 		shader::table	m_shaders;
-		program< shader_range >	m_shader_program;
+		program	m_shader_program;
 		fps		m_frame_limiter{ 60 };
 		velocity	m_movement{ };
 	};
