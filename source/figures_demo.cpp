@@ -139,6 +139,8 @@ namespace demo {
 			slot.m_pixel_up = slot.m_up * m_pixel_scale;
 		}
 
+		//	term deduplication that would alter this flat layout is held back
+		//	the naming rule applies only where it does not break the architecture
 		//	orientation basis plus the world-space contribution of one pixel of screen offset
 		struct payload
 		{
