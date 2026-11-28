@@ -80,8 +80,7 @@ namespace demo {
 			planar_point	m_half_screen_size;
 		};	//	total 8 floats
 
-		using	environment_ssbo	=	shader::storage_buffer< payload >;
-		environment_ssbo	m_buffer;
+		shader::storage_buffer< payload >	m_buffer;
 	};
 
 
@@ -151,8 +150,7 @@ namespace demo {
 			direction	m_pixel_up;
 		};	//	total 18 floats
 
-		using	camera_ssbo	=	shader::storage_buffer< payload >;
-		camera_ssbo	m_buffer;
+		shader::storage_buffer< payload >	m_buffer;
 		const float	m_focal;
 		const float	m_speed;
 		float		m_pixel_scale{ 0.0f };
@@ -261,9 +259,9 @@ namespace demo {
 
 			auto operator[ ]( const string_view name ) const -> const entry&
 			{
-				const string key( name );
-				ensure( contains( m_figures, key ), "unknown figure evaluator: " + key );
-				return	m_figures.at( key );
+				const string evaluator_name( name );
+				ensure( contains( m_figures, evaluator_name ), "unknown figure evaluator: " + evaluator_name );
+				return	m_figures.at( evaluator_name );
 			}
 
 			auto figures( ) const noexcept -> const table& { return m_figures; }
@@ -436,12 +434,18 @@ namespace demo {
 		auto vertices( ) const noexcept -> const data& { return m_vertices; }
 		auto vertices( const data& value ) noexcept -> void { m_vertices = value; }
 
+		template< typename t_mapping >
+		auto for_each( const t_mapping& mapping ) noexcept -> void
+		{
+			for( auto& item : m_vertices )
+				mapping( item );
+		}
+
 		auto position( ) const noexcept -> ::demo::position { return *fold_left_first( m_vertices, plus ) / t_vertex_count; }
 		auto position( const ::demo::position& value ) noexcept -> void
 		{
 			const ::demo::position offset = value - position( );
-			for( auto& vertex : m_vertices )
-				vertex += offset;
+			for_each( [ & ]( ::demo::position& item ) { item += offset; } );
 		}
 
 	protected:
@@ -475,8 +479,7 @@ namespace demo {
 			const direction axis = is_opposite ? orthogonal_axis( current ) : normalize( cross( current, target ) ) | to;
 			const float angle = is_opposite ? pi_v< float > : arccosine( cosine_angle );
 			const ::demo::position center = position( );
-			for( auto& vertex : m_vertices )
-				vertex = ( center + rotate( vertex - center, axis, angle ) ) | to;
+			for_each( [ & ]( ::demo::position& item ) { item = ( center + rotate( item - center, axis, angle ) ) | to; } );
 		}
 
 		auto parameters( ) const noexcept -> array< float, descriptor::m_parameter_count >
@@ -625,23 +628,22 @@ namespace demo {
 				m_application.quit( );
 			else if( event.key == SDLK_F11 and not event.repeat )
 				m_window.toggle_fullscreen( );
-			else if( const auto found = find( m_key_movements, event.key, &key_movement::m_key ); found not_eq m_key_movements.end( ) )
-				m_movement[ found->m_axis ] = found->m_value;
+			else if( const auto found = find( m_bindings, event.key, &key_movement::m_key ); found not_eq m_bindings.end( ) )
+				m_velocity[ found->m_axis ] = found->m_value;
 		}
 
 		void key_up( const SDL_KeyboardEvent& event ) override
 		{
-			const auto found = find( m_key_movements, event.key, &key_movement::m_key );
-			if( found not_eq m_key_movements.end( ) and m_movement[ found->m_axis ] == found->m_value )
-				m_movement[ found->m_axis ] = 0.0f;
+			const auto found = find( m_bindings, event.key, &key_movement::m_key );
+			if( found not_eq m_bindings.end( ) and m_velocity[ found->m_axis ] == found->m_value )
+				m_velocity[ found->m_axis ] = 0.0f;
 		}
 
-		void focus_lost( ) override { m_movement = { }; }
+		void focus_lost( ) override { m_velocity = { }; }
 
 	private:
 		__using_alias( ::game::, fps )
 		__using_alias( ::sak::sdl3::opengl::, context )
-		using	instances_ssbo	=	shader::storage_buffer< figure::payload<> >;
 
 		struct key_movement
 		{
@@ -650,7 +652,7 @@ namespace demo {
 			float		m_value;
 		};
 
-		static constexpr array< key_movement, 4 > m_key_movements{ {
+		static constexpr array< key_movement, 4 > m_bindings{ {
 			 { SDLK_W, 1, 1.0f }
 			,{ SDLK_S, 1, -1.0f }
 			,{ SDLK_A, 0, -1.0f }
@@ -659,9 +661,9 @@ namespace demo {
 
 		auto update( const float delta_seconds ) -> void
 		{
-			if( m_movement == zero )
+			if( m_velocity == zero )
 				return;
-			m_camera.move( m_movement, delta_seconds );
+			m_camera.move( m_velocity, delta_seconds );
 			m_camera.flush( );
 		}
 
@@ -670,13 +672,13 @@ namespace demo {
 		context		m_context;
 		environment	m_environment;
 		camera		m_camera;
-		instances_ssbo	m_instances;
+		shader::storage_buffer< figure::payload<> >	m_instances;
 		vertex_array	m_vertex_array;
 		figure::loader	m_loader;
 		shader::table	m_shaders;
 		program	m_shader_program;
 		fps		m_frame_limiter{ 60 };
-		velocity	m_movement{ };
+		velocity	m_velocity{ };
 	};
 
 
