@@ -9,3 +9,4 @@
 - Use the `::demo::` prefix only where it is strictly necessary — done
 - Drop the `mirrored` wrapper and access the single SSBO slot directly — done
 - Bind each storage buffer in its constructor through the optional index argument — done
+- Generalize the help message to mention figures instead of the two specific shapes — done
