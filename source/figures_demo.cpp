@@ -710,8 +710,8 @@ auto main( const int argument_count, const char* argument_values[ ] ) -> int
 	const vector< string > arguments( argument_values, argument_values + argument_count );
 	if( contains( arguments, { "-h", "--help" } ) )
 		return	println(
-			"this executable renders figures through the agnostic pipeline;"
-			" use w a s d to move the camera, f11 toggles fullscreen and escape quits"
+			"this executable renders figures through the agnostic pipeline;\n"
+			"use w a s d to move the camera, f11 toggles fullscreen and escape quits"
 		), exit_success;
 
 	try
